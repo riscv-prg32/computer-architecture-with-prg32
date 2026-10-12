@@ -1,0 +1,506 @@
+% ============================================================================
+%  Chapter 3 -- History of Computing                             (Lecture 03)
+% ============================================================================
+\chapter{History of Computing}
+\label{ch:history}
+
+\epigraphline{\texttt{printf("Hello, world!");}}
+  {Brian Kernighan and Dennis Ritchie, \emph{The C Programming Language}, 1978}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item define informatics and say why it is not the science of computers;
+\item place the key machines and people on a timeline, from the abacus to the
+  stored-program computer;
+\item name the four units of the von Neumann architecture and find them in the
+  machine programmed in Chapter~\ref{ch:firstcontact};
+\item explain what RISC means and why \riscv is an open instruction set;
+\item describe where informatics sits between science, engineering and the economy.
+\end{itemize}
+\end{chapgoals}
+
+The reader has already run a \riscv program. This chapter tells where that
+machine comes from. It is not a chronicle: of the thousands of machines and
+people that the history of computing could list, it keeps those that added an
+idea which is still inside the ESP32-C6 on the breadboard. The thread to
+follow is that, at every stage, somebody found a new way of doing one of two
+things: \emph{representing} information in a physical object, or
+\emph{prescribing} a sequence of operations to be carried out without further
+thought.
+
+% ----------------------------------------------------------------------------
+\section{What is informatics?}
+
+\begin{definition}{Informatics}
+Informatics is the applied science that deals with the treatment of
+information by means of automated procedures.
+\end{definition}
+
+The Italian word \emph{informatica} comes from the French \emph{informatique},
+a contraction of \emph{information automatique}. English says \emph{computer
+science} and, increasingly, \emph{informatics}. The tool of the discipline
+is called \emph{elaboratore} or \emph{calcolatore} in Italian,
+\emph{ordinateur} in French, \emph{computer} in English. The English name of
+the discipline has the defect of putting the tool in the place of the subject,
+a defect that a sentence attributed to Edsger W.\ Dijkstra corrects:
+
+\begin{quote}\itshape
+Computer science is no more about computers than astronomy is about telescopes.
+\end{quote}
+
+The machine is the instrument, not the subject. In this book the instrument
+is studied closely precisely so that it stops being a mystery.
+
+The discipline has two souls. \emph{Theoretical informatics} studies the
+foundations of information and computation at the logical level: what can be
+computed, and at what cost. Its central object is the \term{algorithm}, a
+finite set of operations that describes the transformation of a datum $A$ into
+a result $B$. \emph{Applied informatics} studies the enabling technologies
+and the information systems built with them. It is pervasive, a driver of
+economic development and of the whole sector of information and communication
+technologies, a STEM discipline at the heart of an industrial revolution; and
+it has a social cost that must be managed, the \term{digital divide} between
+those who have access to these technologies and those who do not.
+
+% ----------------------------------------------------------------------------
+\section{Before electricity}
+
+For three thousand years people have built machines to help them calculate.
+
+\subsection{Origins: the abacus and the Antikythera mechanism}
+
+Babylonians, Chinese, Greeks and Romans all used counting frames
+(Figure~\ref{fig:hist:origins}). In an abacus a number \emph{is} a position
+of beads, and an addition \emph{is} a movement of the fingers: the device is a
+physical representation of data and of operations. The Antikythera mechanism,
+recovered from a shipwreck and built between the second and the first century
+before Christ (most estimates fall between about 205 and 60~BC), is the oldest
+known geared calculator: its dials computed astronomical positions and
+eclipses, and in it a number is the angle of a gear.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{abacus_roman.jpg}\caption{Roman hand abacus}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{abacus_chinese.jpg}\caption{Chinese \emph{suanpan}}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{antikythera.jpg}\caption{Antikythera mechanism}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{antikythera_plate.jpg}\caption{One of its plates}\end{subfigure}
+\caption{Origins: a number becomes a position of beads or the angle of a gear.}
+\label{fig:hist:origins}
+\end{figure}
+
+\begin{prgconcept}
+Representation comes before calculation. Before anything can be computed,
+something physical must stand for a number.
+\end{prgconcept}
+
+\subsection{The medieval Islamic world}
+
+Between the ninth and the thirteenth century the scholars of the Islamic world
+preserved the science of antiquity and added to it three things that concern
+this story. The first is a family of astronomical instruments, the mechanical
+astrolabe (Figure~\ref{fig:hist:astrolabe}) and the torquetum, which are
+analogue computers for the positions of the stars. The second is
+cryptanalysis: in the ninth century al-Kindi described frequency analysis, the
+method of breaking a cipher by counting how often each symbol occurs. The
+third is the programmable machine: the automatic flute player of the Ban\=u
+M\=us\=a brothers, and the weight-driven clocks and automata of al-Jazari
+(1206), whose behaviour could be changed by rearranging pegs.
+
+The very word \emph{algorithm} comes from the name of the mathematician
+al-Khw\=arizm\=\i, as \emph{algebra} comes from the title of his book.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{astrolabe.jpg}\caption{A brass astrolabe}\label{fig:hist:astrolabe}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{pascaline.jpg}\caption{A Pascaline}\label{fig:hist:pascaline}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{leibniz_reckoner.jpg}\caption{Leibniz's reckoner}\end{subfigure}
+\caption{Instruments and calculators before 1700.}
+\end{figure}
+
+\subsection{From 1600 to 1800: mechanical calculators and logic}
+
+The seventeenth century built the first mechanical calculators. Napier's
+tables of logarithms (1614) turned multiplications into additions. Blaise
+Pascal's \emph{Pascaline} (1642) added and subtracted, and its real invention
+was the automatic \term{carry}: each wheel is one decimal digit
+(Figure~\ref{fig:hist:pascaline}), and a wheel that passes from 9 to 0 pushes
+its neighbour forward by one step, exactly as the full adder of
+Chapter~\ref{ch:combinational} will do with bits. Leibniz's stepped reckoner
+(1673) performed the four operations.
+
+The same Leibniz described binary arithmetic in 1703, and a century and a half
+later George Boole, in \emph{The Laws of Thought} (1854), showed that logic
+can be treated as an algebra \citep{boole1854}: the subject of Chapters
+\ref{ch:boole1} and~\ref{ch:boole2}.
+
+Meanwhile a machine that had nothing to do with numbers introduced the stored
+program. In Jacquard's loom (1804) the pattern of the cloth is recorded on a
+chain of punched cards: change the cards, and the same loom weaves a different
+pattern.
+
+\subsection{The 1800s: Charles Babbage and Ada Lovelace}
+
+Charles Babbage put the two lines together
+(Figure~\ref{fig:hist:babbage}). His \emph{Difference Engine} computed
+mathematical tables automatically. His \emph{Analytical Engine}, designed but
+never completed, was a general-purpose computer in everything but technology:
+it had a \emph{mill}, the arithmetic unit; a control unit; a \emph{store}, the
+memory; and an output device. Programs and data were to be supplied on
+punched cards, borrowed from the Jacquard loom.
+
+Ada Lovelace devised a method for programming the Analytical Engine. Her
+notes of 1843 contain what is regarded as the first published program, for
+computing the Bernoulli numbers, and she is regarded as the first programmer
+in history.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{difference_engine.jpg}\caption{Difference Engine}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{analytical_engine.jpg}\caption{Analytical Engine}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{punched_cards.jpg}\caption{Punched cards}\end{subfigure}
+\caption{The machines of Charles Babbage.}
+\label{fig:hist:babbage}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{The twentieth century}
+
+The twentieth century produced the idea of a universal machine, and then the
+machines that made it real. The theory came first.
+
+\subsection{Turing, Shannon and Nakajima}
+
+In 1936 Alan Turing defined an abstract universal machine, and with it the
+notion of what can be computed \citep{turing1936}. During the war he worked
+at Bletchley Park on breaking the German Enigma cipher
+(Figure~\ref{fig:hist:enigma}).
+
+In the same years Akira Nakajima in Japan and Claude Shannon in the United
+States founded the theory of switching circuits: Boolean algebra describes
+circuits made of switches \citep{shannon1938}. It is the principle on which
+all digital design rests, and the bridge between the logic of Chapters
+\ref{ch:boole1}--\ref{ch:boole2} and the circuits of Chapters
+\ref{ch:electronics}--\ref{ch:combinational}.
+
+In Germany Konrad Zuse built the Z3 (1941), the first working computer
+controlled by a program, which was shown in 1998 to be Turing-complete; its
+successor, the Z4, was one of the first computers to be sold commercially.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{enigma.jpg}\caption{An Enigma machine}\label{fig:hist:enigma}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{zuse_z3.jpg}\caption{Zuse Z3 (replica)}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{colossus.jpg}\caption{Colossus}\end{subfigure}
+\caption{Machines of the 1940s.}
+\end{figure}
+
+\subsection{John von Neumann: the stored-program computer}
+
+In 1945 the report on the EDVAC, signed by John von Neumann, described a
+hardware architecture for programmable digital computers
+\citep{vonneumann1945}. Its heart is one idea.
+
+\begin{prgconcept}[The stored program]
+Program and data share the same memory: \emph{a program is data}.
+Instructions are numbers kept in memory, fetched and executed one after
+another.
+\end{prgconcept}
+
+The architecture has four essential units (Figure~\ref{fig:hist:vn}): a
+\term{control unit}, which governs the sequence of operations; an
+\term{arithmetic logic unit} (ALU), with its accumulator register; a
+\term{memory}; and devices for \term{input} and \term{output}.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=6mm and 8mm]
+  \node[blk,fill=prgsteel,text=white,minimum width=62mm,minimum height=11mm] (m) {\textbf{Memory}: program and data};
+  \node[blk,fill=prgaccent,text=white,minimum width=27mm,minimum height=15mm,below left=10mm and -27mm of m] (cu) {\textbf{Control unit}};
+  \node[blk,fill=prgamber,text=white,minimum width=27mm,minimum height=15mm,below right=10mm and -27mm of m] (alu) {\textbf{ALU}\\(accumulator)};
+  \node[blk,fill=prggreen,text=white,minimum width=27mm,below=10mm of cu] (in) {\textbf{Input}};
+  \node[blk,fill=prggreen,text=white,minimum width=27mm,below=10mm of alu] (out) {\textbf{Output}};
+  \draw[<->,thick] (cu.north) -- (cu.north|-m.south);
+  \draw[<->,thick] (alu.north) -- (alu.north|-m.south);
+  \draw[<->,thick] (cu) -- (alu);
+  \draw[->,thick] (in) -- (cu);
+  \draw[->,thick] (alu) -- (out);
+\end{tikzpicture}
+\caption{The four units of the von Neumann architecture.}
+\label{fig:hist:vn}
+\end{figure}
+
+\begin{prgmachine}
+The ESP32-C6 is still a von Neumann machine, and its four units were all at
+work in Chapter~\ref{ch:firstcontact}. The registers and the ALU executed
+\code{addi t1, t1, 1}; the control unit decided that the next instruction was
+\ins{sw}; memory held the variable \code{counter} \emph{and the instructions
+themselves}, among them the number \hex{00130313}; the joystick and the
+display are input and output.
+\end{prgmachine}
+
+\subsection{Eight decades of computers}
+
+Since then each decade has made the computer smaller, cheaper and closer to
+people (Table~\ref{tab:hist:decades}, Figure~\ref{fig:hist:decades}); none of
+them has changed the stored-program idea.
+
+\begin{table}[htb]
+\centering\small
+\caption{Eight decades of computers.}\label{tab:hist:decades}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Decade} & \textbf{Era} & \textbf{What changed}\\
+\midrule
+1940s & Wartime & ENIAC (USA) and Colossus (UK), 1943--45\\
+1950s & Military and government & EDVAC, 1949: the stored program\\
+1960s & Mainframe computing & one machine, many users\\
+1970s & Minicomputers & a computer per department\\
+1980s & Personal computing & a computer per person\\
+1990s & The Internet & computers connect\\
+2000s & Smartphones and tablets & a computer in the pocket\\
+2010s & Cloud computing & computing as a service\\
+2020s & Internet of Things and AI & computers everywhere\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{eniac.png}\caption{ENIAC}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{mainframe.jpg}\caption{A mainframe}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{minicomputer.jpg}\caption{A minicomputer}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{c64.jpg}\caption{Commodore 64}\end{subfigure}
+\caption{From a room to a desk in forty years.}
+\label{fig:hist:decades}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{From home computers to RISC-V}
+
+\subsection{Microprocessors: from CISC to RISC to an open standard}
+
+The processor of the \prg kit is the way it is because of a sequence of
+decisions taken over fifty years (Table~\ref{tab:hist:cpu}). The first
+microprocessors grew by accretion: each generation added instructions, often
+complicated ones, to make the work of compilers and of assembly programmers
+easier. The result is called a \term{complex instruction set computer}
+(CISC), and the x86 family, born in 1978, still carries that inheritance in
+today's personal computers.
+
+At the beginning of the 1980s two university projects, at Berkeley and at
+Stanford, measured what programs actually do, and found that a processor with
+few, simple and regular instructions can be made to run faster than one with
+many complicated ones. This is the idea of the \term{reduced instruction set
+computer} (RISC), for which David Patterson and John Hennessy received the
+Turing Award in 2017. ARM applied it to low power, and ARM cores are today in
+nearly every telephone. In 2010 the fifth RISC design of Berkeley became
+something new: an instruction set published as an \emph{open standard}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Microprocessors: from CISC to RISC to an open standard.}\label{tab:hist:cpu}
+\begin{tabularx}{\textwidth}{@{}lP{0.31\textwidth}L@{}}
+\toprule
+\textbf{Year} & \textbf{Milestone} & \textbf{Why it matters}\\
+\midrule
+1971 & Intel 4004 & the first commercial microprocessor: 2\,300 transistors on one chip\\
+1975 & MOS 6502 & a cheap 8-bit CPU: Apple II, Commodore 64, the home-computer era\\
+1978 & Intel 8086 & the start of x86, a complex instruction set (CISC) still in today's PCs\\
+1980--82 & Berkeley RISC and Stanford MIPS & few, simple, regular instructions run faster: the RISC idea\\
+1985 & ARM1 & RISC for low power: today in nearly every telephone\\
+2010 & \riscv starts at UC Berkeley & the fifth Berkeley RISC design becomes an open instruction set\\
+2015--20 & RISC-V Foundation, then RISC-V International & a shared specification, governed from Switzerland\\
+2023--25 & European Chips Act; the DARE project & \riscv as a strategy for European technological sovereignty\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{definition}{RISC-V}
+\riscv is an open standard \term{instruction set architecture}: the
+specification of the instructions, of the registers and of their encoding is
+public, and anyone may design, build and sell a processor that implements it
+without paying a licence for the architecture.
+\end{definition}
+
+\riscv is therefore not a processor, and it was not the first RISC: Berkeley
+RISC, MIPS and ARM came earlier. What distinguishes it from x86 and from ARM
+is openness.
+
+\subsection{Moore's law in one number}
+
+The Intel 4004 of 1971 had 2\,300 transistors. A laptop processor of today
+has tens of thousands of millions: a growth by a factor of about ten million.
+For fifty years the number of transistors on a chip has doubled about every
+two years, an observation made by Gordon Moore in 1965 and revised in 1975
+\citep{moore1965}. It is an observation about an industry, not a law of
+nature, and its physical limits are now close. Progress comes increasingly
+from better architectures, from specialised accelerators and from open
+designs, which is why architecture, the subject of this book, matters more
+than ever. Chapter~\ref{ch:beyond} takes up the story from here.
+
+\subsection{The home-computer spirit, on a modern open CPU}
+
+The home computers of the 1980s had a quality that later machines lost: one
+person could understand all of one. \prg was designed to give that quality
+back, on the architecture that students will meet in industry
+(Table~\ref{tab:hist:c64}). The screen has the same size, and the same
+immediacy, forty years apart.
+
+\begin{table}[htb]
+\centering\small
+\caption{A Commodore~64 and \prg.}\label{tab:hist:c64}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+ & \textbf{Commodore 64 (1982), MOS 6510} & \textbf{\prg on ESP32-C6, \riscv}\\
+\midrule
+Word size & 8 bits & 32 bits\\
+Registers & A, X, Y (plus stack pointer, status, PC) & 32 general-purpose registers, \reg{x0} to \reg{x31}\\
+Clock & about 1 MHz & 160 MHz\\
+Address space & 64 KB & 4 GB\\
+Instruction set & 56 instructions, proprietary & about 40 base instructions plus extensions, open standard\\
+Screen & 320 by 200 pixels, 16 colours & 320 by 200 viewport, 256-entry RGB565 palette\\
+Programmed by & typing on the machine itself & building a cartridge and uploading it\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The 6502 is still a pleasure to explore, for instance with the simulator at
+\url{https://skilldrick.github.io/easy6502}.
+
+\subsection{Retro games as specimens}
+
+A biologist studies a fruit fly not because flies are important but because a
+fly is small enough to be understood completely and rich enough to show how
+heredity works. A retro game plays the same part here
+(Figure~\ref{fig:hist:games}): it is small enough to be held in one's head and
+rich enough to exercise state, input, arithmetic, decisions and a loop, which
+is to say the whole course. The four games of the figure are example
+cartridges of the \prg repository (\fname{examples/games}).
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_pong.png}\caption{Pong}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_breakout.png}\caption{Breakout}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_tetris.png}\caption{Tetris}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_asteroids.png}\caption{Asteroids}\end{subfigure}
+\caption{Retro games as specimens.}
+\label{fig:hist:games}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Informatics as an applied science}
+
+Where does informatics sit among the sciences? An example from the
+Department in which this book was written makes the answer concrete
+(Figure~\ref{fig:hist:chain}). A storm forms over the sea: a natural
+phenomenon. Physics and mathematics, the basic sciences, describe it with
+equations. Informatics, an applied science, turns the equations into
+algorithms and simulations. Engineering builds the supercomputers, the
+networks and the sensors that run them reliably. And the economy receives
+forecasts and services that reach people and create value. The weather and
+marine forecasts of \url{https://meteo.uniparthenope.it} are computed every
+day in this way, on the Department's own high-performance systems.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=22mm,minimum height=17mm] (a) {\textbf{Natural phenomenon}\\[1pt]\footnotesize a storm};
+  \node[blkamb,text width=22mm,minimum height=17mm,right=of a] (b) {\textbf{Basic sciences}\\[1pt]\footnotesize equations};
+  \node[blkvio,text width=22mm,minimum height=17mm,right=of b] (c) {\textbf{Applied sciences}\\[1pt]\footnotesize algorithms};
+  \node[blkgrn,text width=22mm,minimum height=17mm,right=of c] (d) {\textbf{Engineering}\\[1pt]\footnotesize systems};
+  \node[blkred,text width=22mm,minimum height=17mm,right=of d] (e) {\textbf{Economy}\\[1pt]\footnotesize services};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Where informatics sits.}
+\label{fig:hist:chain}
+\end{figure}
+
+The same ideas that are practised in this book on a microcontroller at
+160~MHz scale up to clusters (Figure~\ref{fig:hist:hpc}): registers, memory,
+instructions, only many more of them.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{cluster_1.jpg}\caption{A teaching cluster}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{cluster_2.jpg}\caption{A parallel simulation}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{rcf_page.png}\caption{\url{rcf.uniparthenope.it}}\end{subfigure}
+\caption{High-performance computing at Parthenope: mini PCs with GPUs on a
+10~Gbit network, and the Research Computing Facilities.}
+\label{fig:hist:hpc}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{Which idea is the heart of the von Neumann architecture?}
+\item The processor has exactly four registers
+\item Program and data are stored in the same memory
+\item Every instruction takes one clock cycle
+\item Input and output are optional
+\end{quiz}
+
+\begin{quiz}{What makes \riscv different from x86 and ARM?}
+\item It is the fastest instruction set
+\item It was the first RISC architecture
+\item Its instruction set is an open standard, free to implement
+\item It works only on microcontrollers
+\end{quiz}
+
+\begin{quiz}{Who is regarded as the first programmer in history?}
+\item Charles Babbage
+\item Alan Turing
+\item Ada Lovelace
+\item Konrad Zuse
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Draw the four units of the von Neumann architecture and write, inside
+  each, one thing of the program of Chapter~\ref{ch:firstcontact} that lives
+  or happens there.
+\item For each of the following, say whether it is a new way of
+  \emph{representing} information or a new way of \emph{prescribing}
+  operations: the abacus, the Jacquard loom, the Pascaline, Boole's algebra,
+  the punched cards of the Analytical Engine, the stored program.
+\item Download two of the four games of Figure~\ref{fig:hist:games} from the
+  Store or build them from \fname{examples/games}. With the counters of the
+  debugger, find how many instructions each executes per frame, and compare
+  the two games.
+\end{enumerate}
+\expected{Registers and ALU: \ins{addi} was executed there. Memory: the
+counter, and the instructions themselves. Control unit: the fetch of each
+instruction. Input/output: the bar on the screen. The stored program belongs
+to both classes: a program is itself represented information.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+computer science / informatics & informatica\\
+computer & calcolatore, elaboratore\\
+punched card & scheda perforata\\
+loom & telaio\\
+mainframe & mainframe, grande elaboratore\\
+stored program & programma memorizzato\\
+control unit & unit\`a di controllo\\
+arithmetic logic unit & unit\`a aritmetico-logica\\
+instruction set & insieme (set) di istruzioni\\
+high-performance computing & calcolo ad alte prestazioni\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Computing is older than electronics: representation and procedure came first.
+The stored-program computer of 1945 is still the machine that is programmed
+today. RISC made processors simple enough to be understood whole; \riscv made
+them open. Informatics is pervasive: digital information belongs to every
+field, data are its currency, and algorithms turn data into decisions.
+
+\paragraph{Reading.} \citet{patterson2020}, chapter~1; \emph{Playing with
+RISC-V}, chapter~1, ``Why a Game, Why RISC-V, Why Now''
+\citep{prg32textbook}; Charles Petzold, \emph{Code: The Hidden Language of
+Computer Hardware and Software}; for the history in depth,
+\citet{ceruzzi2003}.

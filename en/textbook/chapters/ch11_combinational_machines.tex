@@ -1,0 +1,716 @@
+% ============================================================================
+%  Chapter 11 -- Combinational Machines                          (Lecture 11)
+% ============================================================================
+\chapter{Combinational Machines}
+\label{ch:combinational}
+
+\epigraphline{\ldots it's not my fault, the carrots touched the peas\ldots}
+  {Alan Turing as a boy, in the film \emph{The Imitation Game}, 2014}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item tell a combinational machine from a sequential one;
+\item compute how many bits a fixed-length code needs, and recognise incomplete and redundant codes;
+\item design a decoder and an encoder, and compose small decoders into larger ones;
+\item explain what a multiplexer and a demultiplexer do, and build them from gates;
+\item build a comparator and a parity network, and say what a parity check can and cannot detect;
+\item point to each of these machines inside a \riscv processor.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={Choose one of four colours.},label=lst:cm:palette]{code/l11/s04.S}
+
+Listing~\ref{lst:cm:palette} is the array access of
+Chapter~\ref{ch:information}, used as a selection. The same selector always
+gives the same colour: the result depends only on the present inputs, and
+nothing is remembered from one use to the next. In hardware this is a
+\term{multiplexer}: four data inputs, two selection bits, one output. A
+processor contains dozens of them, and makes the selection with gates in well
+under a nanosecond, where the program takes four instructions. How are they
+built?
+
+% ----------------------------------------------------------------------------
+\section{Combinational machines}
+
+\subsection{A taxonomy of digital circuits}
+
+\begin{definition}{Combinational and sequential circuits}
+In a \term{combinational} circuit the value of the outputs at a given instant
+depends only on the value of the inputs at that same instant. In a
+\term{sequential} circuit the outputs depend on the present inputs and on the
+past history of the inputs.
+\end{definition}
+
+A combinational circuit has no memory and no feedback loops, and is completely
+described by a truth table: adders, decoders, multiplexers and the ALU are
+combinational. A sequential circuit needs the concepts of \emph{time} and of
+\emph{state}, and is described by a state table or a state diagram: latches,
+flip-flops, registers, counters and the processor as a whole are sequential.
+They are the subject of Chapter~\ref{ch:sequential}.
+
+\subsection{Designing a combinational machine}
+
+The design follows the method of Chapter~\ref{ch:boole2}
+(Figure~\ref{fig:cm:design}): from a specification in words to a truth table,
+with one row per combination of the inputs and with the don't-cares; from the
+table to minimal expressions, one output at a time; from the expressions to a
+network of gates, or of standard blocks. Analysis runs the other way, from
+the schematic to the truth table. For more than four or five inputs nobody
+draws maps: designers compose standard blocks, which is why this chapter is a
+catalogue of them.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=5mm]
+  \node[blkacc,text width=27mm,minimum height=16mm] (a) {\textbf{Specification}\\[1pt]\footnotesize in words};
+  \node[blkamb,text width=27mm,minimum height=16mm,right=of a] (b) {\textbf{Truth table}\\[1pt]\footnotesize with don't-cares};
+  \node[blkvio,text width=27mm,minimum height=16mm,right=of b] (c) {\textbf{Minimisation}\\[1pt]\footnotesize maps or algebra};
+  \node[blkgrn,text width=27mm,minimum height=16mm,right=of c] (d) {\textbf{Network}\\[1pt]\footnotesize gates or blocks};
+  \foreach \x/\y in {a/b,b/c,c/d} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{The synthesis of a combinational machine.}
+\label{fig:cm:design}
+\end{figure}
+
+\subsection{Real gates take time}
+
+A gate does not answer instantly: its output settles after a propagation
+delay (Chapter~\ref{ch:electronics}). The delay of a network is that of its
+slowest path from an input to an output, the \term{critical path}. While the
+signals travel, the outputs can be temporarily wrong.
+
+\begin{prgconcept}
+A combinational machine is correct only after it has settled. Something must
+say when to look at its outputs: that something is the clock, and it is where
+sequential machines begin.
+\end{prgconcept}
+
+In the ripple-carry adder of Chapter~\ref{ch:boole2} the critical path
+crosses all thirty-two full adders, because the last carry depends on the
+first. Faster adders, such as the \emph{carry look-ahead} adder, compute the
+carries with additional gates arranged in a few levels: they spend area to
+shorten the critical path. The function computed is the same. The clock
+period of a processor must be longer than its longest critical path.
+
+% ----------------------------------------------------------------------------
+\section{Codes}
+
+Before building machines that treat codes, it must be clear what a code is.
+
+\subsection{The concept of information}
+
+A piece of information has three aspects. The \term{attribute} is the meaning
+associated with it: for example, the mark of the Computer Architecture exam.
+The \term{type} is the set of elements among which the value is chosen: the
+marks from 18 to 30, and 30 with honours. The \term{value} is the element
+actually taken: 30. To give information is to choose one element in a defined
+set.
+
+The \term{cardinality} $N$ of the type is the number of its elements, here
+$N=14$; a type with more elements carries more information. The same value
+can be written in many ways: 3, III, three; and A, B, C, D can stand for 30
+with honours, 30, 29, 28. ``30 with honours'' is not a number: it is a
+fourteenth element of the type, and how to write it is a problem of encoding.
+Finally, types are \emph{simple} when they are atomic, such as integers and
+characters, and \emph{structured} when they combine simple ones: a position is
+a latitude and a longitude.
+
+\subsection{Alphabets and strings}
+
+\begin{definition}{Alphabet and string}
+An \term{alphabet} is a finite, non-empty set of symbols. A \term{string}, or
+word, over an alphabet is a finite sequence of its symbols. The
+\term{length} $|x|$ of a string $x$ is the number of its symbols; the string
+of length 0 is the empty string. The set of all the strings over an alphabet
+$S$, the empty one included, is written $S^{*}$.
+\end{definition}
+
+The binary alphabet is $\{0,1\}$, the decimal one $\{0,\dots,9\}$;
+\texttt{01000010} is a binary string of length 8. An infinite sequence
+$010101\ldots$ is not a string, and does not belong to $\{0,1\}^{*}$.
+
+\subsection{Codes of fixed length}
+
+\begin{definition}{Code}
+A \term{code} maps every element of a source type $T$, of cardinality $N$, to
+a string of symbols of a code alphabet $E$ with $k$ symbols, the \term{code
+word}. In a code of \term{fixed length} every code word has the same length
+$m$.
+\end{definition}
+
+\begin{theorem}{Minimum length}
+With an alphabet of $k$ symbols there are $k^{m}$ words of length $m$. A
+fixed-length code for $N$ elements exists if and only if $k^{m}\ge N$, so that
+the minimum length is
+\[ m=\lceil \log_k N\rceil,\qquad\text{and in binary}\qquad m=\lceil\log_2 N\rceil . \]
+\end{theorem}
+
+The fourteen marks of the exam need 4 bits; the 32 registers of \riscv need
+exactly 5, and those five bits are the fields \code{rd}, \code{rs1} and
+\code{rs2} of an instruction. A code is \term{incomplete} when $N$ is not a
+power of $k$: then $k^{m}-N$ words are left unassigned. The fourteen marks
+leave $16-14=2$ words unassigned.
+
+\subsection{An incomplete code: binary-coded decimal}
+
+The ten decimal digits need $\lceil\log_2 10\rceil=4$ bits, and six of the
+sixteen words are never used (Table~\ref{tab:cm:bcd}). In the code BCD~8421,
+where each digit is written as its value in binary, the unused words are 1010
+to 1111. Unused words become don't-care conditions when a circuit is designed.
+
+\begin{table}[htb]
+\centering\small
+\caption{Two codes for the decimal digits.}\label{tab:cm:bcd}
+\begin{tabular}{@{}ccc@{\qquad\qquad}ccc@{}}
+\toprule
+\textbf{Digit} & \textbf{BCD 8421} & \textbf{Excess-3} & \textbf{Digit} & \textbf{BCD 8421} & \textbf{Excess-3}\\
+\midrule
+0 & \texttt{0000} & \texttt{0011} & 5 & \texttt{0101} & \texttt{1000}\\
+1 & \texttt{0001} & \texttt{0100} & 6 & \texttt{0110} & \texttt{1001}\\
+2 & \texttt{0010} & \texttt{0101} & 7 & \texttt{0111} & \texttt{1010}\\
+3 & \texttt{0011} & \texttt{0110} & 8 & \texttt{1000} & \texttt{1011}\\
+4 & \texttt{0100} & \texttt{0111} & 9 & \texttt{1001} & \texttt{1100}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Redundant codes}
+
+\begin{definition}{Redundant code}
+A code is \term{redundant} when it uses more symbols than strictly necessary:
+its length is greater than the minimum $m$.
+\end{definition}
+
+In a redundant code only some of the possible words are legal; the others
+cannot be produced by the encoder. If a word arrives that is not legal,
+something has altered it on the way: the error is \emph{detected}.
+Redundancy is the price paid to detect, and sometimes to correct, errors.
+
+\begin{center}\small
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Element} & \textbf{Code 1} & \textbf{Code 2}\\
+\midrule
+A & \texttt{00} & \texttt{000}\\
+B & \texttt{01} & \texttt{011}\\
+C & \texttt{10} & \texttt{101}\\
+D & \texttt{11} & \texttt{110}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Code~1 is not redundant: every word of two bits is legal, so that an altered
+bit turns one element into another without anyone noticing. Code~2 adds a
+third bit that makes the number of 1s even. The words 001, 010, 100 and 111
+are not legal, and a single altered bit is always detected. Code~2 is Code~1
+plus a bit of \emph{even parity}; the machines that compute it come later in
+the chapter.
+
+\subsection{Codes of variable length}
+
+In a code of \term{variable length} the length of the code word depends on the
+element: frequent elements receive short words. Such a code must have the
+\term{prefix property}: no code word is the beginning of a longer one, so that
+the reader always knows where a word ends. It pays when the elements do not
+all have the same probability: less space in memory, less time in
+transmission. Morse code and Huffman coding are the classic examples, and the
+reader has already met two more.
+
+\begin{itemize}
+\item \textbf{UTF-8}: one to four bytes per character
+  (Chapter~\ref{ch:information}).
+\item \textbf{RISC-V instructions on the kit}: with the C extension each
+  instruction is 16 or 32 bits long. An instruction whose two least
+  significant bits are \texttt{11} is 32 bits long; any other pattern marks an
+  instruction of 16 bits. The length is written in the code word itself.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Decoders and encoders}
+
+\subsection{The decoded representation}
+
+At the opposite extreme from the compact code there is the \term{decoded}
+representation, also called \emph{one-hot}: a code in which the length of the
+word equals the cardinality of the set, $m=N$, and every code word has exactly
+one bit at 1. There is one line per element: \texttt{0010} means that the
+third of four elements is the one chosen. The representation is simple to
+use, because the active line directly selects something, but costly in wires.
+The rule of use is: a compact code inside a word, a decoded representation
+where a choice must be acted upon. The seven lamps of
+Chapter~\ref{ch:boole1} are a decoded representation of a bit number.
+
+\subsection{The decoder}
+
+\begin{definition}{Decoder}
+A \term{decoder} receives a code word of $m$ bits and asserts the one output
+line, out of $N=2^{m}$, that corresponds to it.
+\end{definition}
+
+Each output is a minterm of the inputs: a decoder generates all of them
+(Figure~\ref{fig:cm:decoder}). With an \term{enable} input EN, no output is
+asserted when $\mathrm{EN}=0$.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.4\textwidth}\centering\small\ttfamily
+\begin{tabular}{cc|cccc}
+\textrm{$B$}&\textrm{$A$}&\textrm{$U_0$}&\textrm{$U_1$}&\textrm{$U_2$}&\textrm{$U_3$}\\\hline
+0&0&\textbf{1}&0&0&0\\0&1&0&\textbf{1}&0&0\\1&0&0&0&\textbf{1}&0\\1&1&0&0&0&\textbf{1}
+\end{tabular}
+\[\begin{aligned}U_0&=\nott{B}\,\nott{A} & U_1&=\nott{B}\,A\\ U_2&=B\,\nott{A} & U_3&=B\,A\end{aligned}\]
+\end{minipage}\hfill
+\begin{minipage}{0.56\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,4.6) node[above]{$B$} -- (0,-0.4);
+  \draw (1.6,4.6) node[above]{$A$} -- (1.6,-0.4);
+  \draw (0,4.2) node[circ]{} -- (0.35,4.2) node[not port,anchor=in,scale=0.6](nb){};
+  \draw (nb.out) -| (0.95,-0.4);
+  \draw (1.6,4.2) node[circ]{} -- (1.95,4.2) node[not port,anchor=in,scale=0.6](na){};
+  \draw (na.out) -| (2.55,-0.4);
+  \foreach \k/\y/\xb/\xa in {0/3.2/0.95/2.55, 1/2.2/0.95/1.6, 2/1.2/0/2.55, 3/0.2/0/1.6}{
+    \node[and port] (g\k) at (5,\y) {};
+    \draw (\xb,0|-g\k.in 1) node[circ]{} -- (g\k.in 1);
+    \draw (\xa,0|-g\k.in 2) node[circ]{} -- (g\k.in 2);
+    \draw (g\k.out) -- ++(0.3,0) node[right]{$U_\k$};
+  }
+\end{circuitikz}
+\end{minipage}
+\caption{The 2-to-4 decoder ($A$ is the least significant bit).}
+\label{fig:cm:decoder}
+\end{figure}
+
+\subsection{Composing decoders}
+
+Large decoders are built from small ones. Figure~\ref{fig:cm:dec16} builds a
+4-to-16 decoder from five 2-to-4 decoders with enable: the first decodes the
+two high bits and enables one of the four others; the enabled one decodes the
+two low bits, which go to all four, and asserts one of its four lines. Five
+small decoders select one line of sixteen. Standard parts existed for this:
+the SN74139 holds two 2-to-4 decoders with enable in one package. (In the
+real part the enable and the outputs are active-low, a detail omitted here.)
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[d/.style={blkacc,minimum width=30mm,minimum height=8mm}]
+  \node[blkamb,minimum width=30mm,minimum height=12mm] (h) at (0,-1.65) {decoder 2-to-4\\\footnotesize high bits $D\,C$};
+  \draw[<-] (h.west) -- ++(-0.8,0) node[left,font=\ttfamily]{D C};
+  \foreach \i/\a/\b in {0/0/3, 1/4/7, 2/8/11, 3/12/15}{
+    \node[d] (d\i) at (5.2,-\i*1.1) {decoder 2-to-4\quad{\footnotesize EN}};
+    \draw[->,prgamber,thick] ([yshift=4.5mm-\i*3mm]h.east) -- ++(0.5,0) |- (d\i.west);
+    \draw[->] (d\i.east) -- ++(0.8,0) node[right,font=\ttfamily\small]{U\a\ ... U\b};
+  }
+  \node[lbl,text=prgcomment] at (5.2,-4.0) {\emph{the low bits $B\,A$ go to all four}};
+\end{tikzpicture}
+\caption{Modular composition: a 4-to-16 decoder from five 2-to-4 decoders.}
+\label{fig:cm:dec16}
+\end{figure}
+
+\subsection{In the processor: which register is written?}
+
+\begin{prgmachine}
+The instruction \code{addi t1, t1, 1}, the number \hex{00130313} of
+Chapter~\ref{ch:firstcontact}, contains the field $\code{rd}=\texttt{00110}$:
+a code word of five bits, because there are thirty-two registers and
+$\lceil\log_2 32\rceil=5$. A 5-to-32 decoder turns it into thirty-two
+\emph{write-enable} lines, of which only that of \reg{x6}, that is \reg{t1},
+is asserted: only that register receives the result. The write enable of
+\reg{x0} is simply not connected, and \reg{x0} always reads zero. Two more
+selections, on \code{rs1} and \code{rs2}, choose which registers are read:
+they are made by multiplexers.
+\end{prgmachine}
+
+\subsection{The encoder}
+
+The \term{encoder} is the inverse machine: it receives a decoded
+representation, $N$ lines of which one is asserted, and outputs the
+corresponding code word of $m=\lceil\log_2 N\rceil$ bits. Each output bit is
+the OR of the input lines whose number has a 1 in that position; for $N=4$,
+$C_0=U_1+U_3$ and $C_1=U_2+U_3$. If several lines can be asserted together, a
+\term{priority encoder} is needed, which outputs the number of the asserted
+line with the highest priority. A keypad with one wire per key becomes, in
+this way, a compact key number; and priority encoders will appear again with
+interrupts (Chapter~\ref{ch:instructions}), where several devices ask for
+attention and one number reaches the processor.
+
+\subsection{Transcoders: the seven-segment display}
+
+A \term{transcoder} turns each word of a code $C_1$ into the corresponding
+word of a code $C_2$ defined on the same set. The classic example passes from
+BCD to the seven lines that light the segments $a$ to $g$ of a numeric display
+(Figure~\ref{fig:cm:seg}); each segment is an LED switched by a digital
+signal. The transcoder has seven outputs: seven functions of four variables
+to synthesise, all with the same six don't-cares.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.22\textwidth}\centering
+\begin{tikzpicture}[x=6mm,y=6mm,seg/.style={line width=3.2pt,line cap=round}]
+  \draw[seg,prgred] (0.3,6) -- (2.7,6) node[midway,above,lbl]{a};
+  \draw[seg,prgred] (3,5.7) -- (3,3.3) node[midway,right,lbl]{b};
+  \draw[seg,prgrule] (3,2.7) -- (3,0.3) node[midway,right,lbl]{c};
+  \draw[seg,prgred] (0.3,0) -- (2.7,0) node[midway,below,lbl]{d};
+  \draw[seg,prgred] (0,2.7) -- (0,0.3) node[midway,left,lbl]{e};
+  \draw[seg,prgrule] (0,5.7) -- (0,3.3) node[midway,left,lbl]{f};
+  \draw[seg,prgred] (0.3,3) -- (2.7,3) node[midway,above,lbl]{g};
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.38\textwidth}\centering\scriptsize\ttfamily\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{cc|ccccccc}
+\textrm{digit}&\textrm{BCD}&a&b&c&d&e&f&g\\\hline
+0&0000&1&1&1&1&1&1&0\\1&0001&0&1&1&0&0&0&0\\\rowcolor{prgred!12}2&0010&1&1&0&1&1&0&1\\3&0011&1&1&1&1&0&0&1\\4&0100&0&1&1&0&0&1&1\\
+5&0101&1&0&1&1&0&1&1\\6&0110&1&0&1&1&1&1&1\\7&0111&1&1&1&0&0&0&0\\8&1000&1&1&1&1&1&1&1\\9&1001&1&1&1&1&0&1&1
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.36\textwidth}\centering
+\resizebox{\textwidth}{!}{\begin{karnaugh-map}[4][4][1][$CD$][$AB$]
+  \minterms{0,2,3,5,6,7,8,9}\indeterminants{10,11,12,13,14,15}\autoterms[0]
+  \implicant{12}{10}\implicant{3}{10}\implicant{5}{15}\implicantcorner
+\end{karnaugh-map}}
+\end{minipage}
+\caption{The transcoder from BCD to seven segments: the digit 2 lights $a$,
+$b$, $g$, $e$ and $d$. Right: the map of segment $a$, with the BCD digit on
+$A\,B\,C\,D$ and $A$ most significant.}
+\label{fig:cm:seg}
+\end{figure}
+
+\begin{example}{Synthesising segment $a$}
+Segment $a$ is off only for the digits 1 and 4. The words 1010 to 1111 never
+occur, and are marked as don't-cares in the map of
+Figure~\ref{fig:cm:seg}. Using those cells as 1s the groups become large: the
+two lower rows give $A$; the two right-hand columns give $C$; the central
+square gives $BD$; the four corners give $\nott{B}\,\nott{D}$:
+\[ a = A + C + B\,D + \nott{B}\,\nott{D}. \]
+Without the don't-cares the groups would be smaller and the expression
+longer. As a check, the digit 0 (\texttt{0000}) is covered by the corners and
+the digit 9 (\texttt{1001}) by $A$. Six more maps give the segments $b$ to
+$g$, and a complete transcoder.
+\end{example}
+
+% ----------------------------------------------------------------------------
+\section{Multiplexers and demultiplexers}
+
+\subsection{The multiplexer}
+
+\begin{definition}{Multiplexer}
+A \term{multiplexer} is a combinational circuit with $2^{n}$ data inputs, $n$
+selection lines and one output. It selects one of the $2^{n}$ input signals
+and transfers it to the output.
+\end{definition}
+
+Each data input is multiplied by one minterm of the selection lines, and an OR
+collects the results (Figure~\ref{fig:cm:mux}):
+\begin{align*}
+\text{2 inputs:}\quad & Y=\nott{S}\,I_0+S\,I_1,\\
+\text{4 inputs:}\quad & Y=\nott{S_1}\,\nott{S_0}\,I_0+\nott{S_1}\,S_0\,I_1+S_1\,\nott{S_0}\,I_2+S_1\,S_0\,I_3 .
+\end{align*}
+In other words, a decoder on the selection lines enables one AND gate: the
+datum is chosen by an \emph{address}, not by a decoded line. A multiplexer
+can also implement any function of its selection variables: it is enough to
+put the truth table on the data inputs.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \node[and port] (a0) at (3,2) {};
+  \node[and port] (a1) at (3,0) {};
+  \node[or port] (o) at (5.2,1) {};
+  \draw (a0.in 1) -- ++(-2.2,0) node[left]{$I_0$};
+  \draw (a1.in 2) -- ++(-2.2,0) node[left]{$I_1$};
+  \draw (a1.in 1) -- ++(-1.6,0) coordinate (s) -- ++(0,-1.2) node[below]{$S$};
+  \draw (s) node[circ]{} |- ++(0.2,1.2) node[not port,anchor=in,scale=0.6](n){};
+  \draw (n.out) |- (a0.in 2);
+  \draw (a0.out) -| (o.in 1); \draw (a1.out) -| (o.in 2);
+  \draw (o.out) -- ++(0.3,0) node[right]{$Y$};
+\end{circuitikz}
+\caption{A multiplexer with two inputs}\label{fig:cm:mux}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \node[xnor port] (x0) at (2.5,2) {};
+  \node[xnor port] (x1) at (2.5,0) {};
+  \node[and port] (a) at (5,1) {};
+  \draw (x0.in 1) node[left]{$A_0$} (x0.in 2) node[left]{$B_0$};
+  \draw (x1.in 1) node[left]{$A_1$} (x1.in 2) node[left]{$B_1$};
+  \draw (x0.out) -| (a.in 1); \draw (x1.out) -| (a.in 2);
+  \draw (a.out) -- ++(0.3,0) node[right]{EQ};
+\end{circuitikz}
+\caption{A comparator for words of two bits}\label{fig:cm:cmp}
+\end{subfigure}
+\caption{Two machines built from gates.}
+\end{figure}
+
+\subsection{The demultiplexer}
+
+The \term{demultiplexer} is the inverse machine: one data input $D$, $n$
+selection lines, $2^{n}$ outputs. It routes the input to the output chosen by
+the selection lines, and the other outputs stay at 0:
+\[ F_i = D\cdot U_i , \]
+where $U_i$ are the outputs of a decoder on the selection lines. With $D$
+fixed at 1 a demultiplexer is exactly a decoder, in which $D$ plays the part
+of the enable. A multiplexer followed by a demultiplexer carries many signals
+over one wire, one at a time: the idea behind every shared line.
+
+\subsection{In the processor: register or constant?}
+
+\begin{prgmachine}
+The second operand of the ALU is either the value of the register \code{rs2}
+or the constant written in the instruction, sign-extended
+(Figure~\ref{fig:cm:alusrc}). A multiplexer of two inputs, thirty-two bits
+wide, chooses: its selection line is 0 for \ins{add} and 1 for \ins{addi}. In
+the datapath of \citet{patterson2020} the signal is called \code{ALUSrc}. A
+gate applied to every bit of a word under a common control is called a
+\emph{word gate}.
+\end{prgmachine}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm] (r1) at (0,2.2) {register file: \texttt{rs1}};
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm] (r2) at (0,0.9) {register file: \texttt{rs2}};
+  \node[blkamb,minimum width=34mm] (im) at (0,-0.3) {immediate, sign-extended};
+  \node[blkacc,minimum width=10mm,minimum height=20mm] (m) at (3.6,0.3) {MUX};
+  \node[blkvio,minimum width=18mm,minimum height=30mm] (alu) at (6.4,1.2) {\textbf{ALU}};
+  \draw[->,bus] (r1.east) -- (r1.east-|alu.west) node[pos=0.9,above,lbl]{A};
+  \draw[->,bus] (r2.east) -- (r2.east-|m.west) node[pos=0.85,above,lbl]{0};
+  \draw[->,bus] (im.east) -- (im.east-|m.west) node[pos=0.85,above,lbl]{1};
+  \draw[->,bus] (m.east) -- (m.east-|alu.west) node[pos=0.8,above,lbl]{B};
+  \draw[->,bus] (alu.east) -- ++(1,0) node[right,lbl]{result};
+  \draw[->,thick,prgred] (3.6,-1.5) node[below,lbl,text=prgred]{selection: 0 for \texttt{add}, 1 for \texttt{addi}} -- (m.south);
+\end{tikzpicture}
+\caption{A multiplexer chooses the second operand of the ALU.}
+\label{fig:cm:alusrc}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Comparing and checking}
+
+\subsection{The comparator}
+
+A \term{comparator} has two data $A$ and $B$ in input and one Boolean output
+EQ that is 1 when $A=B$. Two bits are equal when their XNOR is 1; two words
+are equal when all their pairs of bits are equal, an AND of XNORs
+(Figure~\ref{fig:cm:cmp}):
+\[ \mathrm{EQ}=\nott{(A_0\oplus B_0)}\cdot\nott{(A_1\oplus B_1)}\cdots \]
+In the processor this is \ins{beq} and \ins{bne}: the two registers are
+compared bit by bit, and the branch is taken or not according to EQ. Many
+datapaths reuse the ALU instead: they subtract and test whether the result is
+zero. Comparisons of order (\ins{blt}, \ins{slt}) need the subtraction and
+the sign rules of Chapter~\ref{ch:integers}.
+
+\subsection{Parity}
+
+When data travel from a source to a destination, redundant codes allow errors
+to be checked. The simplest check is a single \term{parity bit}: the legal
+code words have, for example, an even number of bits at 1.
+
+\begin{definition}{Parity network}
+A \term{parity network} computes the parity of the $n$ bits at its input,
+\[ p=x_0\oplus x_1\oplus\dots\oplus x_{n-1}, \]
+which is 1 when the number of 1s is odd.
+\end{definition}
+
+XOR is addition modulo 2, which is why a chain of XORs counts the 1s modulo 2.
+The network is needed twice (Figure~\ref{fig:cm:parity}): at the source, to
+compute the bit to be added to a non-redundant code, and at the destination,
+to verify the overall parity of the redundant code on arrival.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=16mm] (a) {\textbf{Source}\\[1pt]\footnotesize code $C$};
+  \node[blkamb,text width=21mm,minimum height=16mm,right=of a] (b) {\textbf{CALC}\\[1pt]\footnotesize appends the parity bit};
+  \node[blkvio,text width=21mm,minimum height=16mm,right=of b] (c) {\textbf{Channel}\\[1pt]\footnotesize may alter bits};
+  \node[blkgrn,text width=21mm,minimum height=16mm,right=of c] (d) {\textbf{VER}\\[1pt]\footnotesize verifies the parity};
+  \node[blkred,text width=21mm,minimum height=16mm,right=of d] (e) {\textbf{Destination}\\[1pt]\footnotesize code $C'$};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \draw[->,thick,prgred] (d.south) -- ++(0,-5mm) node[below,lbl,text=prgred]{error signal};
+\end{tikzpicture}
+\caption{Transmission with a parity check.}
+\label{fig:cm:parity}
+\end{figure}
+
+\begin{theorem}{Power of a parity bit}
+A single parity bit detects every alteration of an odd number of bits. It
+does not detect the alteration of an even number of bits, and it cannot
+correct any error.
+\end{theorem}
+
+\noindent\emph{Proof.} Each altered bit changes the number of 1s by one, and
+therefore inverts the parity: an odd number of inversions changes it, an even
+number leaves it as it was. And the check gives one bit of information, right
+or wrong, which is not enough to say \emph{which} bit was altered.
+\hfill$\square$
+
+\smallskip
+The code $C'$ that reaches the destination is thus \emph{probably} equal to
+$C$ if no error was signalled. Stronger codes add more check bits: the codes
+of \citet{hamming1950}, with several parity bits over overlapping groups of
+bits, locate and correct a single error.
+
+\subsection{A parity network in seven instructions}
+
+\asmfile[caption={The parity of a byte.},label=lst:cm:parity]{code/l11/s32.S}
+
+Each \ins{xor} of Listing~\ref{lst:cm:parity} combines the upper half of the
+bits with the lower half: three levels for eight bits, the software version of
+a tree of seven XOR gates. The value computed, appended to the byte, makes
+its total parity even. Trace it with $\hex{53}=0101\,0011_2$, which has four
+1s and gives 0, and with $\hex{13}=0001\,0011_2$, which has three and gives 1.
+
+% ----------------------------------------------------------------------------
+\section{The arithmetic logic unit}
+
+All the blocks of this chapter work together in one machine.
+
+\begin{definition}{Arithmetic logic unit}
+The \term{arithmetic logic unit} (ALU) is a combinational machine that
+receives two operands and a code of operation, and produces the result of the
+operation selected.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[u/.style={blk,minimum width=40mm,minimum height=7mm}]
+  \foreach \i/\t/\c in {0/{adder / subtractor}/prgviolet!12, 1/{AND, one gate per bit}/prgpanel, 2/{OR, one gate per bit}/prgpanel, 3/{XOR, one gate per bit}/prgpanel, 4/{shifter}/prgpanel}{
+    \node[u,fill=\c] (u\i) at (0,-\i*0.95) {\t};
+    \draw[->,prgaccent,thick] (-3.6,-\i*0.95+0.12) -- ([yshift=1.2mm]u\i.west);
+    \draw[->,prgamber,thick] (-3.0,-\i*0.95-0.12) -- ([yshift=-1.2mm]u\i.west);
+    \draw[->] (u\i.east) -- (3.4,-\i*0.95);
+  }
+  \draw[prgaccent,very thick] (-3.6,0.6) node[above,font=\ttfamily\bfseries]{A} -- (-3.6,-3.68);
+  \draw[prgamber,very thick] (-3.0,0.6) node[above,font=\ttfamily\bfseries]{B} -- (-3.0,-3.92);
+  \node[blkacc,minimum width=11mm,minimum height=46mm] (m) at (3.95,-1.9) {MUX};
+  \draw[->,bus] (m.east) -- ++(1.1,0) node[right,lbl]{result};
+  \draw[->,thick,prgred] (3.95,-5.0) node[below,lbl,text=prgred]{operation, from \texttt{funct3}} -- (m.south);
+\end{tikzpicture}
+\caption{The ALU is a set of machines, all at work on the same two operands of
+32 bits, and a multiplexer that chooses one result.}
+\label{fig:cm:alu}
+\end{figure}
+
+The structure of Figure~\ref{fig:cm:alu} is disarmingly simple: \emph{every}
+unit computes its result at every instruction, and a multiplexer lets one
+through. The adder is the ripple-carry adder of Chapter~\ref{ch:boole2}, with
+the trick of the complement and of the carry-in of
+Chapter~\ref{ch:integers} for the subtraction; comparisons (\ins{slt}) reuse
+the subtractor.
+
+The selection is written in the instruction (Table~\ref{tab:cm:funct3}): the
+field \code{funct3}, bits 14 to 12, is a compact code of three bits, eight
+code words, which a small decoder turns into the selection lines of the
+multiplexer of the ALU.
+
+\begin{table}[htb]
+\centering\small
+\caption{\riscv instructions and the ALU.}\label{tab:cm:funct3}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+\textbf{Instruction} & \textbf{funct3} & \textbf{ALU operation} & \textbf{Unit that produces the result}\\
+\midrule
+\ins{add}, \ins{sub} & \texttt{000} & sum or difference & adder / subtractor (one more bit, in \code{funct7}, chooses)\\
+\ins{sll} & \texttt{001} & shift left & shifter\\
+\ins{slt}, \ins{sltu} & \texttt{010}, \texttt{011} & set if less than & subtractor, then the sign rules\\
+\ins{xor} & \texttt{100} & bitwise XOR & XOR gates\\
+\ins{srl}, \ins{sra} & \texttt{101} & shift right & shifter (\code{funct7} chooses logical or arithmetic)\\
+\ins{or} & \texttt{110} & bitwise OR & OR gates\\
+\ins{and} & \texttt{111} & bitwise AND & AND gates\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{How many bits does a fixed-length binary code need for the 26 letters of the alphabet?}
+\item 4
+\item 5
+\item 6
+\item 26
+\end{quiz}
+
+\begin{quiz}{A decoder has 3 input lines and no enable. How many outputs does it have, and how many are 1 at any time?}
+\item 3 outputs, one at 1
+\item 6 outputs, two at 1
+\item 8 outputs, one at 1
+\item 8 outputs, three at 1
+\end{quiz}
+
+\begin{quiz}{A multiplexer with 8 data inputs needs how many selection lines?}
+\item 2
+\item 3
+\item 4
+\item 8
+\end{quiz}
+
+\begin{quiz}{A word with one even-parity bit is received with two bits altered. The parity check:}
+\item detects the error and corrects it
+\item detects the error but cannot correct it
+\item does not detect the error
+\item signals an error only if both bits were 1
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Synthesise segment $g$ of the seven-segment transcoder with a Karnaugh
+  map, using the don't-cares.
+\item Build a 3-to-8 decoder from two 2-to-4 decoders with enable and one
+  inverter.
+\item Implement $F=\sum m(1,2,4,7)$ with one multiplexer of 8 inputs. Which
+  function is it?
+\item Write a comparator in assembly: $\reg{a0}=1$ if \reg{a0} and \reg{a1}
+  are equal, using \ins{xor} and \ins{sltiu} only.
+\item Draw a seven-segment digit on \prg: a table of ten bytes, one per digit,
+  and seven rectangles lit by testing its bits.
+\end{enumerate}
+\expected{The third task puts 0, 1, 1, 0, 1, 0, 0, 1 on the data inputs: it is
+the XOR of three inputs, the sum bit of the full adder. The fourth is
+\code{xor a0, a0, a1} followed by \code{sltiu a0, a0, 1} (the
+pseudo-instruction \ins{seqz}). On \prg: a large digit that counts from 0 to
+9, one step per second, drawn from seven rectangles; it is a software
+transcoder followed by seven bit tests, and its table is the truth table of
+Figure~\ref{fig:cm:seg}, one row per byte.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+combinational network & rete combinatoria\\
+propagation delay & ritardo di propagazione\\
+cardinality & cardinalit\`a\\
+code word & parola codice\\
+fixed / variable length & lunghezza fissa / variabile\\
+redundant code & codice ridondante\\
+decoder / encoder & decodificatore / codificatore\\
+transcoder & transcodificatore\\
+multiplexer / demultiplexer & multiplexer / demultiplexer\\
+enable & abilitazione\\
+comparator & comparatore\\
+parity bit & bit di parit\`a\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Information is an attribute, a type and a value; a code writes the value as a
+string over an alphabet. Fixed-length codes need $\lceil\log_2 N\rceil$ bits;
+redundant codes spend more to detect errors. Encoding, decoding and
+transcoding are done by combinational machines. Multiplexers select a source,
+demultiplexers a destination; comparators and parity networks check. A
+\riscv processor uses all of them: decoders on the fields of the instruction,
+multiplexers on the operands, and an ALU that is itself built from these
+blocks.
+
+What is missing here is memory. Before the sequential machines of
+Chapter~\ref{ch:sequential}, the next chapter puts the logic of this part to
+work in the second part of \vermone.
+
+\paragraph{Reading.} \citet{patterson2020}, appendix~A and section~4.1;
+\citet{bucci2017}, the chapters on combinational networks;
+\citet{stallings2021}, the chapter on digital logic.

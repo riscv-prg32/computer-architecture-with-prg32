@@ -1,0 +1,750 @@
+% ============================================================================
+%  Chapter 13 -- Sequential Machines                             (Lecture 13)
+% ============================================================================
+\chapter{Sequential Machines}
+\label{ch:sequential}
+
+\epigraphline{Steve, every car has a steering wheel, but nobody tries to claim
+the steering wheel was their invention.}{Bill Gates, in the film
+\emph{Pirates of Silicon Valley}, 1999}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item explain why a sequential circuit needs the concepts of time and of state;
+\item define a finite-state machine and distinguish Mealy machines from Moore machines;
+\item describe a machine with a state table and with a state diagram, and go from one to the other;
+\item explain how an SR latch remembers one bit, and why $S=R=1$ is not allowed;
+\item distinguish latches from flip-flops, level triggering from edge triggering;
+\item recognise registers, counters and the program counter of \riscv as sequential machines.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+A game has a title screen, a screen on which one plays, and a screen that says
+``game over''. Listing~\ref{lst:seq:fsm} is the part of its \code{update}
+that passes from one to another.
+
+\asmfile[caption={A game is a state machine.},label=lst:seq:fsm]{code/l13/s04.S}
+
+Pressing \key{A} starts the game from the title screen and returns to the
+title from the game-over screen: \emph{the same button has different effects},
+and the effect depends on the state. The state is one word in memory that
+survives from frame to frame. \code{update} computes the next state from the
+present state and from the input; \code{draw} shows a different screen for
+each state, the output.
+
+The program has a bug that is worth discussing: holding \key{A} on the
+game-over screen leads to the title and, one frame later, to the game. To fix
+it the program must remember the previous value of the button: one more bit
+of state. The chapter will come back to this.
+
+% ----------------------------------------------------------------------------
+\section{Time and state}
+
+\subsection{Sequential circuits}
+
+In a combinational circuit the outputs at a given instant depend only on the
+inputs at that same instant. In a sequential circuit they depend on the
+inputs at that instant and on the past history of the inputs. The definition
+implies two concepts that a combinational machine does not have:
+\emph{time} (when are the signals looked at, and when do things change?) and
+\emph{state} (what does the circuit remember of the past?). A sequential
+circuit is a combinational one plus something that remembers. Analysis and
+synthesis still apply: from the structure to the behaviour, and from a
+functional specification to a structure.
+
+\subsection{Time: from continuous to discrete}
+
+In any interval a physical signal passes through infinitely many instants, and
+a voltage through infinitely many values. A binary signal is read, or
+\emph{sampled}, at a finite number of chosen instants: 0 if the voltage is
+below a threshold, 1 if it is above (Chapter~\ref{ch:electronics} made the
+threshold precise). Between two samples the signal may do anything: only the
+samples count. It is the sampling and quantising of
+Chapter~\ref{ch:information}, applied to the wires of the circuit itself. In
+a digital system time is therefore a sequence of discrete instants $t_0$,
+$t_1$, $t_2$, \ldots\ Who decides when the instants are? A dedicated periodic
+signal: the clock.
+
+\subsection{The clock}
+
+\begin{definition}{Clock}
+The \term{clock} is a periodic binary signal that marks the discrete instants
+of a digital system. Its \term{period} $T$ is the duration of one cycle; its
+\term{frequency} is the number of periods per second, $f=1/T$; its \term{duty
+cycle} is the ratio between the time for which it is high and the period. The
+\term{rising edge} is the passage from 0 to 1, the \term{falling edge} the
+passage from 1 to 0.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.03,timing/xunit=11mm,timing/yunit=6mm]
+  CK & 1L 2H 2L 2H 2L 2H 1L\\
+\extracode
+  \draw[<->,prgred] (1,1.35) -- (5,1.35) node[midway,above,lbl,text=prgred]{period $T$};
+  \draw[<->,prgaccent] (1,-0.3) -- (3,-0.3) node[midway,below,lbl,text=prgaccent]{high time};
+  \draw[<->,prgamber] (3,-0.3) -- (5,-0.3) node[midway,below,lbl,text=prgamber]{low time};
+  \draw[->,prgink] (5.9,1.6) node[right,lbl]{rising edge} -- (5.05,0.6);
+  \draw[->,prgink] (7.9,-0.6) node[right,lbl]{falling edge} -- (7.05,0.4);
+\end{tikztimingtable}
+\caption{The clock.}\label{fig:seq:clock}
+\end{figure}
+
+Synchronous circuits change state on one of the two edges. The ESP32-C6 runs
+at 160~MHz: one period lasts 6.25 nanoseconds, and every combinational network
+inside the chip must settle within that time, because the period must exceed
+the critical path (Chapter~\ref{ch:combinational}). In a \prg game the frame
+plays the part of a much slower clock.
+
+\subsection{The concept of state}
+
+\begin{definition}{State}
+The \term{state} of a sequential circuit is a summary of the whole previous
+history of its inputs, sufficient to determine, together with the present
+inputs, the outputs and the next state. It is held by a set of \term{state
+variables}.
+\end{definition}
+
+A \term{transition function} computes the next state from the present state
+and the present inputs, and the state is updated at every instant of discrete
+time, that is, at every clock cycle:
+\[ S(k)=f\bigl(S(k-1),\,I(k)\bigr). \]
+To store the state, memory elements called \term{bistables} are used: latches
+and flip-flops. In the warm-up there is one state variable, the word
+\code{state}; the transition function is \code{game\_update}; the clock is
+the frame.
+
+% ----------------------------------------------------------------------------
+\section{Finite-state machines}
+
+\subsection{The finite-state automaton}
+
+The number of states of a sequential network that can be physically built is
+necessarily finite: with $k$ state variables there are at most $2^{k}$ states.
+The model that describes its behaviour is the finite-state automaton.
+
+\begin{definition}{Sequential machine}
+A \term{sequential machine}, or finite-state machine, is a quintuple
+$(I,U,S,\Omega,w)$ where
+\begin{itemize}[nosep]
+\item $I$ is the input alphabet and $U$ the output alphabet, finite sets of
+  symbols;
+\item $S$ is the finite, non-empty set of states;
+\item $\Omega: S\times I\to S$ is the \term{next-state function}: to each pair
+  of state and input corresponds, if specified, one and only one next state;
+\item $w$ is the \term{output function}, which generates the output symbol.
+\end{itemize}
+\end{definition}
+
+\subsection{Mealy machines and Moore machines}
+
+The two classical models differ in the output function
+\citep{mealy1955,moore1956}.
+
+\begin{definition}{Mealy and Moore}
+In a \term{Mealy machine} the output depends on the state and on the input,
+$w:S\times I\to U$. In a \term{Moore machine} the output is associated with
+the state alone, $w:S\to U$.
+\end{definition}
+
+In the diagram of a Mealy machine the output is written on the transitions;
+the machine can react to an input in the same cycle, and often needs fewer
+states. In the diagram of a Moore machine the output is written inside the
+states; it changes only when the state changes, so that no disturbance of the
+inputs reaches it. Every Mealy machine has an equivalent Moore machine and
+vice versa, possibly with a different number of states. The game of the
+warm-up is a Moore machine: each state has its screen.
+
+\subsection{General architecture of a sequential machine}
+
+Every sequential machine has the structure of Figure~\ref{fig:seq:arch}: a
+combinational network computes the next state and the outputs from the inputs
+and from the present state; a \term{state register} of $k$ flip-flops holds
+the present state and, at each clock edge, replaces it with the next one. The
+warm-up has exactly this shape: \code{game\_update} is the upper box, the word
+\code{state} is the register, the frame is the clock.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=52mm,minimum height=20mm] (c) at (0,0) {\textbf{combinational network}\\next-state function $\Omega$\\output function $w$};
+  \node[blkamb,minimum width=52mm,minimum height=10mm] (r) at (0,-2.8) {\textbf{state register}: $k$ flip-flops};
+  \draw[->,thick] (-5.0,0.3) node[left,lbl,align=right]{inputs\\$x_1\ldots x_n$} -- ([yshift=3mm]c.west);
+  \draw[->,thick] ([yshift=3mm]c.east) -- ++(1.6,0) node[right,lbl,align=left]{outputs\\$z_1\ldots z_m$};
+  \draw[->,very thick,prgred] ([xshift=15mm]c.south) -- ([xshift=15mm]r.north) node[midway,right,lbl,text=prgred,align=left]{next state\\$Y_1\ldots Y_k$};
+  \draw[->,very thick,prgviolet] ([xshift=-15mm]r.north) -- ([xshift=-15mm]c.south) node[midway,left,lbl,text=prgviolet,align=right]{present state\\$y_1\ldots y_k$};
+  \draw[->,thick,prgsteel] (-5.0,-2.8) node[left,lbl]{clock} -- (r.west);
+\end{tikzpicture}
+\caption{The general architecture of a sequential machine.}
+\label{fig:seq:arch}
+\end{figure}
+
+\subsection{Synthesis of a sequential network}
+
+\begin{enumerate}
+\item Define the sets $I$, $U$ and $S$: inputs, outputs and states.
+\item Define the next-state function $\Omega$ and the output function $w$,
+  with a state table or a state diagram.
+\item Assign a binary code to each state: $k$ state variables for up to
+  $2^{k}$ states.
+\item Synthesise the two combinational networks that realise $\Omega$ and $w$,
+  with the methods of Chapters \ref{ch:boole2} and~\ref{ch:combinational}.
+\item Choose the memory elements: the next-state network depends on the type
+  of bistable, the output network does not.
+\end{enumerate}
+
+With D flip-flops the next-state network simply computes the code of the next
+state, which is why they are the usual choice today.
+
+\subsection{State tables and state diagrams}
+
+A machine is described in two equivalent ways. The \term{state table} has one
+row per present state and one column per input symbol; each cell holds the
+next state and, for a Mealy machine, the output. The \term{state diagram} is
+a directed graph with one node per state and one arc per transition, labelled
+with the input and, for a Mealy machine, the output.
+Figure~\ref{fig:seq:mealy} shows the same transitions as a Mealy machine and
+as a Moore machine in which a two-bit output, here simply the binary code of
+the state, is attached to each state.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{tikzpicture}[->,shorten >=1pt,node distance=30mm,every edge/.append style={font=\ttfamily\scriptsize}]
+  \node[st] (s0) at (0,0) {$s_0$};
+  \node[st] (s1) at (3.6,0) {$s_1$};
+  \node[st] (s2) at (0,-3) {$s_2$};
+  \node[st] (s3) at (3.6,-3) {$s_3$};
+  \path (s0) edge node[above]{0/1} (s1)
+        (s0) edge node[left]{1/1} (s2)
+        (s1) edge node[right]{0/0} (s3)
+        (s1) edge[bend left=14] node[pos=0.25,below right=-2pt]{1/1} (s2)
+        (s2) edge[bend left=14] node[pos=0.25,above left=-2pt]{0/1} (s1)
+        (s2) edge node[below]{1/0} (s3)
+        (s3) edge[loop right] node{0/0} (s3)
+        (s3) edge[bend right=75,looseness=1.9] node[pos=0.5,above right]{1/0} (s0);
+\end{tikzpicture}
+
+\medskip\small\ttfamily
+\begin{tabular}{c|cc}
+\textrm{state}&\textrm{input 0}&\textrm{input 1}\\\hline
+$s_0$&$s_1$/1&$s_2$/1\\$s_1$&$s_3$/0&$s_2$/1\\$s_2$&$s_1$/1&$s_3$/0\\$s_3$&$s_3$/0&$s_0$/0
+\end{tabular}
+\caption{A Mealy machine: arcs carry input/output}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\ttfamily\scriptsize}]
+  \node[st,align=center] (s0) at (0,0) {$s_0$\\[-2pt]\tiny 00};
+  \node[st,align=center] (s1) at (3.6,0) {$s_1$\\[-2pt]\tiny 01};
+  \node[st,align=center] (s2) at (0,-3) {$s_2$\\[-2pt]\tiny 10};
+  \node[st,align=center] (s3) at (3.6,-3) {$s_3$\\[-2pt]\tiny 11};
+  \path (s0) edge node[above]{0} (s1)
+        (s0) edge node[left]{1} (s2)
+        (s1) edge node[right]{0} (s3)
+        (s1) edge[bend left=14] node[pos=0.25,below right=-2pt]{1} (s2)
+        (s2) edge[bend left=14] node[pos=0.25,above left=-2pt]{0} (s1)
+        (s2) edge node[below]{1} (s3)
+        (s3) edge[loop right] node{0} (s3)
+        (s3) edge[bend right=75,looseness=1.9] node[pos=0.5,above right]{1} (s0);
+\end{tikzpicture}
+
+\medskip\small\ttfamily
+\begin{tabular}{c|cc|c}
+\textrm{state}&\textrm{input 0}&\textrm{input 1}&\textrm{output}\\\hline
+$s_0$&$s_1$&$s_2$&00\\$s_1$&$s_3$&$s_2$&01\\$s_2$&$s_1$&$s_3$&10\\$s_3$&$s_3$&$s_0$&11
+\end{tabular}
+\caption{A Moore machine: the output is in the state}
+\end{subfigure}
+\caption{State diagrams and state tables.}
+\label{fig:seq:mealy}
+\end{figure}
+
+\subsection{The warm-up as a state diagram}
+
+The game of the warm-up is the Moore machine of Figure~\ref{fig:seq:game}.
+It has three states: two bits of state would be enough, and the program uses a
+whole word.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\sffamily\footnotesize}]
+  \node[st,fill=prgsteel,text=white,minimum size=15mm] (t) at (0,0) {TITLE};
+  \node[st,fill=prgaccent,text=white,minimum size=15mm] (p) at (4.2,0) {PLAY};
+  \node[st,fill=prgred,text=white,minimum size=15mm] (o) at (8.4,0) {OVER};
+  \path (t) edge node[above]{A} (p)
+        (p) edge node[above]{lives = 0} (o)
+        (o) edge[bend left=35] node[below]{A} (t)
+        (t) edge[loop above] node{no A} (t)
+        (p) edge[loop above] node{lives $>$ 0} (p)
+        (o) edge[loop above] node{no A} (o);
+\end{tikzpicture}
+
+\medskip\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Present state} & \textbf{Input that changes it} & \textbf{Next state} & \textbf{Output (\code{draw})}\\
+\midrule
+\texttt{TITLE} & \key{A} pressed & \texttt{PLAY} & the title screen\\
+\texttt{PLAY} & lives = 0 & \texttt{OVER} & the playfield\\
+\texttt{OVER} & \key{A} pressed & \texttt{TITLE} & the final score\\
+\bottomrule
+\end{tabular}
+\caption{The game of the warm-up as a Moore machine.}
+\label{fig:seq:game}
+\end{figure}
+
+\begin{prgconcept}
+Drawing the state diagram \emph{before} writing the code is the single most
+useful design habit for a game. Chapter~\ref{ch:verm1p3} applies it to
+\vermone.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Latches}
+
+\subsection{Memory elements}
+
+The electronic circuits able to store a single bit are essentially of two
+kinds: latches and flip-flops. Both are \term{bistable}: they have two stable
+states, 0 and 1, which they keep as long as nothing changes them; and both
+have two outputs, $Q$ and $\nott{Q}$, that are always the complement of each
+other.
+
+\begin{prgaside}
+In 1918 Eccles and Jordan built the first electronic flip-flop, with two
+vacuum tubes. In 1943 the same circuit was at the heart of Colossus. Then
+came relays, transistors, and today logic gates on a chip. The name
+``flip-flop'' comes from the sound of the electromechanical versions.
+\end{prgaside}
+
+\subsection{The SR latch}
+
+The \term{SR latch} is two NOR gates, each with its output connected to an
+input of the other (Figure~\ref{fig:seq:sr}): a \term{feedback}. The input
+$S$ (\emph{set}) brings $Q$ to the stable state 1; the input $R$
+(\emph{reset}) brings $Q$ to the stable state 0. With $S=R=0$ the latch keeps
+the last value: it remembers which of the two inputs was 1 most recently.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.5\textwidth}\centering
+\begin{circuitikz}[scale=0.9,transform shape]
+  \node[nor port] (n1) at (0,1.8) {};
+  \node[nor port] (n2) at (0,0) {};
+  \draw (n1.in 1) -- ++(-0.8,0) node[left]{$R$};
+  \draw (n2.in 2) -- ++(-0.8,0) node[left]{$S$};
+  \draw (n1.out) -- ++(1.0,0) node[right]{$Q$};
+  \draw (n2.out) -- ++(1.0,0) node[right]{$\nott{Q}$};
+  \draw (n1.out) ++(0.4,0) node[circ]{} -- ++(0,-0.6) -- ($(n2.in 1)+(-0.3,0.55)$) -- ++(0,-0.55) -- (n2.in 1);
+  \draw (n2.out) ++(0.4,0) node[circ]{} -- ++(0,0.6) -- ($(n1.in 2)+(-0.3,-0.55)$) -- ++(0,0.55) -- (n1.in 2);
+\end{circuitikz}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}\centering\small
+\begin{tabular}{cc|l}
+$S$ & $R$ & next $Q$\\\hline
+0&0&$Q$: hold\\0&1&0: reset\\1&0&1: set\\\rowcolor{prgred!12}1&1&not allowed
+\end{tabular}
+\end{minipage}
+\caption{The SR latch built with NOR gates.}
+\label{fig:seq:sr}
+\end{figure}
+
+From the circuit, $Q=\nott{R+\nott{Q}}$ and $\nott{Q}=\nott{S+Q}$, hence
+\[ Q = \nott{R}\cdot(S+Q), \]
+where the $Q$ on the right is the value one propagation delay earlier.
+Because of the feedback $Q$ depends on itself: in a network with loops every
+variable is a waveform in time, not a single value. Breaking the feedback
+wire turns the latch into a plain combinational network of two NORs, and that
+is how it is analysed, case by case. The same latch can be built with two
+NAND gates and active-low inputs.
+
+\subsection{The SR latch in time}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.08,timing/xunit=8mm,timing/yunit=5mm]
+  $S$ & 3L 2H 9L\\
+  $R$ & 8L 2H 4L\\
+  $Q$ & 3.3L 5H 5.7L\\
+\extracode
+  \foreach \x/\l in {3/set,5/{$S$ returns to 0},8/reset,10/{$R$ returns to 0}}
+    {\draw[prgrule,dashed] (\x,1.3) -- (\x,-4.2); \node[lbl,anchor=south west,rotate=25] at (\x,1.3) {\l};}
+\end{tikztimingtable}
+\caption{A timing diagram of the SR latch.}\label{fig:seq:srtime}
+\end{figure}
+
+Figure~\ref{fig:seq:srtime} follows the latch in time. At the \emph{set}, $S$
+goes to 1 and, after the delay of two gates, $Q$ becomes 1. Then $S$ returns
+to 0 and nothing changes: the feedback keeps $Q$ at 1. \emph{The latch
+remembers.} At the \emph{reset}, $R$ goes to 1 and, after the delay, $Q$
+becomes 0; when $R$ returns to 0, $Q$ stays there. The latch is a Moore
+automaton whose output is its state.
+
+\subsection{Why $S=R=1$ is not allowed}
+
+With both inputs at 1 both NOR gates output 0: $Q$ and $\nott{Q}$ are no
+longer complementary. Worse, if $S$ and $R$ then return to 0 together the two
+gates race, and the final state depends on which is faster: the output is
+unpredictable, and the latch may even oscillate. $S$ and $R$ are called
+\term{excitation inputs}, and the designer must guarantee that
+\[ S\cdot R=0 . \]
+The JK and D elements exist to remove this problem.
+
+\subsection{Synchronous latches: adding a clock}
+
+In an \emph{asynchronous} system the outputs can change whenever an input
+changes. In a \emph{synchronous} system the instant at which the outputs can
+change is decided by the clock. In a clocked SR latch
+(Figure~\ref{fig:seq:clocked}) $S$ and $R$ pass through two AND gates
+controlled by the clock: with $CK=0$ both AND gates output 0 and the latch
+cannot change state; with $CK=1$ the latch is sensitive to $S$ and $R$ exactly
+like the asynchronous one. The clock decides \emph{when the inputs are
+listened to}.
+
+\begin{figure}[htb]
+\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \node[and port] (a1) at (0,2.1) {};
+  \node[and port] (a2) at (0,-0.3) {};
+  \node[nor port] (n1) at (3.0,1.8) {};
+  \node[nor port] (n2) at (3.0,0) {};
+  \draw (a1.in 1) -- ++(-0.8,0) node[left]{$R$};
+  \draw (a2.in 2) -- ++(-0.8,0) node[left]{$S$};
+  \draw (a1.in 2) -- ++(-0.4,0) coordinate (c1) |- (a2.in 1);
+  \draw (c1) ++(0,-0.9) node[circ]{} -- ++(-0.9,0) node[left]{$CK$};
+  \draw (a1.out) -- (n1.in 1);
+  \draw (a2.out) -- (n2.in 2);
+  \draw (n1.out) -- ++(1.0,0) node[right]{$Q$};
+  \draw (n2.out) -- ++(1.0,0) node[right]{$\nott{Q}$};
+  \draw (n1.out) ++(0.4,0) node[circ]{} -- ++(0,-0.6) -- ($(n2.in 1)+(-0.3,0.55)$) -- ++(0,-0.55) -- (n2.in 1);
+  \draw (n2.out) ++(0.4,0) node[circ]{} -- ++(0,0.6) -- ($(n1.in 2)+(-0.3,-0.55)$) -- ++(0,0.55) -- (n1.in 2);
+\end{circuitikz}
+\caption{A clocked SR latch.}\label{fig:seq:clocked}
+\end{figure}
+
+\subsection{The JK and D latches}
+
+Two variants remove the forbidden combination (Table~\ref{tab:seq:jkd}). In
+the \term{JK latch} the outputs are fed back to the input gates,
+$S=J\cdot\nott{Q}$ and $R=K\cdot Q$; since $Q$ and $\nott{Q}$ are
+complementary, $S$ and $R$ can never both be 1, and the fourth combination of
+the inputs acquires a meaning: \emph{toggle}. In the \term{D latch} (D for
+\emph{delay}, or \emph{data}) a single input goes to $S$ and, through an
+inverter, to $R$, so that only the cases $S=0$, $R=1$ and $S=1$, $R=0$ are
+possible: the output simply repeats the input while the clock is active.
+
+\begin{table}[htb]
+\centering\small
+\caption{The JK and D latches.}\label{tab:seq:jkd}
+\begin{tabular}{@{}ll@{\qquad\qquad}ll@{}}
+\toprule
+\textbf{Inputs} & \textbf{JK latch} & \textbf{Input} & \textbf{D latch}\\
+\midrule
+$J=0$, $K=0$ & hold: $Q$ unchanged & $D=0$ & $Q$ becomes 0\\
+$J=0$, $K=1$ & reset: $Q$ becomes 0 & $D=1$ & $Q$ becomes 1\\
+$J=1$, $K=0$ & set: $Q$ becomes 1 & &\\
+$J=1$, $K=1$ & toggle: $Q$ is inverted & &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Level triggering and its problem}
+
+A latch is \term{level-triggered}: it is sensitive for the whole time in which
+the clock is at its active level. While the clock is high a latch is
+\term{transparent}: every change of the inputs reaches the outputs, so that
+during one clock cycle several changes of state are possible. In a machine
+with feedback, such as that of Figure~\ref{fig:seq:arch}, this is fatal: the
+new state travels round the loop and changes the state again, in the same
+cycle. A JK latch with $J=K=1$ keeps toggling as long as the clock stays
+high.
+
+\begin{prgconcept}
+A state register must change \emph{at most once per cycle}, and must not let
+the next state through while it is still being computed. A transparent latch
+cannot guarantee it.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Flip-flops}
+
+\subsection{The master-slave flip-flop}
+
+The solution is to put two latches in a row and to make them listen in
+opposite phases of the clock (Figure~\ref{fig:seq:ms}). The first, the
+\emph{master}, is active when $CK=0$: it follows the input $D$, but the
+second, the \emph{slave}, is closed and the output does not move. When the
+clock rises the master closes, freezing the value that $D$ had at that
+instant, and the slave opens and shows it. At no moment are both latches
+transparent: the output changes once per cycle, on the rising edge.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=30mm,minimum height=18mm] (m) at (0,0) {\textbf{MASTER}\\D latch\\\footnotesize active when $CK=0$};
+  \node[blkamb,minimum width=30mm,minimum height=18mm] (s) at (4.6,0) {\textbf{SLAVE}\\D latch\\\footnotesize active when $CK=1$};
+  \draw[->,thick] (-2.8,0.4) node[left,font=\ttfamily]{D} -- ([yshift=4mm]m.west);
+  \draw[->,thick] ([yshift=4mm]m.east) -- ([yshift=4mm]s.west) node[midway,above,font=\ttfamily\small]{Qm};
+  \draw[->,thick] ([yshift=4mm]s.east) -- ++(1.1,0) node[right,font=\ttfamily]{Q};
+  \draw[thick,prgred] (-2.8,-1.9) node[left,font=\ttfamily]{CK} -- (4.6,-1.9);
+  \draw[->,thick,prgred] (4.6,-1.9) -- (s.south);
+  \draw[->,thick,prgred] (0,-1.9) -- (m.south) node[midway,right,lbl,text=prgred]{inverted};
+  \fill[prgred] (0,-1.9) circle (1.5pt);
+\end{tikzpicture}
+\caption{A master-slave D flip-flop.}
+\label{fig:seq:ms}
+\end{figure}
+
+\begin{definition}{Flip-flop}
+A \term{flip-flop} is an \term{edge-triggered} bistable: it samples its inputs
+only on an edge of the clock, and its outputs change only then.
+\end{definition}
+
+\subsection{Latch or flip-flop? Watch the output}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.12,timing/xunit=4.6mm,timing/yunit=5mm]
+  CK & [prgsteel] 2L 2H 2L 2H 2L 2H 2L 2H 2L 2H 2L 2H\\
+  D & [prgamber] 3L 2H 2L 2H 4L 6H 5L\\
+  latch $Q$ & [prgviolet] 3L 3H 1L 3H 4L 5H 5L\\
+  flip-flop $Q$ & [prgaccent] 14L 8H 2L\\
+\extracode
+  \foreach \x in {2,6,10,14,18,22} \draw[prgrule,dashed] (\x,1.2) -- (\x,-6.2);
+\end{tikztimingtable}
+\caption{The same clock and the same input $D$, seen by a D latch and by a D
+flip-flop. The dashed lines are the rising edges.}
+\label{fig:seq:lff}
+\end{figure}
+
+In Figure~\ref{fig:seq:lff} the D latch follows $D$ for the whole time in
+which the clock is high, and holds the last value when the clock goes low: its
+output changes in the middle of a high phase. The D flip-flop looks at $D$
+only on the rising edge: short pulses between two edges are ignored. The
+output of the flip-flop is steady for a whole period, and this is what a state
+register needs.
+
+\subsection{Memory elements: a summary}
+
+Table~\ref{tab:seq:summary} gives, for each element, the \term{characteristic
+equation} that expresses the next state $Q^{+}$. A T flip-flop is a JK with
+$J=K=T$. The D flip-flop is the standard memory element of today's processors.
+
+\begin{table}[htb]
+\centering\small
+\caption{Memory elements.}\label{tab:seq:summary}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Element} & \textbf{Inputs} & \textbf{Next state} & \textbf{Changes when}\\
+\midrule
+SR latch ($S\,R=0$) & $S$, $R$ & $Q^{+}=S+\nott{R}\,Q$ & any time an input changes\\
+clocked SR latch & $S$, $R$, $CK$ & as above & while the clock is at the active level\\
+D latch & $D$, $CK$ & $Q^{+}=D$ & while the clock is at the active level\\
+JK flip-flop & $J$, $K$, $CK$ & $Q^{+}=J\,\nott{Q}+\nott{K}\,Q$ & on the clock edge\\
+D flip-flop & $D$, $CK$ & $Q^{+}=D$ & on the clock edge\\
+T flip-flop & $T$, $CK$ & $Q^{+}=T\oplus Q$ & on the clock edge\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{A register is a row of flip-flops}
+
+\begin{definition}{Register}
+A \term{register} is a device able to store a group of bits: one flip-flop per
+bit, and a common clock.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\b in {0/3,1/2,2/1,3/0}{
+    \node[blkacc,minimum width=20mm,minimum height=11mm] (f\i) at (\i*2.7,0) {D flip-flop};
+    \draw[<-,thick] (f\i.north) -- ++(0,6mm) node[above,font=\ttfamily]{D\b};
+    \draw[->,thick] (f\i.south) -- ++(0,-6mm) node[below,font=\ttfamily]{Q\b};
+    \draw[->,thick,prgred] (\i*2.7-0.75,-1.7) -- (\i*2.7-0.75,-0.55);
+  }
+  \draw[thick,prgred] (-2.0,-1.7) node[left,font=\ttfamily]{CK} -- (3*2.7-0.75,-1.7);
+\end{tikzpicture}
+\caption{A register of four bits.}
+\label{fig:seq:reg}
+\end{figure}
+
+With a \emph{load-enable} signal the register takes the new value only when
+the signal is asserted, and otherwise keeps the old one. The thirty-two
+registers of \riscv are thirty-two rows of thirty-two flip-flops, and the
+write-enable lines of the decoder of Chapter~\ref{ch:combinational} are their
+load enables. The classical part of the 74 series is the 74273: eight D
+flip-flops, one clock and a clear. Registers, shift registers, buses and
+three-state buffers are the subject of the next chapter.
+
+\subsection{The program counter: a register in a loop}
+
+The \term{program counter} (PC) is the register that holds the address of the
+instruction being executed. Its next value is computed by a small
+combinational network (Figure~\ref{fig:seq:pc}): an adder computes $PC+4$,
+because instructions are 4 bytes apart (with the compressed extension the
+adder adds 2 after an instruction of 16 bits); a multiplexer chooses between
+that value and the target of a branch; the comparator of
+Chapter~\ref{ch:combinational} produces, for \ins{beq} and \ins{bne}, the
+signal that drives the multiplexer. At each clock edge the register takes the
+value chosen. It is the general architecture of Figure~\ref{fig:seq:arch} in
+its smallest useful instance.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkamb,minimum width=24mm,minimum height=13mm] (pc) at (0,0) {\textbf{PC}\\register, 32 bits};
+  \node[blkvio,minimum width=17mm,minimum height=10mm] (add) at (3.6,1.1) {adder\\$+4$};
+  \node[blk,minimum width=24mm,minimum height=10mm] (bt) at (3.6,-1.1) {branch target\\from the ALU};
+  \node[blkacc,minimum width=11mm,minimum height=24mm] (mux) at (6.8,0) {MUX};
+  \draw[->,bus] (pc.east) -- ++(0.5,0) |- (add.west);
+  \draw[->,bus] (add.east) -- ++(0.6,0) |- ([yshift=6mm]mux.west);
+  \draw[->,bus] (bt.east) -- ++(0.6,0) |- ([yshift=-6mm]mux.west);
+  \draw[->,bus,prgred] (mux.east) -- ++(0.7,0) -- ++(0,-2.6) -| (pc.south) node[pos=0.25,below,lbl,text=prgred]{next PC};
+  \draw[->,thick,prgsteel] (0,1.6) node[above,lbl]{clock} -- (pc.north);
+  \draw[->,thick] (6.8,-2.0) node[below,lbl]{branch taken?} -- (mux.south);
+\end{tikzpicture}
+\caption{The program counter and the network that computes its next value.}
+\label{fig:seq:pc}
+\end{figure}
+
+\subsection{Synthesis example: a two-bit counter}
+
+\begin{example}{A counter modulo 4}
+\emph{States}: four, one per value of the count; there is no input, and the
+output is the state itself (a Moore machine). \emph{State code}: two state
+variables $Q_1Q_0$, the count in binary. \emph{State table}: beside each
+present state, the next one. With D flip-flops the excitation is the next
+state, $D_1D_0=Q_1^{+}Q_0^{+}$.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{c|c|cc}
+\textrm{present $Q_1Q_0$}&\textrm{next $Q_1Q_0$}&\textrm{$D_1$}&\textrm{$D_0$}\\\hline
+0 0&0 1&0&1\\0 1&1 0&1&0\\1 0&1 1&1&1\\1 1&0 0&0&0
+\end{tabular}
+\end{center}
+
+$D_0$ is 1 in the rows 00 and 10, so $D_0=\nott{Q_0}$. $D_1$ is 1 in the rows
+01 and 10, so $D_1=\nott{Q_1}Q_0+Q_1\nott{Q_0}=Q_1\oplus Q_0$. Two D
+flip-flops, one inverter and one XOR gate: a machine that counts 0, 1, 2, 3,
+0, \ldots, one step per clock edge.
+\end{example}
+
+The same five steps, with more states and more inputs, design any sequential
+machine. And the result is worth comparing with the full adder: a counter is
+an adder that adds 1 to its own register.
+
+\subsection{The processor is a sequential machine}
+
+\begin{prgmachine}
+The \emph{state} of a processor is the program counter, the thirty-two
+registers and the memory. Its \emph{input} is the instruction at the address
+in the PC, with the data that it reads. Its \emph{next-state network} is made
+of decoders, multiplexers and the ALU, which compute the new values. At each
+\emph{clock edge} the registers named by the instruction take their new
+values.
+
+Executing a program is nothing but a long walk through the states of a very
+large finite-state machine, one clock edge at a time. Single-stepping in
+\prgqt shows that walk, one state after another.
+\end{prgmachine}
+
+This is the bridge to Part~V: the datapath (the combinational part and the
+registers) and the control, which is itself a finite-state machine.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{In a Moore machine the output depends on:}
+\item the present input only
+\item the present state only
+\item the present state and the present input
+\item the next state and the input
+\end{quiz}
+
+\begin{quiz}{An SR latch built with NOR gates has $Q=1$. $S$ and $R$ are both 0. What happens?}
+\item $Q$ becomes 0
+\item $Q$ oscillates
+\item $Q$ stays at 1
+\item the state is undefined
+\end{quiz}
+
+\begin{quiz}{What distinguishes a D flip-flop from a D latch?}
+\item The flip-flop has two inputs
+\item The flip-flop stores two bits
+\item The flip-flop changes only on a clock edge
+\item The flip-flop does not need a clock
+\end{quiz}
+
+\begin{quiz}{How many flip-flops are needed for a finite-state machine with 10 states?}
+\item 3
+\item 4
+\item 5
+\item 10
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Draw the state diagram of a machine that outputs 1 when the last two
+  inputs were both 1; write it as a Moore and as a Mealy machine.
+\item Complete the timing diagram of an SR latch for a sequence of $S$ and $R$
+  of your choice, marking where it holds.
+\item Synthesise a counter modulo 3 (0, 1, 2, 0, \ldots) with two D
+  flip-flops; what happens in the unused state?
+\item Add a \texttt{PAUSE} state to the game of the warm-up, entered and left
+  with the \key{SELECT} button, and draw the new diagram first.
+\item Fix the warm-up so that \key{A} must be released and pressed again:
+  store the previous state of the buttons and react only to a change from 0
+  to 1.
+\end{enumerate}
+\expected{The Moore machine of the first task needs three states (no 1 seen,
+one 1 seen, two or more), the Mealy machine two. For the counter:
+$D_1=Q_0$ and $D_0=\nott{Q_1}\,\nott{Q_0}$, with the state 11 as a don't-care
+or designed to return to 00. On \prg: four screens, and a held button that
+causes exactly one transition. The last task is \emph{edge detection} in
+software: keep \code{prev} in memory, compute
+$\mathit{pressed\_now}=\mathit{buttons}\cdot\nott{\mathit{prev}}$, then store
+the buttons in \code{prev}. The program then behaves like a flip-flop instead
+of a latch.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+sequential network & rete sequenziale\\
+finite-state machine & automa a stati finiti\\
+state table / diagram & tabella / diagramma degli stati\\
+next-state function & funzione stato prossimo\\
+present / next state & stato presente / prossimo\\
+clock period & periodo di clock\\
+latch / flip-flop & latch / flip-flop (bistabile)\\
+feedback & retroazione\\
+rising / falling edge & fronte di salita / di discesa\\
+level- / edge-triggered & sensibile al livello / al fronte\\
+register & registro\\
+program counter & contatore di programma\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Digital circuits are combinational or sequential; for the sequential ones time
+and state matter. A sequential machine implements a finite-state automaton,
+described as a Mealy or as a Moore machine. Latches and flip-flops are the
+elementary memories: feedback makes a circuit remember. The clock decides
+when: latches listen during a level, flip-flops only on an edge. Registers,
+counters, the program counter and the processor itself are sequential machines
+built around combinational networks.
+
+\paragraph{Reading.} \citet{patterson2020}, appendix~A (clocks, memory
+elements, finite-state machines); \citet{bucci2017}, the chapters on
+sequential networks; \emph{Playing with RISC-V}, chapter~8, the assembly
+capstone game \citep{prg32textbook}.

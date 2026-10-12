@@ -1,0 +1,469 @@
+% ============================================================================
+%  Chapter 8 -- Elements of Boolean Algebra, Part 1              (Lecture 08)
+% ============================================================================
+\chapter{Boolean Algebra: Operators and Properties}
+\label{ch:boole1}
+
+\epigraphline{Oh dear! Oh dear! I shall be too late!}
+  {Lewis Carroll, \emph{Alice's Adventures in Wonderland}, 1865}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item describe a computer as processor, memory and input/output, connected by a bus;
+\item explain the difference between the analysis and the synthesis of a logic circuit;
+\item write the truth tables of AND, OR, NOT, XOR, NAND and NOR and recognise their symbols;
+\item apply the properties of Boolean algebra, De Morgan's laws included, to simplify an expression;
+\item use \ins{and}, \ins{or}, \ins{xor} and \ins{not} on \riscv to test, set, clear and toggle single bits.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+The reader has been doing Boolean algebra since the first days.
+Listing~\ref{lst:b1:left} is the way in which every \prg game asks whether a
+direction is pressed.
+
+\asmfile[caption={Is \key{LEFT} pressed?},label=lst:b1:left]{code/l08/s04.S}
+
+The function \code{prg32\_input\_read} returns all the buttons at once, one
+bit per button (Table~\ref{tab:b1:buttons}). Holding \key{RIGHT} and \key{A}
+together gives $\hex{12} = 0001\,0010_2$. The instruction \ins{andi} with
+\hex{01} keeps bit~0 and forces every other bit to zero, so that the result is
+different from zero exactly when \key{LEFT} is pressed. The constant used
+with \ins{andi} is called a \term{mask}.
+
+\begin{table}[htb]
+\centering\small
+\caption{One bit per button (the constants \code{PRG32\_BTN\_*} of
+\fname{prg32.h}).}\label{tab:b1:buttons}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{Button} & \key{LEFT} & \key{RIGHT} & \key{UP} & \key{DOWN} & \key{A} & \key{B} & \key{SELECT}\\
+\midrule
+Bit & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+Mask & \hex{01} & \hex{02} & \hex{04} & \hex{08} & \hex{10} & \hex{20} & \hex{40}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{lab2_step1_lamps.png}
+\caption{Seven lamps, one per bit of the button mask: a lamp is lit when its
+bit is 1.}\label{fig:b1:lamps}
+\end{figure}
+
+Every question about the joystick is a Boolean expression over these seven
+variables. And \ins{andi} is thirty-two AND gates working side by side. What
+is an AND, exactly?
+
+% ----------------------------------------------------------------------------
+\section{The computer as a logic machine}
+
+This part of the book descends one level below the instructions.
+
+\subsection{Three subsystems and a bus}
+
+In today's terms the von Neumann model of Chapter~\ref{ch:history} is drawn as
+in Figure~\ref{fig:b1:bus}: the units of 1945, connected by shared wires. The
+\term{processor} (CPU) contains the control unit, the ALU and the registers,
+and executes the instructions. The \term{main memory} holds the instructions
+and the data. The \term{input/output} subsystem connects joystick, display,
+sound, network and storage. The \term{bus} is the set of wires that joins
+them: address lines, data lines and control lines. Everything that travels on
+the bus is a pattern of bits. On the ESP32-C6 the three subsystems and the
+bus are all inside one chip.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgaccent,text=white,text width=36mm,minimum height=17mm] (cpu) at (0,0) {\textbf{Processor (CPU)}\\\footnotesize control unit, ALU, registers};
+  \node[blk,fill=prgsteel,text=white,text width=36mm,minimum height=17mm] (mem) at (4.7,0) {\textbf{Main memory}\\\footnotesize instructions and data};
+  \node[blk,fill=prggreen,text=white,text width=36mm,minimum height=17mm] (io) at (9.4,0) {\textbf{Input / output}\\\footnotesize joystick, display, sound, network};
+  \node[blk,fill=prgamber,text=white,minimum width=132mm,minimum height=7mm] (bus) at (4.7,-2.0) {\textbf{Bus}: address lines, data lines, control lines};
+  \foreach \n in {cpu,mem,io} \draw[bus,<->] (\n.south) -- (\n.south|-bus.north);
+\end{tikzpicture}
+\caption{The electronic computer: three subsystems and a bus.}
+\label{fig:b1:bus}
+\end{figure}
+
+\subsection{The processor}
+
+The processing capability of a computer resides in the processor. It can
+execute a set of elementary actions, the \term{instructions}: explicit
+commands that govern the transfer of information inside the computer and
+between the computer and the I/O devices, and that specify the arithmetic and
+logic operations to be performed. Main memory holds the input and output data
+of the computation and the sequence of instructions; a sequence of
+instructions stored in main memory is a \term{program}. The processor takes
+the instructions from memory and executes them one by one: \emph{fetch,
+execute, repeat}.
+
+An electronic computer is, accordingly, a system that is
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[numeric:] a digital system, in which all the information handled is
+  expressed as strings of bits;
+\item[automatic:] once started it proceeds by itself, instruction after
+  instruction, with no human intervention;
+\item[stored-program:] the program is recorded in memory and can be replaced,
+  so that the same machine does different jobs;
+\item[electronic:] it is built from electronic circuits that store bits and
+  process them.
+\end{description}
+
+\subsection{Logic circuits}
+
+The electronic circuits that store and process bits are called
+\term{switching circuits} or \term{logic circuits}. A logic circuit forms a
+\term{switching network}, and designing one is called \term{logic design}.
+Two voltage levels on a wire, two states of a switch, two values of a
+variable: to describe the behaviour of such circuits an algebra is used, a
+mathematical notation that simplifies both their analysis and their synthesis.
+The algebra is that of \citet{boole1854}, applied to switches by Nakajima and
+by \citet{shannon1938}.
+
+\begin{definition}{Analysis and synthesis}
+\term{Analysis}: given the description of the \emph{structure} of a circuit
+(how it is made), find its \emph{behaviour} (what it does).
+\term{Synthesis}: given the description of the \emph{behaviour} (what it must
+do), find a \emph{structure} that realises it (how to build it).
+\end{definition}
+
+Reading a schematic and deriving its truth table is analysis; so is reading
+\code{andi t3, t0, 1} and saying what ends up in \reg{t3}. Passing from the
+truth table of a sum to an adder is synthesis; so is passing from ``move if
+\key{LEFT} or \key{RIGHT} is pressed'' to a mask and a branch. Synthesis
+usually has many solutions, and choosing the cheapest is the problem of
+\term{minimisation}, the subject of Chapter~\ref{ch:boole2}.
+
+% ----------------------------------------------------------------------------
+\section{Boolean algebra}
+
+\begin{definition}{Boolean algebra}
+\term{Boolean algebra} is the algebra of variables that can take only two
+values, 0 and 1, with three basic operations:
+\begin{itemize}[nosep]
+\item AND, the \term{logical product} or conjunction, written $x\cdot y$ or
+  simply $xy$;
+\item OR, the \term{logical sum} or disjunction, written $x+y$;
+\item NOT, the \term{complement} or negation, written $\nott{x}$ (in programs
+  and on a keyboard, \code{x'}).
+\end{itemize}
+\end{definition}
+
+\subsection{The three fundamental operations}
+
+An operation is defined by its \term{truth table}, which lists the output for
+every combination of the inputs (Figure~\ref{fig:b1:gates}). AND is 1 only
+when both inputs are 1; OR is 0 only when both inputs are 0; NOT inverts.
+Each operation has a graphical symbol, the \term{logic gate}, which stands for
+the circuit that computes it.
+
+\newcommand{\gatepanel}[4]{% port, title, formula, table body
+\begin{minipage}[t]{0.31\textwidth}\centering
+{\sffamily\bfseries\small\color{prgsteel}#2}\\[3pt]
+\begin{circuitikz}\draw (0,0) node[#1](g){} (g.out) node[right,font=\small]{$z$}
+  (g.in 1) node[left,font=\small]{$x$} (g.in 2) node[left,font=\small]{$y$};\end{circuitikz}\\[2pt]
+{\small #3}\\[4pt]
+{\small\ttfamily\begin{tabular}{cc|c}\textrm{$x$}&\textrm{$y$}&\textrm{$z$}\\\hline #4\end{tabular}}
+\end{minipage}}
+
+\begin{figure}[htb]
+\centering
+\gatepanel{and port}{AND (conjunction)}{$z=x\cdot y$}{0&0&0\\0&1&0\\1&0&0\\1&1&1}\hfill
+\gatepanel{or port}{OR (disjunction)}{$z=x+y$}{0&0&0\\0&1&1\\1&0&1\\1&1&1}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+{\sffamily\bfseries\small\color{prgsteel}NOT (negation)}\\[3pt]
+\begin{circuitikz}\draw (0,0) node[not port](g){} (g.out) node[right,font=\small]{$z$} (g.in) node[left,font=\small]{$x$};\end{circuitikz}\\[9pt]
+{\small $z=\nott{x}$}\\[4pt]
+{\small\ttfamily\begin{tabular}{c|c}\textrm{$x$}&\textrm{$z$}\\\hline 0&1\\1&0\end{tabular}}
+\end{minipage}
+\caption{The three fundamental operations.}
+\label{fig:b1:gates}
+\end{figure}
+
+\subsection{Three more gates}
+
+Three other operations are met everywhere (Figure~\ref{fig:b1:gates2}). XOR,
+the \term{exclusive or}, is 1 when the inputs differ: it is the sum bit of an
+addition, and \riscv has it as an instruction. NAND and NOR are the
+complements of AND and OR; the small circle on a symbol means negation.
+
+\begin{figure}[htb]
+\centering
+\gatepanel{xor port}{XOR (exclusive or)}{$z=\nott{x}y+x\nott{y}=x\oplus y$}{0&0&0\\0&1&1\\1&0&1\\1&1&0}\hfill
+\gatepanel{nand port}{NAND (not and)}{$z=\nott{x\cdot y}$}{0&0&1\\0&1&1\\1&0&1\\1&1&0}\hfill
+\gatepanel{nor port}{NOR (not or)}{$z=\nott{x+y}$}{0&0&1\\0&1&0\\1&0&0\\1&1&0}
+\caption{XOR, NAND and NOR.}
+\label{fig:b1:gates2}
+\end{figure}
+
+\subsection{Properties}
+
+Table~\ref{tab:b1:props} collects the properties of the algebra. Every
+property comes in a pair: one form for AND and one for OR.
+
+\begin{table}[htb]
+\centering\small
+\caption{Properties of Boolean algebra.}\label{tab:b1:props}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Property} & \textbf{AND form} & \textbf{OR form}\\
+\midrule
+Commutative & $x\cdot y=y\cdot x$ & $x+y=y+x$\\
+Associative & $(x\cdot y)\cdot z=x\cdot(y\cdot z)$ & $(x+y)+z=x+(y+z)$\\
+Idempotence & $x\cdot x=x$ & $x+x=x$\\
+Absorption & $x\cdot(x+y)=x$ & $x+(x\cdot y)=x$\\
+Distributive & $x\cdot(y+z)=x\cdot y+x\cdot z$ & $x+y\cdot z=(x+y)\cdot(x+z)$\\
+Identity element & $x\cdot 1=x$ & $x+0=x$\\
+Null element & $x\cdot 0=0$ & $x+1=1$\\
+Complement & $x\cdot\nott{x}=0$ & $x+\nott{x}=1$\\
+Involution & \multicolumn{2}{c}{$\nott{\nott{x}}=x$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Because of the associative property, AND and OR extend to any number of
+operands: $x\cdot y\cdot z$, $x+y+z$.
+
+\begin{prgwarn}
+OR distributes over AND too: $x+yz=(x+y)(x+z)$. This is false for the
+ordinary sum and product, and it is the property that is most often forgotten.
+\end{prgwarn}
+
+How is a property proved? Since a variable has only two values, every
+identity can be verified by trying all the cases: the method of
+\term{perfect induction}. Two expressions are \term{equivalent} if they have
+the same truth table. Alternatively a property can be derived algebraically
+from others; absorption, for instance, follows from identity, distributivity
+and null element:
+\[
+x+xy \;=\; x\cdot 1+x\cdot y \;=\; x\,(1+y) \;=\; x\cdot 1 \;=\; x .
+\]
+
+\subsection{De Morgan's laws}
+
+\begin{theorem}{De Morgan, 1847}
+\[
+\nott{x\cdot y}=\nott{x}+\nott{y},\qquad\qquad \nott{x+y}=\nott{x}\cdot\nott{y}.
+\]
+The complement of a product is the sum of the complements, and vice versa.
+\end{theorem}
+
+\noindent\emph{Proof} of the first law, by perfect induction: the columns of
+$\nott{xy}$ and of $\nott{x}+\nott{y}$ are identical.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{cc|c>{\columncolor{prgaccent!15}}c|cc>{\columncolor{prgaccent!15}}c}
+\textrm{$x$}&\textrm{$y$}&\textrm{$xy$}&\textrm{$\nott{xy}$}&\textrm{$\nott{x}$}&\textrm{$\nott{y}$}&\textrm{$\nott{x}+\nott{y}$}\\\hline
+0&0&0&1&1&1&1\\
+0&1&0&1&1&0&1\\
+1&0&0&1&0&1&1\\
+1&1&1&0&0&0&0\\
+\end{tabular}
+\end{center}
+
+The second law is proved in the same way (Exercise~\ref{ex:b1:paper}).
+\hfill$\square$
+
+\smallskip
+In terms of gates: a NAND is an OR of the negated inputs, and a NOR is an AND
+of the negated inputs. The laws generalise to any number of variables.
+
+\subsection{Duality and precedence}
+
+\begin{theorem}{Duality principle}
+Every identity of Boolean algebra remains true if AND is exchanged with OR and
+0 with 1.
+\end{theorem}
+
+Thus $x\cdot 1=x$ becomes $x+0=x$, and each of De Morgan's laws is the dual of
+the other. Duality halves the work: it is enough to prove one law of each
+pair.
+
+As for \term{precedence}, NOT comes first, then AND, then OR, as with powers,
+products and sums: $x+y\,\nott{z}$ means $x+(y\cdot(\nott{z}))$. Parentheses
+change the order exactly as in ordinary algebra.
+
+\subsection{Simplifying with the algebra}
+
+The properties are tools for transforming an expression into an equivalent
+and cheaper one.
+
+\begin{example}{Three gates become a wire}
+\begin{align*}
+x\,y+x\,\nott{y} &= x\,(y+\nott{y}) && \text{distributive law, read from right to left}\\
+ &= x\cdot 1 && \text{complement law}\\
+ &= x && \text{identity element.}
+\end{align*}
+Two AND gates, an OR gate and an inverter have become a piece of wire.
+\end{example}
+
+In the same way, using the distributive law of OR over AND,
+\begin{equation}\label{eq:b1:simp}
+x+\nott{x}\,y \;=\; (x+\nott{x})(x+y) \;=\; 1\cdot(x+y) \;=\; x+y ,
+\end{equation}
+an identity sometimes called the \emph{simplification theorem}, which will be
+used again in Chapter~\ref{ch:boole2}.
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{Bitwise instructions: the algebra on a whole register}
+
+Each bitwise instruction of \riscv applies one gate to all thirty-two pairs
+of bits at once (Table~\ref{tab:b1:bitwise}, where eight bits are shown). The
+immediate forms \ins{andi}, \ins{ori} and \ins{xori} take a 12-bit constant.
+\ins{not} is a pseudo-instruction: \code{xori t0, a, -1}, because $-1$ is all
+ones and $x\oplus 1=\nott{x}$.
+
+\begin{table}[htb]
+\centering\small
+\caption{Bitwise instructions, with $a=\texttt{1100\,1010}$ and
+$b=\texttt{0000\,1111}$.}\label{tab:b1:bitwise}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Instruction} & \textbf{Operation} & \textbf{Result} & \textbf{In C}\\
+\midrule
+\code{and t0, a, b} & bit by bit AND & \texttt{0000 1010} & \code{a \& b}\\
+\code{or\ \ t0, a, b} & bit by bit OR & \texttt{1100 1111} & \code{a | b}\\
+\code{xor t0, a, b} & bit by bit XOR & \texttt{1100 0101} & \code{a \textasciicircum\ b}\\
+\code{not t0, a} & complement every bit & \texttt{0011 0101} & \code{\textasciitilde a}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Four things to do with a mask}
+
+The laws of the identity element and of the null element are exactly what
+makes a mask work (Table~\ref{tab:b1:mask}). With AND, a 1 in the mask lets
+the bit through and a 0 forces it to 0; with OR, a 0 lets the bit through and
+a 1 forces it to 1; with XOR, a 0 lets the bit through and a 1 inverts it.
+
+\begin{table}[htb]
+\centering\small
+\caption{Four uses of a mask (bit 4 is button \key{A}).}\label{tab:b1:mask}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Goal} & \textbf{Law used} & \textbf{Instruction} & \textbf{Other bits}\\
+\midrule
+Test a bit & $x\cdot 1=x$, $x\cdot 0=0$ & \code{andi t1, t0, 0x10} & forced to 0 in the result\\
+Set a bit to 1 & $x+1=1$, $x+0=x$ & \code{ori\ \ t0, t0, 0x10} & unchanged\\
+Clear a bit to 0 & $x\cdot 0=0$, $x\cdot 1=x$ & \code{andi t0, t0, \textasciitilde 0x10} & unchanged\\
+Toggle a bit & $x\oplus 1=\nott{x}$, $x\oplus 0=x$ & \code{xori t0, t0, 0x10} & unchanged\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mask \code{\textasciitilde 0x10} is \hex{FFFFFFEF}, which the assembler
+encodes as the immediate $-17$.
+
+\subsection{De Morgan at the joystick}
+
+The worm is ``idle'' when neither \key{LEFT} nor \key{RIGHT} is pressed.
+Listing~\ref{lst:b1:demorgan} writes the test in two ways.
+
+\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, as two programs.},label=lst:b1:demorgan]{code/l08/s24.S}
+
+A mask with two bits tests two buttons in one instruction: the result is zero
+only if both bits are zero, that is, when $\nott{L+R}$ is true. By De Morgan
+this equals $\nott{L}\cdot\nott{R}$, which is the long way written below it.
+The algebra says that the two programs are equivalent, and which is cheaper:
+two instructions instead of five. Minimisation is not only for hardware.
+
+\subsection{One lamp per bit: shifting and masking}
+
+The lamps of Figure~\ref{fig:b1:lamps} are drawn by a loop whose body is
+Listing~\ref{lst:b1:lamp}. To read bit number $n$ of a word, shift the word
+to the right by $n$ and mask with 1: it is the standard idiom.
+
+\asmfile[caption={Reading bit number \reg{s0} of the button mask.},label=lst:b1:lamp]{code/l08/s25.S}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{For which inputs is $x$ NAND $y$ equal to 0?}
+\item $x=0$, $y=0$
+\item $x=0$, $y=1$
+\item $x=1$, $y=1$
+\item never
+\end{quiz}
+
+\begin{quiz}{By De Morgan, $\nott{a\cdot\nott{b}}$ is equal to:}
+\item $\nott{a}\cdot b$
+\item $\nott{a}+b$
+\item $a+\nott{b}$
+\item $\nott{a}+\nott{b}$
+\end{quiz}
+
+\begin{quiz}{$\reg{t0}=\hex{0000005A}$. What is in \reg{t1} after \code{andi t1, t0, 0x0F}?}
+\item \hex{0000005A}
+\item \hex{00000050}
+\item \hex{0000000A}
+\item \hex{0000000F}
+\end{quiz}
+
+\begin{quiz}{Which instruction turns bit 5 of \reg{t0} to 1 and leaves every other bit unchanged?}
+\item \code{andi t0, t0, 0x20}
+\item \code{ori t0, t0, 0x20}
+\item \code{xori t0, t0, 0x20}
+\item \code{addi t0, t0, 0x20}
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]\label{ex:b1:paper}
+\begin{enumerate}[nosep]
+\item Prove the second law of De Morgan, $\nott{x+y}=\nott{x}\cdot\nott{y}$,
+  with a truth table.
+\item Simplify with the algebra $x\,y+x\,\nott{y}\,z+\nott{x}\,y$, naming the
+  law used at each step.
+\item Write the mask and the instructions that test whether \key{A} and
+  \key{B} are pressed \emph{together}.
+\item Change the lamp program so that the lamps show the complement of the
+  buttons (lit when released).
+\item Convert a letter from upper to lower case and back using one bitwise
+  instruction (hint: the ASCII table of Chapter~\ref{ch:information}).
+\end{enumerate}
+\expected{On paper, the second task gives
+$y\,(x+\nott{x})+x\,\nott{y}\,z = y+x\,\nott{y}\,z = y+x\,z$, the last step by
+(\ref{eq:b1:simp}). For the third: \code{andi t1, t0, 0x30} and then a
+comparison \emph{with} \hex{30}; testing for non-zero would mean \key{A}
+\emph{or} \key{B}. On \prg: all seven lamps lit at rest, each one going dark
+while its button is held. For the letter, \ins{xori} with \hex{20} toggles
+bit~5.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+logic circuit & circuito logico\\
+switching network & rete di commutazione\\
+analysis / synthesis & analisi / sintesi\\
+logical product (AND) & prodotto logico (congiunzione)\\
+logical sum (OR) & somma logica (disgiunzione)\\
+involution & involuzione\\
+truth table & tabella di verit\`a\\
+logic gate & porta logica\\
+complement & complemento (negazione)\\
+duality & dualit\`a\\
+mask & maschera\\
+to set / clear / toggle & porre a 1 / azzerare / invertire\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+The von Neumann architecture represents a real machine in simplified form:
+processor, memory, input/output. Boolean algebra represents logic functions
+that can be implemented with electronic circuits. Three operations, a handful
+of properties and De Morgan's laws are enough to transform any expression. A
+bitwise instruction is the algebra applied to thirty-two bits at once, and a
+mask is the identity law at work.
+
+\paragraph{Reading.} \citet{patterson2020}, appendix~A, ``The Basics of Logic
+Design''; \emph{Playing with RISC-V}, chapter~6, ``State and Input: Branches,
+Bitmasks, and Boundaries'' \citep{prg32textbook}; \citet{bucci2017}, the
+chapters on Boolean algebra.

@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Node: run `npm ci` in tools/
+node_modules/
+
+# LaTeX build products (the finished PDFs are kept)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lol
+*.out
+*.toc
+*.synctex.gz
+en/textbook/main.pdf
+it/textbook/main.pdf
+
+# Products of tools/tests
+tools/tests/cartridges/*.prg32
+tools/tests/cartridges/*.ppm
+__pycache__/
+
+# Decks edited by hand in PowerPoint, set aside before a rebuild
+en/slides/backup/
+it/slides/backup/

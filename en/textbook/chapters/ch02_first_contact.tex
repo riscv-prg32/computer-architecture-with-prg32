@@ -1,0 +1,495 @@
+% ============================================================================
+%  Chapter 2 -- First Contact: RISC-V Assembly on PRG32          (Lecture 02)
+% ============================================================================
+\chapter{First Contact: RISC-V Assembly on PRG32}
+\label{ch:firstcontact}
+
+\epigraphline{Talk is cheap. Show me the code.}
+  {Linus Torvalds, Linux kernel mailing list, 2000}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item build a cartridge from an assembly file and run it on \prg;
+\item say what a register is, and name the ones used every day;
+\item call a function of the framework, passing arguments in registers;
+\item keep a value in memory from one frame to the next: load, modify, store;
+\item read one instruction as the 32-bit number that it really is;
+\item list the questions that this program raises, which the rest of the book answers.
+\end{itemize}
+\end{chapgoals}
+
+This chapter is the ``play'' turn of the spiral for the whole first half of
+the book: every later chapter points back to something typed here. The reader
+is \emph{not} expected to understand everything in it. This chapter is for
+seeing; the following ones are for explaining. Four small programs are
+written, each complete and each running; they are the verified steps of the
+first assembly laboratory of the \prg textbook \citep{prg32textbook}.
+
+% ----------------------------------------------------------------------------
+\section{The machine}
+
+\subsection{Registers, and three kinds of instruction}
+
+A \riscv processor, seen by the programmer, is a very small thing.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Thirty-two registers.] Each \term{register} holds one 32-bit value. The
+  processor can compute only on values that are in registers.
+\item[Compute.] An arithmetic or logic operation between registers:
+  \ins{add}, \ins{sub}, \ins{and}, \ins{or}, \ins{xor}, and their
+  \term{immediate} forms, such as \ins{addi}, in which one operand is a small
+  constant written in the instruction.
+\item[Move.] A transfer between a register and memory: \ins{lw} loads a word,
+  \ins{sw} stores a word. Nothing else touches memory.
+\item[Jump.] A change in which instruction runs next: branches such as
+  \ins{beqz}, calls and returns.
+\end{description}
+
+That is very nearly the whole machine. The richness of computing comes not
+from a large instruction set but from combining a small one in long sequences.
+
+\subsection{The registers actually used}
+
+The hardware calls the registers \reg{x0} to \reg{x31} and, with one
+exception, treats them alike. Programmers call them by other names, which
+record the \emph{role} that each plays (Table~\ref{tab:fc:regs}). The roles
+are fixed not by the hardware but by an agreement, the \term{calling
+convention}, part of the application binary interface (ABI). Following it is
+what allows a function written in assembly and the C code of the framework to
+call each other.
+
+\begin{table}[htb]
+\centering\small
+\caption{The registers used every day. The complete table is in
+Appendix~\ref{app:riscv}.}\label{tab:fc:regs}
+\begin{tabularx}{\textwidth}{@{}llLl@{}}
+\toprule
+\textbf{Register} & \textbf{Name} & \textbf{Role} & \textbf{Preserved across a call?}\\
+\midrule
+\reg{a0}--\reg{a7} & arguments & values passed into a call; \reg{a0} also carries the return value & no\\
+\reg{t0}--\reg{t6} & temporaries & scratch values & no\\
+\reg{s0}--\reg{s11} & saved & values that a call promises to preserve & yes\\
+\reg{ra} & return address & where \ins{ret} jumps back to & no: save it yourself\\
+\reg{sp} & stack pointer & top of the stack, kept 16-byte aligned & yes\\
+\reg{zero} & zero & always reads as 0; writes are ignored & --\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The contract: three functions}
+
+A \prg game is three functions that the programmer writes and the firmware
+calls (Figure~\ref{fig:fc:contract}). \code{init} is called once, when the
+cartridge starts, and sets up the state of the game. \code{update} is called
+once per frame: it reads the input and changes the state. \code{draw} is
+called once per frame: it turns the state into a picture. The firmware finds
+the three functions by name: a prefix chosen by the programmer, followed by
+\code{\_init}, \code{\_update} and \code{\_draw}. That is the whole contract
+between a game and the machine.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=10mm]
+  \node[blkacc,text width=30mm,minimum height=14mm] (i) {\texttt{init}\\[1pt]\footnotesize once: set up the state};
+  \node[blkamb,text width=30mm,minimum height=14mm,right=of i] (u) {\texttt{update}\\[1pt]\footnotesize every frame: input, state};
+  \node[blkvio,text width=30mm,minimum height=14mm,right=of u] (d) {\texttt{draw}\\[1pt]\footnotesize every frame: state to picture};
+  \draw[->,thick] (i) -- (u); \draw[->,thick] (u) -- (d);
+  \draw[->,thick,rounded corners=3mm] (d.south) -- ++(0,-6mm) -| node[pos=0.25,below,lbl]{next frame} (u.south);
+\end{tikzpicture}
+\caption{The contract between a cartridge and the runtime.}
+\label{fig:fc:contract}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Your first cartridge}
+
+\subsection{Step 1: the smallest program that runs}
+
+Listing~\ref{lst:fc:step1} is a complete cartridge. Create a folder, type the
+program into a file called \fname{step1\_skeleton.S}, and resist the
+temptation to copy it: the fingers learn too.
+
+\asmfile[caption={Step 1: three functions that do nothing, correctly.},label=lst:fc:step1]{code/l02/s08.S}
+
+Lines that begin with a dot are \term{directives}: orders to the assembler,
+not instructions for the processor. \code{.option norelax} keeps the layout
+of the cartridge predictable, and every \prg example starts with it.
+\code{.section .text} says that what follows is executable code.
+\code{.global} makes a \term{label} visible outside the file, so that the
+firmware can find the functions by name. A label, a name followed by a colon,
+stands for the address of what follows it. The only instruction of the
+program, written three times, is \ins{ret}: return to the caller.
+
+The cartridge is built and run with the commands met in
+Chapter~\ref{ch:setup} (Listing~\ref{lst:fc:build}); the cartridge file is
+byte for byte the same for QEMU, for the board and for \prgqt, where the
+address is \code{http://localhost:8080}.
+
+\shfile[caption={Building and running a cartridge.},label=lst:fc:build]{code/l02/s09.sh}
+
+\begin{prgcheck}[Run it]
+The expected result is a black screen. The achievement is real all the same:
+the framework has found the three functions, has called them frame after frame,
+and has survived.
+\end{prgcheck}
+
+\subsection{Step 2: say hello}
+
+To put something on the screen the program calls two functions of the
+framework: \code{prg32\_gfx\_clear}, which fills the screen with a colour, and
+\code{prg32\_gfx\_text8}, which writes a string with a font of 8 by 8 pixels
+(Listing~\ref{lst:fc:step2}, Figure~\ref{fig:fc:hello}). At the top of the
+file two \code{.equ} directives give names to two constants:
+\code{.equ BLACK, 0x0000} and \code{.equ WHITE, 0xffff}.
+
+\asmfile[caption={Step 2: the new \code{first\_draw}.},label=lst:fc:step2]{code/l02/s10.S}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{lab1_step2_hello.png}
+\caption{Step 2, built and run on \prg.}\label{fig:fc:hello}
+\end{figure}
+
+The rule for passing arguments is simple: the first argument goes in
+\reg{a0}, the second in \reg{a1}, and so on. \ins{li} (\emph{load immediate})
+puts a number in a register; \ins{la} (\emph{load address}) puts there the
+address of a label. The string lives in the section \code{.rodata},
+\emph{read-only data}, and the directive \code{.asciz} stores its characters
+followed by a byte of value zero that marks its end.
+
+\subsection{Why save \reg{ra}? The stack frame}
+
+The first and the last three lines of \code{first\_draw} are new, and they are
+the price of calling another function. The instruction \ins{call} stores in
+\reg{ra} the address to come back to. But \code{first\_draw} was itself
+called by the firmware, and \reg{ra} already held the address of
+\emph{its} return: the first \ins{call} would overwrite it, and the final
+\ins{ret} would jump to the wrong place.
+
+A function that calls another one therefore saves \reg{ra} first. It lowers
+\reg{sp} by 16 to make room on the \term{stack}, a region of memory that each
+function may use for its own temporary needs, and stores \reg{ra} at
+\code{12(sp)}, that is, 12 bytes above the address in \reg{sp}
+(Figure~\ref{fig:fc:stack}). These lines are the \term{prologue} of the
+function. After the last call it undoes everything in reverse order, in the
+\term{epilogue}: it loads \reg{ra} back, raises \reg{sp} by 16, and returns.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=0.72cm,font=\ttfamily\small]
+  \foreach \i/\t/\o/\f in {0/caller's data/16(sp)/prgrule!60, 1/ra/12(sp)/prgamber!70, 2/free/{ 8(sp)}/prgpanel, 3/free/{ 4(sp)}/prgpanel, 4/free/{ 0(sp)}/prgpanel}{
+    \draw[prgsteel,fill=\f] (0,-\i) rectangle (3.6,-\i-1);
+    \node at (1.8,-\i-0.5) {\t};
+    \node[anchor=west,text=prgcomment] at (3.8,-\i-0.5) {\o};
+  }
+  \draw[->,very thick,prgred] (-1.2,-4.5) -- (-0.05,-4.5) node[pos=0,left,font=\ttfamily\bfseries] {sp};
+  \node[lbl,text=prgcomment] at (1.8,0.4) {higher addresses};
+  \node[lbl,text width=7cm,align=center] at (1.8,-5.7) {The stack grows downward: subtract from \texttt{sp} to allocate, add to release.};
+\end{tikzpicture}
+\caption{Stack memory after the prologue of \code{first\_draw}.}
+\label{fig:fc:stack}
+\end{figure}
+
+\begin{prgwarn}[The classic first bug]
+Forgetting the pair \code{sw ra}/\code{lw ra} is the classic first bug: the
+function returns to the wrong place, and the program crashes or freezes long
+after the line that is at fault.
+\end{prgwarn}
+
+The convention requires \reg{sp} to stay aligned to a multiple of 16 bytes
+across calls, which is why the frame is 16 bytes although only 4 are used.
+The stack is treated formally in Chapters \ref{ch:memory}
+and~\ref{ch:instructions}.
+
+\subsection{Step 3: a value that survives between frames}
+
+Registers do not keep their values between one call of \code{update} and the
+next: the firmware uses them in the meantime. Whatever must last has to live
+in memory (Listing~\ref{lst:fc:step3}).
+
+\asmfile[caption={Step 3: the new \code{first\_update} and its variable.},label=lst:fc:step3]{code/l02/s12.S}
+
+\code{counter} is a label: it names a location in memory, in the section
+\code{.data}, which holds one 32-bit word, initially zero. \ins{la} puts the
+\emph{address} of that location in \reg{t0}. \ins{lw} reads the \emph{value}
+at that address into \reg{t1}; \ins{sw} writes it back. Because the processor
+computes only in registers, every change to a variable has the same three
+movements: \emph{load, modify, store}. The function is a \term{leaf}: it
+calls nothing, so it needs no stack frame.
+
+\begin{prgconcept}[Address or value? The crux of memory]
+A label names a \emph{location}. \ins{la} gives the location; \ins{lw} gives
+the contents (Figure~\ref{fig:fc:addr}). This is how every variable of every
+program ultimately works. Using an address where a value belongs, or the
+reverse, is one of the most common beginner's errors: comment every register
+as ADDRESS or VALUE.
+\end{prgconcept}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[font=\ttfamily\small]
+  \node[lbl,anchor=west,font=\sffamily\small\bfseries,text=prgsteel] at (0,1.0) {Registers (inside the processor)};
+  \node[anchor=east] at (0.6,0.2) {t0};
+  \node[draw=prgaccent,fill=prgaccent!20,minimum width=42mm,minimum height=7mm,anchor=west] (t0) at (0.8,0.2) {address of counter};
+  \node[anchor=east] at (0.6,-1.0) {t1};
+  \node[draw=prgamber,fill=prgamber!25,minimum width=42mm,minimum height=7mm,anchor=west] (t1) at (0.8,-1.0) {41, then 42};
+  \node[lbl,anchor=west,font=\sffamily\small\bfseries,text=prgsteel] at (8.2,1.0) {Memory (\texttt{.data} section)};
+  \node[draw=prgsteel,fill=prgpanel,minimum width=38mm,minimum height=7mm,anchor=west] (m0) at (8.2,0.2) {...};
+  \node[draw=prgsteel,fill=prgamber!15,minimum width=38mm,minimum height=7mm,anchor=west] (m1) at (8.2,-0.5) {counter: 41};
+  \node[draw=prgsteel,fill=prgpanel,minimum width=38mm,minimum height=7mm,anchor=west] (m2) at (8.2,-1.2) {...};
+  \draw[->,very thick,prgaccent] (t0.east) -- node[above,sloped,lbl,text=prgaccent]{\emph{t0 points here}} ([yshift=1.5mm]m1.west);
+  \draw[->,very thick,prgamber] ([yshift=-1.5mm]m1.west) -- node[below,sloped,lbl,text=prgamber]{\emph{lw copies the contents}} (t1.east);
+\end{tikzpicture}
+\begin{asm}[numbers=none]
+la   t0, counter   # t0 = WHERE the value lives
+lw   t1, 0(t0)     # t1 = WHAT is stored there
+addi t1, t1, 1     # change the copy in the register
+sw   t1, 0(t0)     # memory still says 41 until this line
+\end{asm}
+\caption{The register \reg{t0} holds an address; \reg{t1} holds a value.}
+\label{fig:fc:addr}
+\end{figure}
+
+Nothing visible changes after this step: the counter ticks, but nobody draws
+it. How could one prove that it is ticking? With the debugger of \prgqt, or
+with the next step.
+
+\subsection{Step 4: make the counter visible}
+
+Eight lines added to \code{first\_draw}, after the call that writes the text,
+draw a green bar whose width is the counter (Listing~\ref{lst:fc:step4},
+Figure~\ref{fig:fc:bar}). The constant \code{GREEN} is defined at the top of
+the file by \code{.equ GREEN, 0x07e0}.
+
+\asmfile[caption={Step 4: the lines added to \code{first\_draw}.},label=lst:fc:step4]{code/l02/s14.S}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{lab1_step4_bar.png}
+\caption{Step 4: the bar grows from 0 to 255 pixels, then starts again.}
+\label{fig:fc:bar}
+\end{figure}
+
+The function \code{prg32\_gfx\_rect} takes five arguments: $x$, $y$, width,
+height and colour. The width is computed by \ins{andi} with 255, which keeps
+only the low eight bits of the counter: the bar grows from 0 to 255 pixels and
+then starts again. Three future chapters hide in these eight lines: the
+equality $255 = \hex{FF}$ (positional notation), \ins{andi} as a bit mask
+(Boolean algebra), and \hex{07E0} as a colour (the encoding of information).
+
+The complete program is Listing~\ref{lst:fc:full}.
+
+\asmfile[caption={The complete first cartridge (\fname{step4\_bar.S}).},label=lst:fc:full]{code/l02/step4_bar.S}
+
+% ----------------------------------------------------------------------------
+\section{Reading what you wrote}
+
+\subsection{The instructions just used}
+
+Table~\ref{tab:fc:ins} orders by family the instructions met so far. In all
+of them the result goes in the \emph{first} register written. The base
+integer instruction set of \riscv, RV32I, has about forty instructions: a
+quarter of them have already been used.
+
+\begin{table}[htb]
+\centering\small
+\caption{The instructions used in this chapter.}\label{tab:fc:ins}
+\begin{tabularx}{\textwidth}{@{}llLl@{}}
+\toprule
+\textbf{Family} & \textbf{Instruction} & \textbf{What it does} & \textbf{Example}\\
+\midrule
+Arithmetic & \ins{add}, \ins{sub} & combine two registers & \code{add t0, t1, t2}\\
+Logic & \ins{and}, \ins{or}, \ins{xor} & bitwise operation on two registers & \code{and t0, t1, t2}\\
+Immediate & \ins{addi}, \ins{andi}, \ins{ori}, \ins{xori} & one register and one small constant & \code{addi t1, t1, 1}\\
+Memory & \ins{lw}, \ins{sw} & load or store a 32-bit word & \code{lw t1, 0(t0)}\\
+Control & \ins{call}, \ins{ret} & go to a function and come back & \code{call prg32\_gfx\_rect}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Pseudo-instructions}
+
+Several of the mnemonics used are not instructions of the processor at all.
+They are \term{pseudo-instructions}: shortcuts that the assembler expands into
+one or two real instructions (Table~\ref{tab:fc:pseudo}). A
+pseudo-instruction is not a separate hardware operation. The register
+\reg{zero} is what makes many of them possible: a small instruction set,
+reused with care.
+
+\begin{table}[htb]
+\centering\small
+\caption{Pseudo-instructions and their expansions.}\label{tab:fc:pseudo}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{You write} & \textbf{The assembler emits} & \textbf{Meaning}\\
+\midrule
+\code{li t0, 42} & \code{addi t0, zero, 42} & load a constant\\
+\code{mv t0, t1} & \code{addi t0, t1, 0} & copy a register\\
+\code{not t0, t1} & \code{xori t0, t1, -1} & bitwise complement\\
+\code{la t0, counter} & \code{auipc t0, \ldots} + \code{addi t0, t0, \ldots} & load the address of a label\\
+\code{ret} & \code{jalr zero, 0(ra)} & jump to the address in \reg{ra}\\
+\code{beqz t0, skip} & \code{beq t0, zero, skip} & branch if \reg{t0} is zero\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{One instruction is one 32-bit number}
+
+The processor does not read text. The assembler translates each line into one
+32-bit word, and it is that word that is stored in the cartridge and executed.
+Figure~\ref{fig:fc:encoding} dissects \code{addi t1, t1, 1}: twelve bits hold
+the constant, five bits name the source register (\reg{t1} is \reg{x6}), three
+bits select the operation, five bits name the destination register and seven
+bits, the \term{opcode}, say what kind of instruction this is. Written in
+hexadecimal the thirty-two bits are \hex{00130313}.
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,31}\\
+\bitbox{12}[bgcolor=prgamber!30]{\texttt{000000000001}} & \bitbox{5}[bgcolor=prgaccent!20]{\texttt{00110}} & \bitbox{3}[bgcolor=prgviolet!20]{\texttt{000}} & \bitbox{5}[bgcolor=prggreen!20]{\texttt{00110}} & \bitbox{7}[bgcolor=prgsteel!20]{\texttt{0010011}}\\
+\bitbox[]{12}{\footnotesize immediate\\the constant 1} & \bitbox[]{5}{\footnotesize rs1\\\texttt{t1}=\texttt{x6}} & \bitbox[]{3}{\footnotesize funct3\\add} & \bitbox[]{5}{\footnotesize rd\\\texttt{t1}=\texttt{x6}} & \bitbox[]{7}{\footnotesize opcode\\reg.-imm.}
+\end{bytefield}
+\caption{\code{addi t1, t1, 1} is the number \hex{00130313}.}
+\label{fig:fc:encoding}
+\end{figure}
+
+\begin{prgconcept}
+Assembly is a readable spelling of machine code. An instruction is data: the
+processor reads its fields with logic circuits, which will be designed in the
+chapters on logic and on the processor.
+\end{prgconcept}
+
+\subsection{PRG32-QT: a microscope for registers}
+
+\prgqt runs the same cartridge on the desktop one instruction at a time, stops
+between any two instructions and shows every register.
+
+\begin{prgtry}[Step through \code{first\_update}]
+Load step~3 in debug mode, place a breakpoint on \code{first\_update} and
+press \key{Step} four times. Before each press, say what \reg{t0} and
+\reg{t1} will contain; after it, check.
+\end{prgtry}
+
+\subsection{Trace it by hand}
+
+The same exercise can, and should, be done on paper.
+Table~\ref{tab:fc:trace} follows \code{first\_update} through a few frames.
+At frame 256 the counter keeps growing, but its low eight bits return to zero,
+because $256 = 1\,0000\,0000_2$: the bar starts again. Tracing by hand is the
+most valuable debugging skill taught in this book.
+
+\begin{table}[htb]
+\centering\small
+\caption{Three frames, and one more, of \code{first\_update}.}\label{tab:fc:trace}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+\textbf{Frame} & \textbf{\ins{lw}: \reg{t1} becomes} & \textbf{\ins{addi}: \reg{t1} becomes} & \textbf{\ins{sw}: counter becomes} & \textbf{Bar width}\\
+\midrule
+1 & 0 & 1 & 1 & 1\\
+2 & 1 & 2 & 2 & 2\\
+256 & 255 & 256 & 256 & 0\\
+257 & 256 & 257 & 257 & 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{What comes next}
+
+The program of this chapter has raised more questions than it has answered.
+Table~\ref{tab:fc:questions} is the forward map of the book: each later
+chapter opens by pointing at one of its rows.
+
+\begin{table}[htb]
+\centering\small
+\caption{Questions that the first program has already raised.}\label{tab:fc:questions}
+\begin{tabularx}{\textwidth}{@{}P{0.29\textwidth}LP{0.2\textwidth}@{}}
+\toprule
+\textbf{You saw} & \textbf{The question} & \textbf{Answered in}\\
+\midrule
+\hex{07e0}, \hex{ffff}, 255 & Why do programmers write numbers in hexadecimal? & Chapters \ref{ch:information}, \ref{ch:integers}\\
+a position below zero shown as \hex{FFFFFFFF} & How does a register hold a negative number? & Chapter \ref{ch:integers}\\
+a ball that moves less than a pixel per frame & How are fractions represented without a floating-point unit? & Chapter \ref{ch:reals}\\
+\code{andi a2, t1, 255} & What does AND do to thirty-two bits at once? & Chapters \ref{ch:boole1}, \ref{ch:boole2}\\
+\code{addi t1, t1, 1} & Which circuit actually adds two numbers? & Chapter \ref{ch:boole2}\\
+a pressed button is a 1 & What is a bit made of, physically? & Chapter \ref{ch:electronics}\\
+\code{counter} survives between frames & How does a circuit remember a bit? & Chapters \ref{ch:sequential}, \ref{ch:memory}\\
+\hex{00130313} & How does the processor decode and execute it? & Chapters \ref{ch:processor}, \ref{ch:instructions}\\
+three functions and a rectangle & Can a whole game be made out of this? & \vermone: Chapters \ref{ch:verm1p1}, \ref{ch:verm1p2}, \ref{ch:verm1p3}, \ref{ch:verm1p4}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{After \code{la t0, counter} and \code{lw t1, 0(t0)}, what does \reg{t0} hold?}
+\item The value of the counter
+\item The address of the counter
+\item Zero, because \ins{la} clears the register
+\item The return address
+\end{quiz}
+
+\begin{quiz}{A function that calls \code{prg32\_gfx\_clear} must save one register before the call. Which one?}
+\item \reg{a0}, because it carries the argument
+\item \reg{sp}, because the stack moves
+\item \reg{ra}, because \ins{call} overwrites it
+\item \reg{t0}, because it is temporary
+\end{quiz}
+
+\begin{quiz}{\reg{t1} holds 300. What does \code{andi a2, t1, 255} leave in \reg{a2}?}
+\item 300
+\item 255
+\item 45
+\item 44
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[on \prg]
+\begin{enumerate}[nosep]
+\item Change the title string and its colour to yellow (\hex{ffe0}); run it again.
+\item Make the bar grow twice as fast, then four times as fast, changing one
+  instruction only.
+\item Make the bar shrink instead of grow. What happens when the counter
+  passes zero?
+\item In \prgqt, single-step \code{first\_update} and write down \reg{t0} and
+  \reg{t1} after each instruction.
+\item Draw a second bar, in red, whose width is the counter modulo 64.
+\end{enumerate}
+\expected{In the third task the counter goes from 0 to \hex{FFFFFFFF}: with
+\code{andi 255} the bar jumps to 255 and then shrinks. Keep the observation:
+Chapter~\ref{ch:integers} explains it.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+register & registro\\
+load / store & caricare / memorizzare\\
+address & indirizzo\\
+immediate & immediato (costante)\\
+branch & salto condizionato\\
+label & etichetta\\
+stack & pila (stack)\\
+stack pointer & puntatore alla pila\\
+return address & indirizzo di ritorno\\
+calling convention & convenzione di chiamata\\
+machine code & codice macchina\\
+cartridge & cartuccia\\
+\end{glossarytable}
+
+\section{Summary and reading}
+
+A \riscv processor is thirty-two registers and a small set of instructions
+that compute, move and jump. A \prg game is three functions; arguments travel
+in \reg{a0} to \reg{a7}; a function that calls another saves \reg{ra}.
+Variables live in memory: \ins{la} for the address, \ins{lw} and \ins{sw} for
+the value. An instruction is a 32-bit number; assembly is its readable
+spelling.
+
+\paragraph{Reading.} \emph{Playing with RISC-V}, chapter~5, ``First Contact''
+\citep{prg32textbook}; \citet{patterson2020}, chapter~2; the tutorial
+\fname{docs/learn/tutorial\_ascii\_game.md} of the \prg repository.

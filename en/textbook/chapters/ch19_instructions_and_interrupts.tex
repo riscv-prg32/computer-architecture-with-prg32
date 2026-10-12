@@ -1,0 +1,633 @@
+% ============================================================================
+%  Chapter 19 -- Instructions and Interrupts                     (Lecture 19)
+% ============================================================================
+\chapter{Instructions and Interrupts}
+\label{ch:instructions}
+
+\epigraphline{Why does the CPU never get any work done? Because it gets
+interrupted constantly.}{Anonymous joke about computer architecture}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item describe an instruction as an operation code and its operands, and name the kinds of operand;
+\item decode a \riscv instruction by hand, recognising its format and fields;
+\item follow an instruction through the processor cycle: fetch, decode, execute, memory, write back;
+\item explain what a pipeline is and why it makes a processor faster;
+\item define interrupts, exceptions and traps, and list their causes;
+\item describe what \riscv does when a trap occurs and how the interrupted program resumes.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\txtfile[caption={Four words in memory.},label=lst:ins:words]{code/l19/s04.txt}
+
+Listing~\ref{lst:ins:words} is the function \code{first\_update} of
+Chapter~\ref{ch:firstcontact} as it sits in memory: four numbers, four
+addresses apart. (The \ins{la} that precedes them is omitted, and the
+encodings are the uncompressed ones of 32 bits: with the C extension the
+assembler may choose forms of 16 bits for some of them.) Three questions
+follow. How does the processor know that the first number is a load and the
+second an addition? Which steps does it take for each of them? And while it
+runs them, how does it notice that a button was pressed or that a timer has
+expired?
+
+% ----------------------------------------------------------------------------
+\section{Instructions}
+
+\subsection{What an instruction is made of}
+
+The typical instructions of a processor are transfers of data between memory
+and registers, arithmetic and logic operations, instructions for the control
+of the flow, and transfers of data to and from input/output. (In \riscv the
+fourth family does not exist as such, because devices are memory.)
+
+\begin{definition}{Instruction}
+An \term{instruction} is composed of an \term{operation code}, the opcode,
+and of zero or more \term{operands}. An operand can be a constant (an
+\emph{immediate}), a memory location, or a register; it can be explicit or
+implicit.
+\end{definition}
+
+Instructions can have zero, one, two or three operands: \ins{add} has three,
+all registers; \ins{ret} has none visible.
+
+\subsection{The formats of RISC-V instructions}
+
+Every \riscv instruction of the base set is 32 bits long, and is laid out in
+one of six \term{formats} (Figure~\ref{fig:ins:formats}). The formats were
+designed so that the same field is always in the same place: the opcode in
+bits 6 to 0, the destination register \code{rd} in bits 11 to 7, the source
+registers \code{rs1} and \code{rs2} in bits 19 to 15 and 24 to 20, the field
+\code{funct3} in bits 14 to 12. The formats B and J differ from S and U only
+in how the bits of the immediate are arranged.
+
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{bytefield}[bitwidth=0.0275\textwidth,bitheight=6.5mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,24,25,31}\\
+\begin{rightwordgroup}{R}\bitbox{7}[bgcolor=prgviolet!20]{funct7} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{I}\bitbox{12}[bgcolor=prgamber!30]{imm[11:0]} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{S}\bitbox{7}[bgcolor=prgamber!30]{imm[11:5]} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prgamber!30]{imm[4:0]} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{B}\bitbox{7}[bgcolor=prgamber!30]{imm[12$|$10:5]} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prgamber!30]{imm[4:1$|$11]} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{U}\bitbox{20}[bgcolor=prgamber!30]{imm[31:12]} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{J}\bitbox{20}[bgcolor=prgamber!30]{imm[20$|$10:1$|$11$|$19:12]} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}
+\end{bytefield}
+\caption{The six formats of \riscv. R: register to register (\ins{add},
+\ins{sub}, \ins{and}, \ins{sll}, \ldots). I: immediates and loads
+(\ins{addi}, \ins{andi}, \ins{lw}, \ins{jalr}, \ldots). S: stores. B:
+branches. U: upper immediates (\ins{lui}, \ins{auipc}). J: jumps
+(\ins{jal}).}
+\label{fig:ins:formats}
+\end{figure}
+
+This regularity is the heart of the RISC idea. The processor always knows
+where to look first, and can read the registers named by an instruction while
+it is still finding out which instruction it is.
+
+\subsection{Decoding by hand}
+
+\begin{prgconcept}[The method]
+Write the eight hexadecimal digits in binary; cut off the last seven bits, the
+opcode; look up the format; then cut the fields.
+\end{prgconcept}
+
+\begin{example}{\hex{006283B3}}
+$\hex{006283B3}=0000\,0000\,0110\,0010\,1000\,0011\,1011\,0011_2$. The last
+seven bits, \texttt{0110011}, are the opcode of the register-to-register
+operations: the format is R.
+\begin{center}\small\ttfamily
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+0000000&00110&00101&000&00111&0110011\\\hline
+\multicolumn{1}{c}{\textrm{\scriptsize funct7}}&\multicolumn{1}{c}{\textrm{\scriptsize rs2 = x6 = t1}}&\multicolumn{1}{c}{\textrm{\scriptsize rs1 = x5 = t0}}&\multicolumn{1}{c}{\textrm{\scriptsize funct3}}&\multicolumn{1}{c}{\textrm{\scriptsize rd = x7 = t2}}&\multicolumn{1}{c}{\textrm{\scriptsize opcode}}
+\end{tabular}
+\end{center}
+With $\code{funct3}=000$ and $\code{funct7}=0000000$ the operation is an
+addition (with $\code{funct7}=0100000$ it would be a subtraction): the
+instruction is \code{add t2, t0, t1}.
+\end{example}
+
+\begin{example}{\hex{0002A303}}
+$\hex{0002A303}=0000\,0000\,0000\,0010\,1010\,0011\,0000\,0011_2$. The opcode
+\texttt{0000011} is that of the loads: the format is I.
+\begin{center}\small\ttfamily
+\begin{tabular}{|c|c|c|c|c|}\hline
+000000000000&00101&010&00110&0000011\\\hline
+\multicolumn{1}{c}{\textrm{\scriptsize immediate = 0}}&\multicolumn{1}{c}{\textrm{\scriptsize rs1 = x5 = t0}}&\multicolumn{1}{c}{\textrm{\scriptsize funct3 = word}}&\multicolumn{1}{c}{\textrm{\scriptsize rd = x6 = t1}}&\multicolumn{1}{c}{\textrm{\scriptsize opcode}}
+\end{tabular}
+\end{center}
+The instruction is \code{lw t1, 0(t0)}, the first of the warm-up.
+\end{example}
+
+The decoders of Chapter~\ref{ch:combinational} do the same thing in a fraction
+of a nanosecond. The tables needed to decode any instruction are in
+Appendix~\ref{app:riscv}.
+
+\subsection{Instructions of fixed or of variable length}
+
+In a machine with instructions of \emph{fixed length} all the instructions
+have the same number of bits, the next instruction is always at the PC plus a
+constant, and fetch and decode are simple. RISC processors are of this kind:
+\riscv uses 32 bits and, with the compressed extension, 16 or 32, told apart
+by the two lowest bits (Chapter~\ref{ch:combinational}). In a machine with
+instructions of \emph{variable length} the length is known only after the
+first part has been decoded: programs are compact, and decoding is complex.
+CISC processors are of this kind: the MC68000 uses one to five words of 16
+bits, and Intel x86 one to fifteen bytes. In either case the length of the
+instruction decides by how much the PC advances.
+
+\subsection{Addressing modes: where an operand is found}
+
+\begin{table}[htb]
+\centering\small
+\caption{Addressing modes.}\label{tab:ins:modes}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{Mode} & \textbf{The operand is} & \textbf{\riscv example}\\
+\midrule
+immediate & a constant inside the instruction & \code{addi t1, t1, 1}\\
+register & the content of a register & \code{add t2, t0, t1}\\
+base plus displacement & the memory word at register + constant & \code{lw t1, 8(sp)}\\
+PC-relative & an address at a distance from the instruction itself & \code{beq t0, t1, loop}\\
+memory indirect & the memory word whose address is in memory & not available: two loads\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\riscv has only the first four modes of Table~\ref{tab:ins:modes}. A CISC
+processor such as the MC68000 has a dozen, including memory-indirect and
+auto-increment modes. The operation $R:=M[M[A]]$ becomes in \riscv
+\code{lw t0, 0(t1)} followed by \code{lw t0, 0(t0)}. The price of rich
+addressing modes is a further phase in the processor cycle, in which the
+operands are assembled.
+
+\subsection{Calls, returns and the calling convention}
+
+The instructions for the control of the flow deserve one more word, because
+every function of \vermone depends on them. \ins{jal} (\emph{jump and link},
+format J) jumps to an address relative to the PC and writes in its destination
+register the address of the following instruction; \ins{jalr} (format I)
+does the same with a target taken from a register. The pseudo-instruction
+\ins{call} is a \ins{jal} (or an \ins{auipc} with a \ins{jalr}, for distant
+targets) whose destination is \reg{ra}; \ins{ret} is \code{jalr zero, 0(ra)}.
+
+The \term{calling convention} is the agreement that lets separately written
+functions call one another \citep{riscvabi}. It says that arguments travel in
+\reg{a0}--\reg{a7} and results in \reg{a0} and \reg{a1}; that a function may
+destroy the registers \reg{t0}--\reg{t6} and \reg{a0}--\reg{a7}, which are
+therefore \emph{caller-saved}; that it must return the registers
+\reg{s0}--\reg{s11} and \reg{sp} as it found them, which are therefore
+\emph{callee-saved}; and that \reg{sp} is always a multiple of 16. This is
+why, since Chapter~\ref{ch:verm1p2}, a value that must survive a call has been
+kept in an \reg{s} register and saved in the frame. The convention is stated
+in full in Appendix~\ref{app:riscv}.
+
+% ----------------------------------------------------------------------------
+\section{The processor cycle}
+
+\subsection{The phases of the cycle}
+
+After a start-up phase, the \emph{bootstrap}, a processor repeats for ever the
+same sequence: its fundamental algorithm. In the classic RISC formulation
+the sequence has five phases (Figure~\ref{fig:ins:cycle}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=19mm] (a) {\textbf{Fetch}\\[1pt]\footnotesize read the instruction; the PC advances};
+  \node[blkamb,text width=21mm,minimum height=19mm,right=of a] (b) {\textbf{Decode}\\[1pt]\footnotesize recognise it; read the registers};
+  \node[blkvio,text width=21mm,minimum height=19mm,right=of b] (c) {\textbf{Execute}\\[1pt]\footnotesize the ALU computes};
+  \node[blkgrn,text width=21mm,minimum height=19mm,right=of c] (d) {\textbf{Memory}\\[1pt]\footnotesize loads read, stores write};
+  \node[blkred,text width=21mm,minimum height=19mm,right=of d] (e) {\textbf{Write back}\\[1pt]\footnotesize the result goes to \texttt{rd}};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \draw[->,thick,rounded corners=3mm] (e.south) -- ++(0,-6mm) -| (a.south);
+\end{tikzpicture}
+\caption{The processor cycle.}
+\label{fig:ins:cycle}
+\end{figure}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Fetch.] The instruction at the address in the PC is read from memory;
+  the PC advances.
+\item[Decode.] The opcode is recognised; the registers named by the
+  instruction are read.
+\item[Execute.] The ALU computes: a result, an address or a comparison.
+\item[Memory.] Loads read the memory and stores write it; the other
+  instructions skip this phase.
+\item[Write back.] The result is written into the destination register.
+\end{description}
+
+\subsection{The fetch phase, transfer by transfer}
+
+In terms of the reference model of Chapter~\ref{ch:processor}, the fetch is
+four \term{register transfers} on the internal bus
+(Table~\ref{tab:ins:fetch}). In RV32 a word is four bytes and addresses
+count bytes, so that the PC advances by 4 (by 2 after a compressed
+instruction).
+
+\begin{table}[htb]
+\centering\small
+\caption{The fetch phase.}\label{tab:ins:fetch}
+\begin{tabularx}{\textwidth}{@{}clL@{}}
+\toprule
+\textbf{Step} & \textbf{Register transfer} & \textbf{Meaning}\\
+\midrule
+1 & $MA := PC$ & the address of the instruction goes to the memory address register\\
+2 & read enable; $MB := M[MA]$ & the memory puts the instruction on the data bus; it is latched in the buffer\\
+3 & $D := MB$ & the instruction is copied into the decoding register\\
+4 & $PC := PC+4$ & the PC now points to the next instruction\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The rest of the cycle for two instructions}
+
+\begin{table}[htb]
+\centering\small
+\caption{The remaining phases for an addition and for a load.}\label{tab:ins:rest}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Phase} & \textbf{\code{add t2, t0, t1}} & \textbf{\code{lw t1, 0(t0)}}\\
+\midrule
+decode & $O_1:=R[\reg{t0}]$;\quad $O_2:=R[\reg{t1}]$ & $O_1:=R[\reg{t0}]$;\quad $O_2:=0$ (the immediate)\\
+execute & $U:=O_1+O_2$ & $U:=O_1+O_2$ (an address)\\
+memory & -- & $MA:=U$; read enable; $MB:=M[MA]$\\
+write back & $R[\reg{t2}]:=U$ & $R[\reg{t1}]:=MB$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The same ALU adds two registers for \ins{add} and forms an address for
+\ins{lw} (Table~\ref{tab:ins:rest}): only the control signals differ. The
+control unit, by decoding the opcode, decides which transfers happen. A store
+ends at the memory phase; a branch ends at the execute phase, by choosing the
+next PC.
+
+\subsection{The pipeline}
+
+Five phases are five pieces of hardware. While one instruction is executed,
+the next can be decoded and a third fetched: this is a \term{pipeline}
+(Table~\ref{tab:ins:pipe}).
+
+\begin{table}[htb]
+\centering\small
+\caption{A linear pipeline of five stages: IF instruction fetch, ID decode,
+EX execute, MEM memory, WB write back.}\label{tab:ins:pipe}
+\begin{tabular}{@{}l*{8}{>{\centering\arraybackslash}p{8mm}}@{}}
+\toprule
+\textbf{clock cycle} & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8\\
+\midrule
+instruction 1 & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&&\\
+instruction 2 && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+instruction 3 &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+instruction 4 &&&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each instruction still takes five cycles, but one instruction completes at
+every clock cycle: the throughput is five times as large. In general, $n$
+instructions on a pipeline of $k$ stages complete in $k+n-1$ cycles.
+\term{Superscalar} processors put two or more pipelines side by side, and
+complete more than one instruction per cycle (Chapter~\ref{ch:beyond}). The
+main core of the ESP32-C6 has a pipeline of four stages. Branches, and
+dependences between neighbouring instructions, complicate the picture: they
+are called \emph{hazards}, and are the subject of an advanced course.
+
+% ----------------------------------------------------------------------------
+\section{Interrupts}
+
+\subsection{The problem with the simple cycle}
+
+If the processor only ever did fetch, decode and execute, three problems would
+arise. The interaction with the outside world through the I/O units would be
+inefficient, because the program would have to keep asking. There would be no
+way of forcibly removing an application that, by mistake, enters an infinite
+loop: who takes the processor away from a program stuck in \code{j loop}? And
+the operating system would have limited control over the system.
+
+\subsection{Interrupts, exceptions, traps}
+
+\begin{definition}{Interrupt}
+\term{Interrupts} are exceptional events, usually asynchronous with respect to
+the execution of the program in progress, that require the attention of the
+processor.
+\end{definition}
+
+The \riscv specification uses three words precisely \citep{riscvpriv}. An
+\term{interrupt} comes from outside the program, at any moment: a timer, a
+device. An \term{exception} is caused by the instruction being executed: an
+illegal opcode, a forbidden address. A \term{trap} is the transfer of control
+to a handler that follows either of them. (Older processors call ``traps''
+the synchronous events and use ``interrupt'' for everything.)
+
+\subsection{The real processor cycle}
+
+The real cycle therefore has one more step (Figure~\ref{fig:ins:real}): after
+each instruction the processor checks whether an interrupt is pending and, if
+so, passes to the handler instead of fetching the next instruction.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgsteel,text=white,minimum width=22mm,minimum height=9mm] (b) at (0,0) {bootstrap};
+  \node[blkacc,minimum width=22mm,minimum height=9mm] (f) at (3.4,0) {fetch};
+  \node[blkamb,minimum width=22mm,minimum height=9mm] (x) at (6.8,0) {decode and\\execute};
+  \node[blkred,minimum width=22mm,minimum height=10mm] (q) at (6.8,-1.9) {interrupt\\pending?};
+  \node[blkvio,minimum width=22mm,minimum height=10mm] (t) at (6.8,-3.8) {trap: go to\\the handler};
+  \draw[->,thick] (b) -- (f); \draw[->,thick] (f) -- (x); \draw[->,thick] (x) -- (q);
+  \draw[->,thick] (q.west) -| (f.south) node[pos=0.25,above,lbl]{no};
+  \draw[->,thick,prgred] (q) -- (t) node[midway,right,lbl,text=prgred]{yes};
+  \draw[->,thick,prgviolet] (t.west) -| (f.south);
+  \node[lbl,text=prgviolet] at (4.4,-4.1) {the next fetch is at the address in \texttt{mtvec}};
+\end{tikzpicture}
+\caption{The real processor cycle.}
+\label{fig:ins:real}
+\end{figure}
+
+\subsection{Possible causes of interruption}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Periodic interrupt.] A timer, for example every 10~ms: to share the
+  processor among programs and to measure the time that each one uses.
+\item[I/O interrupt.] A peripheral reports its state, for example that it is
+  ready to receive data, to synchronise with the processor.
+\item[Errors in the program.] An instruction that does not exist or is
+  privileged, a forbidden address: synchronous events, the exceptions. (In
+  \riscv an integer overflow does \emph{not} raise an exception.)
+\item[Faults.] Failures of the system detected by dedicated probes: power,
+  temperature, memory errors.
+\item[Reset.] Brings the whole system back to a known state.
+\item[Software interrupt.] Generated by a program that needs a shared resource
+  and asks the operating system to mediate: in \riscv, the instruction
+  \ins{ecall}, \emph{environment call}, which is synchronous with the program
+  that executes it.
+\end{description}
+
+\subsection{Handling an interrupt}
+
+\begin{enumerate}
+\item Save the context, hardware part: at least the address at which to resume.
+\item Identify the cause of the interrupt.
+\item Jump to the entry point of the \term{interrupt service routine} (ISR).
+\item Save the context, software part: the registers that the routine is going
+  to use.
+\item Serve the interrupt.
+\item If the interrupt allows it, restore the context and resume the suspended
+  program from the instruction that follows the last one executed.
+\end{enumerate}
+
+The \term{context} to save and restore is the PC, the status and the
+registers. The saving can be done partly or wholly in hardware or in
+software; \riscv does the minimum in hardware.
+
+\subsection{Who interrupted? Two solutions}
+
+With several devices the processor must identify who interrupted. With
+\emph{status registers and polling}, each device has a status register: a
+device that requests an interrupt sets a bit there and raises a common request
+line; the service routine interrogates the devices in order of priority and
+serves the first that it finds with its bit high. The scheme is simple to
+build but takes time, because it also interrogates devices that asked for
+nothing. With \term{vectored interrupts} the identity of the source is
+supplied to the processor at the moment of the request, and the processor
+jumps directly to the routine that corresponds to it: a very efficient
+mechanism, in which the number of bits of the vector limits the number of
+different sources.
+
+The \term{interrupt latency} is the delay between the instant in which the
+request line goes high and the instant in which the service routine starts
+doing useful work; it includes the end of the current instruction, the check
+and the switch.
+
+% ----------------------------------------------------------------------------
+\section{The RISC-V solution}
+
+\riscv solves the whole problem with a few registers and one instruction.
+
+\subsection{The registers of the trap mechanism}
+
+\begin{table}[htb]
+\centering\small
+\caption{The machine-mode CSRs of the trap mechanism.}\label{tab:ins:csr}
+\begin{tabularx}{\textwidth}{@{}lP{0.3\textwidth}L@{}}
+\toprule
+\textbf{CSR} & \textbf{Written by} & \textbf{Content}\\
+\midrule
+\reg{mtvec} & the firmware, once, at start-up & the address of the trap handler, and whether the vectored mode is used\\
+\reg{mstatus} & hardware and firmware & MIE, the global interrupt enable, and MPIE, its previous value\\
+\reg{mie} & the firmware & one enable bit for each source: software, timer, external\\
+\reg{mip} & the hardware & one pending bit for each source\\
+\reg{mepc} & the hardware, at each trap & the address of the interrupted instruction\\
+\reg{mcause} & the hardware, at each trap & one bit that says interrupt or exception, and a code for the cause\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+An interrupt is taken only if its bit is set in both \reg{mip} and \reg{mie},
+and MIE is 1 (Table~\ref{tab:ins:csr}).
+
+\subsection{What the hardware does on a trap}
+
+\begin{enumerate}
+\item $\reg{mepc} :=$ the address of the interrupted instruction.
+\item $\reg{mcause} :=$ the cause: the top bit is 1 for an interrupt and 0 for
+  an exception, and the other bits hold a code.
+\item In \reg{mstatus}: $\mathrm{MPIE}:=\mathrm{MIE}$, then
+  $\mathrm{MIE}:=0$, so that further interrupts are disabled.
+\item The processor passes to machine mode.
+\item $PC :=$ the address in \reg{mtvec}; or, in vectored mode and for
+  interrupts, that address plus 4 times the cause.
+\end{enumerate}
+
+At the end of the handler the instruction \ins{mret} undoes it all:
+$\mathrm{MIE}:=\mathrm{MPIE}$ and $PC:=\reg{mepc}$.
+
+Nothing is pushed on a stack by the hardware: saving the general registers is
+left to the handler. The ``hardware context save'' of the general scheme is
+reduced to two registers and one bit.
+
+\subsection{The cause of a trap}
+
+\begin{table}[htb]
+\centering\small
+\caption{Some standard values of \reg{mcause}; chips add their own.}\label{tab:ins:cause}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Kind} & \textbf{Code} & \textbf{Cause}\\
+\midrule
+interrupt & 3 & machine software interrupt\\
+interrupt & 7 & machine timer interrupt\\
+interrupt & 11 & machine external interrupt: a device, through the interrupt controller\\
+exception & 2 & illegal instruction\\
+exception & 3 & breakpoint (\ins{ebreak}): how a debugger stops a program\\
+exception & 5, 7 & load or store access fault: a forbidden address\\
+exception & 8, 11 & environment call (\ins{ecall}) from user mode, from machine mode\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The same code 3 means different things for interrupts and for exceptions
+(Table~\ref{tab:ins:cause}): the top bit of \reg{mcause} distinguishes them.
+With \reg{mtvec} in vectored mode, a timer interrupt enters at
+$\mathit{base}+4\times 7$.
+
+\subsection{A trap handler, in outline}
+
+\asmfile[caption={The outline of a trap handler.},label=lst:ins:handler]{code/l19/s27.S}
+
+The interrupted program must not notice anything: every register that the
+handler touches is saved and restored (Listing~\ref{lst:ins:handler}). Read
+as a signed number, \reg{mcause} is negative for interrupts, so that
+\ins{bgez} separates the two families. \ins{mret} is the only way back: it
+re-enables the interrupts and reloads the PC in one step. The instruction
+\code{csrr t0, mcause} is the pseudo-instruction for
+\code{csrrs t0, mcause, zero}.
+
+The listing is an outline, not the source of \prg: a real handler saves all
+the caller-saved registers, usually on a separate stack reached through the
+register \reg{mscratch}. The firmware of the kit contains exactly such a
+routine, and a cartridge is interrupted many times per frame.
+
+\subsection{Priorities and nesting}
+
+To handle \term{nested} interrupts a priority is established: while a service
+routine runs, only requests from devices of higher priority are accepted, and
+a request from a device of high priority, such as the clock, must be accepted
+even while one of lower priority is being served. Table~\ref{tab:ins:prio}
+compares the classical solution of the MC68000 with that of \riscv, where
+priorities belong to an interrupt controller outside the core (on Espressif
+chips they go from 1 to 15).
+
+\begin{table}[htb]
+\centering\small
+\caption{Priorities and nesting in two processors.}\label{tab:ins:prio}
+\begin{tabularx}{\textwidth}{@{}P{0.22\textwidth}LL@{}}
+\toprule
+ & \textbf{Motorola MC68000} & \textbf{\riscv}\\
+\midrule
+priority of a request & three lines encode an interrupt priority level, 1 to 7 & the interrupt controller gives each source a priority\\
+priority of the processor & three bits in the status register: the mask & a threshold register in the interrupt controller\\
+a request is accepted if & its level is higher than the mask & its priority is higher than the threshold, and it is enabled\\
+while serving it & the mask is raised to that level & interrupts are disabled ($\mathrm{MIE}=0$) unless the handler re-enables them\\
+cannot be masked & level 7 & a non-maskable interrupt, defined by each chip\\
+identity of the source & an 8-bit vector number from the device: 256 vectors & \reg{mcause}, then the controller says which device\\
+return & \code{RTE}, which pops PC and status from the stack & \ins{mret}, which uses \reg{mepc} and \reg{mstatus}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}
+It is sometimes said that ``an interrupt is a signal that cannot be masked''.
+The opposite is true: most interrupts can be masked, and only a few cannot.
+\end{prgwarn}
+
+\subsection{Interrupts on the PRG32 kit}
+
+The three problems of the simple cycle, and their solution, are all visible
+on the kit.
+
+\begin{itemize}
+\item A timer interrupts the processor a hundred times per second: the
+  firmware uses it to keep time and to pace the frames.
+\item The display and sound peripherals interrupt when a block of data has
+  been sent and the next is wanted.
+\item The Wi-Fi radio interrupts when a packet arrives: a cartridge can be
+  uploaded while a game is running.
+\item The functions \code{init}, \code{update} and \code{draw} of a cartridge
+  are ordinary functions called by the firmware between one interrupt and the
+  next.
+\item A cartridge stuck in a loop does not stop the interrupts. \prgqt ends
+  the frame with an error (``instruction budget exhausted''); on the board a
+  watchdog reports the stall, and the user presses reset.
+\end{itemize}
+
+In \prgqt a breakpoint is the exception with code 3.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{In which bits of a \riscv instruction is the opcode?}
+\item the seven most significant
+\item the seven least significant
+\item bits 14 to 12
+\item it depends on the format
+\end{quiz}
+
+\begin{quiz}{During the fetch of an RV32 instruction that is not compressed, the PC is increased by:}
+\item 1
+\item 2
+\item 4
+\item 32
+\end{quiz}
+
+\begin{quiz}{Which register holds the address at which an interrupted \riscv program will resume?}
+\item \reg{ra}
+\item \reg{mtvec}
+\item \reg{mepc}
+\item \reg{mcause}
+\end{quiz}
+
+\begin{quiz}{Which of these is an exception rather than an interrupt, in \riscv terms?}
+\item a timer expires
+\item a key is pressed
+\item an illegal instruction is fetched
+\item a packet arrives from the network
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Decode \hex{00A28293} and \hex{40628333} by hand: format, fields,
+  assembly.
+\item Encode \code{sub t0, t1, t2} and \code{sw a0, 8(sp)}.
+\item Write the register transfers of the whole cycle for
+  \code{sw t1, 0(t0)} and for \code{beq t0, t1, target}.
+\item Draw the pipeline diagram for six instructions on a pipeline of four
+  stages: when does the sixth complete?
+\item In \prgqt set a breakpoint in \code{first\_update}, step, and compare
+  the machine code shown with your decoding of the warm-up.
+\end{enumerate}
+\expected{On paper: \code{addi t0, t0, 10} (immediate 10, \code{rs1} =
+\reg{x5}, \code{funct3} = 000, \code{rd} = \reg{x5}, opcode 0010011) and
+\code{sub t1, t0, t1} (\code{funct7} = 0100000, \code{rs2} = \reg{x6},
+\code{rs1} = \reg{x5}, \code{rd} = \reg{x6}); \hex{407302B3} and
+\hex{00A12423}; the sixth instruction completes at cycle 9. In \prgqt: the
+four words of the warm-up, or their compressed equivalents.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+operation code (opcode) & codice operativo\\
+operand & operando\\
+addressing mode & modo di indirizzamento\\
+fetch / decode / execute & prelievo / decodifica / esecuzione\\
+pipeline stage & stadio della pipeline\\
+context & contesto\\
+interrupt & interruzione\\
+exception / trap & eccezione / trap\\
+interrupt service routine & routine di servizio dell'interruzione\\
+interrupt latency & latenza di interruzione\\
+to mask an interrupt & mascherare un'interruzione\\
+nesting & annidamento\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+An instruction is an operation code and zero, one or more operands; in \riscv
+it is always 32 bits, in six regular formats. The length of the instructions,
+fixed or variable, determines how the PC behaves. The processor has a cycle:
+it fetches an instruction, decodes it, executes it and writes the result.
+Exceptional events break the cycle: the processor saves where it was, serves
+the event and resumes. Interrupts can be enabled, masked and ordered by
+priority; \riscv does it with a handful of registers and the instruction
+\ins{mret}.
+
+\paragraph{Reading.} \citet{patterson2020}, sections 2.5, 4.1--4.6 and 4.10;
+the \riscv instruction set manual, volume~II, ``Privileged Architecture''
+\citep{riscvpriv}; \emph{Playing with RISC-V}, chapter~4, on \prgqt and its
+debugger \citep{prg32textbook}.

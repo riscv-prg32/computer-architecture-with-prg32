@@ -1,0 +1,85 @@
+% ============================================================================
+%  Architettura dei calcolatori: prima programmare, poi formalizzare
+%  (Italian edition of "Computer Architecture: Program First, Formalise Later";
+%  same structure, file names and labels as ../../en/textbook)
+%  Un corso su RISC-V con la piattaforma PRG32 e il progetto Verm1
+%  Libro di testo di ARC12, Architettura dei Calcolatori e Laboratorio, A.A. 2026/27
+%  Università degli Studi di Napoli "Parthenope"
+%
+%  Overleaf: upload the whole folder (or the zip), set main.tex as the main
+%  document and pdfLaTeX as the compiler.  Locally:  latexmk -pdf main.tex
+% ============================================================================
+\documentclass[11pt,twoside,openright]{book}
+\usepackage{arc12style}
+
+% To compile only some chapters while editing (faster on Overleaf), uncomment:
+% \includeonly{chapters/ch05_integers,chapters/ch06_reals}
+
+\begin{document}
+
+% -------------------- FRONT MATTER --------------------
+\frontmatter
+\input{frontmatter/titlepage}
+\input{frontmatter/copyright}
+\tableofcontents
+\input{frontmatter/preface}
+\input{frontmatter/howtoread}
+
+% -------------------- MAIN MATTER --------------------
+\mainmatter
+% Chapters are numbered from zero, like the lectures and like every index in
+% this book: Chapter N is Lecture N of the course.
+\setcounter{chapter}{-1}
+
+\part{Partenza}
+\include{chapters/ch00_introduction}
+\include{chapters/ch01_setup}
+\include{chapters/ch02_first_contact}
+
+\part{Informazione}
+\include{chapters/ch03_history}
+\include{chapters/ch04_digital_information}
+\include{chapters/ch05_integers}
+\include{chapters/ch06_reals}
+\include{chapters/ch07_verm1_part1}
+
+\part{Logica}
+\include{chapters/ch08_boolean_algebra_1}
+\include{chapters/ch09_boolean_algebra_2}
+\include{chapters/ch10_electronics}
+\include{chapters/ch11_combinational_machines}
+\include{chapters/ch12_verm1_part2}
+
+\part{Stato e memoria}
+\include{chapters/ch13_sequential_machines}
+\include{chapters/ch14_registers_and_buses}
+\include{chapters/ch15_memory}
+\include{chapters/ch16_permanent_memory}
+\include{chapters/ch17_verm1_part3}
+
+\part{La macchina}
+\include{chapters/ch18_processor}
+\include{chapters/ch19_instructions_and_interrupts}
+\include{chapters/ch20_video_card}
+\include{chapters/ch21_input_output}
+\include{chapters/ch22_verm1_part4}
+
+\part{Pubblicazione e prospettive}
+\include{chapters/ch23_verm1_store}
+\include{chapters/ch24_beyond_one_core}
+
+% -------------------- APPENDICES --------------------
+\appendix
+\part{Appendici}
+\include{appendices/app_riscv}
+\include{appendices/app_prg32}
+\include{appendices/app_github}
+\include{appendices/app_verm1}
+\include{appendices/app_answers}
+\include{appendices/app_glossary}
+
+% -------------------- BACK MATTER --------------------
+\backmatter
+\bibliography{frontmatter/references}
+
+\end{document}

@@ -1,0 +1,477 @@
+% ============================================================================
+%  Chapter 15 -- Memory                                          (Lecture 15)
+% ============================================================================
+\chapter{Memory}
+\label{ch:memory}
+
+\epigraphline{\ldots computers and the programs will start thinking and the
+people will stop.}{Dr.\ Walter Gibbs, \emph{Tron}, Steven Lisberger, 1982}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item classify memories as volatile or persistent, on-line or off-line, and place them in the memory hierarchy;
+\item describe how SRAM and DRAM store a bit, and why they are used for different jobs;
+\item explain what words, addresses and byte-addressable memory are;
+\item tell little-endian from big-endian order, and say which one \riscv uses;
+\item describe step by step how the processor reads and writes a word;
+\item explain memory-mapped input/output and what DMA is for.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={The same memory read as a word and as bytes.},label=lst:mem:warm]{code/l15/s04.S}
+
+In Listing~\ref{lst:mem:warm} a word of thirty-two bits occupies four
+consecutive addresses: memory is addressed byte by byte. The byte at the
+lowest address is \hex{78}, the least significant: the order is little-endian.
+\ins{lw} fetches four bytes in one operation, \ins{lbu} fetches one.
+
+\begin{prgtry}
+Run it in \prgqt and open the memory view at the address in \reg{t0}: the
+bytes appear as \texttt{78 56 34 12}. The byte order of
+Chapter~\ref{ch:information} has become an experiment.
+\end{prgtry}
+
+What is a memory made of, and what happens between the processor and the
+memory when \ins{lw} runs?
+
+% ----------------------------------------------------------------------------
+\section{What is a memory?}
+
+\begin{definition}{Memory}
+The \term{memory} is the element of a computer, or of one of its subsystems,
+dedicated to the persistence of data and of the instructions of programs.
+\end{definition}
+
+Memories are the components able to store information: data, programs and
+results. They are classified along two axes. A memory is \term{volatile} if
+the information is kept only as long as the computer is powered, and
+\term{persistent} if it is kept even when the computer is switched off. It is
+\term{on-line} if the data are always accessible, and \term{off-line} if the
+medium must be mounted before the data can be reached.
+
+\subsection{The memory hierarchy}
+
+No technology is at the same time fast, large and cheap. A computer
+therefore uses several, arranged in a \term{hierarchy}
+(Figure~\ref{fig:mem:hier}): going up, memories are faster and more expensive
+per bit; going down, larger and cheaper per bit. Typical access times are
+below a nanosecond to a few nanoseconds for registers and cache, tens of
+nanoseconds for DRAM, tens of microseconds for solid-state disks,
+milliseconds for magnetic disks, seconds to minutes for tape.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\n/\d/\c/\w in {0/registers/{inside the processor}/prgred/30, 1/cache/{SRAM, on the processor chip}/prgamber/46, 2/{main memory}/DRAM/prgaccent/62, 3/{solid-state and magnetic disks}/{persistent, on-line}/prgsteel/78, 4/{tapes and removable media}/{persistent, off-line}/prgviolet/94}{
+    \node[blk,fill=\c,draw=\c,text=white,minimum width=\w mm,minimum height=9mm] at (0,-\i*1.05) {\textbf{\n}\\[-1pt]\scriptsize \d};
+  }
+  \draw[->,very thick,prgink] (5.6,-4.4) -- (5.6,0.3) node[above,lbl,align=center]{faster, more\\expensive per bit};
+  \draw[->,very thick,prgink] (-5.6,0.3) -- (-5.6,-4.4) node[below,lbl,align=center]{larger,\\cheaper per bit};
+\end{tikzpicture}
+\caption{The memory hierarchy.}
+\label{fig:mem:hier}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{A little history: rings of ferrite}
+
+\subsection{Magnetic-core memory}
+
+In the first computers, before semiconductor memories became widespread, a
+bit was the direction of the magnetic field of a small ring of ferrite, a
+magnetic ceramic (Figure~\ref{fig:mem:core}). A core memory is static: it
+keeps its contents without power. The first research was done by An Wang and
+Way-Dong Woo at Harvard in 1949; at the beginning of the 1950s Jay Forrester
+at MIT built a core memory for Whirlwind, a computer meant as a flight
+simulator.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{core_memory.jpg}\caption{Ferrite cores and their wires}\label{fig:mem:core}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{ram_modules.jpg}\caption{Memory modules of several generations}\label{fig:mem:modules}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{ram_on_board.jpg}\caption{A module and its slot}\label{fig:mem:slot}\end{subfigure}
+\caption{Memory, yesterday and today.}
+\end{figure}
+
+\subsection{Reading and writing a core}
+
+Each core is threaded by wires. Two address lines, X and Y, select one core:
+only the core at their crossing receives enough current to change.
+
+\emph{Reading is destructive.} The selected bit is set to 0; if it contained
+1, a pulse appears on a third wire, the \emph{sense} line, and otherwise
+nothing happens. The datum has been read and lost. Wang's solution was that
+every read is followed by a write that stores the datum again.
+
+\emph{Writing.} All the bits start at 0. X and Y select the core, which is
+set to 1; if the bit must be 0, an \emph{inhibit} line prevents the change.
+(Sense and inhibit share one wire.) Forrester's contribution was the
+arrangement that manages a large number of cores with few connections.
+
+The destructive read followed by a rewrite has returned today in DRAM.
+
+% ----------------------------------------------------------------------------
+\section{Memory today}
+
+\subsection{SRAM and DRAM}
+
+\begin{definition}{SRAM and DRAM}
+In a \term{static RAM} (SRAM) each bit is held by a bistable circuit, as in a
+flip-flop. In a \term{dynamic RAM} (DRAM) each bit is a charge in a tiny
+capacitor, behind one transistor.
+\end{definition}
+
+The cells of an SRAM are arranged in a matrix and reached by row and column;
+each takes six transistors (Chapter~\ref{ch:electronics}) and keeps its
+content as long as it is powered. SRAM is fast and expensive, and is used for
+cache memories; it is also the main memory of a microcontroller such as the
+ESP32-C6, which has 512~KB of SRAM and no DRAM at all.
+
+The capacitor of a DRAM cell discharges, and its content must be
+\term{refreshed} periodically by a circuit inside the memory. DRAM is cheap
+and dense, and is the main memory of laptops, telephones and servers. An
+\emph{SDRAM} is a synchronous DRAM, whose access is governed by a clock; DDR4
+and DDR5 are generations of it.
+
+\subsection{Other memories}
+
+A \emph{ferroelectric RAM} (FeRAM) keeps its state without power.
+\emph{Flash} memory is persistent and is erased in blocks: it is the memory of
+USB keys, of telephones and of solid-state disks, treated in the next chapter.
+The program of a microcontroller lives in flash and its variables in SRAM.
+
+Memory modules have changed shape and size through the years
+(Figure~\ref{fig:mem:modules}): SIMM, SDRAM PC100 and PC133, Rambus and DDR
+held tens to hundreds of megabytes each; today's DDR5 modules hold 16 to
+64~GB.
+
+\subsection{How to recognise the memory}
+
+On the motherboard of a desktop or of a server the memory is in rows of long
+slots next to the processor, which hold the modules
+(Figure~\ref{fig:mem:slot}). On a laptop or a telephone it is in chips
+soldered close to the processor. On the \prg kit there is nothing to see: the
+SRAM is inside the ESP32-C6 itself, and the flash is a small chip beside it.
+
+Two parameters characterise a memory: its \term{size}, the number of cells,
+which today is gigabytes on a PC and kilobytes on a microcontroller; and its
+\term{access time}, the delay after which the datum is available, tens of
+nanoseconds for DRAM. For comparison, at 160~MHz one clock period of the
+ESP32-C6 is 6.25~ns.
+
+% ----------------------------------------------------------------------------
+\section{The main memory}
+
+\subsection{Words and addresses}
+
+\begin{definition}{Main memory}
+The \term{main memory} is an array of \term{words}; a word is a string of $m$
+bits, which the processor accesses with a single read or write operation.
+Each word is identified by an \term{address}: an integer between 0 and $N-1$,
+represented on $n$ bits, with $N=2^{n}$.
+\end{definition}
+
+The address is a code word, and the memory decodes it: it is the decoder of
+Chapter~\ref{ch:combinational} and the small memory of
+Chapter~\ref{ch:registers}, scaled up. Thirty-two address bits give $2^{32}$
+addresses, 4~GiB. A memory is called \term{random access} (RAM) when the
+access time does not depend on the position of the datum. Processors access
+memory with a parallelism equal to the length of their word: 16, 32 or 64
+bits.
+
+\subsection{Byte-addressable memory}
+
+In a \term{byte-addressable} memory the byte is the smallest unit that has an
+address (Figure~\ref{fig:mem:bytes}). A word of 32 bits occupies four
+consecutive addresses, and its address is that of its first byte.
+Consecutive words are 4 addresses apart: this is why the program counter
+advances by 4, and why the index of an array of words is multiplied by 4
+(Chapter~\ref{ch:information}).
+
+\begin{figure}[htb]
+\centering\small
+\begin{tabular}{@{}r@{\quad}*{8}{|>{\centering\arraybackslash\ttfamily}p{9mm}}|@{}}
+\multicolumn{1}{r}{\footnotesize address} & \multicolumn{1}{c}{\scriptsize $A$} & \multicolumn{1}{c}{\scriptsize $A{+}1$} & \multicolumn{1}{c}{\scriptsize $A{+}2$} & \multicolumn{1}{c}{\scriptsize $A{+}3$} & \multicolumn{1}{c}{\scriptsize $A{+}4$} & \multicolumn{1}{c}{\scriptsize $A{+}5$} & \multicolumn{1}{c}{\scriptsize $A{+}6$} & \multicolumn{1}{c}{}\\\cline{2-9}
+ & \cellcolor{prgaccent!20}78 & \cellcolor{prgaccent!20}56 & \cellcolor{prgaccent!20}34 & \cellcolor{prgaccent!20}12 & \cellcolor{prgamber!25}48 & \cellcolor{prgamber!25}45 & \cellcolor{prgamber!25}4C & \ldots\\\cline{2-9}
+\multicolumn{1}{r}{} & \multicolumn{4}{c}{\footnotesize one word: \texttt{.word 0x12345678}} & \multicolumn{3}{c}{\footnotesize three bytes: \texttt{"HEL\ldots"}} & \multicolumn{1}{c}{}\\
+\end{tabular}
+\caption{A byte-addressable memory: each cell is one byte.}
+\label{fig:mem:bytes}
+\end{figure}
+
+\subsection{Big-endian and little-endian}
+
+The two names say how the bytes of a word are arranged in memory
+(Figure~\ref{fig:mem:endian}). In \term{little-endian} order the least
+significant byte goes at the lowest address: it is the order of \riscv, of
+x86 and of ARM. In \term{big-endian} order the most significant byte goes at
+the lowest address: it is the order of the Motorola~68000, the reference
+processor of the previous editions of this course, and of the protocols of
+the Internet.
+
+\begin{figure}[htb]
+\centering\small
+\begin{tabular}{@{}r@{\quad}*{4}{|>{\centering\arraybackslash\ttfamily}p{13mm}}|@{}}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize 1000} & \multicolumn{1}{c}{\scriptsize 1001} & \multicolumn{1}{c}{\scriptsize 1002} & \multicolumn{1}{c}{\scriptsize 1003}\\\cline{2-5}
+\textbf{little-endian}: \riscv, x86, ARM & \cellcolor{prggreen!25}FF & \cellcolor{prgviolet!20}E6 & \cellcolor{prgamber!25}A3 & \cellcolor{prgaccent!20}10\\\cline{2-5}
+\multicolumn{5}{c}{}\\[-6pt]\cline{2-5}
+\textbf{big-endian}: Motorola 68000, network order & \cellcolor{prgaccent!20}10 & \cellcolor{prgamber!25}A3 & \cellcolor{prgviolet!20}E6 & \cellcolor{prggreen!25}FF\\\cline{2-5}
+\end{tabular}
+\caption{The word \hex{10A3E6FF} stored at address 1000.}
+\label{fig:mem:endian}
+\end{figure}
+
+\subsection{Aligned and unaligned words}
+
+A word that starts at an address which is a multiple of its size is
+\term{aligned}: multiples of 4 for words of 32 bits. An aligned word is
+fetched with a single memory access; an unaligned word straddles two memory
+words, and two accesses are needed. The \riscv specification leaves the
+treatment of misaligned accesses to the implementation: a load or a store to a
+misaligned address is, depending on the processor, done more slowly or refused
+with an exception. Correct programs keep their data aligned. The assembler
+aligns the data declared with \code{.word}, and the directive
+\code{.balign 4} forces alignment after a string or a byte
+(Listing~\ref{lst:mem:align}). Instructions must always be aligned.
+
+\asmfile[caption={Forcing the alignment of a word.},label=lst:mem:align,numbers=none]{code/l15/s19.S}
+
+\subsection{Parameters of a memory}
+
+The \term{capacity} of a memory is the number $N$ of its registers and the
+length in bits of each: 1~MB is $2^{20}$ registers of 8 bits; ``16 kW of 32
+bits'' is $16\times 2^{10}$ registers of 32 bits. The access time is the time
+needed to carry out a read or a write: the time to select the location, plus
+the time for the read or the write itself.
+
+\begin{prgmachine}
+The ESP32-C6 has 512~KB of SRAM for data, 320~KB of ROM, and an external
+flash of some megabytes for programs. The menu of \prg shows what is left
+for the programmer: about 98~KB of RAM and 509~KB of flash for cartridges.
+The main memory of the chip is that of eight Commodore~64s, or one
+thirty-thousandth of that of a laptop.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Processor and memory}
+
+\subsection{The interface}
+
+The processor and the memory talk through three buses and two registers
+(Figure~\ref{fig:mem:iface}). The \term{memory address register} (MA) holds
+the address and drives the \term{address bus}. The \term{memory buffer
+register} (MB) holds the datum that travels, in either direction, on the
+\term{data bus}. The control unit drives the \term{control lines}, among
+which are the read enable and the write enable. MA and MB are internal
+registers of the model of processor of Chapter~\ref{ch:processor}: they are
+not among the thirty-two registers that a \riscv programmer sees.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=44mm,minimum height=10mm] (ma) at (0,1.5) {\textbf{MA}: memory address register};
+  \node[blkamb,minimum width=44mm,minimum height=10mm] (mb) at (0,0) {\textbf{MB}: memory buffer register};
+  \node[blk,fill=prgsteel,text=white,minimum width=44mm,minimum height=9mm] (cu) at (0,-1.5) {control unit};
+  \node[draw=prgsteel,dashed,rounded corners,fit=(ma)(mb)(cu),inner sep=3mm,label={[lbl]above:Processor}] {};
+  \node[blkvio,minimum width=26mm,minimum height=40mm] (m) at (8,0) {\textbf{Memory}};
+  \draw[->,bus,prgaccent] (ma.east) -- (ma.east-|m.west) node[midway,above,lbl,text=prgaccent]{address bus};
+  \draw[<->,bus,prgamber] (mb.east) -- (mb.east-|m.west) node[midway,above,lbl,text=prgamber]{data bus};
+  \draw[->,thick,prgred] (cu.east) -- (cu.east-|m.west) node[midway,above,lbl,text=prgred]{control: read enable, write enable};
+\end{tikzpicture}
+\caption{The interface between processor and memory.}
+\label{fig:mem:iface}
+\end{figure}
+
+\subsection{Fetching a word: \texttt{lw t1, 0(t0)}}
+
+\begin{table}[htb]
+\centering\small
+\caption{The steps of a load.}\label{tab:mem:lw}
+\begin{tabularx}{\textwidth}{@{}cLl@{}}
+\toprule
+\textbf{Step} & \textbf{What happens} & \textbf{Where}\\
+\midrule
+1 & the address, $\reg{t0}+0$, is computed by the ALU and placed in MA & processor\\
+2 & MA drives the address bus & address bus\\
+3 & the control unit raises the read enable & control lines\\
+4 & the memory decodes the address and puts the four bytes of the word on the data bus & memory, data bus\\
+5 & the datum on the data bus is latched in MB & processor\\
+6 & MB is copied into the destination register \reg{t1} & processor\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A store, \code{sw t1, 0(t0)}, is symmetrical (Table~\ref{tab:mem:lw}): the
+address goes into MA and the datum into MB, the write enable is raised, and
+the memory stores what it finds on the data bus. The access time is the time
+that passes between step 2 and step 5.
+
+\subsection{Synchronising processor and memory}
+
+How does the processor know that the memory has finished? With the
+\emph{asynchronous} technique it waits until the memory signals, on an
+\term{acknowledge} line, that the operation is complete: the processor adapts
+to the speed of the memory, and the design of the memory becomes independent
+of that of the processor, at the price of more complexity. With the
+\emph{synchronous} technique one of the control lines carries the pulses of a
+clock of fixed frequency, and a read or a write completes within one clock
+cycle, which must therefore be sized on the speed of the memory. The second
+technique is simpler, and is the rule inside a single chip such as a
+microcontroller.
+
+% ----------------------------------------------------------------------------
+\section{Memory and input/output}
+
+\subsection{Connecting processor, memory and I/O}
+
+The input/output subsystem lets the processor interact with input devices
+(keyboard, mouse), output devices (screen, printer) and devices that are both
+(mass storage, network cards, serial ports). It can be connected in two ways.
+
+\begin{definition}{Memory-mapped I/O}
+With \term{memory-mapped I/O} the memory and the devices share the same bus
+and the same address space: a register of a device is read and written like a
+memory location, and no special instructions are needed.
+\end{definition}
+
+The alternative is \term{isolated I/O}: two physical buses, or two address
+spaces, one for memory and one for I/O, and dedicated instructions to reach
+the devices. The Intel x86 family has both: the instructions \ins{in} and
+\ins{out} besides memory-mapped devices.
+
+\begin{prgmachine}
+Memory-mapped I/O is the \riscv way: \riscv has no input/output instructions
+at all. Writing a word to a peripheral register with \ins{sw} is how a
+\riscv program lights a pixel or reads a button.
+\end{prgmachine}
+
+\subsection{Where things live on the ESP32-C6}
+
+Table~\ref{tab:mem:map} is a simplified map of the address space of the chip
+of the kit. One address space serves for everything: the same thirty-two
+address lines reach ROM, RAM, flash and every device, and the same \ins{lw}
+and \ins{sw} operate them. (The table is simplified from the technical
+reference manual \citep{esp32c6trm}, which should be consulted before relying
+on an address.)
+
+\begin{table}[htb]
+\centering\small
+\caption{The address space of the ESP32-C6, simplified.}\label{tab:mem:map}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{Range begins with} & \textbf{What is there} & \textbf{Reached by}\\
+\midrule
+\hex{4000\ldots} & ROM: the code that starts the chip & instruction fetch\\
+\hex{4080\ldots} & SRAM: 512 KB for data, stack and cartridges loaded in RAM & \ins{lw}, \ins{sw}, instruction fetch\\
+\hex{4200\ldots} & external flash, seen through a cache: firmware and constants & \ins{lw}, instruction fetch\\
+\hex{6000\ldots} & peripheral registers: GPIO, SPI, I2S, timers, Wi-Fi & \ins{lw}, \ins{sw}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The address \hex{40800000}, at which every cartridge is loaded
+(Chapter~\ref{ch:setup}), is the beginning of the SRAM.
+
+\subsection{The three component buses, and DMA}
+
+The bus that connects processor, memory and I/O is thus made of three buses:
+the \emph{data bus}, which carries the data; the \emph{address bus}, which
+carries the address, of memory or of I/O, from or to which the datum is
+directed; and the \emph{control lines}: read and write enable, acknowledge,
+and others.
+
+\begin{definition}{Direct memory access}
+With \term{direct memory access} (DMA), blocks of data go directly between a
+device and the memory. The processor starts the transfer and is told when it
+is over.
+\end{definition}
+
+If several units share the bus and can access the memory directly, a DMA
+controller arbitrates among them. On the ESP32-C6 the SPI and I2S peripherals
+use DMA to send the frame buffer to the display and the audio samples to the
+amplifier: the processor does not copy the pixels one by one.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{A memory has 16 address lines and is byte-addressable. How large is it?}
+\item 16 bytes
+\item 32 KiB
+\item 64 KiB
+\item 16 MiB
+\end{quiz}
+
+\begin{quiz}{On \riscv, \code{value: .word 0xCAFE0001} is at address $A$. What does \code{lbu t0, 0(t0)} read if $\reg{t0}=A$?}
+\item \hex{CA}
+\item \hex{FE}
+\item \hex{00}
+\item \hex{01}
+\end{quiz}
+
+\begin{quiz}{Why must DRAM be refreshed?}
+\item Because its capacitors lose their charge
+\item Because reading is slow
+\item Because it is not random access
+\item Because the clock is too fast
+\end{quiz}
+
+\begin{quiz}{How does a \riscv program write to an output device?}
+\item With the \ins{out} instruction
+\item With \ins{sw} to the address of a device register
+\item With a special register \reg{x32}
+\item It cannot: only the firmware can
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item A memory of 4~KiB words of 16 bits: how many address lines, how many
+  data lines, how many bits in all?
+\item Write the bytes stored, in order of address, by \code{.word 0xDEADBEEF}
+  and by \code{.asciz "Ciao"} on a little-endian machine.
+\item List the steps of \code{sw t1, 8(t0)} on the processor--memory interface.
+\item In \prgqt, find your counter variable in the memory view and watch its
+  four bytes change frame by frame.
+\item Store a word with \ins{sw} and read it back with four \ins{lbu}
+  instructions; rebuild it with shifts and \ins{or}s and check that it
+  matches.
+\end{enumerate}
+\expected{On paper: 12 address lines, 16 data lines, 65\,536 bits;
+\texttt{EF BE AD DE} and \texttt{43 69 61 6F 00}. On \prg: the lowest byte of
+the counter changes at every frame, the next one every 256 frames. In the
+last task the bytes are shifted by 8, 16 and 24 places and then joined.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+main memory & memoria centrale\\
+volatile / persistent & volatile / persistente\\
+magnetic core & nucleo magnetico (di ferrite)\\
+refresh & rinfresco (refresh)\\
+byte order & ordinamento dei byte\\
+access time & tempo di accesso\\
+aligned word & parola allineata\\
+address / data bus & bus indirizzi / bus dati\\
+read / write enable & abilitazione lettura / scrittura\\
+memory-mapped I/O & I/O mappato in memoria\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Memory is a fundamental component of a computer: a device able to keep the
+state of data. Different kinds of memory serve different purposes, because no
+technology is fast, large and cheap together. Data are stored as words of
+bits, each with an address; \riscv addresses bytes and orders them
+little-endian. Access happens through selection (the address bus), reading or
+writing (the data bus) and control lines. In \riscv, input and output devices
+are reached exactly like memory.
+
+\paragraph{Reading.} \citet{patterson2020}, sections 2.3 and 5.1--5.2;
+\citet{stallings2021}, the chapter on internal memory; the technical reference
+manual of the ESP32-C6, ``System and Memory'' \citep{esp32c6trm}.

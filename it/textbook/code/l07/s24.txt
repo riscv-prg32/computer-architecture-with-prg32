@@ -1,0 +1,13 @@
+verm1_update:
+  auipc   t0, 0x0          # la t0, step_q8   is two instructions:
+  addi    t0, t0, ...      #   t0 = address of step_q8
+  lw      t1, 0(t0)
+  addi    t1, t1, 40       # SPEED_Q8 is gone: only the number is left
+  addi    t2, zero, 256    # li t2, 256
+  blt     t1, t2, ...
+  sub     t1, t1, t2
+  sw      t1, 0(t0)
+  ...
+  c.addi  t3, 1            # addi t3, t3, 1 in a 16-bit form
+  ...
+  c.jr    ra               # ret

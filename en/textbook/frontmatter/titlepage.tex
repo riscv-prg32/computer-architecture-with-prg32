@@ -1,0 +1,57 @@
+% ---------------------------------------------------------------------------
+%  Title page
+% ---------------------------------------------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[prgsteel] (current page.north west) rectangle ([yshift=-5.5cm]current page.north east);
+  \fill[prgaccent] ([yshift=-5.5cm]current page.north west) rectangle ([yshift=-5.85cm]current page.north east);
+  % the worm of Verm1 on a small retro screen
+  \begin{scope}
+    \fill[prgink] ([xshift=1.4cm,yshift=-1.1cm]current page.north west) rectangle ([xshift=4.0cm,yshift=-3.0cm]current page.north west);
+    \foreach \i in {0,...,5}{
+      \fill[prggreen] ([xshift=1.60cm+\i*0.26cm,yshift=-2.60cm]current page.north west) rectangle ++(0.22cm,0.22cm);
+    }
+    \foreach \j in {1,...,2}{
+      \fill[prggreen] ([xshift=2.90cm,yshift=-2.60cm+\j*0.26cm]current page.north west) rectangle ++(0.22cm,0.22cm);
+    }
+    \fill[green!80!black] ([xshift=2.90cm,yshift=-1.82cm]current page.north west) rectangle ++(0.22cm,0.22cm);
+    \fill[prgred] ([xshift=3.42cm,yshift=-1.56cm]current page.north west) rectangle ++(0.22cm,0.22cm);
+  \end{scope}
+  \node[anchor=north west,text=white,font=\sffamily\large] at ([xshift=4.6cm,yshift=-1.5cm]current page.north west){ARC12 \textbullet\ Computer Architecture and Laboratory};
+  \node[anchor=north west,text=white,font=\sffamily\Large\bfseries] at ([xshift=4.6cm,yshift=-2.2cm]current page.north west){RISC-V on the PRG32 platform};
+  \node[anchor=north west,text=prgpaper,font=\sffamily\small] at ([xshift=4.6cm,yshift=-3.4cm]current page.north west){University of Naples ``Parthenope'' \quad$\bullet$\quad A.Y. 2026/27};
+\end{tikzpicture}
+
+\vspace*{6.5cm}
+
+\begin{flushleft}
+{\sffamily\bfseries\fontsize{30}{34}\selectfont\color{prgink}
+Computer Architecture}\\[6pt]
+{\sffamily\fontsize{20}{24}\selectfont\color{prgsteel}
+Program First, Formalise Later}\\[18pt]
+{\sffamily\large\color{prgaccent}
+From the first \riscv instruction to a published game:\\
+information, logic, memory and the processor, taught on the PRG32 platform\\
+through the course-long project \vermone}
+\end{flushleft}
+
+\vfill
+
+\begin{flushleft}
+{\sffamily\Large\color{prgink} Raffaele Montella}\\[4pt]
+{\sffamily\normalsize\color{prgink}
+Department of Science and Technology\\
+University of Naples ``Parthenope''}\\[14pt]
+{\sffamily\normalsize\color{prgsteel}
+\vermone reference implementation contributed by Giuseppe Coviello}\\[14pt]
+{\small Textbook of the lectures of \emph{Computer Architecture and Computer
+Architecture Laboratory} (ARC12),\\ Bachelor's Degree in Computer Science,
+first year, first semester.\\[6pt]
+The assembly listings of this book are read from files that are assembled\\ and tested automatically.}
+\end{flushleft}
+
+\vspace{1.2cm}
+{\footnotesize\color{prgcomment} Platform: \url{https://github.com/riscv-prg32/PRG32}\\
+Desktop host and debugger: \url{https://github.com/riscv-prg32/PRG32-QT}}
+\end{titlepage}

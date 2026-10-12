@@ -1,0 +1,417 @@
+% ============================================================================
+%  Chapter 12 -- Verm1, Part 2: Steering, Food and a Score       (Lecture 12)
+% ============================================================================
+\chapter{Verm1, Part 2: Steering, Food and a Score}
+\label{ch:verm1p2}
+
+\epigraphline{A game is a series of interesting choices.}{Sid Meier}
+
+\begin{chapgoals}
+By the end of this chapter you will have
+\begin{itemize}
+\item a worm's head that you steer with the joystick, in four directions;
+\item a rule that forbids the U-turn, written as one XOR and one comparison;
+\item movement taken from two small tables instead of four branches;
+\item food that appears at a random cell, is eaten, and appears again;
+\item a score, shown as marks in the title line, and a sound when the worm eats.
+\end{itemize}
+\end{chapgoals}
+
+In this second tutorial the player enters the game. Every idea used has
+already been seen as a circuit in Chapters \ref{ch:boole1}
+to~\ref{ch:combinational}; here the same ideas are instructions
+(Table~\ref{tab:v2:from}). The reference file is \fname{verm1\_part2.S}
+(Appendix~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{What Part 2 takes from the chapters on logic.}\label{tab:v2:from}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{From} & \textbf{Idea} & \textbf{Where it appears}\\
+\midrule
+Chapter \ref{ch:boole1} & AND as a mask: keep one bit, clear the others & one button out of the word of buttons\\
+Chapter \ref{ch:boole1} & truth tables: a code for each case & the four directions in two bits\\
+Chapter \ref{ch:boole2} & XOR is 1 where two bits differ & the U-turn rule; the test for equality\\
+Chapter \ref{ch:electronics} & a button is a switch to ground with a pull-up & why ``pressed'' arrives as 1 only after the runtime inverts it\\
+Chapter \ref{ch:combinational} & comparator, multiplexer, ROM as a table & head on the food; \code{dx} and \code{dy}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Start from a Part 1 that runs}
+
+Open your \fname{verm1.S} of Part~1, build it and run it with the two
+commands of Listing~\ref{lst:v1:build}: the head must cross the screen. If it
+does not, copy the reference file \fname{verm1\_part1.S} and start from that.
+The file is changed in three steps and is run after the second and after the
+third. Listings marked \textbf{changed} replace code that the file already
+contains; listings marked \textbf{new} add code. Keep a copy of each finished
+part, and keep the debugger of \prgqt open: step~4 uses it to watch a decision
+being taken.
+
+% ----------------------------------------------------------------------------
+\section{Step 1: names for bits}
+
+\subsection{Constants: buttons and directions}
+
+Add the lines from \code{RED} and from \code{BTN\_LEFT} to \code{DIR\_UP} to
+the constants of Part~1 (Listing~\ref{lst:v2:const}). There is a new colour,
+red, for the food. Each button is one bit of a word, and a mask selects it. A
+direction is a number from 0 to 3: two bits.
+
+\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v2:const]{code/l12/s07.S}
+
+\subsection{A code chosen with care}
+
+The codes of the four directions are not arbitrary
+(Table~\ref{tab:v2:dirs}). Bit~0 says ``vertical'' and bit~1 says
+``backwards'', so that a direction and its opposite differ in bit~1 and only
+there: the XOR of a code with its opposite is always $10_2=2$.
+
+\begin{table}[htb]
+\centering\small
+\caption{The four directions. On the screen $y$ grows downwards: DOWN is
+$+1$, UP is $-1$.}\label{tab:v2:dirs}
+\begin{tabular}{@{}lcccrrl@{}}
+\toprule
+\textbf{Direction} & \textbf{Code} & \textbf{Bit 1} & \textbf{Bit 0} & \textbf{dx} & \textbf{dy} & \textbf{Opposite}\\
+\midrule
+RIGHT & 0 & 0 & 0 & $+1$ & 0 & LEFT = 2\\
+DOWN & 1 & 0 & 1 & 0 & $+1$ & UP = 3\\
+LEFT & 2 & 1 & 0 & $-1$ & 0 & RIGHT = 0\\
+UP & 3 & 1 & 1 & 0 & $-1$ & DOWN = 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{prgconcept}
+A good encoding turns a rule into one gate. It is the lesson of
+Chapter~\ref{ch:boole2}, and it is worth more than any trick of programming.
+\end{prgconcept}
+
+\subsection{Data: two tables and five new variables}
+
+Replace the data of Part~1 with Listing~\ref{lst:v2:data}. The tables
+\code{dx} and \code{dy} have four words each, one per direction; they are
+constants, and therefore live in \code{.rodata}. The variable \code{dir} is
+the direction of the last step, \code{want} the one asked for by the player;
+\code{score}, \code{food\_x} and \code{food\_y} are used in step~3.
+
+\asmfile[caption={Step 1 \textbf{(changed)}: data.},label=lst:v2:data]{code/l12/s09.S}
+
+% ----------------------------------------------------------------------------
+\section{Step 2: steering}
+
+The plan is: read the buttons, refuse the U-turn, look the movement up in a
+table.
+
+\subsection{From finger to bit}
+
+The pin of a button reads 0 when the button is pressed: it is active-low
+(Chapter~\ref{ch:electronics}). The function \code{prg32\_input\_read} inverts
+and packs: one word, one bit per button, with $1=\text{pressed}$. \key{UP}
+and \key{RIGHT} together give $\hex{04}+\hex{02}=\hex{06}$, and
+$\reg{a0}\cdot\hex{04}$ is zero if and only if \key{UP} is not pressed. The
+cartridge never sees the electrical level: the runtime gives the same word on
+the board, on QEMU and on \prgqt.
+
+\subsection{\texttt{update}: from buttons to a wish}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: the beginning of \code{verm1\_update}.},label=lst:v2:wish]{code/l12/s12.S}
+
+Listing~\ref{lst:v2:wish} replaces the beginning of \code{verm1\_update},
+which now calls a function and therefore needs a stack frame. \ins{andi}
+keeps one bit, and zero means ``not pressed''. Each pressed button overwrites
+the wish in \reg{t2}; with two buttons pressed the last test wins, so that
+\key{UP} beats \key{LEFT}, which beats \key{DOWN}, which beats \key{RIGHT}.
+Then comes the rule: the XOR of the wish and of the current direction is 2
+exactly when they are opposite, and in that case the wish is not stored and
+the old one survives.
+
+The wish is stored in \code{want} and becomes the direction only at the next
+step. In this way two quick presses between one step and the next cannot fold
+the worm back onto itself.
+
+\begin{table}[htb]
+\centering\small
+\caption{The U-turn rule as a truth table: six of the sixteen rows.}\label{tab:v2:uturn}
+\begin{tabular}{@{}llccl@{}}
+\toprule
+\textbf{dir} & \textbf{want} & \textbf{dir $\oplus$ want} & \textbf{$=2$?} & \textbf{Decision}\\
+\midrule
+0 RIGHT & 0 RIGHT & \texttt{00} & no & go on\\
+0 RIGHT & 1 DOWN & \texttt{01} & no & turn\\
+0 RIGHT & 2 LEFT & \texttt{10} & yes & refuse: U-turn\\
+0 RIGHT & 3 UP & \texttt{11} & no & turn\\
+1 DOWN & 3 UP & \texttt{10} & yes & refuse: U-turn\\
+3 UP & 2 LEFT & \texttt{01} & no & turn\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The rule is one XOR and one comparison with the constant 2
+(Table~\ref{tab:v2:uturn}). Complete the sixteen rows as an exercise and
+count the refusals: there are four, one per direction. Without the careful
+encoding the rule would need four comparisons.
+
+\subsection{\texttt{update}: the timer calls \texttt{step}}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: the rest of \code{verm1\_update}.},label=lst:v2:timer]{code/l12/s14.S}
+
+The fixed-point timer of Part~1 is unchanged (Listing~\ref{lst:v2:timer}).
+The lines that moved \code{head\_x} are gone: moving is now a function of its
+own, \code{step}. The local labels are 6 and 7 because the numbers 1 to 5 are
+used above.
+
+\subsection{\texttt{step}: look the movement up}
+
+\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, first half.},label=lst:v2:step1]{code/l12/s15.S}
+
+The wish becomes the direction, once per step
+(Listing~\ref{lst:v2:step1}). Then the direction selects the movement: a word
+is 4 bytes, so the offset is the code shifted to the left by 2, and the
+address of the table plus the offset is the address of the word to load.
+There is no branch: the code selects, as in a multiplexer. A table in
+read-only memory addressed by a code is a ROM (Chapter~\ref{ch:storage}). The
+alternative is four branches; the table is shorter, and changing the rules
+means changing data, not code.
+
+\subsection{\texttt{step}: move and wrap, both ways}
+
+\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, second half.},label=lst:v2:step2]{code/l12/s16.S}
+
+In Part~1 only the right edge existed. Now \code{dx} can be $-1$ and the
+column can go below 0: a negative column is a signed number, and \ins{bgez}
+and \ins{blt} are the signed comparisons of Chapter~\ref{ch:integers}
+(Listing~\ref{lst:v2:step2}). The same is done for the row, with
+\code{ROWS}. The registers \reg{t4} and \reg{t6} keep the new cell for step~3.
+
+For the moment the function is closed with the three lines of
+Listing~\ref{lst:v2:end}, which restore \reg{ra} and return. Step~3 will put
+the test for the food before them.
+
+\asmfile[caption={Step 2: a temporary ending for \code{step}.},label=lst:v2:end]{code/l12/s17.S}
+
+\begin{prgcheck}[Run it: you are driving]
+\begin{enumerate}[nosep]
+\item Build and run: the head still starts to the right, from column 5 of
+  row 12.
+\item Hold \key{DOWN}: the head turns at its next step and goes down, wrapping
+  from row 23 to row 0.
+\item While it goes right, hold \key{LEFT}: nothing happens. The U-turn is
+  refused.
+\item Hold \key{DOWN} and then \key{LEFT}: two turns, and now the head goes
+  left.
+\end{enumerate}
+\textbf{Expected result.} Holding \key{DOWN} from the start for 64 frames
+brings the head to column 5, row 22: ten steps, all downwards. Holding
+\key{LEFT} for 64 frames brings it to column 15, row 12, as if nothing had
+been pressed. (Both were checked on the headless runner of \prgqt.)
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 3: food, a score, a sound}
+
+\subsection{\texttt{init}: a complete start}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/s20.S}
+
+Every variable now receives its starting value
+(Listing~\ref{lst:v2:init}). \code{init} calls a function, to place the first
+food, and so it needs a stack frame.
+
+\subsection{\texttt{place\_food}: a random cell}
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{place\_food}.},label=lst:v2:food]{code/l12/s21.S}
+
+The function \code{prg32\_random\_number(min, max)} returns a number between
+its two arguments, both included; the arguments go in \reg{a0} and \reg{a1}
+and the result comes back in \reg{a0} (Listing~\ref{lst:v2:food}). The random
+numbers come from the runtime, and on the board from the hardware generator of
+the ESP32-C6: two runs of the game are different. The food may fall on the
+head; Part~3 fixes it.
+
+\subsection{\texttt{step}: is the head on the food?}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: the end of \code{step}.},label=lst:v2:eat]{code/l12/s22.S}
+
+Replace the temporary ending with Listing~\ref{lst:v2:eat}. A comparator for
+equality is a row of XOR gates followed by an OR
+(Chapter~\ref{ch:combinational}); here it is two \ins{xor} and one \ins{or}:
+each \ins{xor} is 0 when two numbers are equal, and the \ins{or} of the two
+results is 0 only if both pairs are equal. Eating means one more point, new
+food and a sound. The registers \reg{t4} and \reg{t6} still hold the new
+column and row; after the calls they are no longer needed, which is why it is
+safe to keep them in temporaries.
+
+\subsection{\texttt{eat\_sound}: one note}
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/s23.S}
+
+The signature is
+\begin{center}\code{prg32\_audio\_note(channel, instrument, note, volume, milliseconds)}\end{center}
+with five arguments, \reg{a0} to \reg{a4}, then the call. Note 72 is C5 in the
+MIDI numbering. On \prgqt the note is played by the computer, on the board by
+the amplifier and its speaker. Sound comes last: the game worked without it.
+
+\subsection{\texttt{draw}: the score as marks}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: the beginning of \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/s24.S}
+
+Listing~\ref{lst:v2:marks} draws one small rectangle per point, 4 pixels
+apart, in a loop that ends when the counter reaches the score. The counter is
+kept in \reg{s0}, because it must survive the calls: a \reg{t} register may be
+destroyed by any call, whereas an \reg{s} register is preserved, provided
+that the function which uses it saves it and restores it. So \reg{s0} is
+saved in the frame, with \reg{ra}. The convention, met in
+Chapter~\ref{ch:firstcontact}, is studied in Chapter~\ref{ch:processor}. Digits arrive in Part~4, when division is
+available.
+
+\subsection{\texttt{draw}: food and head}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: the rest of \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/s25.S}
+
+The same three lines appear twice, for column, row and colour
+(Listing~\ref{lst:v2:draw}); the conversion to pixels is left to a function.
+The head is drawn last, so that it covers the food.
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/s26.S}
+
+\code{draw\_cell} is the arithmetic of Part~1, written once
+(Listing~\ref{lst:v2:cell}). It is a function with a contract:
+$\reg{a0}=\text{column}$, $\reg{a1}=\text{row}$, $\reg{a2}=\text{colour}$.
+The colour arrives in \reg{a2} and must leave in \reg{a4}: it is moved first,
+because \reg{a2} is about to be overwritten. Writing the contract in a
+comment is part of the job.
+
+\begin{prgcheck}[Run it: Verm1, Part 2]
+A red cell is somewhere on the screen. Steer the head onto it: a note sounds,
+a mark appears next to \texttt{VERM1}, the food moves
+(Figure~\ref{fig:v2:shot}).
+\end{prgcheck}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{verm1_p2.png}
+\caption{The head, the food, and two marks after the title: two points. The
+screenshot is produced by the tests, in which a scripted player steers the
+head to the food twice.}
+\label{fig:v2:shot}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Step 4: watch a decision}
+
+In this session \prgqt is used as a logic probe.
+
+\begin{prgtry}[Catch the U-turn rule at work]
+\begin{enumerate}[nosep]
+\item Run the cartridge in debug mode and press \key{Update}: the listing shows
+  \code{verm1\_update}.
+\item Look at the telemetry while you hold a button: the input mask shows
+  \hex{04} for \key{UP}, \hex{01} for \key{LEFT}.
+\item Find the instruction \code{xor t3, t2, t1} and click in the gutter: a
+  breakpoint.
+\item Hold \key{LEFT} while the head goes right, and press \key{Resume}: the
+  program stops on the \ins{xor}.
+\item Read the registers: \reg{t1} is 0, the direction; \reg{t2} is 2, the
+  wish.
+\item Press \key{Step}: \reg{t3} becomes 2. Step twice more: the branch is
+  taken and the \ins{sw} is skipped.
+\end{enumerate}
+Lower the speed of the debugger to 0.25x if you need time to press.
+\end{prgtry}
+
+Table~\ref{tab:v2:regs} lists what is read in the registers, always with the
+head going right. Its last row shows the priority of the tests: \key{UP} is
+tested last and wins. \reg{a0} is overwritten later in the frame, and must be
+read at the first instruction after the call.
+
+\begin{table}[htb]
+\centering\small
+\caption{What the registers show at the breakpoint.}\label{tab:v2:regs}
+\begin{tabular}{@{}lccccl@{}}
+\toprule
+\textbf{You hold} & \textbf{\reg{a0}} & \textbf{\reg{t1} (dir)} & \textbf{\reg{t2} (want)} & \textbf{\reg{t3} = \reg{t2}$\oplus$\reg{t1}} & \textbf{Stored?}\\
+\midrule
+nothing & \hex{00} & 0 & 0 & 0 & yes: 0\\
+\key{DOWN} & \hex{08} & 0 & 1 & 1 & yes: 1\\
+\key{LEFT} & \hex{01} & 0 & 2 & 2 & no: U-turn\\
+\key{UP} & \hex{04} & 0 & 3 & 3 & yes: 3\\
+\key{UP} + \key{RIGHT} & \hex{06} & 0 & 3 & 3 & yes: 3\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Read the variables in memory}
+
+After \code{la t0, dir} the register \reg{t0} holds the address of
+\code{dir}: type it in the \emph{Memory} field. The variables follow each
+other, 4 bytes each, in the order of the file: from the address of \code{dir},
+at $+0$ there is \code{dir}, at $+4$ \code{want}, at $+8$ \code{step\_q8}, at
+$+12$ \code{score}, at $+16$ \code{food\_x} and at $+20$ \code{food\_y};
+\code{head\_x} and \code{head\_y} are the two words before \code{dir}. Eat
+once, pause, and read \code{score}: \texttt{01 00 00 00}, lowest byte first.
+Then read \code{food\_x} and \code{food\_y} and check them against the screen:
+they are the column and the row of the red cell.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{The player holds \key{DOWN} and \key{RIGHT} together: \code{prg32\_input\_read} returns}
+\item \hex{02}
+\item \hex{08}
+\item \hex{0a}
+\item \hex{10}
+\end{quiz}
+
+\begin{quiz}{The worm goes UP (3). Which wish is refused?}
+\item RIGHT (0)
+\item DOWN (1)
+\item LEFT (2)
+\item UP (3)
+\end{quiz}
+
+\begin{quiz}{Why \code{slli t1, t1, 2} before adding to the address of \code{dx}?}
+\item to make the code positive
+\item each entry of the table is 4 bytes
+\item to clear bit 1
+\item tables start at address 4
+\end{quiz}
+
+\begin{quiz}{\code{xor t1, t1, t4} gives zero exactly when}
+\item \reg{t1} is zero
+\item \reg{t4} is zero
+\item \reg{t1} and \reg{t4} are equal
+\item \reg{t1} and \reg{t4} are opposite
+\end{quiz}
+
+\section{Make it yours}
+
+\begin{exercise}[on \prg]
+\begin{enumerate}[nosep]
+\item Make button \key{A} a brake: while it is held, the timer does not advance.
+\item Give two points for a piece of food eaten in the top row.
+\item Draw the head in a different colour for each direction, using a third
+  table of four colours.
+\item Change the encoding so that RIGHT = 0, LEFT = 1, DOWN = 2, UP = 3: what
+  does the U-turn rule become?
+\end{enumerate}
+\expected{Each change is a few lines. Keep a copy of the working Part~2
+before experimenting: Part~3 starts from it. (Hints: for the brake,
+\ins{andi} with \code{BTN\_A}, \hex{10}, at the start of the timer and a
+branch to the exit. The table of colours is four \code{.word} in
+\code{.rodata}, indexed like \code{dx}. With the new encoding the opposites
+differ in bit~0, so the test becomes $\oplus = 1$.)}
+\end{exercise}
+
+\section{Where we are, and what comes next}
+
+The player is in the game: a wish, a rule, a movement, a reward. Bits and
+masks, XOR as a comparator, a table as a selector: logic has been turned into
+instructions. But the worm has no body, nothing can go wrong, and the game
+never ends. Chapters \ref{ch:sequential} to~\ref{ch:storage} give the tools:
+state machines, registers, memory as an array, and what survives when the
+power is switched off. Part~3 adds a body that grows, collisions, a title
+screen and a game over.

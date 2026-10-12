@@ -1,0 +1,91 @@
+\chapter{Preface}
+
+Most courses on computer architecture are built from the bottom up. They begin
+with the bit, climb through number systems, Boolean algebra and logic networks,
+assemble a processor out of gates, and only in the last weeks let the student
+write a program for the machine that the previous months have described. The
+order is logically impeccable, and for many first-year students it is also the
+reason why the subject feels remote: for ten weeks every answer arrives before
+its question.
+
+This book is the written form of a course that turns the order round without
+giving up any of the rigour. \emph{Program first, formalise later}: in the
+first week the reader installs a small console, types a dozen lines of \riscv
+assembly and sees a rectangle move across a screen. From then on every formal
+topic is introduced by something that the reader's own program has already
+done. Two's complement arrives after a position has walked off the left edge
+of the screen and the debugger has shown \hex{FFFFFFFF}. Boolean algebra
+arrives after a mask has been used to ask whether a button is pressed. The
+flip-flop arrives after a counter has survived from one frame to the next, and
+the instruction cycle after the reader has pressed \key{Step} a few hundred
+times and watched the program counter advance by four.
+
+Nothing is removed from the classical syllabus. The reader will find
+positional notation and the IEEE~754 formats, axioms and theorems of Boolean
+algebra with their proofs, canonical forms and Karnaugh maps, the transistor as
+a switch, adders, multiplexers and decoders, latches and flip-flops, finite
+state machines, registers and buses, memory hierarchies and permanent storage,
+the datapath and the control unit, interrupts, the video card and the
+peripheral devices. What changes is the direction of the argument: each
+chapter opens on the machine, leaves it for as long as the theory requires, and
+comes back to it with a section called \emph{Back to the machine}, where the
+same rules are read again in the instructions of a real processor.
+
+\section*{The machine}
+
+The processor is a \riscv core: the RV32IMAC instruction set, as implemented by
+the Espressif ESP32\nobreakdash-C6. \riscv is an open standard, small enough
+to be learnt completely in one semester and real enough to be found in
+billions of devices; it replaces here the Motorola~68000 of the previous
+editions of the course, which survives only in a few historical comparisons.
+
+The environment is \prg, an open educational platform developed at the
+University of Naples ``Parthenope''. A \prg program is a \term{cartridge}: a
+small file of native machine code that supplies three functions, one called
+once and two called at every frame. The same cartridge runs on a breadboard
+kit, on the QEMU emulator and on \prgqt, a desktop application whose built-in
+debugger shows the thirty-two registers and the memory while the program runs
+one instruction at a time. No board is needed to follow the book: a laptop is
+enough.
+
+\section*{The project}
+
+A platform that is used only for exercises is a gymnasium. \prg is also a
+workshop, and the book has a project that runs through it: \vermone, read
+\emph{vermone}, ``the big worm'', a tribute to Snake written from an empty file
+in \riscv assembly. After every block of four chapters a tutorial chapter adds
+a part of the game, using only what those four chapters have taught: first a
+head that crosses a world without edges, then steering, food and a score, then
+a body that grows and the rules that end a game, then digits, levels and
+sound. A last tutorial packages the finished game for the \prg Cartridge
+Store. Every tutorial prints every line of the program, tells which lines are
+new and which have changed, and stops at checkpoints where the program must
+run and behave in a stated way.
+
+\section*{What ``verified'' means in this book}
+
+A listing that does not assemble teaches the wrong lesson. The assembly code
+in this book is not typed into the text: it is read from files that are
+assembled, run on the upstream QEMU and on the headless runner of \prgqt, and
+compared with expected results by automatic tests; the four parts of \vermone
+are played by a scripted player that also takes the screenshots printed in the
+tutorial chapters. Where a fragment could not be run on the author's machine
+(the CUDA and Verilog fragments of the last chapter, the installation steps for
+operating systems other than the one used to write the book) the text says so.
+
+\section*{Acknowledgements}
+
+Mariacarla Staffa teaches the laboratory half of the course, where the
+exercises of this book are done with pencil, paper and keyboard. Ivan Cafiero
+and Simone Boscaglia contributed to \prg as students and showed that the
+platform can be understood, and extended, by the people for whom it is meant.
+Giuseppe Coviello contributed the reference implementation of \vermone: the
+four programs that the tutorial chapters build line by line, and that the
+automatic tests play, are his.
+The students of the previous editions of the course wrote, with their
+questions, most of the paragraphs that begin with ``Watch out''.
+
+\begin{flushright}
+Raffaele Montella\\
+Naples, October 2026
+\end{flushright}

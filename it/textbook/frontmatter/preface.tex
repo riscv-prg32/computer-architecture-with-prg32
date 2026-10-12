@@ -1,0 +1,96 @@
+\chapter{Prefazione}
+
+La maggior parte dei corsi di architettura dei calcolatori è costruita dal
+basso verso l'alto. Si comincia dal bit, si sale attraverso i sistemi di
+numerazione, l'algebra di Boole e le reti logiche, si assembla un processore a
+partire dalle porte, e solo nelle ultime settimane si lascia che lo studente
+scriva un programma per la macchina che i mesi precedenti hanno descritto.
+L'ordine è logicamente impeccabile, e per molti studenti del primo anno è anche
+la ragione per cui la materia sembra lontana: per dieci settimane ogni risposta
+arriva prima della sua domanda.
+
+Questo libro è la forma scritta di un corso che rovescia l'ordine senza
+rinunciare in nulla al rigore. \emph{Prima programmare, poi formalizzare}:
+nella prima settimana il lettore installa una piccola console, scrive una
+dozzina di righe di assembly \riscv e vede un rettangolo muoversi su uno
+schermo. Da quel momento ogni argomento formale è introdotto da qualcosa che il
+programma del lettore ha già fatto. Il complemento a due arriva dopo che una
+posizione è uscita dal bordo sinistro dello schermo e il debugger ha mostrato
+\hex{FFFFFFFF}. L'algebra di Boole arriva dopo che una maschera è servita a
+chiedere se un pulsante è premuto. Il flip-flop arriva dopo che un contatore è
+sopravvissuto da un frame al successivo, e il ciclo dell'istruzione dopo che il
+lettore ha premuto \key{Step} qualche centinaio di volte e ha visto il program
+counter avanzare di quattro.
+
+Dal programma classico non viene tolto nulla. Il lettore troverà la notazione
+posizionale e i formati IEEE~754, assiomi e teoremi dell'algebra di Boole con
+le loro dimostrazioni, forme canoniche e mappe di Karnaugh, il transistor come
+interruttore, sommatori, multiplexer e decodificatori, latch e flip-flop,
+macchine a stati finiti, registri e bus, gerarchie di memoria e memorie
+permanenti, il datapath e l'unità di controllo, le interruzioni, la scheda
+video e le periferiche. Cambia la direzione del ragionamento: ogni capitolo si
+apre sulla macchina, la lascia per tutto il tempo che la teoria richiede, e vi
+ritorna con una sezione intitolata \emph{Ritorno alla macchina}, in cui le
+stesse regole vengono rilette nelle istruzioni di un processore vero.
+
+\section*{La macchina}
+
+Il processore è un core \riscv: l'insieme di istruzioni RV32IMAC, così come lo
+realizza l'ESP32\nobreakdash-C6 di Espressif. \riscv è uno standard aperto,
+abbastanza piccolo da essere imparato per intero in un semestre e abbastanza
+reale da trovarsi in miliardi di dispositivi; sostituisce qui il Motorola~68000
+delle edizioni precedenti del corso, che sopravvive solo in qualche confronto
+storico.
+
+L'ambiente è \prg, una piattaforma didattica aperta sviluppata all'Università
+degli Studi di Napoli «Parthenope». Un programma \prg è una \term{cartuccia}:
+un piccolo file di codice macchina nativo che fornisce tre funzioni, una
+chiamata una sola volta e due chiamate a ogni frame. La stessa cartuccia gira
+su un kit su breadboard, sull'emulatore QEMU e su \prgqt, un'applicazione
+desktop il cui debugger integrato mostra i trentadue registri e la memoria
+mentre il programma viene eseguito un'istruzione alla volta. Per seguire il
+libro non serve una scheda: basta un portatile.
+
+\section*{Il progetto}
+
+Una piattaforma usata solo per gli esercizi è una palestra. \prg è anche
+un'officina, e il libro ha un progetto che lo attraversa: \vermone, che si
+legge \emph{vermone}, un omaggio a Snake scritto a partire da un file vuoto in
+assembly \riscv. Dopo ogni blocco di quattro capitoli, un capitolo tutorial
+aggiunge una parte del gioco usando soltanto ciò che quei quattro capitoli
+hanno insegnato: prima una testa che attraversa un mondo senza bordi, poi la
+sterzata, il cibo e un punteggio, poi un corpo che cresce e le regole che
+chiudono una partita, poi cifre, livelli e suono. Un ultimo tutorial confeziona
+il gioco finito per il Cartridge Store di \prg. Ogni tutorial stampa ogni riga
+del programma, dice quali righe sono nuove e quali sono cambiate, e si ferma a
+punti di controllo in cui il programma deve girare e comportarsi in un modo
+dichiarato.
+
+\section*{Che cosa significa «verificato» in questo libro}
+
+Un listato che non si assembla insegna la lezione sbagliata. Il codice assembly
+di questo libro non è battuto dentro il testo: è letto da file che vengono
+assemblati, eseguiti sul QEMU ufficiale e sul runner senza interfaccia di
+\prgqt, e confrontati con i risultati attesi da test automatici; le quattro
+parti di \vermone sono giocate da un giocatore programmato che scatta anche le
+schermate stampate nei capitoli tutorial. Dove un frammento non ha potuto
+essere eseguito sulla macchina dell'autore (i frammenti CUDA e Verilog
+dell'ultimo capitolo, i passi di installazione per sistemi operativi diversi da
+quello usato per scrivere il libro) il testo lo dice.
+
+\section*{Ringraziamenti}
+
+Mariacarla Staffa tiene la metà di laboratorio del corso, in cui gli esercizi
+di questo libro si svolgono con matita, carta e tastiera. Ivan Cafiero e Simone
+Boscaglia hanno contribuito a \prg da studenti e hanno mostrato che la
+piattaforma può essere capita, ed estesa, dalle persone per cui è pensata.
+Giuseppe Coviello ha contribuito l'implementazione di riferimento di \vermone:
+i quattro programmi che i capitoli tutorial costruiscono riga per riga, e che i
+test automatici giocano, sono suoi.
+Gli studenti delle edizioni precedenti del corso hanno scritto, con le loro
+domande, la maggior parte dei paragrafi che cominciano con «Attenzione».
+
+\begin{flushright}
+Raffaele Montella\\
+Napoli, ottobre 2026
+\end{flushright}

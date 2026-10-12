@@ -1,0 +1,694 @@
+% ============================================================================
+%  Appendix A -- RISC-V Reference
+% ============================================================================
+\chapter{RISC-V Reference}
+\label{app:riscv}
+
+This appendix is a complete reference of the \riscv architecture as it is used
+in this book: the instruction set RV32IMAC of the ESP32-C6, the control and
+status registers of machine mode, the conventions of the assembler and the
+calling convention. It follows the ratified specifications
+\citep{riscvisa,riscvpriv,riscvabi,riscvasm}, which prevail in case of doubt.
+Throughout, $x[r]$ denotes the content of register $r$, $M[a]$ the memory at
+address $a$, $\mathrm{sext}(\cdot)$ sign extension to 32 bits and
+$\mathrm{zext}(\cdot)$ zero extension; arithmetic is modulo $2^{32}$.
+
+% ----------------------------------------------------------------------------
+\section{The name of an instruction set}
+
+A \riscv instruction set is named by a base and a list of extensions. The
+base gives the width of the registers; each letter adds a group of
+instructions (Table~\ref{tab:rv:ext}). RV32IMAC is therefore the 32-bit base
+with multiplication and division, atomic instructions and compressed
+instructions. Since 2019 the instructions for the control and status
+registers and the instruction \ins{fence.i} are formally separate extensions,
+Zicsr and Zifencei, which the ESP32-C6 also implements.
+
+\begin{table}[htb]
+\centering\small
+\caption{Bases and extensions of \riscv.}\label{tab:rv:ext}
+\begin{tabularx}{\textwidth}{@{}llLc@{}}
+\toprule
+\textbf{Name} & \textbf{Meaning} & \textbf{What it adds} & \textbf{ESP32-C6}\\
+\midrule
+RV32I & base integer, 32 bits & 32 registers of 32 bits; 40 instructions & yes\\
+RV32E & embedded base & as RV32I with 16 registers & --\\
+RV64I & base integer, 64 bits & registers and addresses of 64 bits & --\\
+M & multiply, divide & \ins{mul}, \ins{mulh}, \ins{mulhsu}, \ins{mulhu}, \ins{div}, \ins{divu}, \ins{rem}, \ins{remu} & yes\\
+A & atomic & \ins{lr.w}, \ins{sc.w} and the atomic memory operations & yes\\
+F, D & floating point & registers \reg{f0}--\reg{f31}; IEEE 754 single and double precision & no\\
+C & compressed & 16-bit encodings of the most common instructions & yes\\
+Zicsr & CSR access & \ins{csrrw}, \ins{csrrs}, \ins{csrrc} and immediate forms & yes\\
+Zifencei & instruction fence & \ins{fence.i} & yes\\
+B (Zba, Zbb, Zbs) & bit manipulation & shifts-and-adds, counts, rotations, single-bit operations & no\\
+V & vectors & registers \reg{v0}--\reg{v31} of variable length (Chapter~\ref{ch:beyond}) & no\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Registers}
+
+\begin{table}[htb]
+\centering\small
+\caption{The integer registers and their roles in the standard calling
+convention.}\label{tab:rv:regs}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Register} & \textbf{ABI name} & \textbf{Role} & \textbf{Preserved across a call by}\\
+\midrule
+\reg{x0} & \reg{zero} & hard-wired zero & --\\
+\reg{x1} & \reg{ra} & return address & caller\\
+\reg{x2} & \reg{sp} & stack pointer & callee\\
+\reg{x3} & \reg{gp} & global pointer & -- (not to be changed)\\
+\reg{x4} & \reg{tp} & thread pointer & -- (not to be changed)\\
+\reg{x5}--\reg{x7} & \reg{t0}--\reg{t2} & temporaries & caller\\
+\reg{x8} & \reg{s0} / \reg{fp} & saved register / frame pointer & callee\\
+\reg{x9} & \reg{s1} & saved register & callee\\
+\reg{x10}--\reg{x11} & \reg{a0}--\reg{a1} & arguments / return values & caller\\
+\reg{x12}--\reg{x17} & \reg{a2}--\reg{a7} & arguments & caller\\
+\reg{x18}--\reg{x27} & \reg{s2}--\reg{s11} & saved registers & callee\\
+\reg{x28}--\reg{x31} & \reg{t3}--\reg{t6} & temporaries & caller\\
+\reg{pc} & -- & program counter & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The hardware gives a special meaning only to \reg{x0}, which always reads as
+zero and ignores writes. All the other roles of Table~\ref{tab:rv:regs} are
+conventions. The compressed instructions with a 3-bit register field can
+name only \reg{x8}--\reg{x15}, that is, \reg{s0}, \reg{s1} and
+\reg{a0}--\reg{a5}. The program counter is not a general register: it is read
+by \ins{auipc}, \ins{jal} and the branches, and written by jumps and branches.
+
+% ----------------------------------------------------------------------------
+\section{Instruction formats}
+
+All the instructions of the base set are 32 bits long and are stored in
+little-endian order; the two least significant bits of a 32-bit instruction
+are \texttt{11}. The six formats are shown in Figure~\ref{fig:rv:formats}.
+
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{bytefield}[bitwidth=0.0275\textwidth,bitheight=6.5mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,24,25,31}\\
+\begin{rightwordgroup}{R}\bitbox{7}{funct7} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{I}\bitbox{12}{imm[11:0]} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{S}\bitbox{7}{imm[11:5]} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{imm[4:0]} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{B}\bitbox{1}{\tiny 12} & \bitbox{6}{imm[10:5]} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{4}{imm[4:1]} & \bitbox{1}{\tiny 11} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{U}\bitbox{20}{imm[31:12]} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{J}\bitbox{1}{\tiny 20} & \bitbox{10}{imm[10:1]} & \bitbox{1}{\tiny 11} & \bitbox{8}{imm[19:12]} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}
+\end{bytefield}
+\caption{The six formats of the 32-bit instructions.}
+\label{fig:rv:formats}
+\end{figure}
+
+\paragraph{Immediates.} In every format bit 31 of the instruction is the sign
+bit of the immediate, which is always sign-extended to 32 bits.
+\begin{itemize}
+\item \textbf{I}: 12 bits, range $-2048\ldots 2047$.
+\item \textbf{S}: 12 bits, split between bits 31--25 and 11--7, so that
+  \code{rs1} and \code{rs2} stay in place.
+\item \textbf{B}: 13 bits, of which bit 0 is always zero and is not stored;
+  the offset is a multiple of 2 in the range $-4096\ldots 4094$, relative to
+  the address of the branch.
+\item \textbf{U}: the upper 20 bits; the lower 12 are zero.
+\item \textbf{J}: 21 bits, of which bit 0 is zero and not stored; the offset
+  is a multiple of 2 in the range $\pm 1$~MiB.
+\end{itemize}
+
+\begin{table}[htb]
+\centering\small
+\caption{The major opcodes used by RV32IMAC (bits 6 to 0).}\label{tab:rv:opcodes}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Opcode} & \textbf{Name} & \textbf{Format} & \textbf{Instructions}\\
+\midrule
+\texttt{0110111} & LUI & U & \ins{lui}\\
+\texttt{0010111} & AUIPC & U & \ins{auipc}\\
+\texttt{1101111} & JAL & J & \ins{jal}\\
+\texttt{1100111} & JALR & I & \ins{jalr}\\
+\texttt{1100011} & BRANCH & B & \ins{beq}, \ins{bne}, \ins{blt}, \ins{bge}, \ins{bltu}, \ins{bgeu}\\
+\texttt{0000011} & LOAD & I & \ins{lb}, \ins{lh}, \ins{lw}, \ins{lbu}, \ins{lhu}\\
+\texttt{0100011} & STORE & S & \ins{sb}, \ins{sh}, \ins{sw}\\
+\texttt{0010011} & OP-IMM & I & \ins{addi}, \ins{slti}, \ins{sltiu}, \ins{xori}, \ins{ori}, \ins{andi}, shifts\\
+\texttt{0110011} & OP & R & register-register operations; the M extension\\
+\texttt{0001111} & MISC-MEM & I & \ins{fence}, \ins{fence.i}\\
+\texttt{1110011} & SYSTEM & I & \ins{ecall}, \ins{ebreak}, \ins{mret}, \ins{wfi}, CSR instructions\\
+\texttt{0101111} & AMO & R & the A extension\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{RV32I: the base integer instruction set}
+
+Table~\ref{tab:rv:rv32i} lists the forty instructions of RV32I. Signed
+comparisons read the registers in two's complement; ``u'' marks the unsigned
+forms.
+
+{\small
+\begin{longtable}{@{}lllp{0.34\textwidth}@{}}
+\caption{The instructions of RV32I.}\label{tab:rv:rv32i}\\
+\toprule
+\textbf{Assembly} & \textbf{Fmt} & \textbf{opcode / f3 / f7} & \textbf{Effect}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Assembly} & \textbf{Fmt} & \textbf{opcode / f3 / f7} & \textbf{Effect}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\multicolumn{4}{@{}l}{\emph{Constants and addresses}}\\
+\code{lui rd, imm} & U & \texttt{0110111} & $x[rd]=imm\ll 12$\\
+\code{auipc rd, imm} & U & \texttt{0010111} & $x[rd]=pc+(imm\ll 12)$\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Arithmetic and logic with an immediate}}\\
+\code{addi rd, rs1, imm} & I & \texttt{0010011 / 000} & $x[rd]=x[rs1]+\mathrm{sext}(imm)$\\
+\code{slti rd, rs1, imm} & I & \texttt{0010011 / 010} & $x[rd]=1$ if $x[rs1]<\mathrm{sext}(imm)$ (signed), else 0\\
+\code{sltiu rd, rs1, imm} & I & \texttt{0010011 / 011} & the same, unsigned comparison\\
+\code{xori rd, rs1, imm} & I & \texttt{0010011 / 100} & $x[rd]=x[rs1]\oplus\mathrm{sext}(imm)$\\
+\code{ori rd, rs1, imm} & I & \texttt{0010011 / 110} & $x[rd]=x[rs1]\mid\mathrm{sext}(imm)$\\
+\code{andi rd, rs1, imm} & I & \texttt{0010011 / 111} & $x[rd]=x[rs1]\ \&\ \mathrm{sext}(imm)$\\
+\code{slli rd, rs1, sh} & I & \texttt{0010011 / 001 / 0000000} & $x[rd]=x[rs1]\ll sh$, $0\le sh\le 31$\\
+\code{srli rd, rs1, sh} & I & \texttt{0010011 / 101 / 0000000} & logical shift right: zeros enter\\
+\code{srai rd, rs1, sh} & I & \texttt{0010011 / 101 / 0100000} & arithmetic shift right: the sign bit enters\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Arithmetic and logic between registers}}\\
+\code{add rd, rs1, rs2} & R & \texttt{0110011 / 000 / 0000000} & $x[rd]=x[rs1]+x[rs2]$\\
+\code{sub rd, rs1, rs2} & R & \texttt{0110011 / 000 / 0100000} & $x[rd]=x[rs1]-x[rs2]$\\
+\code{sll rd, rs1, rs2} & R & \texttt{0110011 / 001 / 0000000} & shift left by $x[rs2]\bmod 32$\\
+\code{slt rd, rs1, rs2} & R & \texttt{0110011 / 010 / 0000000} & $x[rd]=1$ if $x[rs1]<x[rs2]$ (signed), else 0\\
+\code{sltu rd, rs1, rs2} & R & \texttt{0110011 / 011 / 0000000} & the same, unsigned\\
+\code{xor rd, rs1, rs2} & R & \texttt{0110011 / 100 / 0000000} & bitwise exclusive or\\
+\code{srl rd, rs1, rs2} & R & \texttt{0110011 / 101 / 0000000} & logical shift right by $x[rs2]\bmod 32$\\
+\code{sra rd, rs1, rs2} & R & \texttt{0110011 / 101 / 0100000} & arithmetic shift right by $x[rs2]\bmod 32$\\
+\code{or rd, rs1, rs2} & R & \texttt{0110011 / 110 / 0000000} & bitwise or\\
+\code{and rd, rs1, rs2} & R & \texttt{0110011 / 111 / 0000000} & bitwise and\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Loads and stores}}\\
+\code{lb rd, imm(rs1)} & I & \texttt{0000011 / 000} & $x[rd]=\mathrm{sext}(M_{8}[x[rs1]+\mathrm{sext}(imm)])$\\
+\code{lh rd, imm(rs1)} & I & \texttt{0000011 / 001} & the same, 16 bits, sign-extended\\
+\code{lw rd, imm(rs1)} & I & \texttt{0000011 / 010} & the same, 32 bits\\
+\code{lbu rd, imm(rs1)} & I & \texttt{0000011 / 100} & 8 bits, zero-extended\\
+\code{lhu rd, imm(rs1)} & I & \texttt{0000011 / 101} & 16 bits, zero-extended\\
+\code{sb rs2, imm(rs1)} & S & \texttt{0100011 / 000} & $M_{8}[x[rs1]+\mathrm{sext}(imm)]=x[rs2]_{7:0}$\\
+\code{sh rs2, imm(rs1)} & S & \texttt{0100011 / 001} & the same, the low 16 bits\\
+\code{sw rs2, imm(rs1)} & S & \texttt{0100011 / 010} & the same, 32 bits\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Branches} (the target is $pc+\mathrm{sext}(imm)$)}\\
+\code{beq rs1, rs2, label} & B & \texttt{1100011 / 000} & branch if $x[rs1]=x[rs2]$\\
+\code{bne rs1, rs2, label} & B & \texttt{1100011 / 001} & branch if $x[rs1]\ne x[rs2]$\\
+\code{blt rs1, rs2, label} & B & \texttt{1100011 / 100} & branch if $x[rs1]<x[rs2]$, signed\\
+\code{bge rs1, rs2, label} & B & \texttt{1100011 / 101} & branch if $x[rs1]\ge x[rs2]$, signed\\
+\code{bltu rs1, rs2, label} & B & \texttt{1100011 / 110} & branch if $x[rs1]<x[rs2]$, unsigned\\
+\code{bgeu rs1, rs2, label} & B & \texttt{1100011 / 111} & branch if $x[rs1]\ge x[rs2]$, unsigned\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Jumps}}\\
+\code{jal rd, label} & J & \texttt{1101111} & $x[rd]=pc+4$; $pc=pc+\mathrm{sext}(imm)$\\
+\code{jalr rd, imm(rs1)} & I & \texttt{1100111 / 000} & $t=pc+4$; $pc=(x[rs1]+\mathrm{sext}(imm))\ \&\ {\sim}1$; $x[rd]=t$\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Memory ordering and environment}}\\
+\code{fence} & I & \texttt{0001111 / 000} & orders memory accesses as seen by other harts and devices\\
+\code{ecall} & I & \texttt{1110011 / 000}, imm 0 & environment call: raises an exception (cause 8, 9 or 11)\\
+\code{ebreak} & I & \texttt{1110011 / 000}, imm 1 & breakpoint: raises an exception (cause 3)\\
+\end{longtable}}
+
+\paragraph{Remarks.}
+\begin{itemize}
+\item There is no instruction to subtract an immediate: \code{addi} with a
+  negative constant does it. There is no \ins{nop} either: it is
+  \code{addi x0, x0, 0}.
+\item There are no flags. Overflow and carry are computed with \ins{slt} and
+  \ins{sltu} when they are needed (Chapter~\ref{ch:integers}).
+\item A 32-bit constant is loaded with \ins{lui} followed by \ins{addi}.
+  Because \ins{addi} sign-extends its immediate, when bit 11 of the constant
+  is 1 the upper part must be increased by one: the assembler does this when
+  it expands \ins{li}, and the relocation operators \code{\%hi} and
+  \code{\%lo} do it for addresses.
+\item An instruction whose encoding is all zeros or all ones is illegal by
+  definition: a jump into erased or empty memory is caught at once.
+\item With the C extension instructions are aligned to 2 bytes; without it, to
+  4, and a jump to a misaligned address raises an exception.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{The M extension: multiplication and division}
+
+\begin{table}[htb]
+\centering\small
+\caption{The M extension: format R, opcode \texttt{0110011}, funct7
+\texttt{0000001}.}\label{tab:rv:m}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct3} & \textbf{Effect}\\
+\midrule
+\code{mul rd, rs1, rs2} & \texttt{000} & the low 32 bits of the product (the same for signed and unsigned operands)\\
+\code{mulh rd, rs1, rs2} & \texttt{001} & the high 32 bits of the signed $\times$ signed product\\
+\code{mulhsu rd, rs1, rs2} & \texttt{010} & the high 32 bits of the signed $\times$ unsigned product\\
+\code{mulhu rd, rs1, rs2} & \texttt{011} & the high 32 bits of the unsigned $\times$ unsigned product\\
+\code{div rd, rs1, rs2} & \texttt{100} & signed quotient, rounded towards zero\\
+\code{divu rd, rs1, rs2} & \texttt{101} & unsigned quotient\\
+\code{rem rd, rs1, rs2} & \texttt{110} & signed remainder; it has the sign of the dividend\\
+\code{remu rd, rs1, rs2} & \texttt{111} & unsigned remainder\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Division never raises an exception. A division by zero gives a quotient of
+all ones ($-1$, or $2^{32}-1$ unsigned) and a remainder equal to the dividend.
+The only signed overflow, $-2^{31}/-1$, gives the quotient $-2^{31}$ and the
+remainder 0. A program that must detect a division by zero tests the divisor
+with a branch.
+
+% ----------------------------------------------------------------------------
+\section{The A extension: atomic instructions}
+
+The A extension serves programs in which several threads of execution share
+memory. All its instructions have format R, opcode \texttt{0101111} and, for
+words, funct3 \texttt{010}; the five most significant bits select the
+operation (Table~\ref{tab:rv:a}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The A extension (RV32).}\label{tab:rv:a}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct5} & \textbf{Effect}\\
+\midrule
+\code{lr.w rd, (rs1)} & \texttt{00010} & load reserved: $x[rd]=M[x[rs1]]$, and the address is reserved\\
+\code{sc.w rd, rs2, (rs1)} & \texttt{00011} & store conditional: stores $x[rs2]$ only if the reservation still holds; $x[rd]=0$ on success, non-zero on failure\\
+\code{amoswap.w rd, rs2, (rs1)} & \texttt{00001} & atomically: $x[rd]=M[x[rs1]]$; $M[x[rs1]]=x[rs2]$\\
+\code{amoadd.w rd, rs2, (rs1)} & \texttt{00000} & atomically: $x[rd]=M$; $M=M+x[rs2]$\\
+\code{amoxor.w}, \code{amoand.w}, \code{amoor.w} & \texttt{00100}, \texttt{01100}, \texttt{01000} & the same with xor, and, or\\
+\code{amomin.w}, \code{amomax.w} & \texttt{10000}, \texttt{10100} & the same with signed minimum, maximum\\
+\code{amominu.w}, \code{amomaxu.w} & \texttt{11000}, \texttt{11100} & the same with unsigned minimum, maximum\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{The C extension: compressed instructions}
+
+The C extension gives a 16-bit encoding to the most frequent instructions.
+Every compressed instruction expands to exactly one 32-bit instruction, so
+that the extension adds nothing to what the processor can do: it makes
+programs about a quarter shorter. The assembler chooses the short form by
+itself whenever the operands allow it; a disassembler shows it with the
+prefix \code{c.} (Table~\ref{tab:rv:c}). A 16-bit instruction is recognised
+by its two least significant bits, which are different from \texttt{11}.
+
+{\small
+\begin{longtable}{@{}lp{0.33\textwidth}p{0.36\textwidth}@{}}
+\caption{The compressed instructions of RV32C (without floating point).}\label{tab:rv:c}\\
+\toprule
+\textbf{Compressed} & \textbf{Expands to} & \textbf{Restrictions}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Compressed} & \textbf{Expands to} & \textbf{Restrictions}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{c.addi4spn rd', n} & \code{addi rd', sp, n} & $n$ a non-zero multiple of 4, up to 1020\\
+\code{c.lw rd', n(rs1')} & \code{lw rd', n(rs1')} & $n$ a multiple of 4, up to 124\\
+\code{c.sw rs2', n(rs1')} & \code{sw rs2', n(rs1')} & as above\\
+\code{c.nop} & \code{addi x0, x0, 0} & \\
+\code{c.addi rd, n} & \code{addi rd, rd, n} & $-32\le n\le 31$, $n\ne 0$\\
+\code{c.jal label} & \code{jal ra, label} & RV32 only; $\pm 2$ KiB\\
+\code{c.li rd, n} & \code{addi rd, x0, n} & $-32\le n\le 31$\\
+\code{c.addi16sp n} & \code{addi sp, sp, n} & $n$ a non-zero multiple of 16, $-512\ldots 496$\\
+\code{c.lui rd, n} & \code{lui rd, n} & $rd\ne$ \reg{x0}, \reg{x2}; $n\ne 0$\\
+\code{c.srli rd', sh} & \code{srli rd', rd', sh} & \\
+\code{c.srai rd', sh} & \code{srai rd', rd', sh} & \\
+\code{c.andi rd', n} & \code{andi rd', rd', n} & $-32\le n\le 31$\\
+\code{c.sub rd', rs2'} & \code{sub rd', rd', rs2'} & \\
+\code{c.xor}, \code{c.or}, \code{c.and} & \code{xor}, \code{or}, \code{and} \code{rd', rd', rs2'} & \\
+\code{c.j label} & \code{jal x0, label} & $\pm 2$ KiB\\
+\code{c.beqz rs1', label} & \code{beq rs1', x0, label} & $\pm 256$ bytes\\
+\code{c.bnez rs1', label} & \code{bne rs1', x0, label} & $\pm 256$ bytes\\
+\code{c.slli rd, sh} & \code{slli rd, rd, sh} & \\
+\code{c.lwsp rd, n(sp)} & \code{lw rd, n(sp)} & $n$ a multiple of 4, up to 252\\
+\code{c.swsp rs2, n(sp)} & \code{sw rs2, n(sp)} & as above\\
+\code{c.jr rs1} & \code{jalr x0, 0(rs1)} & $rs1\ne$ \reg{x0}; \code{c.jr ra} is \ins{ret}\\
+\code{c.jalr rs1} & \code{jalr ra, 0(rs1)} & \\
+\code{c.mv rd, rs2} & \code{add rd, x0, rs2} & \\
+\code{c.add rd, rs2} & \code{add rd, rd, rs2} & \\
+\code{c.ebreak} & \code{ebreak} & \\
+\end{longtable}}
+
+The registers written \code{rd'}, \code{rs1'}, \code{rs2'} are named by 3
+bits and can only be \reg{x8}--\reg{x15}. This explains what the debugger of
+\prgqt shows: an \code{addi t3, t3, 1} becomes \code{c.addi t3, 1}, a
+\ins{ret} becomes \code{c.jr ra}, and the saving of \reg{ra} at
+\code{12(sp)} becomes \code{c.swsp ra, 12(sp)}.
+
+% ----------------------------------------------------------------------------
+\section{Pseudo-instructions}
+
+The assembler accepts a number of mnemonics that are not instructions and
+expands them (Table~\ref{tab:rv:pseudo}).
+
+{\small
+\begin{longtable}{@{}lp{0.37\textwidth}p{0.3\textwidth}@{}}
+\caption{The pseudo-instructions of the \riscv assembler.}\label{tab:rv:pseudo}\\
+\toprule
+\textbf{Pseudo-instruction} & \textbf{Expansion} & \textbf{Meaning}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Pseudo-instruction} & \textbf{Expansion} & \textbf{Meaning}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{nop} & \code{addi x0, x0, 0} & no operation\\
+\code{li rd, imm} & \code{addi rd, x0, imm}, or \code{lui} + \code{addi} & load a constant\\
+\code{la rd, symbol} & \code{auipc rd, hi} + \code{addi rd, rd, lo} & load an address, relative to the PC\\
+\code{lw rd, symbol} & \code{auipc rd, hi} + \code{lw rd, lo(rd)} & load a global variable\\
+\code{sw rs, symbol, rt} & \code{auipc rt, hi} + \code{sw rs, lo(rt)} & store a global variable, through \code{rt}\\
+\code{mv rd, rs} & \code{addi rd, rs, 0} & copy a register\\
+\code{not rd, rs} & \code{xori rd, rs, -1} & bitwise complement\\
+\code{neg rd, rs} & \code{sub rd, x0, rs} & two's complement\\
+\code{seqz rd, rs} & \code{sltiu rd, rs, 1} & set if zero\\
+\code{snez rd, rs} & \code{sltu rd, x0, rs} & set if not zero\\
+\code{sltz rd, rs} & \code{slt rd, rs, x0} & set if negative\\
+\code{sgtz rd, rs} & \code{slt rd, x0, rs} & set if positive\\
+\code{beqz rs, label} & \code{beq rs, x0, label} & branch if zero\\
+\code{bnez rs, label} & \code{bne rs, x0, label} & branch if not zero\\
+\code{blez rs, label} & \code{bge x0, rs, label} & branch if $\le 0$\\
+\code{bgez rs, label} & \code{bge rs, x0, label} & branch if $\ge 0$\\
+\code{bltz rs, label} & \code{blt rs, x0, label} & branch if $<0$\\
+\code{bgtz rs, label} & \code{blt x0, rs, label} & branch if $>0$\\
+\code{bgt rs, rt, label} & \code{blt rt, rs, label} & branch if greater, signed\\
+\code{ble rs, rt, label} & \code{bge rt, rs, label} & branch if less or equal, signed\\
+\code{bgtu rs, rt, label} & \code{bltu rt, rs, label} & branch if greater, unsigned\\
+\code{bleu rs, rt, label} & \code{bgeu rt, rs, label} & branch if less or equal, unsigned\\
+\code{j label} & \code{jal x0, label} & unconditional jump\\
+\code{jal label} & \code{jal ra, label} & jump and link\\
+\code{jr rs} & \code{jalr x0, 0(rs)} & jump to a register\\
+\code{jalr rs} & \code{jalr ra, 0(rs)} & call through a register\\
+\code{ret} & \code{jalr x0, 0(ra)} & return from a function\\
+\code{call symbol} & \code{auipc ra, hi} + \code{jalr ra, lo(ra)} & call a function (the linker may shorten it to \code{jal})\\
+\code{tail symbol} & \code{auipc t1, hi} + \code{jalr x0, lo(t1)} & jump to a function without linking\\
+\code{csrr rd, csr} & \code{csrrs rd, csr, x0} & read a CSR\\
+\code{csrw csr, rs} & \code{csrrw x0, csr, rs} & write a CSR\\
+\code{csrs csr, rs} & \code{csrrs x0, csr, rs} & set bits in a CSR\\
+\code{csrc csr, rs} & \code{csrrc x0, csr, rs} & clear bits in a CSR\\
+\code{csrwi}, \code{csrsi}, \code{csrci} & \code{csrrwi}, \code{csrrsi}, \code{csrrci} with \code{rd} = \code{x0} & the same with a 5-bit immediate\\
+\end{longtable}}
+
+% ----------------------------------------------------------------------------
+\section{The assembler: directives, labels and expressions}
+
+The assembler of the course is the GNU assembler of the \riscv toolchain of
+ESP-IDF. A source file has the extension \fname{.S}, which means that it
+passes through the C preprocessor first: \code{\#include} and \code{\#define}
+are available, and a \code{\#} begins a comment only when it cannot be a
+preprocessor directive. Comments can also be written as in C, between
+\code{/*} and \code{*/}.
+
+\begin{table}[htb]
+\centering\small
+\caption{The directives used in this book.}\label{tab:rv:directives}
+\begin{tabularx}{\textwidth}{@{}P{0.33\textwidth}L@{}}
+\toprule
+\textbf{Directive} & \textbf{Effect}\\
+\midrule
+\code{.section .text} (or \code{.text}) & what follows is executable code\\
+\code{.section .rodata} & read-only data: strings, tables\\
+\code{.section .data} (or \code{.data}) & initialised variables\\
+\code{.section .bss} (or \code{.bss}) & variables initialised to zero, which occupy no space in the file\\
+\code{.global name} (or \code{.globl}) & makes the label visible outside the file\\
+\code{.equ NAME, value} (or \code{.set}) & gives a name to a constant; no memory is used\\
+\code{.byte}, \code{.half}, \code{.word} & store values of 8, 16, 32 bits, separated by commas\\
+\code{.ascii "text"} & stores the characters of a string\\
+\code{.asciz "text"} (or \code{.string}) & the same, followed by a zero byte\\
+\code{.space n} (or \code{.zero n}) & reserves $n$ bytes set to zero\\
+\code{.balign n} & advances to the next multiple of $n$ bytes\\
+\code{.align n}, \code{.p2align n} & advances to the next multiple of $2^{n}$ bytes\\
+\code{.option norelax} & forbids the linker to shorten sequences (used in every \prg cartridge)\\
+\code{.option push}, \code{.option pop} & save and restore the options\\
+\code{.option rvc}, \code{.option norvc} & allow or forbid compressed instructions\\
+\code{.macro name args} \ldots\ \code{.endm} & define a macro\\
+\code{.include "file"} & insert another source file\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Labels.} A name followed by a colon is a label and stands for the
+address of what follows. A label made of a single number is \emph{local} and
+can be defined many times: \code{1b} refers to the nearest label \code{1:}
+\emph{backwards}, and \code{1f} to the nearest \emph{forwards}.
+
+\paragraph{Expressions.} Wherever a constant is expected an expression can be
+written, with the operators of C, and is computed by the assembler:
+\code{COLS*ROWS}, \code{grid+12*COLS}, \code{\textasciitilde 0x10},
+\code{1 << 4}. Numbers are decimal, hexadecimal (\code{0x}), binary
+(\code{0b}) or characters (\code{'A'}).
+
+\paragraph{Relocation operators.} \code{\%hi(sym)} and \code{\%lo(sym)} give
+the upper 20 and the lower 12 bits of an absolute address, already corrected
+for the sign extension of the lower part; \code{\%pcrel\_hi(sym)} and
+\code{\%pcrel\_lo(label)} do the same for an address relative to the PC, and
+are what \ins{la} and \ins{call} use.
+
+% ----------------------------------------------------------------------------
+\section{The calling convention}
+
+The standard calling convention for RV32 without floating point (the ABI
+called ILP32) is the following \citep{riscvabi}.
+
+\begin{enumerate}
+\item \textbf{Arguments.} The first eight arguments of a function travel in
+  \reg{a0}--\reg{a7}, in order; further arguments go on the stack. A value of
+  64 bits takes two registers, the low word first.
+\item \textbf{Results.} The result comes back in \reg{a0} (and \reg{a1} for 64
+  bits).
+\item \textbf{Caller-saved registers.} \reg{ra}, \reg{t0}--\reg{t6} and
+  \reg{a0}--\reg{a7} may be destroyed by any call. A caller that needs their
+  values afterwards saves them itself.
+\item \textbf{Callee-saved registers.} \reg{sp} and \reg{s0}--\reg{s11} must
+  have, at the return, the value that they had at the call. A function that
+  uses them saves them on entry and restores them on exit.
+\item \textbf{The stack.} It grows towards the low addresses; \reg{sp} points
+  to the last occupied word and is a multiple of 16 at every call. A function
+  may use the memory below \reg{sp} only after having lowered \reg{sp}.
+\item \textbf{\reg{gp} and \reg{tp}} are not to be modified by ordinary code.
+\end{enumerate}
+
+Listing~\ref{lst:rv:frame} is the template of a function that calls other
+functions and uses two saved registers; a \emph{leaf} function that uses only
+\reg{t} and \reg{a} registers needs none of it.
+
+\begin{asm}[caption={The frame of a non-leaf function.},label=lst:rv:frame]
+my_function:
+    addi sp, sp, -16        # prologue: a frame of 16 bytes
+    sw   ra, 12(sp)         # the return address
+    sw   s0, 8(sp)          # the saved registers that will be used
+    sw   s1, 4(sp)
+
+    mv   s0, a0             # values that must survive the calls
+    call other_function     # may destroy ra, t0-t6, a0-a7
+    add  a0, a0, s0         # the result goes in a0
+
+    lw   ra, 12(sp)         # epilogue, in reverse order
+    lw   s0, 8(sp)
+    lw   s1, 4(sp)
+    addi sp, sp, 16
+    ret
+\end{asm}
+
+On \prg the three entry points of a cartridge are ordinary functions that
+follow this convention, and so are all the functions of the runtime
+(Appendix~\ref{app:prg32}).
+
+% ----------------------------------------------------------------------------
+\section{Privilege, control and status registers, traps}
+
+\subsection{Privilege modes}
+
+\begin{table}[htb]
+\centering\small
+\caption{The privilege modes.}\label{tab:rv:modes}
+\begin{tabular}{@{}cllc@{}}
+\toprule
+\textbf{Level} & \textbf{Name} & \textbf{Runs} & \textbf{ESP32-C6}\\
+\midrule
+0 & user (U) & applications & yes\\
+1 & supervisor (S) & the kernel of an operating system & no\\
+3 & machine (M) & firmware; the only mandatory mode & yes\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The CSR instructions (Zicsr)}
+
+The control and status registers form a separate address space of 12 bits,
+4\,096 registers. They are read and written atomically by six instructions of
+format I, opcode \texttt{1110011}, whose immediate field is the address of
+the CSR (Table~\ref{tab:rv:csrins}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The CSR instructions.}\label{tab:rv:csrins}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct3} & \textbf{Effect}\\
+\midrule
+\code{csrrw rd, csr, rs1} & \texttt{001} & $t=\mathit{CSR}$; $\mathit{CSR}=x[rs1]$; $x[rd]=t$\\
+\code{csrrs rd, csr, rs1} & \texttt{010} & $t=\mathit{CSR}$; $\mathit{CSR}=t\mid x[rs1]$; $x[rd]=t$ (sets bits)\\
+\code{csrrc rd, csr, rs1} & \texttt{011} & $t=\mathit{CSR}$; $\mathit{CSR}=t\ \&\ {\sim}x[rs1]$; $x[rd]=t$ (clears bits)\\
+\code{csrrwi rd, csr, uimm} & \texttt{101} & as \ins{csrrw}, with a 5-bit unsigned immediate\\
+\code{csrrsi rd, csr, uimm} & \texttt{110} & as \ins{csrrs}, with the immediate\\
+\code{csrrci rd, csr, uimm} & \texttt{111} & as \ins{csrrc}, with the immediate\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Machine-mode registers}
+
+\begin{table}[htb]
+\centering\small
+\caption{The principal CSRs of machine mode.}\label{tab:rv:csr}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Address} & \textbf{Name} & \textbf{Content}\\
+\midrule
+\hex{300} & \reg{mstatus} & status: MIE (bit 3), global interrupt enable; MPIE (bit 7), its value before the trap; MPP (bits 12--11), the mode before the trap\\
+\hex{301} & \reg{misa} & the base and the extensions implemented\\
+\hex{304} & \reg{mie} & interrupt enables: MSIE (bit 3), MTIE (bit 7), MEIE (bit 11)\\
+\hex{305} & \reg{mtvec} & trap vector: base address (bits 31--2) and mode (bits 1--0): 0 direct, 1 vectored\\
+\hex{340} & \reg{mscratch} & a word for the use of the trap handler\\
+\hex{341} & \reg{mepc} & the address of the instruction that was interrupted, or that caused the exception\\
+\hex{342} & \reg{mcause} & bit 31: 1 for an interrupt, 0 for an exception; the other bits: the code of the cause\\
+\hex{343} & \reg{mtval} & additional information: the faulting address, or the illegal instruction\\
+\hex{344} & \reg{mip} & interrupts pending: MSIP (bit 3), MTIP (bit 7), MEIP (bit 11)\\
+\hex{B00}, \hex{B02} & \reg{mcycle}, \reg{minstret} & counters of clock cycles and of instructions retired (low 32 bits)\\
+\hex{F11}--\hex{F14} & \reg{mvendorid}, \reg{marchid}, \reg{mimpid}, \reg{mhartid} & identification of the manufacturer, of the architecture, of the implementation and of the hardware thread\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trap entry and return}
+
+When a trap is taken in machine mode the hardware performs, in one step, the
+following actions.
+\begin{enumerate}[nosep]
+\item $\reg{mepc}=$ the address of the instruction interrupted (for an
+  interrupt) or of the instruction that caused the exception.
+\item $\reg{mcause}=$ the cause; $\reg{mtval}=$ the additional information.
+\item In \reg{mstatus}: $\mathrm{MPIE}=\mathrm{MIE}$; $\mathrm{MIE}=0$;
+  $\mathrm{MPP}=$ the current mode.
+\item The mode becomes M.
+\item $pc=\mathit{base}$ of \reg{mtvec}; or, in vectored mode and for an
+  interrupt, $pc=\mathit{base}+4\times\mathit{cause}$.
+\end{enumerate}
+The instruction \ins{mret} (encoding \hex{30200073}) returns: the mode
+becomes that in MPP, $\mathrm{MIE}=\mathrm{MPIE}$, $\mathrm{MPIE}=1$, and
+$pc=\reg{mepc}$. The instruction \ins{wfi} (\hex{10500073}), \emph{wait for
+interrupt}, lets the processor stop until an interrupt is pending.
+
+An interrupt of machine mode is taken when its bit is set in both \reg{mip}
+and \reg{mie} and, if the processor is in machine mode, MIE is 1. After an
+exception, a handler that wants to resume \emph{after} the offending
+instruction (for example after an \ins{ecall}) must add 4, or 2 for a
+compressed instruction, to \reg{mepc}.
+
+\begin{table}[htb]
+\centering\small
+\caption{The standard values of \reg{mcause}.}\label{tab:rv:mcause}
+\begin{tabular}{@{}clcl@{}}
+\toprule
+\multicolumn{2}{c}{\textbf{Interrupts} (bit 31 = 1)} & \multicolumn{2}{c}{\textbf{Exceptions} (bit 31 = 0)}\\
+\cmidrule(r){1-2}\cmidrule(l){3-4}
+\textbf{Code} & \textbf{Cause} & \textbf{Code} & \textbf{Cause}\\
+\midrule
+1 & supervisor software interrupt & 0 & instruction address misaligned\\
+3 & machine software interrupt & 1 & instruction access fault\\
+5 & supervisor timer interrupt & 2 & illegal instruction\\
+7 & machine timer interrupt & 3 & breakpoint\\
+9 & supervisor external interrupt & 4 & load address misaligned\\
+11 & machine external interrupt & 5 & load access fault\\
+$\ge 16$ & defined by the platform & 6 & store address misaligned\\
+ & & 7 & store access fault\\
+ & & 8 & environment call from U mode\\
+ & & 9 & environment call from S mode\\
+ & & 11 & environment call from M mode\\
+ & & 12 & instruction page fault\\
+ & & 13 & load page fault\\
+ & & 15 & store page fault\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Encoding and decoding by hand}
+
+\paragraph{To decode} a 32-bit word: write it in binary; read bits 6--0 and
+find the format in Table~\ref{tab:rv:opcodes}; cut the fields as in
+Figure~\ref{fig:rv:formats}; find the instruction with \code{funct3} (and
+\code{funct7}) in Table~\ref{tab:rv:rv32i} or~\ref{tab:rv:m}; rebuild the
+immediate and sign-extend it; translate the register numbers with
+Table~\ref{tab:rv:regs}.
+
+\paragraph{To encode,} proceed in the opposite direction. For instance
+\code{sw a0, 8(sp)} is a store of format S with $\code{rs2}=\reg{a0}=10$,
+$\code{rs1}=\reg{sp}=2$, $\code{funct3}=010$ and the immediate
+$8=0000000\,01000_2$:
+\[
+\underbrace{\texttt{0000000}}_{imm[11:5]}\;\underbrace{\texttt{01010}}_{rs2}\;
+\underbrace{\texttt{00010}}_{rs1}\;\underbrace{\texttt{010}}_{funct3}\;
+\underbrace{\texttt{01000}}_{imm[4:0]}\;\underbrace{\texttt{0100011}}_{opcode}
+\;=\;\hex{00A12423}.
+\]
+Table~\ref{tab:rv:examples} collects the encodings met in the book.
+
+\begin{table}[htb]
+\centering\small
+\caption{Encodings met in the book (uncompressed forms).}\label{tab:rv:examples}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Instruction} & \textbf{Encoding} & \textbf{Instruction} & \textbf{Encoding}\\
+\midrule
+\code{addi t1, t1, 1} & \hex{00130313} & \code{sub t0, t1, t2} & \hex{407302B3}\\
+\code{lw t1, 0(t0)} & \hex{0002A303} & \code{sub t1, t0, t1} & \hex{40628333}\\
+\code{sw t1, 0(t0)} & \hex{0062A023} & \code{addi t0, t0, 10} & \hex{00A28293}\\
+\code{add t2, t0, t1} & \hex{006283B3} & \code{sw a0, 8(sp)} & \hex{00A12423}\\
+\code{ret} & \hex{00008067} & \code{nop} & \hex{00000013}\\
+\code{ecall} & \hex{00000073} & \code{ebreak} & \hex{00100073}\\
+\code{mret} & \hex{30200073} & \code{wfi} & \hex{10500073}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Idioms}
+
+Table~\ref{tab:rv:idioms} gathers the short sequences that recur in the
+programs of this book.
+
+\begin{table}[htb]
+\centering\small
+\caption{Common idioms.}\label{tab:rv:idioms}
+\begin{tabularx}{\textwidth}{@{}LP{0.47\textwidth}@{}}
+\toprule
+\textbf{Purpose} & \textbf{Code}\\
+\midrule
+test bit $n$ of \reg{t0} & \code{srli t1, t0, n} ; \code{andi t1, t1, 1}\\
+set, clear, toggle bits with a mask $m$ & \code{ori t0, t0, m} ; \code{andi t0, t0, \textasciitilde m} ; \code{xori t0, t0, m}\\
+multiply by $2^{k}$; unsigned and signed division by $2^{k}$ & \code{slli} ; \code{srli} ; \code{srai} (which rounds towards $-\infty$)\\
+element $i$ of an array of words at \reg{t0} & \code{slli t1, t1, 2} ; \code{add t0, t0, t1} ; \code{lw a0, 0(t0)}\\
+are \reg{a0} and \reg{a1} equal? (1 or 0) & \code{xor a0, a0, a1} ; \code{seqz a0, a0}\\
+clamp \reg{t2} to $[0, max]$ & \code{bgez t2, 1f} ; \code{li t2, 0} ; \code{1: ble t2, t3, 2f} ; \code{mv t2, t3} ; \code{2:}\\
+index modulo a power of two $n$ & \code{andi t0, t0, n-1}\\
+unsigned overflow of \code{add t2, t0, t1} & \code{sltu t3, t2, t0}\\
+edge of a signal: now and not before & \code{not t1, t1} ; \code{and s1, s0, t1}\\
+fixed point Q24.8: to integer; product & \code{srai a0, t1, 8} ; \code{mul} then \code{srai \ldots, 8}\\
+decimal digit to ASCII character & \code{addi t0, t0, 48}\\
+a counted loop & \code{li t1, n} ; \code{1: \ldots} ; \code{addi t1, t1, -1} ; \code{bnez t1, 1b}\\
+\bottomrule
+\end{tabularx}
+\end{table}

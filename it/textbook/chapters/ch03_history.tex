@@ -1,0 +1,516 @@
+% ============================================================================
+%  Capitolo 3 -- Storia della computazione                       (Lezione 03)
+% ============================================================================
+\chapter{Storia della computazione}
+\label{ch:history}
+
+\epigraphline{\texttt{printf("Hello, world!");}}
+  {Brian Kernighan e Dennis Ritchie, \emph{The C Programming Language}, 1978}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item definire l'informatica e dire perché non è la scienza dei calcolatori;
+\item collocare su una linea del tempo le macchine e le persone chiave,
+  dall'abaco al calcolatore a programma memorizzato;
+\item nominare le quattro unità dell'architettura di von Neumann e ritrovarle
+  nella macchina programmata nel Capitolo~\ref{ch:firstcontact};
+\item spiegare che cosa significa RISC e perché \riscv è un insieme di
+  istruzioni aperto;
+\item descrivere dove si colloca l'informatica tra scienza, ingegneria ed economia.
+\end{itemize}
+\end{chapgoals}
+
+Il lettore ha già eseguito un programma \riscv. Questo capitolo racconta da
+dove viene quella macchina. Non è una cronaca: delle migliaia di macchine e di
+persone che la storia della computazione potrebbe elencare, conserva quelle che
+hanno aggiunto un'idea che si trova ancora dentro l'ESP32-C6 sulla breadboard.
+Il filo da seguire è che, a ogni tappa, qualcuno ha trovato un modo nuovo di
+fare una di due cose: \emph{rappresentare} l'informazione in un oggetto fisico,
+oppure \emph{prescrivere} una sequenza di operazioni da eseguire senza doverci
+più pensare.
+
+% ----------------------------------------------------------------------------
+\section{Che cos'è l'informatica?}
+
+\begin{definition}{Informatica}
+L'informatica è la scienza applicata che si occupa del trattamento
+dell'informazione mediante procedure automatizzate.
+\end{definition}
+
+La parola \emph{informatica} viene dal francese \emph{informatique},
+contrazione di \emph{information automatique}. L'inglese dice \emph{computer
+science} e, sempre più spesso, \emph{informatics}. Lo strumento della
+disciplina si chiama \emph{elaboratore} o \emph{calcolatore} in italiano,
+\emph{ordinateur} in francese, \emph{computer} in inglese. Il nome inglese
+della disciplina ha il difetto di mettere lo strumento al posto dell'oggetto di
+studio, un difetto che una frase attribuita a Edsger W.\ Dijkstra corregge:
+
+\begin{quote}\itshape
+L'informatica non riguarda i calcolatori più di quanto l'astronomia riguardi i
+telescopi.
+\end{quote}
+
+La macchina è lo strumento, non l'oggetto di studio. In questo libro lo
+strumento viene studiato da vicino proprio perché smetta di essere un mistero.
+
+La disciplina ha due anime. L'\emph{informatica teorica} studia i fondamenti
+dell'informazione e della computazione a livello logico: che cosa si può
+calcolare, e a quale costo. Il suo oggetto centrale è l'\term{algoritmo}, un
+insieme finito di operazioni che descrive la trasformazione di un dato $A$ in
+un risultato $B$. L'\emph{informatica applicata} studia le tecnologie
+abilitanti e i sistemi informativi costruiti con esse. È pervasiva, è un motore
+dello sviluppo economico e dell'intero settore delle tecnologie
+dell'informazione e della comunicazione, è una disciplina STEM al centro di una
+rivoluzione industriale; e ha un costo sociale che va governato, il
+\term{divario digitale} tra chi ha accesso a queste tecnologie e chi non lo ha.
+
+% ----------------------------------------------------------------------------
+\section{Prima dell'elettricità}
+
+Da tremila anni si costruiscono macchine che aiutano a calcolare.
+
+\subsection{Le origini: l'abaco e il meccanismo di Anticitera}
+
+Babilonesi, Cinesi, Greci e Romani usavano tutti dei pallottolieri
+(Figura~\ref{fig:hist:origins}). In un abaco un numero \emph{è} una posizione
+di palline, e un'addizione \emph{è} un movimento delle dita: il dispositivo è
+una rappresentazione fisica di dati e di operazioni. Il meccanismo di
+Anticitera, recuperato da un relitto e costruito tra il secondo e il primo
+secolo avanti Cristo (la maggior parte delle stime cade tra il 205 e il
+60~a.C. circa), è il più antico calcolatore a ingranaggi conosciuto: i suoi
+quadranti calcolavano posizioni astronomiche ed eclissi, e in esso un numero è
+l'angolo di una ruota dentata.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{abacus_roman.jpg}\caption{Abaco romano tascabile}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{abacus_chinese.jpg}\caption{\emph{Suanpan} cinese}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{antikythera.jpg}\caption{Meccanismo di Anticitera}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth,height=32mm,keepaspectratio]{antikythera_plate.jpg}\caption{Una delle sue lastre}\end{subfigure}
+\caption{Le origini: un numero diventa una posizione di palline o l'angolo di un ingranaggio.}
+\label{fig:hist:origins}
+\end{figure}
+
+\begin{prgconcept}
+La rappresentazione viene prima del calcolo. Prima di poter calcolare
+qualcosa, un oggetto fisico deve stare per un numero.
+\end{prgconcept}
+
+\subsection{Il mondo islamico medievale}
+
+Tra il nono e il tredicesimo secolo gli studiosi del mondo islamico hanno
+conservato la scienza dell'antichità e vi hanno aggiunto tre cose che
+riguardano questa storia. La prima è una famiglia di strumenti astronomici,
+l'astrolabio meccanico (Figura~\ref{fig:hist:astrolabe}) e il torquetum, che
+sono calcolatori analogici per le posizioni degli astri. La seconda è la
+crittoanalisi: nel nono secolo al-Kindi descrisse l'analisi delle frequenze, il
+metodo per violare un cifrario contando quante volte compare ciascun simbolo.
+La terza è la macchina programmabile: il suonatore di flauto automatico dei
+fratelli Ban\=u M\=us\=a, e gli orologi e gli automi a pesi di al-Jazari
+(1206), il cui comportamento si poteva cambiare spostando dei pioli.
+
+La stessa parola \emph{algoritmo} viene dal nome del matematico
+al-Khw\=arizm\=\i, come \emph{algebra} viene dal titolo del suo libro.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{astrolabe.jpg}\caption{Un astrolabio di ottone}\label{fig:hist:astrolabe}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{pascaline.jpg}\caption{Una Pascalina}\label{fig:hist:pascaline}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=42mm,keepaspectratio]{leibniz_reckoner.jpg}\caption{La calcolatrice di Leibniz}\end{subfigure}
+\caption{Strumenti e calcolatrici prima del 1700.}
+\end{figure}
+
+\subsection{Dal 1600 al 1800: calcolatrici meccaniche e logica}
+
+Il Seicento costruì le prime calcolatrici meccaniche. Le tavole dei logaritmi
+di Nepero (1614) trasformarono le moltiplicazioni in addizioni. La
+\emph{Pascalina} di Blaise Pascal (1642) sommava e sottraeva, e la sua vera
+invenzione fu il \term{riporto} automatico: ogni ruota è una cifra decimale
+(Figura~\ref{fig:hist:pascaline}), e una ruota che passa da 9 a 0 spinge avanti
+di uno scatto la vicina, esattamente come farà con i bit il sommatore completo
+del Capitolo~\ref{ch:combinational}. La calcolatrice a cilindri scalati di
+Leibniz (1673) eseguiva le quattro operazioni.
+
+Lo stesso Leibniz descrisse l'aritmetica binaria nel 1703, e un secolo e mezzo
+più tardi George Boole, in \emph{The Laws of Thought} (1854), mostrò che la
+logica si può trattare come un'algebra \citep{boole1854}: l'argomento dei
+Capitoli \ref{ch:boole1} e~\ref{ch:boole2}.
+
+Nel frattempo una macchina che non aveva nulla a che fare con i numeri
+introdusse il programma memorizzato. Nel telaio di Jacquard (1804) il disegno
+del tessuto è registrato su una catena di schede perforate: si cambiano le
+schede, e lo stesso telaio tesse un disegno diverso.
+
+\subsection{L'Ottocento: Charles Babbage e Ada Lovelace}
+
+Charles Babbage unì le due linee (Figura~\ref{fig:hist:babbage}). La sua
+\emph{Difference Engine}, la macchina alle differenze, calcolava
+automaticamente tavole matematiche. La sua \emph{Analytical Engine}, la
+macchina analitica, progettata ma mai completata, era un calcolatore di uso
+generale in tutto tranne che nella tecnologia: aveva un \emph{mill}, il mulino,
+cioè l'unità aritmetica; un'unità di controllo; uno \emph{store}, il magazzino,
+cioè la memoria; e un dispositivo di uscita. Programmi e dati dovevano essere
+forniti su schede perforate, prese in prestito dal telaio di Jacquard.
+
+Ada Lovelace ideò un metodo per programmare la macchina analitica. Le sue note
+del 1843 contengono quello che è considerato il primo programma pubblicato, per
+il calcolo dei numeri di Bernoulli, e lei è considerata la prima programmatrice
+della storia.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{difference_engine.jpg}\caption{Difference Engine}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{analytical_engine.jpg}\caption{Analytical Engine}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=40mm,keepaspectratio]{punched_cards.jpg}\caption{Schede perforate}\end{subfigure}
+\caption{Le macchine di Charles Babbage.}
+\label{fig:hist:babbage}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Il Novecento}
+
+Il Novecento ha prodotto l'idea di una macchina universale, e poi le macchine
+che l'hanno resa reale. La teoria è venuta prima.
+
+\subsection{Turing, Shannon e Nakajima}
+
+Nel 1936 Alan Turing definì una macchina astratta universale, e con essa la
+nozione di ciò che si può calcolare \citep{turing1936}. Durante la guerra
+lavorò a Bletchley Park alla violazione del cifrario tedesco Enigma
+(Figura~\ref{fig:hist:enigma}).
+
+Negli stessi anni Akira Nakajima in Giappone e Claude Shannon negli Stati
+Uniti fondarono la teoria dei circuiti a commutazione: l'algebra di Boole
+descrive i circuiti fatti di interruttori \citep{shannon1938}. È il principio
+su cui poggia tutta la progettazione digitale, e il ponte tra la logica dei
+Capitoli \ref{ch:boole1}--\ref{ch:boole2} e i circuiti dei Capitoli
+\ref{ch:electronics}--\ref{ch:combinational}.
+
+In Germania Konrad Zuse costruì lo Z3 (1941), il primo calcolatore funzionante
+controllato da un programma, di cui nel 1998 è stata dimostrata la completezza
+secondo Turing; il suo successore, lo Z4, fu uno dei primi calcolatori venduti
+commercialmente.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{enigma.jpg}\caption{Una macchina Enigma}\label{fig:hist:enigma}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{zuse_z3.jpg}\caption{Zuse Z3 (replica)}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{colossus.jpg}\caption{Colossus}\end{subfigure}
+\caption{Macchine degli anni Quaranta.}
+\end{figure}
+
+\subsection{John von Neumann: il calcolatore a programma memorizzato}
+
+Nel 1945 il rapporto sull'EDVAC, firmato da John von Neumann, descrisse
+un'architettura hardware per calcolatori digitali programmabili
+\citep{vonneumann1945}. Il suo cuore è un'idea sola.
+
+\begin{prgconcept}[Il programma memorizzato]
+Programma e dati condividono la stessa memoria: \emph{un programma è un dato}.
+Le istruzioni sono numeri conservati in memoria, prelevati ed eseguiti uno dopo
+l'altro.
+\end{prgconcept}
+
+L'architettura ha quattro unità essenziali (Figura~\ref{fig:hist:vn}):
+un'\term{unità di controllo}, che governa la sequenza delle operazioni;
+un'\term{unità aritmetico-logica} (ALU), con il suo registro accumulatore; una
+\term{memoria}; e dispositivi di \term{ingresso} e di \term{uscita}.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=6mm and 8mm]
+  \node[blk,fill=prgsteel,text=white,minimum width=62mm,minimum height=11mm] (m) {\textbf{Memoria}: programma e dati};
+  \node[blk,fill=prgaccent,text=white,minimum width=27mm,minimum height=15mm,below left=10mm and -27mm of m] (cu) {\textbf{Unità di controllo}};
+  \node[blk,fill=prgamber,text=white,minimum width=27mm,minimum height=15mm,below right=10mm and -27mm of m] (alu) {\textbf{ALU}\\(accumulatore)};
+  \node[blk,fill=prggreen,text=white,minimum width=27mm,below=10mm of cu] (in) {\textbf{Ingresso}};
+  \node[blk,fill=prggreen,text=white,minimum width=27mm,below=10mm of alu] (out) {\textbf{Uscita}};
+  \draw[<->,thick] (cu.north) -- (cu.north|-m.south);
+  \draw[<->,thick] (alu.north) -- (alu.north|-m.south);
+  \draw[<->,thick] (cu) -- (alu);
+  \draw[->,thick] (in) -- (cu);
+  \draw[->,thick] (alu) -- (out);
+\end{tikzpicture}
+\caption{Le quattro unità dell'architettura di von Neumann.}
+\label{fig:hist:vn}
+\end{figure}
+
+\begin{prgmachine}
+L'ESP32-C6 è ancora una macchina di von Neumann, e le sue quattro unità erano
+tutte al lavoro nel Capitolo~\ref{ch:firstcontact}. I registri e la ALU hanno
+eseguito \code{addi t1, t1, 1}; l'unità di controllo ha deciso che l'istruzione
+successiva era \ins{sw}; la memoria conteneva la variabile \code{counter}
+\emph{e le istruzioni stesse}, tra cui il numero \hex{00130313}; il joystick e
+il display sono ingresso e uscita.
+\end{prgmachine}
+
+\subsection{Otto decenni di calcolatori}
+
+Da allora ogni decennio ha reso il calcolatore più piccolo, più economico e più
+vicino alle persone (Tabella~\ref{tab:hist:decades},
+Figura~\ref{fig:hist:decades}); nessuno ha cambiato l'idea del programma
+memorizzato.
+
+\begin{table}[htb]
+\centering\small
+\caption{Otto decenni di calcolatori.}\label{tab:hist:decades}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Decennio} & \textbf{Epoca} & \textbf{Che cosa è cambiato}\\
+\midrule
+Anni '40 & La guerra & ENIAC (USA) e Colossus (Regno Unito), 1943--45\\
+Anni '50 & Militari e governi & EDVAC, 1949: il programma memorizzato\\
+Anni '60 & I mainframe & una macchina, molti utenti\\
+Anni '70 & I minicomputer & un calcolatore per reparto\\
+Anni '80 & Il personal computer & un calcolatore per persona\\
+Anni '90 & Internet & i calcolatori si collegano\\
+Anni 2000 & Smartphone e tablet & un calcolatore in tasca\\
+Anni 2010 & Il cloud computing & il calcolo come servizio\\
+Anni 2020 & Internet delle cose e IA & calcolatori ovunque\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{eniac.png}\caption{ENIAC}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{mainframe.jpg}\caption{Un mainframe}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{minicomputer.jpg}\caption{Un minicomputer}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\centering\includegraphics[width=\textwidth,height=28mm,keepaspectratio]{c64.jpg}\caption{Commodore 64}\end{subfigure}
+\caption{Da una stanza a una scrivania in quarant'anni.}
+\label{fig:hist:decades}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Dagli home computer a RISC-V}
+
+\subsection{I microprocessori: da CISC a RISC a uno standard aperto}
+
+Il processore del kit \prg è fatto com'è per una sequenza di decisioni prese
+nell'arco di cinquant'anni (Tabella~\ref{tab:hist:cpu}). I primi
+microprocessori sono cresciuti per accumulo: ogni generazione aggiungeva
+istruzioni, spesso complicate, per facilitare il lavoro dei compilatori e dei
+programmatori in assembly. Il risultato si chiama \term{complex instruction set
+computer} (CISC), e la famiglia x86, nata nel 1978, porta ancora questa eredità
+nei personal computer di oggi.
+
+All'inizio degli anni Ottanta due progetti universitari, a Berkeley e a
+Stanford, misurarono che cosa fanno davvero i programmi, e scoprirono che un
+processore con istruzioni poche, semplici e regolari può essere reso più veloce
+di uno con molte istruzioni complicate. È l'idea del \term{reduced instruction
+set computer} (RISC), per la quale David Patterson e John Hennessy hanno
+ricevuto il premio Turing nel 2017. ARM l'ha applicata al basso consumo, e i
+core ARM sono oggi in quasi ogni telefono. Nel 2010 il quinto progetto RISC di
+Berkeley è diventato qualcosa di nuovo: un insieme di istruzioni pubblicato
+come \emph{standard aperto}.
+
+\begin{table}[htb]
+\centering\small
+\caption{I microprocessori: da CISC a RISC a uno standard aperto.}\label{tab:hist:cpu}
+\begin{tabularx}{\textwidth}{@{}lP{0.31\textwidth}L@{}}
+\toprule
+\textbf{Anno} & \textbf{Tappa} & \textbf{Perché conta}\\
+\midrule
+1971 & Intel 4004 & il primo microprocessore commerciale: 2\,300 transistor su un chip\\
+1975 & MOS 6502 & una CPU a 8 bit economica: Apple II, Commodore 64, l'era degli home computer\\
+1978 & Intel 8086 & l'inizio di x86, un insieme di istruzioni complesso (CISC) ancora nei PC di oggi\\
+1980--82 & RISC di Berkeley e MIPS di Stanford & istruzioni poche, semplici e regolari vanno più veloci: l'idea RISC\\
+1985 & ARM1 & RISC per il basso consumo: oggi in quasi ogni telefono\\
+2010 & \riscv nasce a UC Berkeley & il quinto progetto RISC di Berkeley diventa un insieme di istruzioni aperto\\
+2015--20 & RISC-V Foundation, poi RISC-V International & una specifica condivisa, governata dalla Svizzera\\
+2023--25 & European Chips Act; il progetto DARE & \riscv come strategia per la sovranità tecnologica europea\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{definition}{RISC-V}
+\riscv è una \term{instruction set architecture}, un'architettura dell'insieme
+di istruzioni, a standard aperto: la specifica delle istruzioni, dei registri e
+della loro codifica è pubblica, e chiunque può progettare, costruire e vendere
+un processore che la realizza senza pagare una licenza per l'architettura.
+\end{definition}
+
+\riscv quindi non è un processore, e non è stato il primo RISC: il RISC di
+Berkeley, MIPS e ARM sono venuti prima. Ciò che lo distingue da x86 e da ARM è
+l'apertura.
+
+\subsection{La legge di Moore in un numero}
+
+L'Intel 4004 del 1971 aveva 2\,300 transistor. Un processore per portatili di
+oggi ne ha decine di miliardi: una crescita di un fattore di circa dieci
+milioni. Per cinquant'anni il numero di transistor su un chip è raddoppiato
+circa ogni due anni, un'osservazione fatta da Gordon Moore nel 1965 e rivista
+nel 1975 \citep{moore1965}. È un'osservazione su un'industria, non una legge di
+natura, e i suoi limiti fisici sono ormai vicini. Il progresso viene sempre più
+da architetture migliori, da acceleratori specializzati e da progetti aperti,
+ed è per questo che l'architettura, l'argomento di questo libro, conta più che
+mai. Il Capitolo~\ref{ch:beyond} riprende la storia da qui.
+
+\subsection{Lo spirito degli home computer, su una CPU moderna e aperta}
+
+Gli home computer degli anni Ottanta avevano una qualità che le macchine
+successive hanno perso: una persona poteva capirne uno per intero. \prg è stato
+progettato per restituire quella qualità, sull'architettura che gli studenti
+incontreranno nell'industria (Tabella~\ref{tab:hist:c64}). Lo schermo ha la
+stessa dimensione, e la stessa immediatezza, a quarant'anni di distanza.
+
+\begin{table}[htb]
+\centering\small
+\caption{Un Commodore~64 e \prg.}\label{tab:hist:c64}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+ & \textbf{Commodore 64 (1982), MOS 6510} & \textbf{\prg su ESP32-C6, \riscv}\\
+\midrule
+Dimensione della parola & 8 bit & 32 bit\\
+Registri & A, X, Y (più puntatore allo stack, stato, PC) & 32 registri di uso generale, da \reg{x0} a \reg{x31}\\
+Clock & circa 1 MHz & 160 MHz\\
+Spazio di indirizzamento & 64 KB & 4 GB\\
+Insieme di istruzioni & 56 istruzioni, proprietario & una quarantina di istruzioni di base più le estensioni, standard aperto\\
+Schermo & 320 per 200 pixel, 16 colori & viewport di 320 per 200, palette RGB565 di 256 voci\\
+Si programma & scrivendo sulla macchina stessa & compilando una cartuccia e caricandola\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il 6502 è ancora un piacere da esplorare, per esempio con il simulatore su
+\url{https://skilldrick.github.io/easy6502}.
+
+\subsection{I giochi rétro come esemplari}
+
+Un biologo studia il moscerino della frutta non perché i moscerini siano
+importanti, ma perché un moscerino è abbastanza piccolo da essere capito per
+intero e abbastanza ricco da mostrare come funziona l'ereditarietà. Un gioco
+rétro svolge qui la stessa parte (Figura~\ref{fig:hist:games}): è abbastanza
+piccolo da tenerlo in mente e abbastanza ricco da mettere in esercizio stato,
+ingresso, aritmetica, decisioni e un ciclo, cioè l'intero corso. I quattro
+giochi della figura sono cartucce di esempio del repository di \prg
+(\fname{examples/games}).
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_pong.png}\caption{Pong}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_breakout.png}\caption{Breakout}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_tetris.png}\caption{Tetris}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{game_asteroids.png}\caption{Asteroids}\end{subfigure}
+\caption{I giochi rétro come esemplari.}
+\label{fig:hist:games}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{L'informatica come scienza applicata}
+
+Dove si colloca l'informatica tra le scienze? Un esempio dal Dipartimento in
+cui questo libro è stato scritto rende concreta la risposta
+(Figura~\ref{fig:hist:chain}). Sul mare si forma una tempesta: un fenomeno
+naturale. La fisica e la matematica, le scienze di base, lo descrivono con
+delle equazioni. L'informatica, una scienza applicata, trasforma le equazioni
+in algoritmi e simulazioni. L'ingegneria costruisce i supercalcolatori, le reti
+e i sensori che le eseguono in modo affidabile. E l'economia riceve previsioni
+e servizi che raggiungono le persone e creano valore. Le previsioni
+meteorologiche e marine di \url{https://meteo.uniparthenope.it} sono calcolate
+ogni giorno in questo modo, sui sistemi ad alte prestazioni del Dipartimento.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=22mm,minimum height=17mm] (a) {\textbf{Fenomeno naturale}\\[1pt]\footnotesize una tempesta};
+  \node[blkamb,text width=22mm,minimum height=17mm,right=of a] (b) {\textbf{Scienze di base}\\[1pt]\footnotesize equazioni};
+  \node[blkvio,text width=22mm,minimum height=17mm,right=of b] (c) {\textbf{Scienze applicate}\\[1pt]\footnotesize algoritmi};
+  \node[blkgrn,text width=22mm,minimum height=17mm,right=of c] (d) {\textbf{Ingegneria}\\[1pt]\footnotesize sistemi};
+  \node[blkred,text width=22mm,minimum height=17mm,right=of d] (e) {\textbf{Economia}\\[1pt]\footnotesize servizi};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Dove si colloca l'informatica.}
+\label{fig:hist:chain}
+\end{figure}
+
+Le stesse idee che in questo libro si esercitano su un microcontrollore a
+160~MHz scalano fino ai cluster (Figura~\ref{fig:hist:hpc}): registri, memoria,
+istruzioni, solo in numero molto maggiore.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{cluster_1.jpg}\caption{Un cluster didattico}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{cluster_2.jpg}\caption{Una simulazione parallela}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{rcf_page.png}\caption{\url{rcf.uniparthenope.it}}\end{subfigure}
+\caption{Il calcolo ad alte prestazioni alla Parthenope: mini PC con GPU su una
+rete a 10~Gbit, e le Research Computing Facilities.}
+\label{fig:hist:hpc}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quale idea è il cuore dell'architettura di von Neumann?}
+\item Il processore ha esattamente quattro registri
+\item Programma e dati sono memorizzati nella stessa memoria
+\item Ogni istruzione richiede un ciclo di clock
+\item Ingresso e uscita sono facoltativi
+\end{quiz}
+
+\begin{quiz}{Che cosa rende \riscv diverso da x86 e ARM?}
+\item È l'insieme di istruzioni più veloce
+\item È stata la prima architettura RISC
+\item Il suo insieme di istruzioni è uno standard aperto, libero da realizzare
+\item Funziona solo sui microcontrollori
+\end{quiz}
+
+\begin{quiz}{Chi è considerato il primo programmatore della storia?}
+\item Charles Babbage
+\item Alan Turing
+\item Ada Lovelace
+\item Konrad Zuse
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Disegnate le quattro unità dell'architettura di von Neumann e scrivete,
+  dentro ciascuna, una cosa del programma del Capitolo~\ref{ch:firstcontact}
+  che vi risiede o vi accade.
+\item Per ciascuna delle seguenti cose, dite se è un modo nuovo di
+  \emph{rappresentare} l'informazione o un modo nuovo di \emph{prescrivere}
+  operazioni: l'abaco, il telaio di Jacquard, la Pascalina, l'algebra di Boole,
+  le schede perforate della macchina analitica, il programma memorizzato.
+\item Scaricate dallo Store due dei quattro giochi della
+  Figura~\ref{fig:hist:games}, oppure compilateli da \fname{examples/games}.
+  Con i contatori del debugger, trovate quante istruzioni esegue ciascuno per
+  frame, e confrontate i due giochi.
+\end{enumerate}
+\expected{Registri e ALU: lì è stata eseguita \ins{addi}. Memoria: il
+contatore, e le istruzioni stesse. Unità di controllo: il prelievo di ogni
+istruzione. Ingresso/uscita: la barra sullo schermo. Il programma memorizzato
+appartiene a entrambe le classi: un programma è esso stesso informazione
+rappresentata.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+computer science / informatics & informatica\\
+computer & calcolatore, elaboratore\\
+punched card & scheda perforata\\
+loom & telaio\\
+mainframe & mainframe, grande elaboratore\\
+stored program & programma memorizzato\\
+control unit & unit\`a di controllo\\
+arithmetic logic unit & unit\`a aritmetico-logica\\
+instruction set & insieme (set) di istruzioni\\
+high-performance computing & calcolo ad alte prestazioni\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+La computazione è più antica dell'elettronica: rappresentazione e procedura
+sono venute prima. Il calcolatore a programma memorizzato del 1945 è ancora la
+macchina che si programma oggi. RISC ha reso i processori abbastanza semplici
+da essere capiti per intero; \riscv li ha resi aperti. L'informatica è
+pervasiva: l'informazione digitale appartiene a ogni campo, i dati ne sono la
+moneta, e gli algoritmi trasformano i dati in decisioni.
+
+\paragraph{Letture.} \citet{patterson2020}, capitolo~1; \emph{Playing with
+RISC-V}, capitolo~1, «Why a Game, Why RISC-V, Why Now»
+\citep{prg32textbook}; Charles Petzold, \emph{Code: The Hidden Language of
+Computer Hardware and Software}; per la storia in profondità,
+\citet{ceruzzi2003}.

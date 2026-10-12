@@ -1,0 +1,623 @@
+% ============================================================================
+%  Chapter 10 -- Introduction to Electronics and Digital Electronics (Lecture 10)
+% ============================================================================
+\chapter{Electronics: What a Bit Is Made Of}
+\label{ch:electronics}
+
+\epigraphline{Any sufficiently advanced technology is indistinguishable from
+magic.}{Arthur C. Clarke, \emph{Profiles of the Future}, 1973}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item use voltage, current, resistance and power, and apply Ohm's law to a simple circuit;
+\item size the resistor of an LED and compute a voltage divider;
+\item explain what a transistor is and how a MOS transistor works as a switch;
+\item say how voltages become logic values, and what a noise margin is;
+\item draw the CMOS inverter, NAND and NOR, and count their transistors;
+\item explain pull-up resistors, floating inputs and why a gate takes time and energy to switch.
+\end{itemize}
+\end{chapgoals}
+
+The gates of the last two chapters were symbols on paper. This chapter gives
+them a physical body, before the next one composes them into machines. No
+previous knowledge of physics is assumed. The numbers quoted for the kit come
+from the datasheet of the ESP32-C6 \citep{esp32c6trm} and from the hardware
+documentation of \prg.
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={One button, one bit.},label=lst:el:button]{code/l10/s04.S}
+
+Since the first chapters a pressed button has been a 1 in a register
+(Listing~\ref{lst:el:button}). On the board the button is a piece of metal
+that joins a pin of the chip to ground. Pressed means 0~volts on the pin, and
+yet the program reads 1. What is a volt? Why is the released pin at 3.3~V?
+And who decides that 0~V is a bit? The chapter follows the button from the
+finger to the bit, and its last section answers the three questions.
+
+% ----------------------------------------------------------------------------
+\section{Electricity in four quantities}
+
+\subsection{Voltage, current, resistance, power}
+
+Electric charge is carried by electrons, and four quantities describe what it
+does in a circuit (Table~\ref{tab:el:four}). A comparison with water in pipes
+helps the intuition.
+
+\begin{table}[htb]
+\centering\small
+\caption{Four quantities.}\label{tab:el:four}
+\begin{tabularx}{\textwidth}{@{}llLL@{}}
+\toprule
+\textbf{Quantity} & \textbf{Symbol, unit} & \textbf{Water analogy} & \textbf{On the kit}\\
+\midrule
+voltage & $V$, volt (V) & the pressure that pushes the water & 3.3 V between the supply rail and ground\\
+current & $I$, ampere (A) & the flow: litres per second & about 10 mA through a lit LED\\
+resistance & $R$, ohm ($\Omega$) & a narrow pipe that hinders the flow & 45 k$\Omega$: the pull-up inside each input pin\\
+power & $P$, watt (W) & the work the flow can do each second & at most 2.5 W from a USB 2.0 port (5 V, 0.5 A)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A voltage is always measured \emph{between two points}. When one says that
+``the pin is at 3.3~V'' one means with respect to \term{ground} (GND), the
+common reference of the whole circuit, which is at 0~V by definition. The
+usual prefixes are milli (m, $10^{-3}$), micro ($\mu$, $10^{-6}$), nano (n,
+$10^{-9}$), pico (p, $10^{-12}$), kilo (k, $10^{3}$) and mega (M, $10^{6}$).
+
+\subsection{Ohm's law, and the resistor of an LED}
+
+\begin{theorem}{Ohm's law, 1827}
+The current through a resistor is proportional to the voltage across it:
+\[ V = R\cdot I . \]
+\end{theorem}
+
+A circuit is a closed loop: the current leaves the source, crosses the
+components and returns. An LED (Figure~\ref{fig:el:led}) lights when current
+flows through it, and when it does there is a drop of about 2~V across it;
+without a resistor in series the current would be far too large. The resistor
+takes what is left, $3.3-2=1.3$~V. For a current of 10~mA,
+\[ R=\frac{1.3\ \mathrm{V}}{0.010\ \mathrm{A}}=130\ \Omega, \]
+and the nearest common value is 150~$\Omega$, which gives
+$1.3/150 = 8.7$~mA. The forward voltage of an LED depends on its colour:
+about 1.8--2.2~V for red, about 3~V for blue and white.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,0) node[ground]{} to[battery1,l=3.3<\volt>,invert] (0,3) -- (2.2,3)
+    to[R,l=150<\ohm>] (2.2,1.6) to[leDo,l=LED] (2.2,0) -- (0,0);
+\end{circuitikz}
+\caption{An LED and its resistor}\label{fig:el:led}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,3.2) node[vcc]{$V_{dd}$} to[R,l=$R_1$] (0,1.6) to[R,l=$R_2$] (0,0) node[ground]{};
+  \draw (0,1.6) node[circ]{} -- (1.2,1.6) node[right]{$V_{out}$};
+\end{circuitikz}
+\caption{A voltage divider}\label{fig:el:div}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,0.2) node[nmos](n){} (n.G) node[left]{G} (n.D) node[above]{D} (n.S) node[below]{S};
+  \draw (2.4,0.2) node[pmos](p){} (p.G) node[left]{G} (p.S) node[above]{S} (p.D) node[below]{D};
+  \node[lbl] at (0,-1.3) {nMOS};
+  \node[lbl] at (2.4,-1.3) {pMOS};
+\end{circuitikz}
+\caption{The two MOS transistors}\label{fig:el:mos}
+\end{subfigure}
+\caption{Three elementary circuits.}
+\end{figure}
+
+\subsection{Series, parallel and the voltage divider}
+
+Two resistors are in \term{series} when the same current crosses both: the
+resistances add, $R=R_1+R_2$. They are in \term{parallel} when the same
+voltage is across both: the current splits, and the total resistance,
+$1/R=1/R_1+1/R_2$, is smaller than either.
+
+Two resistors in series divide the voltage (Figure~\ref{fig:el:div}):
+\begin{equation}\label{eq:el:div}
+V_{out} = V_{dd}\,\frac{R_2}{R_1+R_2}.
+\end{equation}
+Equal resistors give half the supply; a much smaller $R_2$ pulls $V_{out}$
+close to ground. The formula follows from Ohm's law, since the current
+$I=V_{dd}/(R_1+R_2)$ crosses $R_2$, and from Kirchhoff's rules: the currents
+that enter a node add up to those that leave it, and the voltages round a loop
+add up to zero. The divider is the key to the circuit of the button, where
+$R_2$ is a switch: a resistance that is either infinite or nearly zero.
+
+\subsection{Power and energy}
+
+\term{Power} is voltage times current, $P=V\cdot I$, in watts; in a resistor
+it becomes heat, $P=R\cdot I^{2}$. \term{Energy} is power times time, in
+joules; a battery stores energy. The LED above consumes
+$3.3\ \mathrm{V}\times 8.7\ \mathrm{mA} = 29$~mW, of which 11~mW heat the
+resistor. Every transistor that switches inside a processor dissipates a
+little energy, and with thousands of millions of them heat is the limit of
+modern chips: a laptop processor dissipates tens of watts in a few square
+centimetres.
+
+\subsection{The capacitor: why signals take time}
+
+A \term{capacitor} stores electric charge as a tank stores water; its
+capacitance is measured in farads (F). Its voltage cannot jump: the capacitor
+must be filled, or emptied, through a resistance, and the time that this
+takes is of the order of the product
+\[ \tau = R\cdot C, \]
+the \term{time constant}, after which the voltage has covered about 63\% of
+the way. An input pin of the kit has a capacitance of about 2~pF and rises
+through its pull-up of 45~k$\Omega$ in about
+$45\ \mathrm{k}\Omega\times 2\ \mathrm{pF}=90$~ns (the wiring and the button
+add more, so the real figure is larger).
+
+Every wire and every input of a transistor is a small capacitor. This is
+where the propagation delay of a gate comes from: resistance times
+capacitance is a time, and it is the reason why nothing in a circuit is
+instantaneous. A capacitor that is charged or empty is also a way of storing
+a bit: the DRAM cell of Chapter~\ref{ch:memory}.
+
+% ----------------------------------------------------------------------------
+\section{Semiconductors}
+
+\subsection{Conductors, insulators, semiconductors}
+
+Conductors, such as copper, let charge flow freely; insulators, such as
+glass, do not. \term{Semiconductors}, above all silicon, lie in between, and
+their conduction can be controlled. The control is obtained by
+\term{doping}: adding a few atoms of another element. Silicon of type~n has
+extra electrons, which are negative carriers of charge; silicon of type~p has
+missing electrons, called \emph{holes}, which behave as positive carriers.
+Where a p region meets an n region there is a \term{junction}, the building
+block of every device. A chip is a slice of silicon with thousands of
+millions of doped regions, connected by layers of metal. Silicon is the
+second most abundant element in the Earth's crust, the element of sand, and a
+whole industry rests on purifying it and doping it with extreme precision.
+
+\subsection{The diode and the LED}
+
+A single junction makes a \term{diode}, a one-way valve for current. In the
+forward direction, from p to n, it conducts once the voltage exceeds a
+threshold, about 0.7~V for silicon; in the reverse direction it blocks. A
+light-emitting diode gives off light when it conducts; its colour depends on
+the material, and so does its threshold. Diodes turn alternating current into
+direct current in every power supply. LEDs are everywhere in a computer:
+indicators, the backlight of the display of Chapter~\ref{ch:video}, optical
+links; and the laser of the optical disks of Chapter~\ref{ch:storage} is a
+diode too.
+
+\subsection{The transistor: a switch with no moving parts}
+
+A \term{transistor} is a device with three terminals in which a small signal
+on one controls the current between the other two. Used as an amplifier it
+made the radio portable; used as a switch it made the computer
+(Table~\ref{tab:el:history}). Vacuum tubes and relays did the same job in the
+first computers of Chapter~\ref{ch:history}, a million times larger and
+slower.
+
+\begin{table}[htb]
+\centering\small
+\caption{The transistor in six dates.}\label{tab:el:history}
+\begin{tabularx}{\textwidth}{@{}lP{0.34\textwidth}L@{}}
+\toprule
+\textbf{Year} & \textbf{Who} & \textbf{What}\\
+\midrule
+1947 & Bardeen, Brattain and Shockley, Bell Labs & the first transistor: it replaces the vacuum tube\\
+1958--59 & Jack Kilby; Robert Noyce & the integrated circuit: several transistors on one piece of semiconductor\\
+1959--60 & Atalla and Kahng, Bell Labs & the MOS transistor: small, simple to build, almost no control current\\
+1963 & Wanlass and Sah, Fairchild & CMOS: pairs of complementary MOS transistors that draw power only when switching\\
+1971 & Intel 4004 & 2\,300 MOS transistors: a processor on a chip\\
+today & the whole industry & tens of thousands of millions of CMOS transistors on a chip\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The MOS transistor as a switch}
+
+The name MOS lists the three layers of the device: metal, oxide,
+semiconductor. Its three terminals are the \term{gate}, which controls
+whether current can pass, and the \term{source} and the \term{drain}, between
+which it passes (Figure~\ref{fig:el:mos}). The gate is insulated: it draws
+practically no current (at most 50~nA on a pin of the ESP32-C6), only the tiny
+charge of its capacitance.
+
+\begin{definition}{nMOS and pMOS}
+An \term{nMOS} transistor conducts (the switch is closed) when its gate is
+high, and blocks when it is low. A \term{pMOS} transistor conducts when its
+gate is low, and blocks when it is high.
+\end{definition}
+
+The two types are complementary: what closes one opens the other. The small
+circle on the gate of the pMOS means, as on logic symbols, ``active when
+low''. One more fact decides how they are used: an nMOS passes a good 0, and
+is therefore used to connect to ground; a pMOS passes a good 1, and is used
+to connect to the supply.
+
+% ----------------------------------------------------------------------------
+\section{From volts to bits}
+
+\subsection{Logic levels: when is a voltage a 1?}
+
+A digital circuit uses two \emph{ranges} of voltage: low is 0, high is 1
+(Figure~\ref{fig:el:levels}). An output guarantees clean levels: on the kit,
+above 2.64~V for a 1 and below 0.33~V for a 0. An input accepts wider ranges:
+above 2.475~V it reads 1, below 0.825~V it reads 0. (With $V_{DD}=3.3$~V the
+datasheet gives $V_{OH}\ge 0.8\,V_{DD}$, $V_{OL}\le 0.1\,V_{DD}$,
+$V_{IH}\ge 0.75\,V_{DD}$, $V_{IL}\le 0.25\,V_{DD}$.)
+
+\begin{definition}{Noise margin}
+The \term{noise margin} is the difference between the level that an output
+guarantees and the level that an input requires. A disturbance smaller than
+the noise margin cannot change the bit.
+\end{definition}
+
+On the kit the margins are $2.64-2.475=0.165$~V for the high level and
+$0.825-0.33=0.495$~V for the low level. Between the two input thresholds the
+value is undefined: signals must cross that band quickly and never stay there.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=1.5cm]
+  % output column
+  \fill[prgaccent!30] (0,2.64) rectangle (2.2,3.3);
+  \fill[prgaccent!30] (0,0) rectangle (2.2,0.33);
+  \draw[prgsteel] (0,0) rectangle (2.2,3.3);
+  \node[lbl] at (1.1,3.55) {\textbf{output}};
+  \node[lbl] at (1.1,2.97) {1};
+  \node[lbl] at (1.1,0.16) {0};
+  % input column
+  \fill[prgamber!30] (5,2.475) rectangle (7.2,3.3);
+  \fill[prgamber!30] (5,0) rectangle (7.2,0.825);
+  \fill[prgred!12] (5,0.825) rectangle (7.2,2.475);
+  \draw[prgsteel] (5,0) rectangle (7.2,3.3);
+  \node[lbl] at (6.1,3.55) {\textbf{input}};
+  \node[lbl] at (6.1,2.9) {reads 1};
+  \node[lbl] at (6.1,0.41) {reads 0};
+  \node[lbl,text=prgred] at (6.1,1.65) {undefined};
+  \foreach \y/\l in {3.3/{3.3 V},2.64/{2.64 V},0.33/{0.33 V},0/{0 V}} \node[lbl,anchor=east] at (-0.1,\y) {\l};
+  \foreach \y/\l in {2.475/{2.475 V},0.825/{0.825 V}} \node[lbl,anchor=west] at (7.3,\y) {\l};
+  \draw[dashed,prgink] (2.2,2.64) -- (5,2.64); \draw[dashed,prgink] (2.2,2.475) -- (5,2.475);
+  \draw[dashed,prgink] (2.2,0.33) -- (5,0.33); \draw[dashed,prgink] (2.2,0.825) -- (5,0.825);
+  \draw[<->,prgviolet,thick] (3.6,2.475) -- (3.6,2.64) node[midway,right,lbl,text=prgviolet]{margin 0.165 V};
+  \draw[<->,prgviolet,thick] (3.6,0.33) -- (3.6,0.825) node[midway,right,lbl,text=prgviolet]{margin 0.495 V};
+\end{tikzpicture}
+\caption{Logic levels of the ESP32-C6 with a supply of 3.3 V.}
+\label{fig:el:levels}
+\end{figure}
+
+\subsection{Why digital?}
+
+In an \emph{analog} circuit the exact value of the voltage is the
+information. Every stage adds a little noise and distortion, which
+accumulate, and copies get worse at every generation. Analog circuits remain
+indispensable at the edges of a system: sensors, radio, sound. In a
+\emph{digital} circuit only the range matters, high or low. Every gate
+restores the levels, so that noise does not accumulate; copies are perfect,
+and errors can be detected and corrected (Chapter~\ref{ch:combinational}).
+And two levels are easy to tell apart with transistors that are fast, tiny
+and cheap. It is the story of Chapter~\ref{ch:information}, seen from the
+wire.
+
+\subsection{The CMOS inverter: a NOT gate from two transistors}
+
+The simplest gate is made of one pMOS towards the supply and one nMOS towards
+ground, driven by the same input (Figure~\ref{fig:el:inv}).
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.28\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,2.0) node[pmos](p){} (0,0) node[nmos](n){};
+  \draw (p.S) -- ++(0,0.3) node[vcc]{3.3 V};
+  \draw (n.S) node[ground]{};
+  \draw (p.D) -- (n.D);
+  \draw (p.G) -- ++(-0.4,0) coordinate (g1) |- (n.G);
+  \draw (g1) ++(0,-1.0) node[circ]{} -- ++(-0.6,0) node[left]{$A$};
+  \draw (0,1.0) node[circ]{} -- ++(0.9,0) node[right]{$Y$};
+\end{circuitikz}
+\caption{NOT: $Y=\nott{A}$}\label{fig:el:inv}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,3.6) node[pmos](p1){} (2,3.6) node[pmos](p2){};
+  \draw (1,1.6) node[nmos](n1){} (1,0) node[nmos](n2){};
+  \draw (p1.S) -- ++(0,0.25) coordinate (v1) (p2.S) -- ++(0,0.25) coordinate (v2);
+  \draw (v1) -- (v2); \draw (1,0|-v1) node[vcc]{3.3 V};
+  \draw (p1.D) -- ++(0,-0.25) coordinate (o1) (p2.D) -- ++(0,-0.25) coordinate (o2);
+  \draw (o1) -- (o2);
+  \draw (n1.D) -- (n1.D|-o1) node[circ]{};
+  \draw (o2) -- ++(0.7,0) node[right]{$Y$};
+  \draw (n1.S) -- (n2.D); \draw (n2.S) node[ground]{};
+  \node[left] at (p1.G) {$A$}; \node[left] at (p2.G) {$B$};
+  \node[left] at (n1.G) {$A$}; \node[left] at (n2.G) {$B$};
+\end{circuitikz}
+\caption{NAND: $Y=\nott{A\cdot B}$}\label{fig:el:nand}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (1,5.2) node[pmos](p1){} (1,3.6) node[pmos](p2){};
+  \draw (0,1.4) node[nmos](n1){} (2,1.4) node[nmos](n2){};
+  \draw (p1.S) -- ++(0,0.25) node[vcc]{3.3 V};
+  \draw (p1.D) -- (p2.S);
+  \draw (n1.D) -- ++(0,0.25) coordinate (o1) (n2.D) -- ++(0,0.25) coordinate (o2);
+  \draw (o1) -- (o2);
+  \draw (p2.D) -- (p2.D|-o1) node[circ]{};
+  \draw (o2) -- ++(0.7,0) node[right]{$Y$};
+  \draw (n1.S) -- ++(0,-0.2) coordinate (g1) (n2.S) -- ++(0,-0.2) coordinate (g2);
+  \draw (g1) -- (g2); \draw (1,0|-g1) node[ground]{};
+  \node[left] at (p1.G) {$A$}; \node[left] at (p2.G) {$B$};
+  \node[left] at (n1.G) {$A$}; \node[left] at (n2.G) {$B$};
+\end{circuitikz}
+\caption{NOR: $Y=\nott{A+B}$}\label{fig:el:nor}
+\end{subfigure}
+\caption{Three CMOS gates. In the NAND and in the NOR the gates of the
+transistors marked with the same letter are connected together.}
+\label{fig:el:cmos}
+\end{figure}
+
+\begin{center}\small
+\begin{tabular}{@{}cccl@{}}
+\toprule
+$A$ & \textbf{pMOS} & \textbf{nMOS} & $Y$\\
+\midrule
+0 & on & off & 1: joined to 3.3 V\\
+1 & off & on & 0: joined to ground\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Exactly one of the two transistors conducts: the output is always connected to
+one rail, never to both. With the input still, no current flows from the
+supply to ground, so that CMOS (\emph{complementary} MOS) consumes almost
+nothing at rest. And the output is a fresh, clean level whatever the quality
+of the input: the gate \emph{regenerates} the signal.
+
+\subsection{NAND and NOR in CMOS}
+
+\begin{prgconcept}[Series is AND, parallel is OR]
+Two switches in series conduct when the first \emph{and} the second are
+closed; two switches in parallel conduct when the first \emph{or} the second
+is closed. It is the idea of Nakajima and Shannon.
+\end{prgconcept}
+
+In the NAND (Figure~\ref{fig:el:nand}) two nMOS in series reach ground only
+if $A$ and $B$ are both 1, and two pMOS in parallel reach the supply if either
+is 0. The NOR (Figure~\ref{fig:el:nor}) is the dual: parallel becomes series
+and series becomes parallel, exactly as De Morgan's laws exchange AND and OR.
+In every CMOS gate the network of pMOS that pulls the output up and the
+network of nMOS that pulls it down are each other's dual, in the sense of the
+duality principle of Chapter~\ref{ch:boole1}. Each of the two gates has four
+transistors; the reader should check the four combinations of the inputs on
+the drawings.
+
+\subsection{What gates cost, in transistors}
+
+\begin{table}[htb]
+\centering\small
+\caption{The cost of some circuits in conventional static CMOS; the counts
+vary with the style of design.}\label{tab:el:cost}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Circuit} & \textbf{Transistors} & \textbf{Remark}\\
+\midrule
+NOT & 2 & the CMOS inverter\\
+NAND, NOR (2 inputs) & 4 & the natural gates of CMOS\\
+AND, OR (2 inputs) & 6 & a NAND or a NOR followed by an inverter\\
+XOR (2 inputs) & about 8 to 12 & depending on the design\\
+full adder & about 28 & the classic static CMOS adder\\
+SRAM cell, one bit & 6 & two inverters in a loop and two access transistors\\
+D flip-flop & about 20 & two latches, master and slave\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+An AND costs more than a NAND (Table~\ref{tab:el:cost}): in CMOS the
+inverting gates come first. This is why NAND is the universal gate of
+Chapter~\ref{ch:boole2} in practice as well as in theory. Minimising a
+function means saving transistors, and therefore area, energy and time. The
+adder behind the instruction \ins{add}, thirty-two full adders, is about 900
+transistors.
+
+\subsection{Switching takes time and energy}
+
+The output of a gate drives the inputs of the next gates, which are small
+capacitors. To change level the output must charge or discharge them through
+the resistance of its transistors: this is the \term{propagation delay} of the
+gate. And every change of level costs energy: the power spent in switching is
+about
+\[ P_{dyn} \approx C\cdot V^{2}\cdot f, \]
+where $C$ is the capacitance switched, $V$ the supply voltage and $f$ the
+frequency of switching. Lowering the supply voltage saves the most, because
+it enters squared: it is the reason why chips moved from 5~V to 3.3~V and to
+about 1~V inside. Raising the clock frequency raises the consumption in
+proportion: speed is paid for in heat. The propagation delay returns in
+Chapter~\ref{ch:combinational} as the critical path, and in
+Chapter~\ref{ch:sequential} as the reason for the clock.
+
+\subsection{Scales of integration}
+
+\begin{table}[htb]
+\centering\small
+\caption{Scales of integration.}\label{tab:el:scales}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Scale} & \textbf{Transistors per chip} & \textbf{Examples}\\
+\midrule
+SSI, small & up to about 100 & a few gates: the 74 series, such as four NANDs in one package\\
+MSI, medium & hundreds & decoders, multiplexers, counters, registers: the machines of Chapters \ref{ch:combinational} to \ref{ch:registers}\\
+LSI, large & thousands & the first microprocessors and memories: Intel 4004\\
+VLSI, very large & hundreds of thousands and more & the processors of the 1980s and 1990s\\
+today & tens of thousands of millions & systems on a chip: processor, memory, radio and peripherals together\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The ESP32-C6 of the kit is a system on a chip in a package of a few
+millimetres (Table~\ref{tab:el:scales}). The chips of the 74 series reappear
+in the next chapters as the historical form of each building block.
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{Pull-up: an input that is never left floating}
+
+An input connected to nothing is \term{floating}: it picks up noise and reads
+0 or 1 at random. A \term{pull-up resistor} ties the pin to 3.3~V
+(Figure~\ref{fig:el:pullup}). With the button released no current flows, and
+the pin reads a clean 1. With the button pressed the switch joins the pin to
+ground: 0~V, a clean 0, while a current of
+$3.3\ \mathrm{V}/45\ \mathrm{k}\Omega = 73\ \mu\mathrm{A}$ flows through the
+resistor, too small to matter. The circuit is the voltage divider of
+(\ref{eq:el:div}) with a lower resistor that is either infinite or zero.
+
+\begin{figure}[htb]
+\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \foreach \x/\sw/\v/\cap in {0/nos/{3.3 V: reads 1}/released, 6.5/ncs/{0 V: reads 0}/pressed}{
+    \draw (\x,3.6) node[vcc]{3.3 V} to[R,l_=45<\kilo\ohm>] (\x,2) coordinate (p\sw);
+    \draw (p\sw) to[\sw] (\x,0.2) node[ground]{};
+    \draw (p\sw) node[circ]{} -- ++(1.2,0) node[buffer,anchor=in](b\sw){};
+    \draw (b\sw.out) node[right]{\small \v};
+    \node[lbl] at (\x+0.6,-0.9) {button \cap};
+    \node[lbl,anchor=east] at (\x-0.1,2) {pin};
+  }
+\end{circuitikz}
+\caption{The button of the kit with its pull-up resistor. The triangle is the
+input buffer of the pin.}
+\label{fig:el:pullup}
+\end{figure}
+
+The firmware enables the internal pull-up of every button pin, reads the pins
+and inverts the bits, so that in the program pressed is 1. A signal whose
+active state is the low level is said to use \term{active-low} logic.
+
+\subsection{From the finger to the bit}
+
+The questions of the warm-up now have answers, and Table~\ref{tab:el:finger}
+puts them in order. Some of its steps belong to chapters still to come.
+
+\begin{table}[htb]
+\centering\small
+\caption{From the finger to the bit.}\label{tab:el:finger}
+\begin{tabularx}{\textwidth}{@{}cLP{0.34\textwidth}@{}}
+\toprule
+\textbf{Step} & \textbf{What happens} & \textbf{Where it is explained}\\
+\midrule
+1 & the finger closes the switch between GPIO18 and ground & this chapter: the circuit\\
+2 & the pin falls from 3.3 V to 0 V, in well under a microsecond & this chapter: $R\cdot C$\\
+3 & the input buffer sees a voltage below 0.825 V: a logic 0 & this chapter: logic levels\\
+4 & the level is sampled into a flip-flop of the input register & Chapter \ref{ch:sequential}\\
+5 & the firmware reads that register with a load instruction & Chapter \ref{ch:memory}: memory-mapped I/O\\
+6 & it inverts the bit and packs it with the others into \reg{a0} & Chapters \ref{ch:boole1} and \ref{ch:io}\\
+7 & the program tests it: \code{andi t3, a0, 0x01} & Chapter \ref{ch:firstcontact}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The contacts of a real switch \emph{bounce} for a few milliseconds when they
+close. Reading the buttons once per frame, every few tens of milliseconds,
+hides the bounce (Chapter~\ref{ch:io}).
+
+\subsection{The kit as a circuit}
+
+The kit of Figure~\ref{fig:setup:kit} can now be read as a circuit. A
+\term{breadboard} has holes joined in rows underneath, so that components
+connect without soldering. Two long buses carry the supply, 3.3~V and ground;
+a separate bus carries 5~V for the audio amplifiers. Every part shares the
+same ground: without a common reference the voltages of two parts mean nothing
+to each other. The buttons go from a pin to ground; the display and the
+amplifiers receive digital signals from other pins. An output pin can light
+an LED through a resistor; an input pin only listens.
+
+\begin{prgwarn}
+A pin of the ESP32-C6 can supply some tens of milliamperes: an LED needs its
+series resistor. Never join a pin that is driven high directly to ground.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{An LED drops 2 V and must carry 5 mA from a 3.3 V pin. Which resistor is needed?}
+\item 26 $\Omega$
+\item 260 $\Omega$
+\item 400 $\Omega$
+\item 660 $\Omega$
+\end{quiz}
+
+\begin{quiz}{In a CMOS inverter with the input at 0:}
+\item both transistors conduct
+\item the pMOS conducts and the output is 1
+\item the nMOS conducts and the output is 0
+\item neither conducts and the output floats
+\end{quiz}
+
+\begin{quiz}{How many transistors does a two-input AND need in static CMOS?}
+\item 2
+\item 4
+\item 6
+\item 8
+\end{quiz}
+
+\begin{quiz}{Why does the button input of the kit need a pull-up resistor?}
+\item To limit the current of the LED
+\item To make the pin read a defined 1 when the button is released
+\item To make the button faster
+\item To protect the chip from 5 V
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then the kit]
+\begin{enumerate}[nosep]
+\item A blue LED drops 3.0 V: which resistor gives 2 mA from 3.3 V? What power
+  does the resistor dissipate?
+\item A divider with $R_1=10$ k$\Omega$ and $R_2=20$ k$\Omega$ on 3.3 V:
+  compute $V_{out}$. Is it read as 0, as 1, or is it undefined, by an input
+  of the kit?
+\item Draw a three-input NAND in CMOS and count its transistors.
+\item Check the drawing of the NOR for the four combinations of the inputs,
+  marking which transistors conduct.
+\item On \prg, run the lamps cartridge and bridge a button pin to ground with a
+  wire: explain what you see, and what would happen with the pull-up disabled.
+\end{enumerate}
+\expected{On paper: 150 $\Omega$ and 0.6 mW; $V_{out}=2.2$ V, in the
+undefined band; six transistors, three pMOS in parallel and three nMOS in
+series. On the kit: the lamp lights exactly as if the button were pressed.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+voltage & tensione\\
+current & corrente\\
+resistor / resistance & resistore / resistenza\\
+capacitor & condensatore\\
+ground & massa\\
+semiconductor, doping & semiconduttore, drogaggio\\
+gate, source, drain & gate, source, drain\\
+logic level & livello logico\\
+noise margin & margine di rumore\\
+pull-up resistor & resistenza di pull-up\\
+floating input & ingresso flottante\\
+propagation delay & ritardo di propagazione\\
+integrated circuit & circuito integrato\\
+breadboard & basetta sperimentale (breadboard)\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Voltage pushes, current flows, resistance hinders: $V=R\cdot I$ describes
+most of what a digital designer needs. A MOS transistor is a switch
+controlled by a voltage, and nMOS and pMOS are complementary. A bit is a
+range of voltages; noise margins and regeneration are what make digital
+circuits reliable. CMOS gates are pairs of networks of switches, and the
+inverting gates NAND and NOR are the cheapest. Switching costs time
+($R\cdot C$) and energy ($C\cdot V^{2}\cdot f$): the physical limits behind
+every clock.
+
+\paragraph{Reading.} Charles Petzold, \emph{Code}, the chapters from the
+flashlight to logic gates; \citet{patterson2020}, sections 1.5 and 1.7 and
+appendix~A; \fname{docs/hardware/hardware.md} in the \prg repository.

@@ -1,0 +1,115 @@
+\chapter{Come usare questo libro}
+
+\section*{Un capitolo, una lezione}
+
+Il libro ha venticinque capitoli, numerati da~0 a~24 come le lezioni del corso,
+e come quasi tutto il resto in questo libro: bit, registri, righe e colonne
+partono tutti da zero. Il Capitolo~$N$ segue la presentazione della
+Lezione~$N$: l'ordine delle sezioni è l'ordine delle slide, i listati sono gli
+stessi file, le domande alla fine sono quelle mostrate in aula. Chi ha seguito
+la lezione trova qui le frasi per cui in una slide non c'è spazio; chi l'ha
+persa trova la lezione.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lP{0.36\textwidth}L@{}}
+\toprule
+\textbf{Parte} & \textbf{Capitoli} & \textbf{Poi, il progetto}\\
+\midrule
+Partenza & 0 Introduzione, 1 Installazione, 2 Primo contatto & \\
+Informazione & 3 Storia, 4 Informazione digitale, 5 Interi, 6 Reali & 7 \vermone, parte 1\\
+Logica & 8--9 Algebra di Boole, 10 Elettronica, 11 Macchine combinatorie & 12 \vermone, parte 2\\
+Stato e memoria & 13 Macchine sequenziali, 14 Registri e bus, 15 Memoria, 16 Memoria permanente & 17 \vermone, parte 3\\
+La macchina & 18 Processore, 19 Istruzioni e interruzioni, 20 Scheda video, 21 Ingresso e uscita & 22 \vermone, parte 4\\
+Pubblicazione, prospettive & 24 Oltre un solo core & 23 \vermone sul Cartridge Store\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{La forma di un capitolo di teoria}
+
+Ogni capitolo che presenta un argomento ha gli stessi cinque movimenti.
+
+\begin{enumerate}
+\item \textbf{Riscaldamento sulla macchina.} Poche righe di \riscv su \prg che
+  producono un fatto che chiede una spiegazione. Eseguitele prima di
+  proseguire.
+\item \textbf{La trattazione formale.} Definizioni, teoremi, metodi ed esempi
+  svolti.
+\item \textbf{Ritorno alla macchina.} Le stesse regole, come le realizza
+  \riscv.
+\item \textbf{Verificate di aver capito.} Domande a risposta multipla nello
+  stile della prova intercorso. Le risposte, ciascuna con una riga di
+  spiegazione, sono nell'Appendice~\ref{app:answers}: leggetele dopo aver
+  risposto, non al posto di rispondere.
+\item \textbf{Esercizi, glossario, letture.} Gli esercizi si svolgono prima su
+  carta e poi su \prg; il glossario affianca a ogni termine inglese quello
+  italiano, perché la documentazione tecnica, i messaggi degli strumenti e i
+  commenti dei listati sono in inglese.
+\end{enumerate}
+
+\section*{La forma di un capitolo tutorial}
+
+I Capitoli 7, 12, 17, 22 e 23 costruiscono \vermone. Sono autonomi e pensati
+per essere seguiti alla tastiera. Ogni passo mostra poche righe, dice se sono
+\textbf{nuove}, \textbf{modificate} o \textbf{invariate}, e finisce con un
+punto di controllo \emph{Eseguite} che dichiara che cosa deve mostrare lo
+schermo. Se all'inizio di un tutorial un programma si rifiuta di funzionare,
+ripartite dal file di riferimento della parte precedente
+(Appendice~\ref{app:verm1}): nessuno deve restare indietro per un errore.
+
+\section*{I riquadri}
+
+\begin{prgconcept}
+Un riquadro \textbf{Concetto} enuncia un'idea da cui dipende il resto del
+capitolo.
+\end{prgconcept}
+\begin{definition}{come appaiono le definizioni}
+Definizioni formali e teoremi sono numerati all'interno del capitolo.
+\end{definition}
+\begin{prgtry}
+Un riquadro \textbf{Provate voi} chiede di fare qualcosa alla tastiera, e dice
+che cosa si deve osservare.
+\end{prgtry}
+\begin{prgwarn}
+Un riquadro \textbf{Attenzione} segnala un errore che si ripete ogni anno.
+\end{prgwarn}
+\begin{prgmachine}
+Un riquadro \textbf{Ritorno alla macchina} lega un risultato formale a
+un'istruzione, a un registro o a una schermata del debugger.
+\end{prgmachine}
+\begin{prgaside}
+Un riquadro \textbf{Nota storica} racconta da dove viene un'idea.
+\end{prgaside}
+
+\section*{Notazione}
+
+I numeri senza indicazioni sono decimali, con la virgola decimale e, dove
+serve, il punto per le migliaia. I numeri esadecimali sono scritti come li
+vuole l'assemblatore, \hex{07E0}; i numeri binari come \code{0b1010} nel codice
+e con un pedice, $1010_2$, nelle formule. I bit si numerano da destra partendo
+da zero, così il bit~$i$ ha peso $2^{i}$. Registri (\reg{a0}, \reg{sp}),
+istruzioni (\ins{addi}) e nomi di file sono composti in carattere a spaziatura
+fissa. Nelle espressioni booleane il complemento di $x$ è $\nott{x}$, la somma
+è $+$ e il prodotto si scrive per giustapposizione. I multipli del byte seguono
+i prefissi binari dove la precisione conta:
+$1~\mathrm{KiB}=2^{10}$ byte, $1~\mathrm{MiB}=2^{20}$ byte.
+
+I listati e i loro commenti sono in inglese, come gli identificatori di \prg,
+i comandi e le etichette dell'interfaccia di \prgqt (\key{Step}, \key{Resume},
+\key{Memory}): sono ciò che compare davvero sullo schermo.
+
+\section*{Le appendici}
+
+L'Appendice~\ref{app:riscv} è un riferimento completo dell'insieme di
+istruzioni \riscv usato nel libro: registri, formati, ogni istruzione di RV32I
+e delle estensioni M, A, C e Zicsr, pseudo-istruzioni, direttive
+dell'assemblatore, la convenzione di chiamata e i registri di controllo del
+modo macchina. L'Appendice~\ref{app:prg32} è il riferimento di \prg: il
+contratto, l'interfaccia di programmazione, il formato delle cartucce, gli
+strumenti a riga di comando, gli host e il Cartridge Store.
+L'Appendice~\ref{app:github} è un riferimento di Git e GitHub, gli strumenti
+con cui la piattaforma, questo libro e il progetto del lettore sono conservati
+e condivisi. L'Appendice~\ref{app:verm1} stampa per intero i quattro programmi
+di riferimento di \vermone; l'Appendice~\ref{app:answers} le risposte a tutte
+le domande; l'Appendice~\ref{app:glossary} il glossario completo
+inglese--italiano.

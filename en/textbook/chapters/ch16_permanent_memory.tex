@@ -1,0 +1,517 @@
+% ============================================================================
+%  Chapter 16 -- Permanent Memory                                (Lecture 16)
+% ============================================================================
+\chapter{Permanent Memory}
+\label{ch:storage}
+
+\epigraphline{\ldots a datum does not exist unless it has been saved\ldots}
+  {Prof.\ Almerico Murli, 1990s}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item name the functional units of a computer and recognise them on a motherboard and on the \prg kit;
+\item distinguish ROM, PROM, EPROM, EEPROM and flash, and say what firmware is;
+\item explain why a cache makes a computer faster, and what a cache miss is;
+\item describe tracks, sectors and blocks of a magnetic disk and the components of its access time;
+\item explain how an optical disk stores bits, and compare CD and DVD;
+\item place flash, solid-state disks, hard disks and tapes in a multi-level storage system.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={Switch the kit off and on again.},label=lst:st:warm]{code/l16/s04.S}
+
+A game keeps the best score in a variable (Listing~\ref{lst:st:warm}). After
+the kit has been switched off and on again the title is still there, but the
+best score is 0. The reason is in the two section directives. The string is
+in \code{.rodata}, which is part of the cartridge file, and the cartridge is a
+file in \emph{flash} memory, which is non-volatile. The variable is in
+\code{.data}, which is copied into RAM at the start and lives in SRAM, which
+is volatile.
+
+To keep a score for ever, it must be written to a permanent memory. Which
+ones exist? (On \prg, persistent scores are a service of the Cartridge Store;
+the point here is where each section of a program lives.)
+
+% ----------------------------------------------------------------------------
+\section{The components of a computer}
+
+\subsection{Functional units}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Processor.] Executes the instructions. On the kit: the \riscv core of
+  the ESP32-C6.
+\item[Main memory.] Holds the running programs and their data. On the kit:
+  512~KB of SRAM inside the chip.
+\item[Secondary memory.] Keeps programs and data when the power is off. On
+  the kit: the flash chip that holds the firmware and the cartridges.
+\item[Input/output devices.] Video card and monitor, keyboard, mouse, printer,
+  storage. On the kit: display, joystick, amplifier.
+\item[Communication lines.] The buses: data and address lines shared by all
+  the units.
+\end{description}
+
+A personal computer spreads these units over a motherboard; a microcontroller
+puts almost all of them in one package.
+
+\subsection{The motherboard}
+
+A \term{motherboard} (Figure~\ref{fig:st:board}) carries the sockets for one
+or more processors and, close to them, the slots for the memory modules; a
+\emph{chipset} that connects processor, memory and peripherals; expansion
+buses, today PCI Express slots for video cards and other boards; connections
+for storage (Serial ATA, M.2) and for the outside world (USB, Ethernet,
+audio); and a flash chip with the firmware that starts the machine. From an
+architectural point of view a board of 2002 and one of today have much in
+common.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.7\textwidth]{workstation_board.jpg}
+\caption{A dual-processor workstation motherboard.}
+\label{fig:st:board}
+\end{figure}
+
+\subsection{Firmware: the BIOS and its heirs}
+
+\begin{definition}{Firmware}
+The \term{firmware} is the basic software of a machine, kept in a non-volatile
+memory and used by the processor from the moment in which it is switched on.
+\end{definition}
+
+In a personal computer it was called the BIOS: a program in a non-volatile
+chip, specific to a given motherboard. Its instructions and data are divided
+into four parts: the \emph{POST} (power-on self test), which checks that the
+devices work; the \emph{SETUP}, the configuration of the devices; the
+\emph{BOOT}, which starts the operating system; and the \emph{DRIVERS}, basic
+low-level functions for the keyboard, the disks and other devices. Today's
+PCs use UEFI firmware, which does the same jobs.
+
+\begin{prgmachine}
+On the ESP32-C6 a boot program in ROM starts a bootloader in flash, which
+starts the \prg firmware, which loads the cartridge chosen from its
+\emph{Setup} menu. Each stage finds, checks
+and starts the next: a chain that goes from the first instruction after reset,
+through layers of permanent memory, to the first instruction of the reader's
+\code{init}.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Non-volatile memories}
+
+\subsection{From ROM to flash}
+
+Semiconductor memories that keep their content without power have evolved
+towards an ever easier way of writing them (Table~\ref{tab:st:rom}). Reading
+them takes a time of the order of nanoseconds.
+
+\begin{table}[htb]
+\centering\small
+\caption{From ROM to flash.}\label{tab:st:rom}
+\begin{tabularx}{\textwidth}{@{}lP{0.24\textwidth}LL@{}}
+\toprule
+\textbf{Memory} & \textbf{Written by} & \textbf{Erased} & \textbf{Typical use}\\
+\midrule
+ROM & the manufacturer, once and for all & never & start-up code, old game cartridges\\
+PROM & the user, once & never & small production runs\\
+EPROM & the user, many times & all at once, with ultraviolet light through a quartz window (about 15 minutes) & development, BIOS of early PCs\\
+EEPROM & the user, in place & electrically, one byte at a time & configuration data\\
+Flash & the user, in place & electrically, in blocks & firmware, USB keys, memory cards, solid-state disks\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The acronyms are \emph{read-only memory}, \emph{programmable} ROM,
+\emph{erasable} PROM and \emph{electrically erasable} PROM. A ROM is, from
+the logical point of view, a combinational machine: a table that associates a
+fixed word with each address, as the tables \code{dx} and \code{dy} of
+\vermone do.
+
+\subsection{Flash memory}
+
+Flash is the most recent kind of EEPROM: it can be reprogrammed in place,
+without being removed from the board, and it is today the cheapest
+semiconductor memory. It has three peculiarities.
+
+\begin{itemize}
+\item It is erased by \emph{blocks} of bytes, not one byte at a time. Erasing
+  sets all the bits of a block to 1, and writing can only turn 1s into 0s.
+\item Each block survives a limited number of erase cycles, so that the
+  controller spreads the writes evenly over the blocks.
+\item Reading is fast; writing and, above all, erasing are slow.
+\end{itemize}
+
+The flash of the kit holds the firmware and the cartridges: uploading a
+cartridge erases and rewrites some of its blocks. And this is why the best
+score of the warm-up is not simply written back into the cartridge at every
+frame: flash is not a place for variables.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{eprom.jpg}\caption{An EPROM with its quartz window}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{hard_disk.jpg}\caption{A 6 TB hard disk drive}\label{fig:st:hdd}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{ssd.jpg}\caption{A solid-state disk}\end{subfigure}
+\caption{Three permanent memories.}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{The cache}
+
+\subsection{Why a cache?}
+
+During the clock cycles needed to read or to write the memory the processor
+waits; the slower the memory, the more cycles are lost. Why not build
+memories as fast as the registers of the processor? Because they would have
+to be on the same chip, since a connection through a bus is slower; and then
+they could not be very large, or the chip would grow in size and in cost. The
+compromise is a small, fast memory on the chip of the processor, and one or
+more larger and slower memories reached through the bus.
+
+\subsection{How a cache works}
+
+\begin{definition}{Cache}
+A \term{cache} (from the French \emph{cacher}, to hide) is a memory of small
+capacity but fast, placed between the processor and the main memory, which
+keeps a copy of part of the content of the latter.
+\end{definition}
+
+The processor looks in the cache first (Figure~\ref{fig:st:cache}). There is
+a \term{hit} if the content of the requested address is there, and it arrives
+at once. There is a \term{miss} if it is not, and then it must be copied from
+the RAM into the cache; a fixed number of neighbouring locations is copied
+with it. The program does not stop and does not notice: the access is simply
+slower.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=36mm,minimum height=9mm] (p) at (0,0) {processor};
+  \node[blkamb,minimum width=36mm,minimum height=11mm] (c) at (0,-1.8) {\textbf{cache}\\small, fast};
+  \node[blkvio,minimum width=36mm,minimum height=13mm] (m) at (0,-3.9) {\textbf{main memory}\\large, slow};
+  \draw[<->,bus] (p) -- (c) node[midway,right,lbl]{every access};
+  \draw[<->,bus] (c) -- (m) node[midway,right,lbl]{only on a miss: a block};
+\end{tikzpicture}
+\caption{A cache between the processor and the main memory.}
+\label{fig:st:cache}
+\end{figure}
+
+Why copy the neighbours? Because of an empirical property of programs.
+
+\begin{prgconcept}[The principle of locality]
+A program that has just used an address will probably use it again soon
+(\emph{temporal locality}) and will probably use its neighbours
+(\emph{spatial locality}). Loops and arrays are the reason.
+\end{prgconcept}
+
+The more hits, the shorter the average access time. If a fraction $h$ of the
+accesses are hits, the cache answers in a time $t_c$ and a miss costs in
+addition the time $t_m$ of the memory, the average is
+\[ t = h\,t_c+(1-h)\,(t_c+t_m). \]
+With $t_c=1$~ns, $t_m=50$~ns and 95\% of hits,
+$t=0.95\times 1+0.05\times 51=3.5$~ns: the system behaves almost as if the
+whole memory were as fast as the cache.
+
+\subsection{Cache levels and typical machines}
+
+Real processors have several levels of cache, all built with SRAM
+(Table~\ref{tab:st:levels}). The first level, internal, keeps a continuous
+flow inside the processor; the second limits the slowdown due to the main
+memory; the third, of 8 to 32~MB and more, is shared by the cores of the same
+processor.
+
+\begin{table}[htb]
+\centering\small
+\caption{Cache levels on three machines.}\label{tab:st:levels}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+ & \textbf{PC of 2002} & \textbf{PC of 2020} & \textbf{ESP32-C6 (the kit)}\\
+\midrule
+Processor & 1 core & 4 cores & 1 \riscv core, 160 MHz\\
+Cache L1 & 64 KB & 64 KB per core & none for the SRAM\\
+Cache L2 & 512 KB & 512 KB per core & none\\
+Cache L3 & none & 8 MB, shared by the cores & none\\
+Main memory & 256 MB & 16 GB & 512 KB of SRAM\\
+Storage & 40 GB hard disk & 1 TB + 1 TB, mirrored & a few MB of flash, read through a small cache\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+On the ESP32-C6 the SRAM is already as fast as the core needs; only the
+external flash sits behind a cache.
+
+% ----------------------------------------------------------------------------
+\section{Secondary memory}
+
+\subsection{Characteristics}
+
+The \term{secondary memory}, or \term{mass storage}, keeps all the programs
+and data of a computer, whereas the main memory holds the programs being
+executed and the data that they need. Compared with the main memory it is
+
+\begin{itemize}
+\item non-volatile: the data are not lost when the computer is switched off;
+\item of large capacity: several orders of magnitude more;
+\item of low cost per bit: several orders of magnitude less;
+\item slower: by some orders of magnitude.
+\end{itemize}
+
+Its information is organised in \term{blocks}, usually of a kilobyte or more,
+not in single bytes. Some media allow \emph{direct} access to any block;
+others only \emph{sequential} access.
+
+\subsection{Magnetic disks: tracks, sectors, blocks}
+
+A magnetic disk (Figure~\ref{fig:st:hdd}) is made of platters coated with a
+magnetisable material and kept spinning at constant speed, and of heads that
+read and write the information. The surface is divided into concentric
+\term{tracks} and into \term{sectors}, slices of the disk
+(Figure~\ref{fig:st:disk}). A sector cuts each track into blocks: the block
+is the smallest addressable unit, identified by the number of its track and
+of its sector. \term{Formatting} a disk means dividing its surface into
+tracks and sectors. Access is direct: the head can be positioned on any block
+without passing over all the previous ones. Several sectors form a
+\emph{cluster}; the tracks at the same radius on all the platters form a
+\emph{cylinder}.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \fill[prgpanel] (0,0) circle (2.6);
+  \fill[prgamber!45] (0,0) -- (30:2.6) arc (30:60:2.6) -- cycle;
+  \begin{scope}
+    \clip (0,0) -- (30:2.7) arc (30:60:2.7) -- cycle;
+    \fill[prgred!70,even odd rule] (0,0) circle (1.9) (0,0) circle (1.5);
+  \end{scope}
+  \draw[prgaccent,line width=2pt] (0,0) circle (1.7);
+  \foreach \r in {0.7,1.1,1.5,1.9,2.3,2.6} \draw[prgsteel,thin] (0,0) circle (\r);
+  \foreach \a in {0,30,...,330} \draw[prgsteel,thin] (\a:0.7) -- (\a:2.6);
+  \fill[white] (0,0) circle (0.7); \draw[prgsteel] (0,0) circle (0.7); \fill[prgsteel] (0,0) circle (0.12);
+  \draw[<-,thick] (150:1.7) -- (-3.6,1.6) node[left,lbl,text=prgaccent]{a track};
+  \draw[<-,thick] (45:2.4) -- (3.4,2.2) node[right,lbl,text=prgamber]{a sector};
+  \draw[<-,thick] (45:1.7) -- (3.4,0.6) node[right,lbl,text=prgred]{a block};
+  \draw[line width=3pt,prgink] (3.3,-2.4) -- (-10:1.75);
+  \fill[prgink] (-10:1.75) circle (0.1);
+  \node[lbl,anchor=west] at (3.4,-2.4) {arm and head};
+\end{tikzpicture}
+\caption{The surface of a magnetic disk.}
+\label{fig:st:disk}
+\end{figure}
+
+\subsection{Access time of a magnetic disk}
+
+To read or to write a block the head must be brought to the right address;
+during the transfer the head is still and the disk moves. The access time is
+the sum of three components.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Seek time.] The time to move the head radially to the right cylinder,
+  and so to the right track.
+\item[Latency.] The time to wait for the desired sector to pass under the
+  head; on average, half a revolution.
+\item[Transfer time.] The time for the block to pass under the head.
+\end{description}
+
+A disk that turns at 7\,200 revolutions per minute takes $60/7200 = 8.33$~ms
+per revolution, and its average latency is about 4.2~ms. Hard disks are
+sealed against dust, have capacities of terabytes and access times of
+milliseconds. A millisecond is a million nanoseconds: during one access to a
+disk a processor at 160~MHz could execute more than a hundred thousand
+instructions.
+
+\subsection{Hard disks and solid-state disks}
+
+A \term{hard disk drive} (HDD) has magnetic platters and moving heads; its
+access time, of milliseconds, is dominated by mechanics; it has the lowest
+cost per terabyte and is still the choice for large archives and for backups.
+A \term{solid-state disk} (SSD) is flash memory with a controller, and has no
+moving parts; its access time is of tens of microseconds; it is connected
+through SATA or, faster, through NVMe on PCI Express. It is the standard
+storage of laptops and telephones, and is the same technology as the flash
+chip of the kit.
+
+% ----------------------------------------------------------------------------
+\section{Optical disks}
+
+\subsection{Bits read with light}
+
+An optical disk is a rigid disk on which a laser beam of a few milliwatts is
+projected; the reflection changes between the \term{pits} and the surface,
+the \term{land} (Figure~\ref{fig:st:pits}).
+
+\begin{prgwarn}
+0 and 1 are \emph{not} pit and land. A 1 is a \emph{change}, from pit to land
+or from land to pit; a 0 is no change.
+\end{prgwarn}
+
+Encoding a 1 as a transition is an idea used in many serial links as well,
+because it lets the receiver recover the rhythm of the bits from the signal
+itself. Optical disks are usually written once, because the physical changes
+are irreversible: they are used to distribute programs and as archives that
+must not be modified. In a CD-Recordable, two layers of polycarbonate enclose
+a thin reflective sheet covered by a translucent dye, and recording burns
+points in the dye; rewritable disks use a material that can change back.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{pit_land.jpg}\caption{Pits and lands}\label{fig:st:pits}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{cdrom_drive.jpg}\caption{Inside a CD-ROM drive}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{dvd_drive.jpg}\caption{Inside a DVD drive}\end{subfigure}
+\caption{Optical storage.}
+\end{figure}
+
+\subsection{The compact disc}
+
+On a compact disc the information is stored on a single spiral track, with
+constant recording density; the distance between two successive turns of the
+spiral, the \emph{track pitch}, is 1.6 micrometres. Two ways of turning the
+disk are possible. With \emph{constant linear velocity} (CLV) the disk turns
+faster when the head reads near the centre, from 200 to 500 revolutions per
+minute, so that the track passes under the head always at the same speed
+(1.2~m/s at the basic speed, set by the bit rate needed to play music). With
+\emph{constant angular velocity} (CAV) the revolutions are constant and so is
+the number of bits per sector, with the result that the outer surface is
+under-used.
+
+\subsection{DVD and CD compared}
+
+The DVD (\emph{digital versatile disk}) has smaller pits and a tighter spiral,
+and up to two layers and two sides (Table~\ref{tab:st:dvd}).
+
+\begin{table}[htb]
+\centering\small
+\caption{DVD and CD.}\label{tab:st:dvd}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{DVD} & \textbf{CD}\\
+\midrule
+Disk diameter & 120 mm & 120 mm\\
+Disk thickness & 1.2 mm ($0.6$ mm $\times$ 2) & 1.2 mm\\
+Surfaces / layers & 1 or 2 / 1 or 2 & 1 / 1\\
+Minimum pit size & 0.4 $\mu$m & 0.83 $\mu$m\\
+Track pitch & 0.74 $\mu$m & 1.6 $\mu$m\\
+Average transfer rate & 4.7 MB/s & 0.15 MB/s\\
+Capacity, 1 layer, 1 side & about 5 GB & about 0.68 GB\\
+Capacity, 2 layers, 2 sides & 17 GB & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Storage on several levels}
+
+A modern computing system has several levels of permanent memory
+(Figure~\ref{fig:st:levels}), often managed automatically: the data that are
+used often migrate towards the fast levels, and the rest sinks towards the
+cheap ones. It is the idea of the cache, applied to storage; and from a chip
+of a few megabytes on the kit to rooms of petabytes
+(Figure~\ref{fig:st:racks}) the hierarchy is the same at every scale.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkred,text width=21mm,minimum height=17mm] (a) {\textbf{RAM disk}\\[1pt]\footnotesize fastest, volatile};
+  \node[blkamb,text width=21mm,minimum height=17mm,right=of a] (b) {\textbf{Solid-state disk}\\[1pt]\footnotesize working storage};
+  \node[blkacc,text width=21mm,minimum height=17mm,right=of b] (c) {\textbf{Hard disk}\\[1pt]\footnotesize large, cheap};
+  \node[blk,text width=21mm,minimum height=17mm,right=of c] (d) {\textbf{Disk library}\\[1pt]\footnotesize on when needed};
+  \node[blkvio,text width=21mm,minimum height=17mm,right=of d] (e) {\textbf{Tape library}\\[1pt]\footnotesize archives};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[<->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{A multi-level permanent memory.}
+\label{fig:st:levels}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.6\textwidth]{storage_racks.jpg}
+\caption{Disk and tape libraries in a data centre.}
+\label{fig:st:racks}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{Which memory can be erased electrically, in blocks, without removing it from the board?}
+\item ROM
+\item PROM
+\item EPROM
+\item Flash
+\end{quiz}
+
+\begin{quiz}{What happens on a cache miss?}
+\item The program stops with an error
+\item The datum is fetched from main memory and copied into the cache, with its neighbours
+\item The cache is erased
+\item The processor skips the instruction
+\end{quiz}
+
+\begin{quiz}{Which component of the access time of a hard disk depends on the rotation speed?}
+\item Seek time
+\item Latency
+\item Formatting time
+\item Boot time
+\end{quiz}
+
+\begin{quiz}{On an optical disk, a 1 is encoded as:}
+\item a pit
+\item a land
+\item a transition between pit and land
+\item a double pit
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper and \prg]
+\begin{enumerate}[nosep]
+\item A disk turns at 5\,400 revolutions per minute: what is its average
+  latency?
+\item A cache answers in 2~ns and the memory in 80~ns: what is the average
+  access time with 90\% of hits? And with 99\%?
+\item Say where each of these lives on the \prg kit: the boot code, the
+  firmware, a cartridge, the variable \code{counter}, the register \reg{t0}.
+\item Find the specifications of the storage of your laptop or telephone:
+  technology, capacity, interface.
+\item On \prg, time two loops that sum a large array: one in order, one that
+  jumps by a large step. Is there a difference, and why might there not be on
+  this chip?
+\end{enumerate}
+\expected{Latency: half of $60/5400=11.1$~ms, that is, about 5.6~ms. Access
+time: $0.9\times 2+0.1\times 82=10$~ns, and $0.99\times 2+0.01\times 82=2.8$~ns.
+The five things live in ROM, in flash, in flash (or in RAM once loaded), in
+SRAM, and in a register of flip-flops inside the processor. In the last task
+the SRAM of the ESP32-C6 has no cache in front of it, so that the pattern of
+access matters little; on a laptop the difference is large.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+motherboard & scheda madre\\
+firmware & firmware\\
+non-volatile & non volatile\\
+cache hit / miss & successo / fallimento di cache\\
+mass storage & memoria di massa\\
+track / sector / block & traccia / settore / blocco\\
+seek time & tempo di posizionamento\\
+latency & tempo di latenza\\
+solid-state disk & disco a stato solido\\
+tape library & libreria a nastri\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Non-volatile memories usually hold the basic software of a machine, the
+firmware. The cache improves performance by keeping a copy of part of the
+main memory close to the processor, and the same idea, a small fast level in
+front of a large slow one, is used again in storage systems. Permanent
+memories can be semiconductor (flash), magnetic or optical, and a modern
+system has several levels of them, often managed automatically.
+
+\paragraph{Reading.} \citet{patterson2020}, sections 5.1--5.4;
+\citet{stallings2021}, the chapters on cache and on external memory;
+\citet{tanenbaum2013}, chapter~2.
+
+The third block is complete. The next chapter uses it in the third part of
+\vermone: a body, rules and states.

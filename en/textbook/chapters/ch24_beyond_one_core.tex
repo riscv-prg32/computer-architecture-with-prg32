@@ -1,0 +1,664 @@
+% ============================================================================
+%  Chapter 24 -- Beyond One Core                                 (Lecture 24)
+% ============================================================================
+\chapter{Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs}
+\label{ch:beyond}
+
+\epigraphline{If you were plowing a field, which would you rather use: two
+strong oxen or 1024 chickens?}{attributed to Seymour Cray}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item write the performance equation and say which factor each technique attacks;
+\item explain how a superscalar, out-of-order processor executes several
+  instructions per cycle, and name \riscv cores that do;
+\item read a loop written with the \riscv vector extension;
+\item describe a supercomputer, compute a speed-up with Amdahl's law, and say why energy is the limit;
+\item say what a GPU and an FPGA are good at, and what each costs the programmer.
+\end{itemize}
+\end{chapgoals}
+
+This closing chapter is an outlook. It starts from one loop of \vermone and
+follows it onto four kinds of machine: the same instructions, on machines
+that execute many of them at once. It is not part of the midterm test. The
+\riscv vector listings were tested on QEMU; the CUDA and Verilog fragments
+are standard textbook forms that were not compiled for this book. The
+figures for supercomputers are rounded and come from the TOP500 lists of 2022
+to 2025.
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={The loop that empties the map, from \code{new\_game} of \vermone.},label=lst:by:loop]{code/l24/s04.S}
+
+Listing~\ref{lst:by:loop} sets 960 bytes to zero: four instructions per byte,
+3\,840 instructions in all, one byte at a time and one instruction at a time.
+At best one instruction per clock cycle and 160 million cycles per second on
+the kit: about 24 microseconds. Nobody needs this loop to be faster; but it
+is small enough to be followed onto every machine of this chapter. How many
+ways are there of making it faster?
+
+\subsection{The performance equation}
+
+\begin{theorem}{Performance equation}
+The time that a program takes is the product of three numbers,
+\[ T = N\times \mathit{CPI}\times t , \]
+where $N$ is the number of instructions executed, $\mathit{CPI}$ the average
+number of clock cycles per instruction and $t$ the duration of a clock cycle.
+\end{theorem}
+
+For the loop above on the kit: $N=3\,840$, about 1 cycle each, 6.25
+nanoseconds per cycle. Each factor can be attacked: \emph{fewer
+instructions}, with better algorithms, richer instructions, vectors;
+\emph{fewer cycles per instruction}, with pipelines and superscalar execution;
+\emph{a shorter cycle}, with faster transistors and deeper pipelines. And
+when one processor is not enough: more processors working together. Every
+machine of this chapter is a different answer to the same equation
+\citep{patterson2020}.
+
+\subsection{Why not simply a faster clock?}
+
+For thirty years each new generation of transistors was smaller, faster, and
+no hotter per square millimetre. Round 2005 that stopped: smaller
+transistors still arrive, but a faster clock means more heat than a chip can
+shed (Chapter~\ref{ch:electronics}), and clock frequencies have stayed at a
+few gigahertz ever since. Moore's law, more transistors, went on; the rule
+that kept the density of power constant, known as Dennard scaling, ended.
+The extra transistors went elsewhere: wider processors, more cores, vector
+units, accelerators. Performance now comes from doing many things at once:
+from \term{parallelism}. The 160~MHz of the kit are slow by choice: they cost
+milliwatts.
+
+% ----------------------------------------------------------------------------
+\section{Superscalar processors}
+
+\subsection{From one at a time to many at once}
+
+\begin{table}[htb]
+\centering\small
+\caption{From one instruction at a time to many at once.}\label{tab:by:kinds}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}LP{0.14\textwidth}L@{}}
+\toprule
+\textbf{Processor} & \textbf{How it works} & \textbf{Instr.\ per cycle} & \textbf{Example}\\
+\midrule
+Multi-cycle & one instruction completes before the next begins & less than 1 & the model of Chapter~\ref{ch:processor}\\
+Pipelined & several instructions in flight, each in a different stage & at most 1 & the ESP32-C6 of the kit: four stages\\
+Superscalar, in order & two or more pipelines side by side & up to 2 or more & small application cores\\
+Superscalar, out of order & instructions run as soon as their operands are ready & up to 4, 6, 8, \ldots & laptops, telephones, servers\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Chapter~\ref{ch:instructions} introduced the pipeline and named superscalar
+processors in one line; this section opens that line
+(Table~\ref{tab:by:kinds}). The \emph{width} of a processor is the number of
+instructions that it can start in one cycle. With two pipelines side by side
+and the five classic stages, six instructions complete in seven cycles
+(Table~\ref{tab:by:two}); a single pipeline needs ten, and a processor
+without a pipeline thirty.
+
+\begin{table}[htb]
+\centering\small
+\caption{Two pipelines side by side: six instructions in seven cycles, if
+nothing gets in the way.}\label{tab:by:two}
+\begin{tabular}{@{}l*{7}{>{\centering\arraybackslash}p{8mm}}@{}}
+\toprule
+\textbf{cycle} & 1 & 2 & 3 & 4 & 5 & 6 & 7\\
+\midrule
+$i_1$ & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+$i_2$ & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+$i_3$ && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+$i_4$ && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+$i_5$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+$i_6$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What gets in the way: dependences}
+
+\asmfile[caption={Dependences between neighbouring instructions.},label=lst:by:dep]{code/l24/s10.S}
+
+This is the ideal case, and it is rare. In Listing~\ref{lst:by:dep} the
+instruction $i_2$ cannot run beside $i_1$, because it uses its result: a
+\term{data dependence}. $i_3$ depends on nobody: why should it wait? And
+after the branch $i_4$ the processor does not know what comes next: a
+\term{control dependence}. Real code is full of such chains, and width alone
+is not enough. A superscalar processor that works in order stalls at $i_2$,
+and everything behind it waits. The remedy is to let $i_3$ overtake.
+
+\subsection{Out-of-order execution}
+
+\begin{enumerate}
+\item \textbf{Fetch and decode, in order.} Several instructions per cycle enter
+  a window of tens or hundreds of instructions.
+\item \textbf{Rename.} Each result receives a fresh physical register, so that
+  two uses of the name \reg{t0} no longer collide.
+\item \textbf{Execute when ready.} An instruction starts as soon as its
+  operands exist, whatever its position in the program.
+\item \textbf{Commit, in order.} Results become official in the order of the
+  program: seen from outside, nothing ever overtook.
+\end{enumerate}
+
+The algorithm is Tomasulo's, designed in 1967 for the floating-point unit of
+the IBM System/360 Model~91; the reorder buffer that commits in order came in
+the 1980s. The programmer's model, the one learnt in this book, is preserved
+exactly: this is the contract of the instruction set.
+
+\subsection{Register renaming: thirty-two names, many registers}
+
+\asmfile[caption={The same code as written, and as executed after renaming.},label=lst:by:rename]{code/l24/s12.S}
+
+In Listing~\ref{lst:by:rename} the second half reuses the \emph{name}
+\reg{t0}, not its value: a \term{false dependence}. Once renamed, the two
+halves share nothing, and can run at the same time on different registers.
+(The numbers \code{p41} to \code{p44} are invented.) The thirty-two registers
+known to the programmer are names; the chip has many more, a few hundred in a
+large core.
+
+\subsection{Guessing the future: branch prediction}
+
+A wide processor meets a branch every few instructions and cannot wait to
+know its outcome. It \emph{predicts} the direction from the history of that
+branch, and goes on executing along the guess: a right guess costs nothing; a
+wrong one throws away the speculative work and starts again. The loop of the
+warm-up branches back 959 times and falls through once: a predictor learns it
+in the first turns. Modern predictors are right far more than nine times out
+of ten.
+
+\begin{prgaside}[Speculation and security]
+Speculative execution has a dark side. In 2018 the attacks called Spectre
+and Meltdown showed that work which is thrown away can still leave traces in
+the cache that reveal secrets. Tricks of performance are also questions of
+security.
+\end{prgaside}
+
+\subsection{RISC-V goes superscalar}
+
+\begin{table}[htb]
+\centering\small
+\caption{Some \riscv cores. The list ages quickly.}\label{tab:by:cores}
+\begin{tabularx}{\textwidth}{@{}lP{0.3\textwidth}L@{}}
+\toprule
+\textbf{Core} & \textbf{From} & \textbf{Kind}\\
+\midrule
+HP core of the ESP32-C6 & Espressif & in order, four stages, one instruction per cycle: the kit\\
+BOOM & University of California, Berkeley & out of order, open source, for research and teaching\\
+XiangShan & Chinese Academy of Sciences & out of order, open source, high performance\\
+XuanTie C910 & T-Head (Alibaba) & out of order, three-wide; released as open source\\
+Performance P550 & SiFive & out of order, three-wide, thirteen stages; sold as a design\\
+Veyron & Ventana Micro Systems & out of order, for data centres\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Because the instruction set is open, anyone may build such a core
+(Table~\ref{tab:by:cores}), and several are published as source code that a
+student can read: this has no precedent among commercial architectures.
+
+\begin{definition}{Architecture and microarchitecture}
+The \term{architecture} is the contract: the instructions, the registers,
+what each instruction does. The \term{microarchitecture} is one way of
+honouring it: stages, width, predictors, caches.
+\end{definition}
+
+The \ins{add} written for a microcontroller at 160~MHz is the \ins{add} of a
+server core, and \vermone would run unchanged on any of the cores of the
+table, given a screen. This is why an instruction set learnt once is
+knowledge that lasts. The distinction organises the whole book: Chapters
+\ref{ch:firstcontact} to~\ref{ch:verm1p4} taught the architecture, and
+the kit is one small microarchitecture.
+
+% ----------------------------------------------------------------------------
+\section{Vectors: one instruction, many data}
+
+\subsection{Flynn's taxonomy}
+
+\begin{table}[htb]
+\centering\small
+\caption{The taxonomy of \citet{flynn1972}.}\label{tab:by:flynn}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Class} & \textbf{Instructions} & \textbf{Data} & \textbf{Example}\\
+\midrule
+SISD & one stream & one stream & the kit: one core, one datum at a time\\
+SIMD & one stream & many at once & vector instructions; a GPU, to a first approximation\\
+MISD & many & one stream & rare: redundant systems that vote\\
+MIMD & many & many & multicore processors, clusters, supercomputers\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The classification of Table~\ref{tab:by:flynn} is crude, and is still the
+first vocabulary of parallel computing.
+
+\subsection{The same loop, with vectors}
+
+\asmfile[caption={Emptying the map with the vector extension.},label=lst:by:vec]{code/l24/s18.S}
+
+The V extension of \riscv, ratified in 2021, adds \term{vector registers},
+many bytes wide (Listing~\ref{lst:by:vec}). The instruction \ins{vsetvli}
+asks: how many of the bytes that are left fit in a register? The answer
+comes back in \reg{t2}. Then \ins{vse8.v} stores \reg{t2} bytes with one
+instruction. With registers of 128 bits the loop handles 16 bytes per turn:
+60 turns instead of 960.
+
+The code never says how wide the registers are: it is \emph{vector-length
+agnostic}, and the same binary uses 128, 256 or 1\,024 bits. The extension is
+not on the kit, since the ESP32-C6 is RV32IMAC; the listing was tested on
+QEMU with registers of 128, 256, 512 and 1\,024 bits.
+
+\subsection{A sum, lane by lane}
+
+\asmfile[caption={The sum of sixteen words with vectors.},label=lst:by:vsum]{code/l24/s19.S}
+
+Listing~\ref{lst:by:vsum} is the parallel sum of Chapters
+\ref{ch:information} and~\ref{ch:video}, in \riscv. \ins{vle32.v} loads
+several words at once; \ins{vadd.vv} adds register to register, \emph{lane}
+by lane; at the end \ins{vredsum.vs} adds the lanes together. With the
+sixteen numbers from 1 to 16 the result is 136. (The setting \code{tu},
+\emph{tail undisturbed}, keeps the partial sums of the lanes that the last
+turn does not use.)
+
+% ----------------------------------------------------------------------------
+\section{High-performance computing}
+
+\subsection{What is a supercomputer?}
+
+A supercomputer is not one enormous processor. It is thousands of ordinary
+computers, the \term{nodes}, working on the same problem
+(Figure~\ref{fig:by:cluster}). Each node has one or two processors with tens
+of cores, often several GPUs, and a great deal of memory. A very fast network
+joins the nodes, and a parallel file system serves them all. Speed is
+measured in floating-point operations per second, FLOPS, on a standard
+problem: a huge system of linear equations (the benchmark called HPL,
+\emph{High-Performance Linpack}). The TOP500 list has ranked the fastest
+machines twice a year since 1993.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{cluster_1.jpg}
+\caption{A small cluster: nodes, GPUs, a fast network. The structure of a
+supercomputer, in small.}
+\label{fig:by:cluster}
+\end{figure}
+
+\begin{table}[htb]
+\centering\small
+\caption{Orders of magnitude (rounded HPL figures from the TOP500 lists; the
+figure for the laptop is an order of magnitude).}\label{tab:by:flops}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Machine} & \textbf{Where} & \textbf{Floating-point operations per second}\\
+\midrule
+ESP32-C6 & the kit & no floating-point unit: fixed point, as in \vermone\\
+A laptop & your bag & about $10^{11}$\\
+Leonardo (2022) & CINECA, Bologna & about $2.4\times 10^{17}$\\
+Frontier (2022) & Oak Ridge, USA & over $10^{18}$: the first exascale machine\\
+El Capitan (2024) & Livermore, USA & about $1.7\times 10^{18}$\\
+JUPITER (2025) & J\"ulich, Germany & about $10^{18}$: the first European exascale machine\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\emph{Exa} is $10^{18}$. Seven orders of magnitude separate a laptop from an
+exascale machine (Table~\ref{tab:by:flops}): about fifty years of Moore's
+law, bought with parallelism instead.
+
+\subsection{Amdahl's law}
+
+\begin{theorem}{Amdahl's law}
+If a fraction $p$ of the work of a program can be done in parallel, the
+speed-up obtained with $n$ processors is
+\[ S(n)=\frac{1}{(1-p)+\dfrac{p}{n}},\qquad\text{and}\qquad
+   \lim_{n\to\infty}S(n)=\frac{1}{1-p}. \]
+\end{theorem}
+
+\noindent\emph{Proof.} Take the time on one processor as 1. The serial part
+takes $1-p$ whatever the number of processors; the parallel part, shared
+among $n$, takes $p/n$. The speed-up is the ratio of the two times.
+\hfill$\square$
+
+\smallskip
+The serial fraction does not shrink, however many processors are added
+\citep{amdahl1967}. With $p=0.9$ the speed-up can never exceed 10, even with
+a million processors (Table~\ref{tab:by:amdahl}): a thousand processors on a
+program that is 90\% parallel make it less than ten times faster. Before
+buying processors, measure $p$. The same law holds for any improvement that
+applies to only a part of the work: a faster GPU does not help the part that
+runs on the CPU.
+
+\begin{table}[htb]
+\centering\small
+\caption{Amdahl's law in numbers: the speed-up.}\label{tab:by:amdahl}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+\textbf{Parallel fraction $p$} & $n=10$ & $n=100$ & $n=1000$ & $n$ unlimited\\
+\midrule
+0.50 & 1.8 & 2.0 & 2.0 & 2\\
+0.90 & 5.3 & 9.2 & 9.9 & 10\\
+0.99 & 9.2 & 50 & 91 & 100\\
+0.999 & 9.9 & 91 & 500 & 1000\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As a check, $p=0.9$ and $n=100$ give $1/(0.1+0.009)=9.17$. Gustafson's
+answer, in 1988, was that with more processors people solve bigger problems,
+and that in a bigger problem the parallel part usually grows faster than the
+serial one.
+
+\subsection{Two ways to share the work}
+
+With \term{shared memory}, several cores of one node see the same memory, and
+the program runs as \emph{threads} that read and write the same variables.
+It is easy to start: OpenMP adds one line above a loop. The danger is two
+threads that write the same variable. With \term{distributed memory} each
+node has its own memory and nothing is shared; the program runs as
+\emph{processes} that send each other messages, and MPI, the \emph{Message
+Passing Interface}, is the standard. It scales to a million cores, and the
+programmer pays for it. Real applications use both: MPI between the nodes,
+threads and GPUs inside each node. The weather and marine models of the
+Department work in this way.
+
+\subsection{The limit is energy}
+
+An exascale machine draws about twenty megawatts, the consumption of a small
+town (Frontier reached its exaflop at about 21~MW): some 50 thousand million
+operations per joule. The electricity of its lifetime costs as much as the
+machine. So the figure that matters is operations per watt, which has its
+own ranking, the Green500, led by GPUs and other accelerators: specialised
+hardware does more with each joule. The same reason puts a small \riscv core
+in the kit: milliwatts. Energy efficiency is the thread that ties a
+microcontroller to a supercomputer.
+
+\subsection{RISC-V and European supercomputing}
+
+Today's largest machines use x86 or Arm processors with GPU accelerators.
+Europe designs its own processors and accelerators on \riscv: the European
+Processor Initiative, and DARE, the project named in
+Chapter~\ref{ch:intro} \citep{eurohpcdare}. Monte Cimone, built in 2022 at
+the University of Bologna with CINECA, is a complete HPC cluster on \riscv
+processors; the Barcelona Supercomputing Center designs and fabricates
+\riscv cores of its own. An open instruction set lets a continent build what
+it would otherwise have to buy.
+
+% ----------------------------------------------------------------------------
+\section{GPU accelerators}
+
+\subsection{Two ways to spend transistors}
+
+A CPU has a few large cores, tens of them, each out of order, with predictors
+and big caches: it is built to finish \emph{one} task as soon as possible,
+and is at ease with branches and irregular data. A GPU has thousands of
+small, simple cores, all executing the same code on different data: it is
+built to finish a million tasks per second, and is at ease with regular
+arrays: pixels, matrices, grids. These are Cray's oxen and chickens, and the
+answer depends on the field. The GPU is not faster at any single thing; it
+does more things at once.
+
+\subsection{How a program uses a GPU}
+
+\begin{enumerate}
+\item \textbf{Prepare.} The program on the CPU, the \emph{host}, builds its
+  arrays in main memory.
+\item \textbf{Copy in.} The data travel to the memory of the GPU: a real cost,
+  in time.
+\item \textbf{Launch.} One small function, the \term{kernel}, runs in
+  thousands of threads, one per element of the data.
+\item \textbf{Copy out.} The results travel back, and the host goes on.
+\end{enumerate}
+
+The GPU is a device, like those of Chapter~\ref{ch:io}: the CPU sends it data
+and commands through a driver. The programming models are CUDA, OpenCL and
+SYCL, and directives such as OpenACC and OpenMP offload.
+
+\cfile[caption={The map of \vermone with one thread per cell (CUDA C, in its
+usual textbook form; not compiled for this book).},label=lst:by:cuda]{code/l24/s31.c}
+
+In Listing~\ref{lst:by:cuda} there is no loop: there are 960 threads. Each
+thread computes its own index and does one store. Threads come in blocks,
+and the last ones find nothing to do. For 960 bytes the two copies cost far
+more than the work, and the point is serious: a GPU pays off when the data
+are large and the work per element is real.
+
+\subsection{When does a GPU pay off?}
+
+It pays off when the same operation applies to very many data, independently:
+images, matrices, the grids of a simulation, neural networks; and when the
+data can stay on the GPU for many steps instead of travelling at every one.
+It does not when the work is a chain of decisions, each depending on the one
+before. And Amdahl's law applies again: what stays on the CPU sets the limit.
+A weather simulation updates every cell of a three-dimensional grid from its
+neighbours, millions of times: the same shape as the map of \vermone, a
+little larger. The training of today's neural networks is, almost entirely,
+matrix arithmetic on GPUs.
+
+% ----------------------------------------------------------------------------
+\section{FPGA accelerators}
+
+\subsection{A chip that becomes the circuit you describe}
+
+\begin{definition}{FPGA}
+A \term{field-programmable gate array} (FPGA) is a chip made of a sea of small
+programmable blocks: \term{look-up tables}, each able to be any function of a
+few inputs; flip-flops, one beside each table; and wires and switches that can
+join any block to any other. A configuration file, the \term{bitstream}, sets
+every table and every switch.
+\end{definition}
+
+Load another bitstream, and the same chip is another circuit. The first FPGA,
+the Xilinx XC2064, was sold in 1985; today they go from a few euros to boards
+for data centres. An FPGA does not execute a program: it \emph{becomes} a
+circuit. Nothing is fetched or decoded, and all the gates work at the same
+time.
+
+\subsection{A look-up table is a truth table in memory}
+
+\begin{center}\small\ttfamily
+\begin{tabular}{cc|ccc}
+\textrm{$a$}&\textrm{$b$}&\textrm{stored for AND}&\textrm{stored for XOR}&\textrm{stored for NOT $a$}\\\hline
+0&0&0&0&1\\0&1&0&1&1\\1&0&0&1&0\\1&1&1&0&0
+\end{tabular}
+\end{center}
+
+The inputs are the address, and four stored bits choose the function:
+changing the bits changes the gate. Chapter~\ref{ch:boole1} said that a
+truth table defines a function, and Chapter~\ref{ch:storage} that a ROM
+addressed by the inputs implements any function. A look-up table is that
+ROM, with four to six inputs and sixteen to sixty-four bits; the flip-flop
+next to it is that of Chapter~\ref{ch:sequential}. An FPGA is this book,
+repeated a hundred thousand times on one chip.
+
+\subsection{The U-turn rule of Verm1, as hardware}
+
+\lstinputlisting[style=verilog,caption={The U-turn rule in Verilog (not synthesised for this book).},label=lst:by:verilog]{code/l24/s36.v}
+
+Verilog, like VHDL, is a \term{hardware description language}: it describes
+circuits, not steps (Listing~\ref{lst:by:verilog}). The statement
+\code{assign} is a wire, always true: there is no before and no after. The
+circuit is two XOR gates and an AND with one inverted input,
+\[ \mathit{refuse}=(d_1\oplus w_1)\cdot\nott{(d_0\oplus w_0)} . \]
+On the kit this rule took three instructions and three cycles
+(Chapter~\ref{ch:verm1p2}); here the gates answer in a fraction of a
+nanosecond, continuously.
+
+\subsection{From description to circuit}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=16mm] (a) {\textbf{Describe}\\[1pt]\footnotesize Verilog, VHDL, or C};
+  \node[blkamb,text width=21mm,minimum height=16mm,right=of a] (b) {\textbf{Simulate}\\[1pt]\footnotesize waveforms};
+  \node[blkvio,text width=21mm,minimum height=16mm,right=of b] (c) {\textbf{Synthesise}\\[1pt]\footnotesize tables and flip-flops};
+  \node[blkgrn,text width=21mm,minimum height=16mm,right=of c] (d) {\textbf{Place and route}\\[1pt]\footnotesize on the chip};
+  \node[blkred,text width=21mm,minimum height=16mm,right=of d] (e) {\textbf{Configure}\\[1pt]\footnotesize load the bitstream};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{From a description to a circuit.}
+\label{fig:by:fpgaflow}
+\end{figure}
+
+Each attempt takes minutes to hours (Figure~\ref{fig:by:fpgaflow}): slower
+than building a cartridge, far faster than making a chip. The same flow,
+with a factory at the end instead of a bitstream, produces an \term{ASIC}, a
+chip made for one purpose. FPGAs are where chips are tried before they are
+made.
+
+\subsection{A processor is a circuit too}
+
+A \riscv core is a description in a hardware language, and can be loaded on
+an FPGA. Such \term{soft cores} are free to read and to use: PicoRV32,
+VexRiscv, NEORV32, Rocket. A core of the class of the kit's fits in a small,
+cheap FPGA, and beside it one can put a circuit of one's own for the one
+operation that a program repeats most: a custom accelerator. \riscv reserves
+room in its encoding for custom instructions, to reach such circuits.
+
+\begin{prgconcept}[The circle closes]
+The gates of Chapter~\ref{ch:boole1} build the adder of
+Chapter~\ref{ch:boole2}, the registers of Chapter~\ref{ch:registers}
+and the processor of Chapter~\ref{ch:processor}; and that processor is a file
+that can be read. From gates to a processor, and back: the reader now knows
+every layer in between.
+\end{prgconcept}
+
+\subsection{Four ways to compute}
+
+\begin{table}[htb]
+\centering\small
+\caption{Four ways to compute.}\label{tab:by:four}
+\begin{tabularx}{\textwidth}{@{}lLLLL@{}}
+\toprule
+ & \textbf{CPU} & \textbf{GPU} & \textbf{FPGA} & \textbf{ASIC}\\
+\midrule
+What it is & a few complex cores & thousands of simple cores & a circuit you configure & a circuit made for one job\\
+Programmed in & any language & kernels: CUDA, OpenCL, SYCL & Verilog, VHDL, HLS & the same, then a factory\\
+Strong at & everything, moderately & regular data in bulk & streams, low latency & one thing, perfectly\\
+Work per joule & low & high & high & highest\\
+Effort to use & low & medium & high & very high\\
+Change of mind & recompile & recompile & a new bitstream & a new chip\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Generality is paid in energy; efficiency is paid in effort
+(Table~\ref{tab:by:four}). A modern system on a chip has all four: a
+telephone holds CPU cores, a GPU, and fixed circuits for video and radio.
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\begin{table}[htb]
+\centering\small
+\caption{Emptying the map of \vermone, 960 cells, on five machines.}\label{tab:by:five}
+\begin{tabularx}{\textwidth}{@{}P{0.27\textwidth}LP{0.22\textwidth}@{}}
+\toprule
+\textbf{Machine} & \textbf{How} & \textbf{Steps in time}\\
+\midrule
+The kit: ESP32-C6 & one byte per turn, one instruction per cycle & 3\,840 cycles\\
+Out-of-order \riscv core & the same binary; several instructions per cycle, the branch predicted & a fraction of those cycles\\
+\riscv with vectors, 128 bits & 16 bytes per turn & 60 turns\\
+GPU & 960 threads, one per cell & one launch, plus two copies\\
+FPGA & 960 flip-flops with a common reset & one clock cycle\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The first three rows of Table~\ref{tab:by:five} are the same instruction set;
+the first and the third were run for this book. The work is the same
+everywhere; what changes is how much of it happens at the same time. And the
+costs change: the first row needs a chip of two euros and four lines of
+assembly; the last needs a hardware design.
+
+\begin{prgconcept}
+The engineer's question is never which machine is fastest, but which is
+enough.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{A program is 80\% parallel. What is the largest speed-up that any number of processors can give?}
+\item 4
+\item 5
+\item 8
+\item 80
+\end{quiz}
+
+\begin{quiz}{What does register renaming remove?}
+\item branches
+\item the need for a stack
+\item false dependences between uses of the same register name
+\item cache misses
+\end{quiz}
+
+\begin{quiz}{With 256-bit vector registers, how many turns does the vector loop need for the 960 bytes?}
+\item 4
+\item 30
+\item 60
+\item 960
+\end{quiz}
+
+\begin{quiz}{A two-input look-up table stores, for the inputs 00, 01, 10, 11, the bits 0, 1, 1, 1. Which gate is it?}
+\item AND
+\item OR
+\item XOR
+\item NAND
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then the machine]
+\begin{enumerate}[nosep]
+\item Fill in the Amdahl table for $p=0.95$ and $n=10$, 100, 1000.
+\item Draw the pipeline diagram of a three-wide processor for nine independent
+  instructions with five stages.
+\item Rename the registers of the code of \code{step} that moves and wraps the
+  head in \vermone, Part~2: which instructions could run in the same cycle?
+\item Write the truth table stored in a four-input look-up table for
+  $\mathit{refuse}=(\mathit{dir}\oplus\mathit{want})=2$.
+\item Build the test \fname{vector\_qemu.S} of the course material and run it
+  on QEMU with vector registers of 128 and of 512 bits: why does the same
+  binary work?
+\end{enumerate}
+\expected{Amdahl with $p=0.95$: 6.9, 16.8, 19.6. Nine instructions on a
+three-wide processor: seven cycles. The look-up table has four ones out of
+sixteen entries, for $(\mathit{dir},\mathit{want})=(0,2)$, $(1,3)$, $(2,0)$,
+$(3,1)$. QEMU is started as
+\code{qemu-system-riscv32 -machine virt -cpu rv32,v=true,vlen=128}.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+superscalar & superscalare\\
+register renaming & ridenominazione dei registri\\
+out-of-order execution & esecuzione fuori ordine\\
+branch prediction & predizione dei salti\\
+speed-up & accelerazione (speed-up)\\
+node & nodo\\
+shared memory & memoria condivisa\\
+message passing & scambio di messaggi\\
+accelerator & acceleratore\\
+kernel (GPU) & kernel\\
+look-up table & tabella di look-up\\
+bitstream & bitstream\\
+hardware description language & linguaggio di descrizione dell'hardware\\
+soft core & soft core\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+One equation, three factors: every fast machine attacks one of them, or
+multiplies the processors. Superscalar, out-of-order cores keep the contract
+of the instruction set and execute many instructions at once. Vectors, GPUs
+and clusters exploit data that can be processed independently, and Amdahl's
+law says how far that goes. FPGAs turn a description into a circuit: the
+logic of this book, at scale.
+
+The book ends here: from a bit to a supercomputer, with one instruction set.
+
+\paragraph{Reading.} \citet{patterson2020}, chapters 4 and~6;
+\citet{hennessy2019}; \url{https://top500.org}; the \riscv vector
+specification at \url{https://riscv.org}.

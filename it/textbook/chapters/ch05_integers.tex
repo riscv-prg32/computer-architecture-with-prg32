@@ -1,0 +1,688 @@
+% ============================================================================
+%  Capitolo 5 -- Rappresentazione dei numeri: gli interi         (Lezione 05)
+% ============================================================================
+\chapter{Rappresentazione dei numeri: gli interi}
+\label{ch:integers}
+
+\epigraphline{Conterò poco, è vero: --- diceva l'Uno ar Zero --- ma tu che
+vali? Gnente: propio gnente.}{Trilussa, \emph{Nummeri}, 1944}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item convertire interi e frazioni tra le basi 2, 8, 10 e 16;
+\item dire quali numeri naturali stanno in $n$ bit e riconoscere un overflow;
+\item codificare e decodificare interi con segno in segno e modulo e in complemento a due;
+\item sommare, sottrarre e cambiare di segno in complemento a due, e rilevare l'overflow;
+\item spiegare perché $0-1$ appare come \hex{FFFFFFFF} in un registro \riscv;
+\item scegliere l'istruzione \riscv giusta per dati con segno e senza segno.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+Un marcatore sta sullo schermo, alla posizione 2 di una linea orizzontale. Il
+programma legge il joystick e, finché \key{LEFT} è premuto, sottrae uno dalla
+posizione a ogni frame (Listato~\ref{lst:int:warm}); la funzione \code{draw}
+stampa la posizione in esadecimale con \code{prg32\_console\_hex32}.
+
+\asmfile[caption={Tenete premuto \key{LEFT} e guardate il numero (adattato dal laboratorio
+su stato e ingresso del libro di \prg).},label=lst:int:warm]{code/l05/s04.S}
+
+\begin{prgtry}
+Tenete premuto \key{LEFT}. Il valore mostrato fa \texttt{00000002},
+\texttt{00000001}, \texttt{00000000} \ldots\ e poi \texttt{FFFFFFFF}, e il
+marcatore scompare. (Sulla scheda e in QEMU la console è disegnata sullo
+schermo; \prgqt la raccoglie nel suo log.) È un errore? \hex{FFFFFFFF} è il
+numero 4\,294\,967\,295 oppure il numero $-1$?
+\end{prgtry}
+
+La risposta è: entrambi. Dipende da come si leggono i bit, e questo capitolo dà
+le regole.
+
+% ----------------------------------------------------------------------------
+\section{Basi e conversioni}
+
+\subsection{Sistemi posizionali}
+
+\begin{definition}{Rappresentazione posizionale}
+Sia $b\ge 2$ un intero, la \term{base}. Una stringa di cifre
+$d_{n-1}\,d_{n-2}\cdots d_1\,d_0$, con $0\le d_i\le b-1$ per ogni $i$,
+rappresenta in base $b$ il numero naturale
+\begin{equation}\label{eq:int:positional}
+N \;=\; \sum_{i=0}^{n-1} d_i\, b^{\,i}
+  \;=\; d_{n-1}b^{\,n-1}+\dots+d_1 b+d_0 .
+\end{equation}
+La cifra $d_{n-1}$ è la \term{più significativa}, $d_0$ la \term{meno
+significativa}.
+\end{definition}
+
+In informatica si usano quattro basi (Tabella~\ref{tab:int:bases}). Ogni numero
+naturale ha esattamente una rappresentazione in ciascuna base, a parte gli zeri
+aggiunti a sinistra.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le quattro basi dell'informatica.}\label{tab:int:bases}
+\begin{tabular}{@{}clll@{}}
+\toprule
+\textbf{Base $b$} & \textbf{Cifre} & \textbf{Nome} & \textbf{Tredici si scrive}\\
+\midrule
+2 & 0, 1 & binaria & \texttt{1101}\\
+8 & 0, 1, \ldots, 7 & ottale & \texttt{15}\\
+10 & 0, 1, \ldots, 9 & decimale & \texttt{13}\\
+16 & 0, \ldots, 9, A, \ldots, F & esadecimale & \texttt{D}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Le basi che sono potenze di due condividono gli stessi bit}
+
+Se ogni cifra è scritta in binario puro, i bit di un numero sono gli stessi in
+ogni base $b=2^{k}$: basta raggrupparli da destra, $k$ alla volta, completando
+con zeri a sinistra. Per il numero 127:
+\[
+\texttt{01111111}_2 \;=\; \underbrace{\texttt{0111}}_{7}\,\underbrace{\texttt{1111}}_{F}
+ \;=\; \hex{7F}
+\qquad\text{e}\qquad
+\texttt{01111111}_2 \;=\; \underbrace{\texttt{01}}_{1}\,\underbrace{\texttt{111}}_{7}\,\underbrace{\texttt{111}}_{7}
+ \;=\; 177_8 .
+\]
+La ragione è che nella (\ref{eq:int:positional}) con $b=2$ i termini si possono
+raccogliere $k$ alla volta, e ogni gruppo è una cifra moltiplicata per una
+potenza di $2^{k}$.
+
+\subsection{Convertire un intero: divisioni successive}
+
+Per scrivere un numero naturale $N$ in base $r$: si divide $N$ per $r$; il
+resto è la cifra successiva, a partire dalla meno significativa; si ripete sul
+quoziente finché non è zero. I resti si leggono poi dall'ultimo al primo
+(Tabella~\ref{tab:int:division}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Il numero 127 convertito per divisioni successive.}\label{tab:int:division}
+\begin{tabular}{@{}rrr@{}}
+\multicolumn{3}{c}{$r=8$}\\\toprule
+$N$ & $N/8$ & $N \bmod 8$\\\midrule
+127 & 15 & 7\\ 15 & 1 & 7\\ 1 & 0 & 1\\\bottomrule
+\multicolumn{3}{c}{$127 = 177_8$}
+\end{tabular}\qquad
+\begin{tabular}{@{}rrr@{}}
+\multicolumn{3}{c}{$r=16$}\\\toprule
+$N$ & $N/16$ & $N \bmod 16$\\\midrule
+127 & 7 & 15 = F\\ 7 & 0 & 7\\\bottomrule
+\multicolumn{3}{c}{$127 = \hex{7F}$}
+\end{tabular}\qquad
+\begin{tabular}{@{}rrr@{}}
+\multicolumn{3}{c}{$r=2$}\\\toprule
+$N$ & $N/2$ & $N \bmod 2$\\\midrule
+127 & 63 & 1\\ 63 & 31 & 1\\ 31 & 15 & 1\\ 15 & 7 & 1\\ 7 & 3 & 1\\ 3 & 1 & 1\\ 1 & 0 & 1\\\bottomrule
+\multicolumn{3}{c}{$127 = 1111111_2$}
+\end{tabular}
+\end{table}
+
+Il metodo è corretto perché, per la (\ref{eq:int:positional}),
+$N = r\,(d_{n-1}r^{\,n-2}+\dots+d_1) + d_0$: il resto della divisione di $N$
+per $r$ è $d_0$, e il quoziente è il numero le cui cifre sono
+$d_{n-1}\cdots d_1$, a cui si applica lo stesso ragionamento. In C le due
+operazioni sono \code{/} e \code{\%}; in \riscv, con l'estensione M, sono
+\ins{divu} e \ins{remu}, e il Capitolo~\ref{ch:verm1p4} usa esattamente questo
+algoritmo per stampare un punteggio.
+
+\subsection{Convertire una frazione: moltiplicazioni successive}
+
+Un numero $0\le N<1$ si scrive in base $r$ come
+$N = d_{-1}r^{-1}+d_{-2}r^{-2}+\cdots$. Moltiplicando per $r$ si ottiene
+$d_{-1} + (d_{-2}r^{-1}+\cdots)$: la parte intera del prodotto è la cifra
+successiva, a partire dalla più significativa, e il procedimento si ripete
+sulla parte frazionaria (Tabella~\ref{tab:int:fraction}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Due frazioni convertite in base 2.}\label{tab:int:fraction}
+\begin{tabular}{@{}lll@{}}
+\multicolumn{3}{c}{0,875: esatta}\\\toprule
+Prodotto & Frazione & Cifra\\\midrule
+$0,875\times 2$ & 0,75 & 1\\ $0,75\times 2$ & 0,5 & 1\\ $0,5\times 2$ & 0 & 1\\\bottomrule
+\multicolumn{3}{c}{$0,875 = 0,111_2$}
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}lll@{}}
+\multicolumn{3}{c}{0,8: periodica}\\\toprule
+Prodotto & Frazione & Cifra\\\midrule
+$0,8\times 2$ & 0,6 & 1\\ $0,6\times 2$ & 0,2 & 1\\ $0,2\times 2$ & 0,4 & 0\\ $0,4\times 2$ & 0,8 & 0\\ $0,8\times 2$ & 0,6 & 1 \ldots\\\bottomrule
+\multicolumn{3}{c}{$0,8 = 0,\overline{1100}_2$}
+\end{tabular}
+\end{table}
+
+\begin{prgwarn}
+Una frazione finita in base 10 può essere periodica in base 2. Con un numero
+finito di bit va troncata: da qui vengono gli errori di approssimazione dei
+numeri reali (Capitolo~\ref{ch:reals}).
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Numeri naturali e overflow}
+
+\subsection{Strategie di codifica}
+
+\begin{definition}{Rappresentazione}
+Una \term{rappresentazione} è una legge $X = R(x)$ che associa a un numero $x$
+una stringa di bit $X$. Qui $x$ è il numero che si intende; $X$ è la
+configurazione memorizzata nel registro.
+\end{definition}
+
+Il numero di bit dipende da quanti numeri si vogliono rappresentare; di solito
+è un multiplo di 8, tipicamente 16, 32 o 64. La legge $R$ si sceglie secondo il
+tipo di numero, naturale, con segno o razionale, e una buona legge è quella che
+rende semplici da costruire come circuiti le operazioni aritmetiche e i
+confronti.
+
+\subsection{Numeri naturali su $n$ bit}
+
+Con $n$ bit ci sono $2^{n}$ configurazioni, e la scelta naturale è associare a
+ogni numero naturale da 0 a $2^{n}-1$ la stringa di bit che lo rappresenta nel
+sistema posizionale binario. Con $n=4$ l'intervallo è $[0,15]$. Le dimensioni
+trattate da \riscv sono nella Tabella~\ref{tab:int:naturals}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Numeri naturali su 8, 16 e 32 bit.}\label{tab:int:naturals}
+\begin{tabular}{@{}rlll@{}}
+\toprule
+\textbf{Bit} & \textbf{Intervallo} & \textbf{In \riscv} & \textbf{Massimo}\\
+\midrule
+8 & $0\ldots 2^{8}-1$ & byte (\ins{lbu}) & 255\\
+16 & $0\ldots 2^{16}-1$ & mezza parola (\ins{lhu}) & 65\,535\\
+32 & $0\ldots 2^{32}-1$ & parola, registro & 4\,294\,967\,295\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Il numero 4\,294\,967\,295 è la lettura di \hex{FFFFFFFF} come numero naturale:
+la prima metà della risposta al riscaldamento.
+
+\subsection{Proprietà delle stringhe binarie}
+
+Dalla (\ref{eq:int:positional}) seguono subito tre proprietà.
+
+\begin{enumerate}
+\item \emph{L'estensione a sinistra con zeri non cambia il valore}:
+  $5 = 101_2 = 00101_2$.
+\item \emph{Moltiplicare per $2^{k}$ è uno scorrimento a sinistra di $k$
+  posizioni}: $00101_2\times 2 = 01010_2$, cinque diventa dieci. Ogni cifra
+  $d_i$ passa alla posizione $i+k$, dove pesa $2^{k}$ volte tanto.
+\item \emph{La divisione intera per $2^{k}$ è uno scorrimento a destra di $k$
+  posizioni}: $00101_2/2 = 00010_2$, cinque diventa due, e il resto va perso.
+\end{enumerate}
+
+Gli scorrimenti costano molto meno delle moltiplicazioni, e i compilatori li
+usano ogni volta che possono (Listato~\ref{lst:int:shifts}). L'istruzione
+\code{slli t1, t1, 2} del Capitolo~\ref{ch:information} moltiplicava così un
+indice per quattro. Gli scorrimenti sono anche la base dell'aritmetica in
+virgola fissa (Capitolo~\ref{ch:reals}).
+
+\asmfile[caption={Gli scorrimenti come moltiplicazioni e divisioni.},label=lst:int:shifts]{code/l05/s13.S}
+
+\subsection{Overflow}
+
+\begin{definition}{Overflow}
+Si ha un \term{overflow} quando il risultato di un'operazione non è contenuto
+nel sottoinsieme finito di numeri che i bit disponibili possono rappresentare.
+\end{definition}
+
+I registri hanno una dimensione finita, e ce n'è un numero finito. Gli insiemi
+numerici sono infiniti, e di ciascuno si può rappresentare solo un sottoinsieme
+finito. Gli operatori aritmetici sono chiusi sull'intero insieme, non sul
+sottoinsieme finito. Con 7 bit si codifica l'intervallo $[0,127]$: 100 e 38
+sono rappresentabili, la loro somma 138 no.
+
+\subsection{Aritmetica su quattro bit}
+
+L'aritmetica binaria segue le stesse regole colonna per colonna
+dell'aritmetica decimale, con l'unica tabellina $0+0=0$, $0+1=1$, $1+1=0$ con
+riporto di~1.
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Somma}}\\
+6 + & 0110 +\\ 8 = & 1000 =\\\hline 14 & 1110
+\end{tabular}\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Somma con overflow}}\\
+14 + & 1110 +\\ 3 = & 0011 =\\\hline 17 & \textcolor{prgred}{1}\,0001
+\end{tabular}\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Differenza}}\\
+11 - & 1011 -\\ 5 = & 0101 =\\\hline 6 & 0110
+\end{tabular}\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Prodotto}}\\
+5 x & 0101 x\\ 3 = & 0011 =\\\hline 15 & 000\,1111
+\end{tabular}
+\end{center}
+
+Nella seconda somma serve un quinto bit: il registro di quattro bit conserva
+\texttt{0001} e il riporto va perso. I processori segnalano un riporto perso in
+modi diversi: molti hanno un \emph{flag di riporto} (carry flag); \riscv non ne
+ha e lascia che sia il programma a calcolarlo con un confronto, come mostra la
+Sezione~\ref{sec:int:back}. Il prodotto di due numeri di $n$ bit richiede fino
+a $2n$ bit: su RV32 l'istruzione \ins{mul} dà i 32 bit bassi e \ins{mulhu} i 32
+alti.
+
+% ----------------------------------------------------------------------------
+\section{Interi con segno}
+
+Ci sono tre modi di scrivere un segno meno con i bit. Due sono presentati qui
+e il terzo, con una variante, nel Capitolo~\ref{ch:reals}.
+
+\subsection{Segno e modulo}
+
+Il bit più significativo è il segno (1 per i negativi) e gli altri $n-1$ bit
+sono il modulo:
+\[
+X = |x| + 2^{\,n-1}s,\qquad s=\begin{cases}1 & x<0\\ 0 & x\ge 0.\end{cases}
+\]
+L'intervallo va da $-(2^{n-1}-1)$ a $+(2^{n-1}-1)$. Lo zero ha due
+rappresentazioni, $+0$ e $-0$, quindi si rappresentano solo $2^{n}-1$ numeri. E
+l'aritmetica deve lavorare separatamente su segno e modulo: per sommare due
+numeri di segno opposto bisogna trovare il modulo maggiore, sottrarne il
+minore, e dare al risultato il segno dell'operando con il modulo maggiore. La
+rappresentazione è semplice per le persone e scomoda per i circuiti.
+Sopravvive nella mantissa dei numeri in virgola mobile
+(Capitolo~\ref{ch:reals}).
+
+\subsection{Complemento a due}
+
+\begin{definition}{Complemento a due}
+Su $n$ bit, la rappresentazione in \term{complemento a due} di un intero $x$
+con $-2^{\,n-1}\le x\le 2^{\,n-1}-1$ è il numero naturale
+\[
+X=\begin{cases} x & \text{se } 0\le x<2^{\,n-1},\\[2pt]
+2^{\,n}-|x| & \text{se } -2^{\,n-1}\le x<0,\end{cases}
+\]
+scritto in binario su $n$ bit. In modo equivalente, $X = x \bmod 2^{\,n}$.
+\end{definition}
+
+L'intervallo va da $-2^{n-1}$ a $+2^{n-1}-1$, e lo zero ha una sola
+rappresentazione. Il bit più significativo vale 1 se e solo se il numero è
+negativo, perché i numeri negativi occupano le configurazioni da $2^{n-1}$ a
+$2^{n}-1$. È la rappresentazione usata da ogni processore moderno, \riscv
+compreso: un registro di 32 bit letto come intero con segno copre
+$-2^{31}\ldots 2^{31}-1$, da circa meno due miliardi a circa più due miliardi.
+L'intervallo è asimmetrico, con un numero negativo in più rispetto ai positivi,
+e questo ha una conseguenza che comparirà tra poco.
+
+\subsection{Quattro bit, tre letture}
+
+La Tabella~\ref{tab:int:readings} legge ciascuna delle sedici configurazioni di
+quattro bit nei tre modi visti finora. Quando il bit più significativo vale 0
+le tre letture coincidono; quando vale 1 differiscono.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro bit, tre letture.}\label{tab:int:readings}
+\begin{tabular}{@{}cccc@{\qquad}cccc@{}}
+\toprule
+\textbf{Bit} & \textbf{Senza segno} & \textbf{Segno-mod.} & \textbf{Compl. a 2} &
+\textbf{Bit} & \textbf{Senza segno} & \textbf{Segno-mod.} & \textbf{Compl. a 2}\\
+\midrule
+\texttt{0000} & 0 & $+0$ & 0 & \texttt{1000} & 8 & $-0$ & $-8$\\
+\texttt{0001} & 1 & $+1$ & $+1$ & \texttt{1001} & 9 & $-1$ & $-7$\\
+\texttt{0010} & 2 & $+2$ & $+2$ & \texttt{1010} & 10 & $-2$ & $-6$\\
+\texttt{0011} & 3 & $+3$ & $+3$ & \texttt{1011} & 11 & $-3$ & $-5$\\
+\texttt{0100} & 4 & $+4$ & $+4$ & \texttt{1100} & 12 & $-4$ & $-4$\\
+\texttt{0101} & 5 & $+5$ & $+5$ & \texttt{1101} & 13 & $-5$ & $-3$\\
+\texttt{0110} & 6 & $+6$ & $+6$ & \texttt{1110} & 14 & $-6$ & $-2$\\
+\texttt{0111} & 7 & $+7$ & $+7$ & \texttt{1111} & 15 & $-7$ & $-1$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{prgconcept}
+I bit non dicono quale sia la colonna giusta. Lo dice il programma, scegliendo
+le sue istruzioni.
+\end{prgconcept}
+
+\subsection{La ruota dei numeri}
+
+Con $n$ bit l'aritmetica è \emph{modulo $2^{n}$}: la retta dei numeri si chiude
+in un cerchio (Figura~\ref{fig:int:wheel}). Sommare 1 sposta di un passo in
+senso orario, qualunque sia la lettura. Le due letture differiscono solo nel
+punto in cui la ruota «si spezza». Nella lettura senza segno si spezza tra
+\texttt{1111} e \texttt{0000}, e attraversare quel punto è un riporto:
+$15+1=0$. Nella lettura in complemento a due si spezza tra \texttt{0111} e
+\texttt{1000}, e attraversare quel punto è un overflow con segno: $7+1=-8$. Un
+passo indietro da \texttt{0000} è \texttt{1111}: ecco perché $0-1$ dà tutti
+uni.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \draw[prgrule,line width=7mm] (0,0) circle (2.6);
+  \foreach \k in {0,...,15}{
+    \pgfmathsetmacro{\a}{90-\k*22.5}
+    \pgfmathtruncatemacro{\s}{ifthenelse(\k>7,\k-16,\k)}
+    \pgfmathtruncatemacro{\ba}{mod(int(\k/8),2)}
+    \pgfmathtruncatemacro{\bb}{mod(int(\k/4),2)}
+    \pgfmathtruncatemacro{\bc}{mod(int(\k/2),2)}
+    \pgfmathtruncatemacro{\bd}{mod(\k,2)}
+    \node[font=\ttfamily\scriptsize] at (\a:2.6) {\ba\bb\bc\bd};
+    \node[font=\sffamily\small,text=prgsteel] at (\a:1.85) {\k};
+    \ifnum\k>7
+      \node[circle,fill=prgamber!30,inner sep=1pt,minimum size=7mm,font=\sffamily\small] at (\a:3.55) {$\s$};
+    \else
+      \node[circle,fill=prgaccent!20,inner sep=1pt,minimum size=7mm,font=\sffamily\small] at (\a:3.55) {$\s$};
+    \fi
+  }
+  \draw[prgviolet,very thick,dashed] (101.25:2.1) -- (101.25:4.1) node[above left,lbl,text=prgviolet,align=right]{rottura senza segno:\\riporto};
+  \draw[prgred,very thick,dashed] (-78.75:2.1) -- (-78.75:4.1) node[below right,lbl,text=prgred,align=left]{rottura con segno:\\overflow};
+  \draw[->,thick,prgink] (80:1.1) arc (80:10:1.1) node[midway,below left,lbl]{$+1$};
+\end{tikzpicture}
+\caption{La ruota dei numeri per quattro bit. Numeri interni: valore senza segno; anello:
+bit; dischi esterni: valore in complemento a due.}
+\label{fig:int:wheel}
+\end{figure}
+
+Lo stesso sommatore serve a entrambe le letture; cambia solo il punto in cui la
+ruota si spezza.
+
+\subsection{Aritmetica in complemento a due}
+
+\begin{theorem}{Addizione in complemento a due}
+Siano $x$, $y$ e $x+y$ tutti in $[-2^{n-1},\,2^{n-1}-1]$, e siano $X$, $Y$ le
+rappresentazioni di $x$ e $y$. Allora la rappresentazione di $x+y$ è
+$(X+Y)\bmod 2^{n}$: la somma delle due configurazioni come numeri naturali,
+scartando il riporto uscente dal bit più significativo.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} $X\equiv x$ e $Y\equiv y \pmod{2^{n}}$ per
+definizione, quindi $X+Y\equiv x+y \pmod{2^{n}}$; e la rappresentazione di
+$x+y$ è, per definizione, $(x+y)\bmod 2^{n}$. \hfill$\square$
+
+\smallskip
+L'addizione non ha quindi bisogno di conoscere i segni: il sommatore per i
+numeri naturali dà già la risposta giusta.
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Segni opposti}}\\
+2 + & 0010 +\\ -6 = & 1010 =\\\hline -4 & 1100
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Due negativi}}\\
+-2 + & 1110 +\\ -3 = & 1101 =\\\hline -5 & \textcolor{prgcomment}{1}\,1011
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Prodotto}}\\
+2 x & 0010 x\\ -3 = & 1101 =\\\hline -6 & \textcolor{prgcomment}{001}\,1010
+\end{tabular}
+\end{center}
+
+Lo stesso ragionamento vale per la moltiplicazione: $XY\equiv xy\pmod{2^{n}}$,
+quindi gli $n$ bit bassi di un prodotto sono corretti qualunque siano i segni.
+Nel terzo esempio $2\times 13 = 26 = 1\,1010_2$, e i quattro bit bassi
+\texttt{1010} si leggono $-6$. Per questo \riscv ha una sola \ins{mul} per
+operandi con segno e senza segno.
+
+\subsection{Cambiare di segno un numero}
+
+Per definizione $-x$ è rappresentato da $2^{n}-X$. Due metodi lo calcolano
+senza una sottrazione.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Metodo 1: complementare ogni bit, poi sommare 1.]
+  $6=\texttt{0110}$, complemento \texttt{1001}, più uno: $\texttt{1010}=-6$.
+  Funziona perché il complemento di ogni bit di $X$ è il numero $(2^{n}-1)-X$,
+  una sottrazione da tutti uni in cui non può esserci alcun prestito; sommando
+  1 si ottiene $2^{n}-X$.
+\item[Metodo 2: scorrere da destra.] Partendo da destra, si copiano i bit fino
+  al primo 1 compreso, e si complementano tutti gli altri. $5=\texttt{0101}$ dà
+  $\texttt{1011}=-5$; $1=\texttt{0001}$ dà $\texttt{1111}=-1$. È il metodo~1
+  con l'addizione svolta a mente: il $+1$ finale si propaga attraverso gli uni
+  finali del complemento, che sono gli zeri finali dell'originale.
+\end{description}
+
+Cambiare di segno due volte restituisce il numero originale, con un'eccezione:
+il numero più negativo, $-2^{n-1}$, non ha un compagno positivo, e il suo
+cambio di segno va in overflow e restituisce il numero stesso.
+
+\asmfile[caption={Il cambio di segno in \riscv.},label=lst:int:neg]{code/l05/s22.S}
+
+\begin{prgconcept}[La sottrazione è un'addizione]
+$y - x = y + (2^{n}-x) \pmod{2^{n}}$. Un sommatore e un complementatore sono
+gli unici componenti necessari per costruire addizione, sottrazione,
+moltiplicazione e divisione.
+\end{prgconcept}
+
+È la ragione ingegneristica del complemento a due: un solo circuito, il
+sommatore del Capitolo~\ref{ch:combinational}, fa tutto il lavoro. Nel datapath
+di \riscv \ins{sub} è \ins{add} con il secondo operando complementato e un
+riporto entrante di~1.
+
+\subsection{Rilevare l'overflow}
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Senza segno, 8 bit}}\\
+128 + & 1000 0000 +\\ 130 = & 1000 0010 =\\\hline 258 & \textcolor{prgred}{1} 0000 0010
+\end{tabular}\qquad\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Con segno, 8 bit}}\\
+127 + & 0111 1111 +\\ 127 = & 0111 1111 =\\\hline 254 & \textcolor{prgred}{1}111 1110
+\end{tabular}
+\end{center}
+
+Nella prima somma c'è un riporto uscente, e il registro contiene 2, la somma
+modulo 256. Nella seconda non c'è riporto uscente, ma il risultato si legge
+$-2$.
+
+\begin{theorem}{Condizioni di overflow}
+In un'addizione su $n$ bit:
+\begin{enumerate}[nosep]
+\item si ha un overflow \emph{senza segno} se e solo se c'è un riporto uscente
+  dal bit più significativo;
+\item si ha un overflow \emph{con segno} se e solo se due operandi con lo
+  stesso segno danno una somma di segno opposto: due positivi danno un
+  negativo, o due negativi danno un positivo.
+\end{enumerate}
+La somma di due numeri di segno opposto non va mai in overflow.
+\end{theorem}
+
+L'ultima affermazione vale perché una tale somma è compresa tra i due operandi,
+entrambi rappresentabili. Le due condizioni sono indipendenti: la stessa
+addizione può far scattare l'una, entrambe o nessuna. In termini di circuiti la
+condizione con segno equivale a questa: il riporto \emph{entrante} nel bit più
+significativo è diverso dal riporto \emph{uscente} da esso.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}\label{sec:int:back}
+
+\subsection{Il riscaldamento, spiegato}
+
+La variabile \code{marker\_x} conteneva 0. L'istruzione
+\code{addi t2, t2, -1} ha fatto un passo indietro su una ruota con $2^{32}$
+posizioni, e il registro ora contiene trentadue uni: \hex{FFFFFFFF}. Letto
+senza segno è 4\,294\,967\,295; letto in complemento a due è $-1$. Il sommatore
+ha fatto la stessa cosa in entrambi i casi. La funzione
+\code{prg32\_console\_hex32} stampa la configurazione, non un'interpretazione:
+non ha né ragione né torto. E il marcatore scompare perché a
+\code{prg32\_gfx\_rect} si chiede di disegnare a una $x$ enorme, oppure a
+$-1$: fuori dallo schermo in ogni caso (Figura~\ref{fig:int:marker}). Non è un
+errore del processore; è una decisione che manca nel programma.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{lab2_step2_move.png}
+\caption{Il programma del laboratorio: sette lampade per i bit dei pulsanti e un
+marcatore.}
+\label{fig:int:marker}
+\end{figure}
+
+\subsection{Con segno o senza segno? Sceglie l'istruzione}
+
+I registri di \riscv non hanno un tipo. Gli stessi 32 bit sono con segno o
+senza segno solo agli occhi dell'istruzione che li legge
+(Tabella~\ref{tab:int:signed}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Istruzioni con segno e senza segno.}\label{tab:int:signed}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+\textbf{Operazione} & \textbf{Con segno} & \textbf{Senza segno} & \textbf{Perché differiscono}\\
+\midrule
+somma, sottrazione & \ins{add}, \ins{addi}, \ins{sub} & le stesse & complemento a due: un sommatore per entrambi\\
+prodotto (parola bassa) & \ins{mul} & la stessa & i 32 bit bassi non dipendono dal segno\\
+confronto & \ins{slt}, \ins{slti} & \ins{sltu}, \ins{sltiu} & \hex{FFFFFFFF} è minore di 0? sì, se con segno\\
+salto condizionato & \ins{blt}, \ins{bge} & \ins{bltu}, \ins{bgeu} & la stessa domanda, come salto\\
+scorrimento a destra & \ins{sra}, \ins{srai} & \ins{srl}, \ins{srli} & copia il bit di segno, o inserisce zeri\\
+caricamento di un byte & \ins{lb} & \ins{lbu} & estensione del segno o con zeri\\
+divisione, resto & \ins{div}, \ins{rem} & \ins{divu}, \ins{remu} & i moduli si leggono in modo diverso\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Tenere il marcatore sullo schermo}
+
+La decisione che mancava è presa nel Listato~\ref{lst:int:clamp}: dopo lo
+spostamento, la posizione viene \term{limitata} (clamp) all'intervallo
+$[0, 304]$.
+
+\asmfile[caption={Limitare la posizione (laboratorio su stato e ingresso, passo 3).},label=lst:int:clamp]{code/l05/s28.S}
+
+\ins{bgez} legge \reg{t2} come numero con segno: esamina il bit di segno. Anche
+\ins{ble} è un confronto con segno: $-1$ è minore di 304, mentre con \ins{bleu}
+la configurazione \hex{FFFFFFFF} sarebbe di gran lunga maggiore. La costante
+\code{-SPEED} è un immediato: dodici bit in complemento a due, da $-2048$ a
+$+2047$.
+
+\begin{prgconcept}
+Un gioco non rileva l'overflow a cose fatte: mantiene i suoi valori dentro un
+intervallo in cui l'overflow non può avvenire.
+\end{prgconcept}
+
+\subsection{Rilevare l'overflow senza flag}
+
+\riscv non ha un flag di riporto né un flag di overflow: meno stati nascosti,
+un processore più semplice. Quando un programma ha davvero bisogno di saperlo,
+lo chiede con un confronto (Listato~\ref{lst:int:ovf}). Per i numeri senza
+segno, una somma che ha fatto il giro è sempre minore di ciascuno dei due
+operandi. Per i numeri con segno, sommare un numero negativo deve rendere la
+somma più piccola, e sommarne uno non negativo no. Sulla ruota, \ins{sltu}
+rileva l'attraversamento della cima e il test con segno l'attraversamento del
+fondo.
+
+\asmfile[caption={I due test di overflow suggeriti dalla specifica \riscv.},label=lst:int:ovf]{code/l05/s29.S}
+
+\subsection{Estensione del segno: lo stesso numero su più bit}
+
+\begin{theorem}{Estensione del segno}
+Un numero in complemento a due su $n$ bit si scrive su $m>n$ bit copiando il
+suo bit di segno in tutte le nuove posizioni a sinistra.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Se $x\ge 0$ il bit di segno è 0 e l'enunciato è
+l'estensione con zeri dei numeri naturali. Se $x<0$ la sua configurazione su
+$n$ bit è $X=2^{n}-|x|$ e la configurazione voluta è
+$2^{m}-|x| = X + (2^{m}-2^{n})$; il numero $2^{m}-2^{n}$ è esattamente $m-n$
+uni seguiti da $n$ zeri.
+\hfill$\square$
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}l@{\quad}l@{}}
+\textsf{$-1$ su 4 bit} & \phantom{1111\,}1111 & = -1\\
+\textsf{$-1$ su 8 bit} & \textcolor{prgred}{1111}\,1111 & = -1\\
+\textsf{$+5$ su 4 bit} & \phantom{0000\,}0101 & = +5\\
+\textsf{$+5$ su 8 bit} & \textcolor{prgsteel}{0000}\,0101 & = +5\\
+\end{tabular}
+\end{center}
+
+L'estensione con zeri trasformerebbe \texttt{1111} ($-1$) in
+\texttt{0000\,1111} ($+15$). L'istruzione \code{addi t2, t2, -1} memorizza $-1$
+in dodici bit, e il processore ne estende il segno a trentadue prima di
+sommare. \ins{lb} estende il segno del byte che carica, \ins{lbu} riempie con
+zeri: la scelta dipende da che cosa significa il byte.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quale numero rappresenta in complemento a due la configurazione di 8 bit \texttt{1111 1100}?}
+\item 252
+\item $-4$
+\item $-3$
+\item $-124$
+\end{quiz}
+
+\begin{quiz}{Su 8 bit, quale addizione produce un overflow con segno?}
+\item $100 + 27$
+\item $100 + 28$
+\item $-100 + 28$
+\item $-1 + 1$
+\end{quiz}
+
+\begin{quiz}{\reg{t0} contiene \hex{FFFFFFFF} e \reg{t1} contiene 1. Dopo
+\code{slt t2, t0, t1} e \code{sltu t3, t0, t1}:}
+\item \reg{t2} = 1, \reg{t3} = 1
+\item \reg{t2} = 0, \reg{t3} = 0
+\item \reg{t2} = 1, \reg{t3} = 0
+\item \reg{t2} = 0, \reg{t3} = 1
+\end{quiz}
+
+\begin{quiz}{Come si scrive 0,625 in binario?}
+\item 0,101
+\item 0,110
+\item 0,625
+\item 0,011
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Convertite 2026 in binario, ottale ed esadecimale; convertite 0,1 in
+  binario fino a otto bit frazionari.
+\item Scrivete $-100$ su 8 bit in segno e modulo e in complemento a due.
+\item Calcolate su 8 bit in complemento a due: $90+60$, $-90-60$, $90-60$.
+  Quali vanno in overflow?
+\item Nel codice del clamp sostituite \ins{bgez} e \ins{ble} con le loro
+  versioni senza segno, prevedete il comportamento, poi eseguite.
+\item Scrivete una \code{update} che somma \hex{10000000} a un contatore a ogni
+  frame e accende un rettangolo rosso quando la somma con segno va in overflow.
+\end{enumerate}
+\expected{Su carta: $2026 = \hex{7EA} = 111\,1110\,1010_2$. Su \prg: il
+rettangolo rosso lampeggia una volta ogni sedici frame, quando il contatore
+passa da \hex{7\ldots} a \hex{8\ldots}.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+base (radix) & base\\
+natural number & numero naturale\\
+signed integer & numero relativo (intero con segno)\\
+most significant bit & bit pi\`u significativo\\
+remainder & resto\\
+shift & scorrimento (shift)\\
+two's complement & complemento a due (alla base)\\
+sign and magnitude & segno e modulo\\
+overflow & overflow (traboccamento)\\
+carry / borrow & riporto / prestito\\
+sign extension & estensione del segno\\
+to clamp & limitare a un intervallo\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Ogni base ha i suoi vantaggi: la base 2 per i circuiti, la base 16 per le
+persone che leggono i bit. $n$ bit rappresentano $2^{n}$ numeri: quali, dipende
+dalla legge di codifica. Il complemento a due trasforma la sottrazione in
+addizione, così che un solo sommatore fa tutto. L'overflow è il prezzo dei
+registri finiti: lo si rileva, oppure lo si evita per progetto. In \riscv i bit
+non hanno un tipo: è l'istruzione a scegliere tra con segno e senza segno.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafi 2.4 e 3.1--3.2;
+\emph{Playing with RISC-V}, capitolo~6, «State and Input»
+\citep{prg32textbook}; \citet{stallings2021}, i capitoli sui sistemi di
+numerazione e sull'aritmetica del calcolatore.

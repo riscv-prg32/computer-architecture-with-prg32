@@ -1,0 +1,500 @@
+% ============================================================================
+%  Capitolo 2 -- Primo contatto: assembly RISC-V su PRG32        (Lezione 02)
+% ============================================================================
+\chapter{Primo contatto: assembly RISC-V su PRG32}
+\label{ch:firstcontact}
+
+\epigraphline{Talk is cheap. Show me the code.}
+  {Linus Torvalds, mailing list del kernel Linux, 2000: le chiacchiere stanno a zero, fatemi vedere il codice}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item compilare una cartuccia da un file assembly ed eseguirla su \prg;
+\item dire che cos'è un registro, e nominare quelli che si usano ogni giorno;
+\item chiamare una funzione del framework, passando gli argomenti nei registri;
+\item conservare un valore in memoria da un frame al successivo: caricare, modificare, memorizzare;
+\item leggere un'istruzione come il numero di 32 bit che è in realtà;
+\item elencare le domande che questo programma solleva, e a cui risponde il resto del libro.
+\end{itemize}
+\end{chapgoals}
+
+Questo capitolo è il giro «gioca» della spirale per tutta la prima metà del
+libro: ogni capitolo successivo rimanda a qualcosa che è stato scritto qui.
+\emph{Non} ci si aspetta che il lettore capisca tutto ciò che contiene. Questo
+capitolo serve a vedere; i successivi servono a spiegare. Si scrivono quattro
+piccoli programmi, ciascuno completo e ciascuno funzionante; sono i passi
+verificati del primo laboratorio di assembly del libro di \prg
+\citep{prg32textbook}.
+
+% ----------------------------------------------------------------------------
+\section{La macchina}
+
+\subsection{I registri, e tre tipi di istruzione}
+
+Un processore \riscv, visto dal programmatore, è una cosa molto piccola.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Trentadue registri.] Ogni \term{registro} contiene un valore di 32 bit.
+  Il processore può calcolare soltanto su valori che stanno nei registri.
+\item[Calcolare.] Un'operazione aritmetica o logica tra registri: \ins{add},
+  \ins{sub}, \ins{and}, \ins{or}, \ins{xor}, e le loro forme \term{immediate},
+  come \ins{addi}, in cui un operando è una piccola costante scritta
+  nell'istruzione.
+\item[Spostare.] Un trasferimento tra un registro e la memoria: \ins{lw} carica
+  una parola, \ins{sw} memorizza una parola. Nient'altro tocca la memoria.
+\item[Saltare.] Un cambiamento dell'istruzione che viene eseguita dopo: salti
+  condizionati come \ins{beqz}, chiamate e ritorni.
+\end{description}
+
+Questa è quasi tutta la macchina. La ricchezza dell'informatica non viene da un
+grande insieme di istruzioni, ma dal combinarne uno piccolo in lunghe sequenze.
+
+\subsection{I registri che si usano davvero}
+
+L'hardware chiama i registri da \reg{x0} a \reg{x31} e, con una sola eccezione,
+li tratta allo stesso modo. I programmatori li chiamano con altri nomi, che
+ricordano il \emph{ruolo} svolto da ciascuno (Tabella~\ref{tab:fc:regs}). I
+ruoli non sono fissati dall'hardware ma da un accordo, la \term{convenzione di
+chiamata}, parte dell'application binary interface (ABI). Rispettarla è ciò che
+permette a una funzione scritta in assembly e al codice C del framework di
+chiamarsi a vicenda.
+
+\begin{table}[htb]
+\centering\small
+\caption{I registri che si usano ogni giorno. La tabella completa è
+nell'Appendice~\ref{app:riscv}.}\label{tab:fc:regs}
+\begin{tabularx}{\textwidth}{@{}llLl@{}}
+\toprule
+\textbf{Registro} & \textbf{Nome} & \textbf{Ruolo} & \textbf{Conservato da una chiamata?}\\
+\midrule
+\reg{a0}--\reg{a7} & argomenti & valori passati a una chiamata; \reg{a0} porta anche il valore di ritorno & no\\
+\reg{t0}--\reg{t6} & temporanei & valori di lavoro & no\\
+\reg{s0}--\reg{s11} & salvati & valori che una chiamata promette di conservare & sì\\
+\reg{ra} & indirizzo di ritorno & dove salta \ins{ret} & no: salvatelo voi\\
+\reg{sp} & puntatore allo stack & cima dello stack, allineata a 16 byte & sì\\
+\reg{zero} & zero & si legge sempre come 0; le scritture sono ignorate & --\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Il contratto: tre funzioni}
+
+Un gioco \prg sono tre funzioni che il programmatore scrive e il firmware
+chiama (Figura~\ref{fig:fc:contract}). \code{init} viene chiamata una volta,
+quando la cartuccia parte, e prepara lo stato del gioco. \code{update} viene
+chiamata una volta per frame: legge l'ingresso e cambia lo stato. \code{draw}
+viene chiamata una volta per frame: trasforma lo stato in un'immagine. Il
+firmware trova le tre funzioni per nome: un prefisso scelto dal programmatore,
+seguito da \code{\_init}, \code{\_update} e \code{\_draw}. Questo è l'intero
+contratto tra un gioco e la macchina.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=10mm]
+  \node[blkacc,text width=30mm,minimum height=14mm] (i) {\texttt{init}\\[1pt]\footnotesize una volta: prepara lo stato};
+  \node[blkamb,text width=30mm,minimum height=14mm,right=of i] (u) {\texttt{update}\\[1pt]\footnotesize a ogni frame: ingresso, stato};
+  \node[blkvio,text width=30mm,minimum height=14mm,right=of u] (d) {\texttt{draw}\\[1pt]\footnotesize a ogni frame: dallo stato all'immagine};
+  \draw[->,thick] (i) -- (u); \draw[->,thick] (u) -- (d);
+  \draw[->,thick,rounded corners=3mm] (d.south) -- ++(0,-6mm) -| node[pos=0.25,below,lbl]{frame successivo} (u.south);
+\end{tikzpicture}
+\caption{Il contratto tra una cartuccia e il runtime.}
+\label{fig:fc:contract}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{La vostra prima cartuccia}
+
+\subsection{Passo 1: il più piccolo programma che gira}
+
+Il Listato~\ref{lst:fc:step1} è una cartuccia completa. Create una cartella,
+scrivete il programma in un file chiamato \fname{step1\_skeleton.S}, e
+resistete alla tentazione di copiarlo: imparano anche le dita.
+
+\asmfile[caption={Passo 1: tre funzioni che non fanno nulla, correttamente.},label=lst:fc:step1]{code/l02/s08.S}
+
+Le righe che cominciano con un punto sono \term{direttive}: ordini per
+l'assemblatore, non istruzioni per il processore. \code{.option norelax}
+mantiene prevedibile la disposizione della cartuccia, e ogni esempio di \prg
+comincia così. \code{.section .text} dice che ciò che segue è codice
+eseguibile. \code{.global} rende un'\term{etichetta} visibile fuori dal file,
+così che il firmware possa trovare le funzioni per nome. Un'etichetta, un nome
+seguito da due punti, sta per l'indirizzo di ciò che la segue. L'unica
+istruzione del programma, scritta tre volte, è \ins{ret}: ritorna al chiamante.
+
+La cartuccia si compila e si esegue con i comandi incontrati nel
+Capitolo~\ref{ch:setup} (Listato~\ref{lst:fc:build}); il file della cartuccia è
+identico byte per byte per QEMU, per la scheda e per \prgqt, dove l'indirizzo è
+\code{http://localhost:8080}.
+
+\shfile[caption={Compilare ed eseguire una cartuccia.},label=lst:fc:build]{code/l02/s09.sh}
+
+\begin{prgcheck}[Eseguite]
+Il risultato atteso è uno schermo nero. Il risultato è reale lo stesso: il
+framework ha trovato le tre funzioni, le ha chiamate frame dopo frame, ed è
+sopravvissuto.
+\end{prgcheck}
+
+\subsection{Passo 2: dire ciao}
+
+Per mettere qualcosa sullo schermo il programma chiama due funzioni del
+framework: \code{prg32\_gfx\_clear}, che riempie lo schermo con un colore, e
+\code{prg32\_gfx\_text8}, che scrive una stringa con un font di 8 per 8 pixel
+(Listato~\ref{lst:fc:step2}, Figura~\ref{fig:fc:hello}). In cima al file due
+direttive \code{.equ} danno un nome a due costanti:
+\code{.equ BLACK, 0x0000} e \code{.equ WHITE, 0xffff}.
+
+\asmfile[caption={Passo 2: la nuova \code{first\_draw}.},label=lst:fc:step2]{code/l02/s10.S}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{lab1_step2_hello.png}
+\caption{Il passo 2, compilato ed eseguito su \prg.}\label{fig:fc:hello}
+\end{figure}
+
+La regola per passare gli argomenti è semplice: il primo argomento va in
+\reg{a0}, il secondo in \reg{a1}, e così via. \ins{li} (\emph{load immediate})
+mette un numero in un registro; \ins{la} (\emph{load address}) vi mette
+l'indirizzo di un'etichetta. La stringa vive nella sezione \code{.rodata},
+\emph{read-only data}, dati di sola lettura, e la direttiva \code{.asciz} ne
+memorizza i caratteri seguiti da un byte di valore zero che ne segna la fine.
+
+\subsection{Perché salvare \reg{ra}? Lo stack frame}
+
+La prima riga e le ultime tre di \code{first\_draw} sono nuove, e sono il
+prezzo da pagare per chiamare un'altra funzione. L'istruzione \ins{call}
+memorizza in \reg{ra} l'indirizzo a cui tornare. Ma \code{first\_draw} è stata
+a sua volta chiamata dal firmware, e \reg{ra} conteneva già l'indirizzo del
+\emph{suo} ritorno: la prima \ins{call} lo sovrascriverebbe, e la \ins{ret}
+finale salterebbe nel posto sbagliato.
+
+Una funzione che ne chiama un'altra salva quindi per prima cosa \reg{ra}.
+Abbassa \reg{sp} di 16 per fare spazio sullo \term{stack}, una regione di
+memoria che ogni funzione può usare per le proprie necessità temporanee, e
+memorizza \reg{ra} a \code{12(sp)}, cioè 12 byte sopra l'indirizzo contenuto in
+\reg{sp} (Figura~\ref{fig:fc:stack}). Queste righe sono il \term{prologo} della
+funzione. Dopo l'ultima chiamata disfa tutto in ordine inverso,
+nell'\term{epilogo}: ricarica \reg{ra}, alza \reg{sp} di 16, e ritorna.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=0.72cm,font=\ttfamily\small]
+  \foreach \i/\t/\o/\f in {0/dati del chiamante/16(sp)/prgrule!60, 1/ra/12(sp)/prgamber!70, 2/libero/{ 8(sp)}/prgpanel, 3/libero/{ 4(sp)}/prgpanel, 4/libero/{ 0(sp)}/prgpanel}{
+    \draw[prgsteel,fill=\f] (0,-\i) rectangle (3.6,-\i-1);
+    \node at (1.8,-\i-0.5) {\t};
+    \node[anchor=west,text=prgcomment] at (3.8,-\i-0.5) {\o};
+  }
+  \draw[->,very thick,prgred] (-1.2,-4.5) -- (-0.05,-4.5) node[pos=0,left,font=\ttfamily\bfseries] {sp};
+  \node[lbl,text=prgcomment] at (1.8,0.4) {indirizzi più alti};
+  \node[lbl,text width=7cm,align=center] at (1.8,-5.7) {Lo stack cresce verso il basso: si sottrae da \texttt{sp} per allocare, si somma per rilasciare.};
+\end{tikzpicture}
+\caption{La memoria dello stack dopo il prologo di \code{first\_draw}.}
+\label{fig:fc:stack}
+\end{figure}
+
+\begin{prgwarn}[Il classico primo errore]
+Dimenticare la coppia \code{sw ra}/\code{lw ra} è il classico primo errore: la
+funzione ritorna nel posto sbagliato, e il programma va in crash o si blocca
+molto dopo la riga colpevole.
+\end{prgwarn}
+
+La convenzione richiede che \reg{sp} resti allineato a un multiplo di 16 byte
+tra una chiamata e l'altra, ed è per questo che il frame è di 16 byte anche se
+ne vengono usati solo 4. Lo stack è trattato formalmente nei Capitoli
+\ref{ch:memory} e~\ref{ch:instructions}.
+
+\subsection{Passo 3: un valore che sopravvive tra i frame}
+
+I registri non conservano i loro valori tra una chiamata di \code{update} e la
+successiva: nel frattempo li usa il firmware. Ciò che deve durare deve vivere
+in memoria (Listato~\ref{lst:fc:step3}).
+
+\asmfile[caption={Passo 3: la nuova \code{first\_update} e la sua variabile.},label=lst:fc:step3]{code/l02/s12.S}
+
+\code{counter} è un'etichetta: dà un nome a una locazione di memoria, nella
+sezione \code{.data}, che contiene una parola di 32 bit, inizialmente zero.
+\ins{la} mette in \reg{t0} l'\emph{indirizzo} di quella locazione. \ins{lw}
+legge in \reg{t1} il \emph{valore} che si trova a quell'indirizzo; \ins{sw} lo
+riscrive. Poiché il processore calcola solo nei registri, ogni modifica di una
+variabile ha gli stessi tre movimenti: \emph{caricare, modificare,
+memorizzare}. La funzione è una \term{foglia}: non chiama nulla, quindi non ha
+bisogno di uno stack frame.
+
+\begin{prgconcept}[Indirizzo o valore? Il punto cruciale della memoria]
+Un'etichetta dà un nome a una \emph{locazione}. \ins{la} dà la locazione;
+\ins{lw} dà il contenuto (Figura~\ref{fig:fc:addr}). È così che in ultima
+analisi funziona ogni variabile di ogni programma. Usare un indirizzo dove
+serve un valore, o il contrario, è uno degli errori più comuni dei
+principianti: commentate ogni registro come ADDRESS (indirizzo) o VALUE
+(valore).
+\end{prgconcept}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[font=\ttfamily\small]
+  \node[lbl,anchor=west,font=\sffamily\small\bfseries,text=prgsteel] at (0,1.0) {Registri (dentro il processore)};
+  \node[anchor=east] at (0.6,0.2) {t0};
+  \node[draw=prgaccent,fill=prgaccent!20,minimum width=42mm,minimum height=7mm,anchor=west] (t0) at (0.8,0.2) {indirizzo di counter};
+  \node[anchor=east] at (0.6,-1.0) {t1};
+  \node[draw=prgamber,fill=prgamber!25,minimum width=42mm,minimum height=7mm,anchor=west] (t1) at (0.8,-1.0) {41, poi 42};
+  \node[lbl,anchor=west,font=\sffamily\small\bfseries,text=prgsteel] at (8.2,1.0) {Memoria (sezione \texttt{.data})};
+  \node[draw=prgsteel,fill=prgpanel,minimum width=38mm,minimum height=7mm,anchor=west] (m0) at (8.2,0.2) {...};
+  \node[draw=prgsteel,fill=prgamber!15,minimum width=38mm,minimum height=7mm,anchor=west] (m1) at (8.2,-0.5) {counter: 41};
+  \node[draw=prgsteel,fill=prgpanel,minimum width=38mm,minimum height=7mm,anchor=west] (m2) at (8.2,-1.2) {...};
+  \draw[->,very thick,prgaccent] (t0.east) -- node[above,sloped,lbl,text=prgaccent]{\emph{t0 punta qui}} ([yshift=1.5mm]m1.west);
+  \draw[->,very thick,prgamber] ([yshift=-1.5mm]m1.west) -- node[below,sloped,lbl,text=prgamber]{\emph{lw copia il contenuto}} (t1.east);
+\end{tikzpicture}
+\begin{asm}[numbers=none]
+la   t0, counter   # t0 = WHERE the value lives
+lw   t1, 0(t0)     # t1 = WHAT is stored there
+addi t1, t1, 1     # change the copy in the register
+sw   t1, 0(t0)     # memory still says 41 until this line
+\end{asm}
+\caption{Il registro \reg{t0} contiene un indirizzo; \reg{t1} contiene un valore.}
+\label{fig:fc:addr}
+\end{figure}
+
+Dopo questo passo non cambia nulla di visibile: il contatore avanza, ma nessuno
+lo disegna. Come si potrebbe dimostrare che sta avanzando? Con il debugger di
+\prgqt, oppure con il passo successivo.
+
+\subsection{Passo 4: rendere visibile il contatore}
+
+Otto righe aggiunte a \code{first\_draw}, dopo la chiamata che scrive il testo,
+disegnano una barra verde la cui larghezza è il contatore
+(Listato~\ref{lst:fc:step4}, Figura~\ref{fig:fc:bar}). La costante \code{GREEN}
+è definita in cima al file con \code{.equ GREEN, 0x07e0}.
+
+\asmfile[caption={Passo 4: le righe aggiunte a \code{first\_draw}.},label=lst:fc:step4]{code/l02/s14.S}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{lab1_step4_bar.png}
+\caption{Passo 4: la barra cresce da 0 a 255 pixel, poi ricomincia.}
+\label{fig:fc:bar}
+\end{figure}
+
+La funzione \code{prg32\_gfx\_rect} prende cinque argomenti: $x$, $y$,
+larghezza, altezza e colore. La larghezza è calcolata da \ins{andi} con 255,
+che tiene soltanto gli otto bit bassi del contatore: la barra cresce da 0 a 255
+pixel e poi ricomincia. In queste otto righe si nascondono tre capitoli futuri:
+l'uguaglianza $255 = \hex{FF}$ (notazione posizionale), \ins{andi} come
+maschera di bit (algebra di Boole), e \hex{07E0} come colore (la codifica
+dell'informazione).
+
+Il programma completo è il Listato~\ref{lst:fc:full}.
+
+\asmfile[caption={La prima cartuccia completa (\fname{step4\_bar.S}).},label=lst:fc:full]{code/l02/step4_bar.S}
+
+% ----------------------------------------------------------------------------
+\section{Leggere ciò che avete scritto}
+
+\subsection{Le istruzioni appena usate}
+
+La Tabella~\ref{tab:fc:ins} ordina per famiglia le istruzioni incontrate
+finora. In tutte il risultato va nel \emph{primo} registro scritto. L'insieme
+di istruzioni intero di base di \riscv, RV32I, ha una quarantina di istruzioni:
+un quarto è già stato usato.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le istruzioni usate in questo capitolo.}\label{tab:fc:ins}
+\begin{tabularx}{\textwidth}{@{}llLl@{}}
+\toprule
+\textbf{Famiglia} & \textbf{Istruzione} & \textbf{Che cosa fa} & \textbf{Esempio}\\
+\midrule
+Aritmetica & \ins{add}, \ins{sub} & combina due registri & \code{add t0, t1, t2}\\
+Logica & \ins{and}, \ins{or}, \ins{xor} & operazione bit a bit su due registri & \code{and t0, t1, t2}\\
+Immediato & \ins{addi}, \ins{andi}, \ins{ori}, \ins{xori} & un registro e una piccola costante & \code{addi t1, t1, 1}\\
+Memoria & \ins{lw}, \ins{sw} & carica o memorizza una parola di 32 bit & \code{lw t1, 0(t0)}\\
+Controllo & \ins{call}, \ins{ret} & va a una funzione e ne ritorna & \code{call prg32\_gfx\_rect}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Pseudo-istruzioni}
+
+Parecchi degli mnemonici usati non sono affatto istruzioni del processore. Sono
+\term{pseudo-istruzioni}: scorciatoie che l'assemblatore espande in una o due
+istruzioni vere (Tabella~\ref{tab:fc:pseudo}). Una pseudo-istruzione non è
+un'operazione hardware distinta. È il registro \reg{zero} a renderne possibili
+molte: un piccolo insieme di istruzioni, riusato con cura.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le pseudo-istruzioni e le loro espansioni.}\label{tab:fc:pseudo}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Voi scrivete} & \textbf{L'assemblatore emette} & \textbf{Significato}\\
+\midrule
+\code{li t0, 42} & \code{addi t0, zero, 42} & carica una costante\\
+\code{mv t0, t1} & \code{addi t0, t1, 0} & copia un registro\\
+\code{not t0, t1} & \code{xori t0, t1, -1} & complemento bit a bit\\
+\code{la t0, counter} & \code{auipc t0, \ldots} + \code{addi t0, t0, \ldots} & carica l'indirizzo di un'etichetta\\
+\code{ret} & \code{jalr zero, 0(ra)} & salta all'indirizzo contenuto in \reg{ra}\\
+\code{beqz t0, skip} & \code{beq t0, zero, skip} & salta se \reg{t0} vale zero\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Un'istruzione è un numero di 32 bit}
+
+Il processore non legge testo. L'assemblatore traduce ogni riga in una parola
+di 32 bit, ed è quella parola a essere memorizzata nella cartuccia ed eseguita.
+La Figura~\ref{fig:fc:encoding} seziona \code{addi t1, t1, 1}: dodici bit
+contengono la costante, cinque bit indicano il registro sorgente (\reg{t1} è
+\reg{x6}), tre bit selezionano l'operazione, cinque bit indicano il registro di
+destinazione e sette bit, l'\term{opcode}, dicono di che tipo di istruzione si
+tratta. Scritti in esadecimale, i trentadue bit sono \hex{00130313}.
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,31}\\
+\bitbox{12}[bgcolor=prgamber!30]{\texttt{000000000001}} & \bitbox{5}[bgcolor=prgaccent!20]{\texttt{00110}} & \bitbox{3}[bgcolor=prgviolet!20]{\texttt{000}} & \bitbox{5}[bgcolor=prggreen!20]{\texttt{00110}} & \bitbox{7}[bgcolor=prgsteel!20]{\texttt{0010011}}\\
+\bitbox[]{12}{\footnotesize immediato\\la costante 1} & \bitbox[]{5}{\footnotesize rs1\\\texttt{t1}=\texttt{x6}} & \bitbox[]{3}{\footnotesize funct3\\add} & \bitbox[]{5}{\footnotesize rd\\\texttt{t1}=\texttt{x6}} & \bitbox[]{7}{\footnotesize opcode\\reg.-imm.}
+\end{bytefield}
+\caption{\code{addi t1, t1, 1} è il numero \hex{00130313}.}
+\label{fig:fc:encoding}
+\end{figure}
+
+\begin{prgconcept}
+L'assembly è una scrittura leggibile del codice macchina. Un'istruzione è un
+dato: il processore ne legge i campi con circuiti logici, che verranno
+progettati nei capitoli sulla logica e sul processore.
+\end{prgconcept}
+
+\subsection{PRG32-QT: un microscopio per i registri}
+
+\prgqt esegue la stessa cartuccia sul desktop un'istruzione alla volta, si
+ferma tra due istruzioni qualunque e mostra ogni registro.
+
+\begin{prgtry}[Eseguite passo-passo \code{first\_update}]
+Caricate il passo~3 in modalità debug, mettete un breakpoint su
+\code{first\_update} e premete \key{Step} quattro volte. Prima di ogni
+pressione, dite che cosa conterranno \reg{t0} e \reg{t1}; dopo, verificate.
+\end{prgtry}
+
+\subsection{Tracciare a mano}
+
+Lo stesso esercizio si può, e si deve, fare su carta. La
+Tabella~\ref{tab:fc:trace} segue \code{first\_update} per alcuni frame. Al
+frame 256 il contatore continua a crescere, ma i suoi otto bit bassi tornano a
+zero, perché $256 = 1\,0000\,0000_2$: la barra ricomincia. Tracciare a mano è
+la più preziosa abilità di debug insegnata in questo libro.
+
+\begin{table}[htb]
+\centering\small
+\caption{Tre frame, e uno in più, di \code{first\_update}.}\label{tab:fc:trace}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+\textbf{Frame} & \textbf{\ins{lw}: \reg{t1} diventa} & \textbf{\ins{addi}: \reg{t1} diventa} & \textbf{\ins{sw}: counter diventa} & \textbf{Larghezza}\\
+\midrule
+1 & 0 & 1 & 1 & 1\\
+2 & 1 & 2 & 2 & 2\\
+256 & 255 & 256 & 256 & 0\\
+257 & 256 & 257 & 257 & 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Che cosa viene dopo}
+
+Il programma di questo capitolo ha sollevato più domande di quante ne abbia
+risolte. La Tabella~\ref{tab:fc:questions} è la mappa in avanti del libro: ogni
+capitolo successivo si apre indicandone una riga.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le domande che il primo programma ha già sollevato.}\label{tab:fc:questions}
+\begin{tabularx}{\textwidth}{@{}P{0.29\textwidth}LP{0.2\textwidth}@{}}
+\toprule
+\textbf{Avete visto} & \textbf{La domanda} & \textbf{Risposta in}\\
+\midrule
+\hex{07e0}, \hex{ffff}, 255 & Perché i programmatori scrivono i numeri in esadecimale? & Capitoli \ref{ch:information}, \ref{ch:integers}\\
+una posizione sotto lo zero mostrata come \hex{FFFFFFFF} & Come fa un registro a contenere un numero negativo? & Capitolo \ref{ch:integers}\\
+una palla che si muove di meno di un pixel per frame & Come si rappresentano le frazioni senza un'unità in virgola mobile? & Capitolo \ref{ch:reals}\\
+\code{andi a2, t1, 255} & Che cosa fa AND a trentadue bit tutti insieme? & Capitoli \ref{ch:boole1}, \ref{ch:boole2}\\
+\code{addi t1, t1, 1} & Quale circuito somma davvero due numeri? & Capitolo \ref{ch:boole2}\\
+un pulsante premuto è un 1 & Di che cosa è fatto, fisicamente, un bit? & Capitolo \ref{ch:electronics}\\
+\code{counter} sopravvive tra i frame & Come fa un circuito a ricordare un bit? & Capitoli \ref{ch:sequential}, \ref{ch:memory}\\
+\hex{00130313} & Come fa il processore a decodificarla ed eseguirla? & Capitoli \ref{ch:processor}, \ref{ch:instructions}\\
+tre funzioni e un rettangolo & Se ne può fare un gioco intero? & \vermone: Capitoli \ref{ch:verm1p1}, \ref{ch:verm1p2}, \ref{ch:verm1p3}, \ref{ch:verm1p4}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Dopo \code{la t0, counter} e \code{lw t1, 0(t0)}, che cosa contiene \reg{t0}?}
+\item Il valore del contatore
+\item L'indirizzo del contatore
+\item Zero, perché \ins{la} azzera il registro
+\item L'indirizzo di ritorno
+\end{quiz}
+
+\begin{quiz}{Una funzione che chiama \code{prg32\_gfx\_clear} deve salvare un registro prima della chiamata. Quale?}
+\item \reg{a0}, perché porta l'argomento
+\item \reg{sp}, perché lo stack si sposta
+\item \reg{ra}, perché \ins{call} lo sovrascrive
+\item \reg{t0}, perché è temporaneo
+\end{quiz}
+
+\begin{quiz}{\reg{t1} contiene 300. Che cosa lascia in \reg{a2} l'istruzione \code{andi a2, t1, 255}?}
+\item 300
+\item 255
+\item 45
+\item 44
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[su \prg]
+\begin{enumerate}[nosep]
+\item Cambiate la stringa del titolo e il suo colore in giallo (\hex{ffe0});
+  eseguite di nuovo.
+\item Fate crescere la barra a velocità doppia, poi quadrupla, cambiando una
+  sola istruzione.
+\item Fate accorciare la barra invece di farla crescere. Che cosa succede
+  quando il contatore passa per lo zero?
+\item In \prgqt eseguite passo-passo \code{first\_update} e annotate \reg{t0} e
+  \reg{t1} dopo ogni istruzione.
+\item Disegnate una seconda barra, rossa, la cui larghezza è il contatore
+  modulo 64.
+\end{enumerate}
+\expected{Nel terzo compito il contatore passa da 0 a \hex{FFFFFFFF}: con
+\code{andi 255} la barra salta a 255 e poi si accorcia. Conservate
+l'osservazione: la spiega il Capitolo~\ref{ch:integers}.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+register & registro\\
+load / store & caricare / memorizzare\\
+address & indirizzo\\
+immediate & immediato (costante)\\
+branch & salto condizionato\\
+label & etichetta\\
+stack & pila (stack)\\
+stack pointer & puntatore alla pila\\
+return address & indirizzo di ritorno\\
+calling convention & convenzione di chiamata\\
+machine code & codice macchina\\
+cartridge & cartuccia\\
+\end{glossarytable}
+
+\section{Riepilogo e letture}
+
+Un processore \riscv sono trentadue registri e un piccolo insieme di istruzioni
+che calcolano, spostano e saltano. Un gioco \prg sono tre funzioni; gli
+argomenti viaggiano nei registri da \reg{a0} ad \reg{a7}; una funzione che ne
+chiama un'altra salva \reg{ra}. Le variabili vivono in memoria: \ins{la} per
+l'indirizzo, \ins{lw} e \ins{sw} per il valore. Un'istruzione è un numero di 32
+bit; l'assembly ne è la scrittura leggibile.
+
+\paragraph{Letture.} \emph{Playing with RISC-V}, capitolo~5, «First Contact»
+\citep{prg32textbook}; \citet{patterson2020}, capitolo~2; il tutorial
+\fname{docs/learn/tutorial\_ascii\_game.md} del repository di \prg.

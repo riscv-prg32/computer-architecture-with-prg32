@@ -1,0 +1,396 @@
+% ============================================================================
+%  Chapter 7 -- Verm1, Part 1: A Head That Crosses the World     (Lecture 07)
+% ============================================================================
+\chapter{Verm1, Part 1: A Head That Crosses the World}
+\label{ch:verm1p1}
+
+\epigraphline{The journey of a thousand miles begins with a single step.}
+  {Laozi, \emph{Tao Te Ching}}
+
+\begin{chapgoals}
+By the end of this chapter you will have
+\begin{itemize}
+\item a cartridge of your own, \fname{verm1.prg32}, built from one assembly
+  file that you typed;
+\item a title, a grid of 40 by 24 cells, and the head of the worm drawn in one of them;
+\item the head moving by itself, one cell at a time, at a speed that you control in fixed point;
+\item a world with no edges: past the last column the head comes back from the first;
+\item the habit of the working loop: edit, build, run, look, and stop the
+  program in the debugger.
+\end{itemize}
+\end{chapgoals}
+
+This is the first tutorial of the project. It uses only what Chapters
+\ref{ch:firstcontact} to~\ref{ch:reals} have taught, and it is meant to be
+followed at the keyboard: the reader types the program. Everything printed in
+the listings is read from the reference file \fname{verm1\_part1.S}, which is
+built and run automatically; the whole file is in Appendix~\ref{app:verm1}.
+
+% ----------------------------------------------------------------------------
+\section{The project}
+
+\subsection{Verm1: a tribute to Snake}
+
+\vermone, read \emph{vermone}, ``the big worm'', is a worm that moves on a
+grid, eats, grows, and must not bite itself. The game has a long history: it
+appeared as \emph{Blockade}, an arcade machine by Gremlin, in 1976, and as
+\emph{Snake} on the Nokia~6110 in 1997, written by Taneli Armanto, it became
+one of the most played games ever. \vermone is a tribute, not a copy: the
+name, the rules of detail and the look are its own. It is small enough to be
+written from scratch in assembly and rich enough to need every topic of the
+course, and the reader writes every line of it: there is no engine, and no
+library beyond the calls of \prg. The reference implementation that the
+tutorial chapters follow, and against which a reader can always compare a
+program of their own, was contributed by Giuseppe Coviello
+(Appendix~\ref{app:verm1}). Figure~\ref{fig:v1:goal} shows the destination.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{verm1_p4_play.png}
+\caption{\vermone at the end of the book (Part 4).}\label{fig:v1:goal}
+\end{figure}
+
+\subsection{The plan}
+
+\begin{table}[htb]
+\centering\small
+\caption{Four parts and a publication.}\label{tab:v1:plan}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{Chapter} & \textbf{You add} & \textbf{It uses Chapters}\\
+\midrule
+\ref{ch:verm1p1}\quad Part 1 & a grid, a head, automatic movement, wrap-around & \ref{ch:history} to \ref{ch:reals}: information and numbers\\
+\ref{ch:verm1p2}\quad Part 2 & steering with the joystick, food, a score & \ref{ch:boole1} to \ref{ch:combinational}: logic and circuits\\
+\ref{ch:verm1p3}\quad Part 3 & a body that grows, collisions, title and game-over screens & \ref{ch:sequential} to \ref{ch:storage}: state and memory\\
+\ref{ch:verm1p4}\quad Part 4 & fast drawing, a score in digits, levels, sound & \ref{ch:processor} to \ref{ch:io}: the machine\\
+\ref{ch:store}\quad The Store & a bundle with manifest, icon and credits & all of them\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Each part ends with a program that runs (Table~\ref{tab:v1:plan}).
+
+\begin{prgwarn}
+Never start a part with a program that does not run. If yours is broken,
+start from the reference file of the previous part.
+\end{prgwarn}
+
+Part~1 takes the following from the chapters read so far.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{From} & \textbf{Idea} & \textbf{Where it appears}\\
+\midrule
+Chapter \ref{ch:firstcontact} & registers, \ins{la}/\ins{lw}/\ins{sw}, \ins{call} and the stack frame & everywhere\\
+Chapter \ref{ch:history} & retro games as specimens & the choice of the game\\
+Chapter \ref{ch:information} & colours as RGB565 numbers; strings ending with zero & \code{GREEN}, the title\\
+Chapter \ref{ch:integers} & shifts as multiplications; comparisons; wrap-around & cell to pixel; the edge of the world\\
+Chapter \ref{ch:reals} & fixed point: a fraction as a scaled integer & the speed of the worm\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ----------------------------------------------------------------------------
+\section{Step 0: the working loop}
+
+Make a folder \fname{\textasciitilde/verm1} and keep in it one file,
+\fname{verm1.S}, which will grow from part to part. The two commands of
+Listing~\ref{lst:v1:build} build the cartridge and send it to \prgqt; they
+are the same in every tutorial. \prgqt listens on port 8080 and shows its
+address on the Setup screen: use that address if \code{localhost} does not
+answer. The same cartridge runs on QEMU (\code{qemu upload}, then
+\code{qemu run}) and on the board (\code{-{}-url http://192.168.4.1}).
+
+\shfile[caption={Build and run: edit, build, run, look.},label=lst:v1:build]{code/l07/s08.sh}
+
+% ----------------------------------------------------------------------------
+\section{Step 1: three functions that return}
+
+\asmfile[caption={Step 1 \textbf{(new)}: the skeleton.},label=lst:v1:skel]{code/l07/s09.S}
+
+This is the skeleton of Chapter~\ref{ch:firstcontact} with another prefix:
+\code{verm1} is the name passed to \code{-{}-entry-prefix}. \code{init} runs
+once; \code{update} and \code{draw} run once per frame.
+
+\begin{prgcheck}[Run it]
+Type it, build it, run it: a black screen is the right answer. If the build
+fails here the problem is the installation, not the program: solve it before
+going on. From now on, add one thing, run, look. Never two things at once.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 2: a grid and a head}
+
+\subsection{Constants: colours and the grid}
+
+Replace the first lines of the skeleton with those of
+Listing~\ref{lst:v1:const}.
+
+\asmfile[caption={Step 2 \textbf{(changed)}: the head of the file.},label=lst:v1:const]{code/l07/s11.S}
+
+Colours are RGB565 numbers: \hex{07e0} is pure green. The screen is 320
+pixels across and a cell is 8 pixels wide, which makes 40 columns. The top 8
+pixels hold the title, and 192 are left: 24 rows. The directive \code{.equ}
+gives a name to a number and uses no memory. The constant \code{SPEED\_Q8} is
+used in step~3.
+
+\subsection{The world of Verm1}
+
+\begin{prgconcept}
+The worm does not live in pixels: it lives in cells. A position is a column,
+0 to 39, and a row, 0 to 23.
+\end{prgconcept}
+
+To draw a cell its coordinates are turned into pixels
+(Figure~\ref{fig:v1:grid}): $x = \mathit{column}\times 8$, a shift to the left
+by 3, and $y = \mathit{row}\times 8+8$, because the title line comes first.
+The cell $(0,0)$ is at pixel $(0,8)$; the cell $(39,23)$ is at $(312,192)$.
+Thinking in cells makes every later rule simple: moving is adding~1.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=2.6mm,y=-2.6mm]
+  \fill[prgsteel] (0,0) rectangle (40,1);
+  \fill[prgink] (0,1) rectangle (40,25);
+  \draw[prgsteel,very thin,step=1] (0,1) grid (40,25);
+  \fill[green!80!black] (5,13) rectangle (6,14);
+  \node[text=white,font=\sffamily\tiny,anchor=west] at (0.3,0.5) {title line: 8 pixels};
+  \node[lbl] at (20,-1) {columns $0\ldots 39$\quad ($x=\mathit{column}\times 8$)};
+  \node[lbl,rotate=90] at (-3.2,13) {rows $0\ldots 23$\quad ($y=\mathit{row}\times 8+8$)};
+  \node[lbl] at (5.5,26) {column 5};
+  \node[lbl,anchor=east] at (-0.3,13.5) {row 12};
+\end{tikzpicture}
+\caption{The world of \vermone: 40 by 24 cells of 8 by 8 pixels. The head
+starts in column 5 of row 12.}
+\label{fig:v1:grid}
+\end{figure}
+
+\subsection{Variables and a string}
+
+Put Listing~\ref{lst:v1:data} at the end of the file. The section
+\code{.rodata} holds constants: the title ends with a zero byte. The section
+\code{.data} holds variables, one 32-bit word each. Their initial values are
+only a start: \code{init} will set them again.
+
+\asmfile[caption={Step 2 \textbf{(new)}: data, at the end of the file.},label=lst:v1:data]{code/l07/s13.S}
+
+\subsection{\texttt{init}: put the head in its place}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v1:init]{code/l07/s14.S}
+
+\ins{la} takes an \emph{address}, \ins{sw} stores a \emph{value} there. The
+function sets the start explicitly: a program should never trust what memory
+contained. \reg{zero} is the register that always reads 0. The function is a
+leaf: it makes no calls, so it needs no stack frame.
+
+\subsection{\texttt{draw}: title and head}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v1:draw]{code/l07/s15.S}
+
+Clear the screen, write the title, draw one rectangle: three calls, with the
+arguments travelling in \reg{a0} to \reg{a4}, in order. The signatures are
+\code{prg32\_gfx\_text8(x, y, string, foreground, background)} and
+\code{prg32\_gfx\_rect(x, y, width, height, colour)}. \ins{slli} by 3
+multiplies by 8: from cell to pixel. Since \code{draw} makes calls, it saves
+\reg{ra} in a stack frame.
+
+\begin{prgcheck}[Run it: a head on the grid]
+Expected now: the word \texttt{VERM1} at the top left and a green square
+standing still in column 5, row 12 (Figure~\ref{fig:v1:shot} shows it later,
+when it has begun to move).
+\end{prgcheck}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{verm1_p1.png}
+\caption{The title and the head. This picture was taken by the automatic
+tests 64 frames into the finished Part~1: the head is in column 15.}
+\label{fig:v1:shot}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Step 3: movement}
+
+\subsection{How fast should a worm go?}
+
+\code{update} runs about thirty times per second. One cell per frame would
+cross the screen in little more than a second: unplayable. What is wanted is
+a fraction of a cell per frame, and the processor of the kit has only
+integers. The answer is the fixed point of Chapter~\ref{ch:reals}, in the
+format Q24.8: the program keeps a fraction in units of $1/256$ of a cell, and
+takes a step each time a whole cell has accumulated. With
+$\code{SPEED\_Q8}=40$ the worm advances $40/256\approx 0.156$ cells per frame:
+about one step every 6 frames.
+
+This is the ball of Chapter~\ref{ch:reals} turned into a timer. The remainder
+is not thrown away, so the average speed is exact: 256 frames give exactly 40
+steps.
+
+\subsection{\texttt{update}: accumulate, step, wrap}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_update}.},label=lst:v1:update]{code/l07/s19.S}
+
+The speed is added to the fraction; below 256, the function waits. At 256 it
+subtracts 256, keeps the rest, and moves the head one cell to the right.
+Column 40 does not exist: past the right edge the head goes back to column~0.
+The function has two exits, and each stores what it has changed. \ins{blt}
+compares signed numbers, which is right here because every value is small and
+positive. The local labels \code{1:} and \code{2:} are referred to as
+\code{1f} and \code{2f}: ``the next 1, or 2, \emph{forward}''.
+
+\subsection{Trace it by hand}
+
+\begin{table}[htb]
+\centering\small
+\caption{A trace of \code{verm1\_update}.}\label{tab:v1:trace}
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+\textbf{Frame} & \textbf{\code{step\_q8} before} & \textbf{+ 40} & \textbf{Whole cell?} & \textbf{\code{step\_q8} after} & \textbf{\code{head\_x}}\\
+\midrule
+1 & 0 & 40 & no & 40 & 5\\
+2 & 40 & 80 & no & 80 & 5\\
+6 & 200 & 240 & no & 240 & 5\\
+7 & 240 & 280 & yes: $280-256$ & 24 & 6\\
+13 & 224 & 264 & yes: $264-256$ & 8 & 7\\
+64 & -- & -- & -- & 0 & 15\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The steps come every 6 or 7 frames (Table~\ref{tab:v1:trace}): the remainder
+carries the difference, as a leap year does. After 64 frames the sum is
+$64\times 40 = 2560 = 10\times 256$: ten steps, and the head is in column 15,
+exactly as in Figure~\ref{fig:v1:shot}. Fill in frames 8 to 12 as an
+exercise.
+
+\begin{prgcheck}[Run it: the head crosses the world]
+\begin{enumerate}[nosep]
+\item Build and run: the head moves to the right, about five cells per second.
+\item Wait for the right edge: the head leaves at column 39 and returns at
+  column 0.
+\item Change \code{SPEED\_Q8} to 8, then to 128, then to 256: predict the
+  speed before you run.
+\item Change the starting row in \code{init}, and the colour of the head.
+\end{enumerate}
+\textbf{Expected result.} The head crosses the forty columns in 256 frames,
+about eight and a half seconds at thirty frames per second, for ever. With
+$\code{SPEED\_Q8}=256$ it moves one cell per frame; larger values still give
+one step per frame, because \code{update} takes at most one step: a limit
+worth discovering.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 4: look inside with PRG32-QT}
+
+The debugger is part of the method, not an emergency tool.
+
+\begin{prgtry}[Stop the program and read the machine]
+\begin{enumerate}[nosep]
+\item In \prgqt open \emph{Settings} and enable \emph{Run cartridges in RISC-V
+  debug mode}.
+\item Run your cartridge: the game is on the left, the debugger on the right.
+\item Press \key{Update}: the listing jumps to \code{verm1\_update}. Click in
+  the gutter to put a breakpoint on its first instruction.
+\item The program stops there at the next frame. Press \key{Step} and watch
+  the registers change, one instruction at a time.
+\item After the two instructions of \ins{la}, \reg{t0} holds an address: type
+  it in the \emph{Memory} field to see \code{step\_q8} in memory.
+\item Press \key{Resume}, and watch the bytes of \code{step\_q8} grow by 40
+  (\hex{28}) at every stop.
+\end{enumerate}
+\end{prgtry}
+
+\key{Resume} ignores the current breakpoint once, so that each press runs one
+whole frame.
+
+\subsection{What the listing shows}
+
+The debugger does not show the source file: it shows the code as the
+assembler left it (Listing~\ref{lst:v1:dis}).
+
+\txtfile[caption={\code{verm1\_update}, disassembled (abridged; the exact offsets depend on the build).},label=lst:v1:dis]{code/l07/s24.txt}
+
+\begin{itemize}
+\item Names are gone: labels have become addresses, and constants have become
+  numbers.
+\item Pseudo-instructions are expanded: \ins{la} is \ins{auipc} plus
+  \ins{addi}, \ins{li} is \ins{addi} from \reg{zero}, \ins{ret} is a jump to
+  \reg{ra}.
+\item Some instructions start with \code{c.}: they are the \emph{compressed},
+  16-bit forms of the same instructions (the C of RV32IMAC).
+\item The cartridge is loaded at address \hex{40800000}: every address shown
+  starts there.
+\end{itemize}
+
+Instruction formats and compressed instructions are the subject of
+Chapter~\ref{ch:instructions}.
+
+\subsection{Reading memory: little-endian, live}
+
+The \emph{Memory} view shows 128 bytes from the address typed, in hexadecimal
+(Figure~\ref{fig:v1:debug}). The variable \code{step\_q8} is a word: its four
+bytes come lowest byte first, so that with $\code{step\_q8}=240$ one reads
+\texttt{F0 00 00 00}. In the file the order of the variables is
+\code{head\_x}, \code{head\_y}, \code{step\_q8}, four bytes each: if
+\code{step\_q8} is at address $A$, \code{head\_x} is at $A-8$.
+
+The debugger only observes. To change the program: edit, build, run.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.9\textwidth]{prg32qt_debugger_details.png}
+\caption{\prgqt: listing, registers, memory.}\label{fig:v1:debug}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{With $\code{SPEED\_Q8}=64$, how many frames pass between two steps of the head?}
+\item 2
+\item 4
+\item 64
+\item 256
+\end{quiz}
+
+\begin{quiz}{Which pixel is the top-left corner of the cell in column 10, row 3?}
+\item $(10, 3)$
+\item $(80, 24)$
+\item $(80, 32)$
+\item $(88, 32)$
+\end{quiz}
+
+\begin{quiz}{Why does \code{verm1\_draw} save \reg{ra} while \code{verm1\_update} does not?}
+\item \code{draw} is longer
+\item \code{draw} calls other functions, which overwrite \reg{ra}
+\item \code{update} uses no registers
+\item \reg{ra} is saved automatically in \code{update}
+\end{quiz}
+
+\section{Make it yours}
+
+\begin{exercise}[on \prg]
+\begin{enumerate}[nosep]
+\item Make the head move to the left: which instruction changes, and which
+  comparison detects the edge?
+\item Make it move downwards instead, wrapping from row 23 to row 0.
+\item Draw a second cell, in a darker green, one column behind the head: a
+  first hint of a body.
+\item Write your own name next to the title, in a colour that you computed by
+  hand in RGB565.
+\end{enumerate}
+\expected{Each change is a few lines. Keep a copy of the working Part~1
+before experimenting: Part~2 starts from it. (Hints: to move left,
+\code{addi t3, t3, -1}, then \code{bgez t3} to skip the wrap, else
+\code{li t3, COLS-1}: the comparison is on the sign. A darker green is
+\hex{03e0}.)}
+\end{exercise}
+
+\section{Where we are, and what comes next}
+
+The reader has a cartridge that runs, built from a file typed and understood
+line by line. It has state in memory, a rule that changes the state at every
+frame, and a function that draws it: the shape of every game. What is missing
+is the player: the head goes where it wants. Chapters \ref{ch:boole1}
+to~\ref{ch:combinational} give the tools: bits and masks to read the joystick,
+Boolean rules, tables that select. Part~2 adds steering, food and a score.

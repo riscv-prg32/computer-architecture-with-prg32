@@ -1,0 +1,2049 @@
+[
+ {
+  "n": 0,
+  "title": "Course Introduction",
+  "quiz": [],
+  "gloss": []
+ },
+ {
+  "n": 1,
+  "title": "PRG32 and PRG32-QT: Setting Up Your Workshop",
+  "quiz": [
+   {
+    "q": "In a new terminal, python3 -m prg32 doctor says: idf.py missing. What is the most likely cause?",
+    "opts": [
+     "ESP-IDF must be installed again",
+     "ESP-IDF is not active in this terminal",
+     "PRG32-QT is not running",
+     "the board is not connected"
+    ],
+    "ans": 1,
+    "why": "Activation lasts as long as the terminal: run export.sh, or open the ESP-IDF PowerShell."
+   },
+   {
+    "q": "Which host lets you run and debug a cartridge without installing a compiler?",
+    "opts": [
+     "the ESP32-C6 board",
+     "QEMU",
+     "PRG32-QT",
+     "none of them"
+    ],
+    "ans": 2,
+    "why": "PRG32-QT interprets the cartridge and has a built-in debugger; a compiler is needed only to build cartridges."
+   },
+   {
+    "q": "Why does the same pong.prg32 run on the board, on QEMU and on PRG32-QT?",
+    "opts": [
+     "it is recompiled at each start",
+     "it contains three programs",
+     "it calls the runtime through the same table of functions on every host",
+     "PRG32-QT translates it to C"
+    ],
+    "ans": 2,
+    "why": "A portable cartridge depends only on the ABI, the table of functions of the runtime, which every host provides."
+   }
+  ],
+  "gloss": [
+   [
+    "toolchain",
+    "catena di strumenti di sviluppo"
+   ],
+   [
+    "firmware",
+    "firmware"
+   ],
+   [
+    "cartridge",
+    "cartuccia"
+   ],
+   [
+    "runtime",
+    "ambiente di esecuzione"
+   ],
+   [
+    "emulator",
+    "emulatore"
+   ],
+   [
+    "interpreter",
+    "interprete"
+   ],
+   [
+    "to build",
+    "compilare (costruire)"
+   ],
+   [
+    "to flash",
+    "scrivere nella memoria flash"
+   ],
+   [
+    "host",
+    "macchina ospite"
+   ],
+   [
+    "breakpoint",
+    "punto di interruzione"
+   ]
+  ]
+ },
+ {
+  "n": 2,
+  "title": "First Contact: RISC-V Assembly on PRG32",
+  "quiz": [
+   {
+    "q": "After la t0, counter and lw t1, 0(t0), what does t0 hold?",
+    "opts": [
+     "The value of the counter",
+     "The address of the counter",
+     "Zero, because la clears the register",
+     "The return address"
+    ],
+    "ans": 1,
+    "why": "la loads the address of the label; lw then reads the value stored at that address into t1."
+   },
+   {
+    "q": "A function that calls prg32_gfx_clear must save one register before the call. Which one?",
+    "opts": [
+     "a0, because it carries the argument",
+     "sp, because the stack moves",
+     "ra, because call overwrites it",
+     "t0, because it is temporary"
+    ],
+    "ans": 2,
+    "why": "call writes the return address in ra. The callee's own calls would overwrite it, so a non-leaf function saves ra on the stack and restores it before ret."
+   },
+   {
+    "q": "t1 holds 300. What does andi a2, t1, 255 leave in a2?",
+    "opts": [
+     "300",
+     "255",
+     "45",
+     "44"
+    ],
+    "ans": 3,
+    "why": "300 = 256 + 44 = 1 0010 1100 in binary. AND with 1111 1111 keeps the low eight bits: 0010 1100 = 44."
+   }
+  ],
+  "gloss": [
+   [
+    "register",
+    "registro"
+   ],
+   [
+    "stack",
+    "pila (stack)"
+   ],
+   [
+    "load / store",
+    "caricare / memorizzare"
+   ],
+   [
+    "stack pointer",
+    "puntatore alla pila"
+   ],
+   [
+    "address",
+    "indirizzo"
+   ],
+   [
+    "return address",
+    "indirizzo di ritorno"
+   ],
+   [
+    "immediate",
+    "immediato (costante)"
+   ],
+   [
+    "calling convention",
+    "convenzione di chiamata"
+   ],
+   [
+    "branch",
+    "salto condizionato"
+   ],
+   [
+    "machine code",
+    "codice macchina"
+   ],
+   [
+    "label",
+    "etichetta"
+   ],
+   [
+    "cartridge",
+    "cartuccia"
+   ]
+  ]
+ },
+ {
+  "n": 3,
+  "title": "History of Computing",
+  "quiz": [
+   {
+    "q": "Which idea is the heart of the von Neumann architecture?",
+    "opts": [
+     "The processor has exactly four registers",
+     "Program and data are stored in the same memory",
+     "Every instruction takes one clock cycle",
+     "Input and output are optional"
+    ],
+    "ans": 1,
+    "why": "The stored-program concept: instructions are data in memory, fetched and executed one after another."
+   },
+   {
+    "q": "What makes RISC-V different from x86 and ARM?",
+    "opts": [
+     "It is the fastest instruction set",
+     "It was the first RISC architecture",
+     "Its instruction set is an open standard, free to implement",
+     "It works only on microcontrollers"
+    ],
+    "ans": 2,
+    "why": "RISC-V is an open standard instruction set architecture; anyone may design and sell a RISC-V processor without an architecture licence. It was not the first RISC (Berkeley RISC, MIPS, ARM came earlier)."
+   },
+   {
+    "q": "Who is regarded as the first programmer in history?",
+    "opts": [
+     "Charles Babbage",
+     "Alan Turing",
+     "Ada Lovelace",
+     "Konrad Zuse"
+    ],
+    "ans": 2,
+    "why": "Ada Lovelace, for her 1843 notes on the Analytical Engine."
+   }
+  ],
+  "gloss": [
+   [
+    "computer science / informatics",
+    "informatica"
+   ],
+   [
+    "stored program",
+    "programma memorizzato"
+   ],
+   [
+    "computer",
+    "calcolatore, elaboratore"
+   ],
+   [
+    "control unit",
+    "unità di controllo"
+   ],
+   [
+    "punched card",
+    "scheda perforata"
+   ],
+   [
+    "arithmetic logic unit",
+    "unità aritmetico-logica"
+   ],
+   [
+    "loom",
+    "telaio"
+   ],
+   [
+    "instruction set",
+    "insieme (set) di istruzioni"
+   ],
+   [
+    "mainframe",
+    "mainframe, grande elaboratore"
+   ],
+   [
+    "high-performance computing",
+    "calcolo ad alte prestazioni"
+   ]
+  ]
+ },
+ {
+  "n": 4,
+  "title": "Representing Digital Information",
+  "quiz": [
+   {
+    "q": "How many different values can one byte represent?",
+    "opts": [
+     "8",
+     "16",
+     "255",
+     "256"
+    ],
+    "ans": 3,
+    "why": "A byte is 8 bits: 2^8 = 256 patterns, for example the naturals from 0 to 255."
+   },
+   {
+    "q": "The PRG32 colour 0xF81F is:",
+    "opts": [
+     "red",
+     "magenta",
+     "cyan",
+     "yellow"
+    ],
+    "ans": 1,
+    "why": "0xF81F = 11111 000000 11111: red and blue at maximum, green at zero: magenta."
+   },
+   {
+    "q": "How many bytes does .asciz \"CIAO\" occupy in memory?",
+    "opts": [
+     "3",
+     "4",
+     "5",
+     "8"
+    ],
+    "ans": 2,
+    "why": "Four characters plus the terminating zero byte."
+   },
+   {
+    "q": "On RISC-V, .word 0x0000ABCD is stored at address A. Which byte is at address A?",
+    "opts": [
+     "0x00",
+     "0xAB",
+     "0xCD",
+     "0xDC"
+    ],
+    "ans": 2,
+    "why": "RISC-V is little-endian: the least significant byte, 0xCD, goes at the lowest address."
+   }
+  ],
+  "gloss": [
+   [
+    "bit / byte / word",
+    "bit / byte / parola"
+   ],
+   [
+    "string",
+    "stringa"
+   ],
+   [
+    "positional notation",
+    "notazione posizionale"
+   ],
+   [
+    "array",
+    "vettore (array)"
+   ],
+   [
+    "hexadecimal",
+    "esadecimale"
+   ],
+   [
+    "linked list",
+    "lista concatenata"
+   ],
+   [
+    "sampling",
+    "campionamento"
+   ],
+   [
+    "stack",
+    "pila"
+   ],
+   [
+    "quantisation",
+    "quantizzazione"
+   ],
+   [
+    "tree",
+    "albero"
+   ],
+   [
+    "byte order (endianness)",
+    "ordinamento dei byte"
+   ],
+   [
+    "machine learning",
+    "apprendimento automatico"
+   ]
+  ]
+ },
+ {
+  "n": 5,
+  "title": "Number Representation: Integers",
+  "quiz": [
+   {
+    "q": "Which number does the 8-bit pattern 1111 1100 represent in two's complement?",
+    "opts": [
+     "252",
+     "-4",
+     "-3",
+     "-124"
+    ],
+    "ans": 1,
+    "why": "Complement and add one: 0000 0011 + 1 = 0000 0100 = 4, so the pattern is -4. (252 is its unsigned reading.)"
+   },
+   {
+    "q": "On 8 bits, which addition produces a signed overflow?",
+    "opts": [
+     "100 + 27",
+     "100 + 28",
+     "-100 + 28",
+     "-1 + 1"
+    ],
+    "ans": 1,
+    "why": "The range is [-128, 127]. 100 + 27 = 127 fits; 100 + 28 = 128 does not: two positives give a negative pattern (1000 0000 = -128)."
+   },
+   {
+    "q": "t0 holds 0xFFFFFFFF and t1 holds 1. After slt t2, t0, t1 and sltu t3, t0, t1:",
+    "opts": [
+     "t2 = 1, t3 = 1",
+     "t2 = 0, t3 = 0",
+     "t2 = 1, t3 = 0",
+     "t2 = 0, t3 = 1"
+    ],
+    "ans": 2,
+    "why": "Signed: -1 < 1 is true, so t2 = 1. Unsigned: 4,294,967,295 < 1 is false, so t3 = 0."
+   },
+   {
+    "q": "How is 0.625 written in binary?",
+    "opts": [
+     "0.101",
+     "0.110",
+     "0.625",
+     "0.011"
+    ],
+    "ans": 0,
+    "why": "0.625 x 2 = 1.25 (1); 0.25 x 2 = 0.5 (0); 0.5 x 2 = 1.0 (1): 0.101 = 1/2 + 1/8."
+   }
+  ],
+  "gloss": [
+   [
+    "base (radix)",
+    "base"
+   ],
+   [
+    "two's complement",
+    "complemento a due (alla base)"
+   ],
+   [
+    "natural number",
+    "numero naturale"
+   ],
+   [
+    "sign and magnitude",
+    "segno e modulo"
+   ],
+   [
+    "signed integer",
+    "numero relativo (intero con segno)"
+   ],
+   [
+    "overflow",
+    "overflow (traboccamento)"
+   ],
+   [
+    "most significant bit",
+    "bit più significativo"
+   ],
+   [
+    "carry / borrow",
+    "riporto / prestito"
+   ],
+   [
+    "remainder",
+    "resto"
+   ],
+   [
+    "sign extension",
+    "estensione del segno"
+   ],
+   [
+    "shift",
+    "scorrimento (shift)"
+   ],
+   [
+    "to clamp",
+    "limitare a un intervallo"
+   ]
+  ]
+ },
+ {
+  "n": 6,
+  "title": "Number Representation: Real Numbers",
+  "quiz": [
+   {
+    "q": "Which signed encoding keeps the bit patterns in the same order as the numbers?",
+    "opts": [
+     "Sign and magnitude",
+     "One's complement",
+     "Two's complement",
+     "Excess-k"
+    ],
+    "ans": 3,
+    "why": "In excess-k, X = x + k: a larger number always has a larger pattern. This is why it encodes floating-point exponents, which must be compared quickly."
+   },
+   {
+    "q": "In Q24.8 fixed point, which real number does the word 0x00000180 represent?",
+    "opts": [
+     "384",
+     "1.5",
+     "1.8",
+     "0.375"
+    ],
+    "ans": 1,
+    "why": "0x180 = 384; 384 / 256 = 1.5. Integer part 0x01, fraction 0x80 = 128/256 = 0.5."
+   },
+   {
+    "q": "Which real number is the IEEE 754 single-precision pattern 0x40400000?",
+    "opts": [
+     "2.0",
+     "3.0",
+     "4.0",
+     "0.75"
+    ],
+    "ans": 1,
+    "why": "0100 0000 0100 0000 ...: S = 0, E = 1000 0000 = 128, F = 100...: 1.1 (binary) x 2^(128-127) = 1.5 x 2 = 3.0."
+   },
+   {
+    "q": "In IEEE 754, an exponent field of all ones with a fraction of all zeros means:",
+    "opts": [
+     "zero",
+     "a denormalised number",
+     "infinity",
+     "NaN"
+    ],
+    "ans": 2,
+    "why": "All ones in the exponent: infinity if the fraction is zero, NaN otherwise."
+   }
+  ],
+  "gloss": [
+   [
+    "one's complement",
+    "complemento a uno (alla base diminuita)"
+   ],
+   [
+    "mantissa / fraction",
+    "mantissa"
+   ],
+   [
+    "excess-k (biased)",
+    "eccesso-k"
+   ],
+   [
+    "exponent",
+    "esponente"
+   ],
+   [
+    "fixed point",
+    "virgola fissa"
+   ],
+   [
+    "normalisation",
+    "normalizzazione"
+   ],
+   [
+    "floating point",
+    "virgola mobile"
+   ],
+   [
+    "hidden bit",
+    "bit nascosto"
+   ],
+   [
+    "single / double precision",
+    "singola / doppia precisione"
+   ],
+   [
+    "denormalised",
+    "denormalizzato"
+   ],
+   [
+    "rounding",
+    "arrotondamento"
+   ],
+   [
+    "Not a Number (NaN)",
+    "non un numero (NaN)"
+   ]
+  ]
+ },
+ {
+  "n": 7,
+  "title": "Verm1, Part 1: A Head That Crosses the World",
+  "quiz": [
+   {
+    "q": "With SPEED_Q8 = 64, how many frames pass between two steps of the head?",
+    "opts": [
+     "2",
+     "4",
+     "64",
+     "256"
+    ],
+    "ans": 1,
+    "why": "64/256 = 1/4 of a cell per frame: a whole cell every 4 frames."
+   },
+   {
+    "q": "Which pixel is the top-left corner of the cell in column 10, row 3?",
+    "opts": [
+     "(10, 3)",
+     "(80, 24)",
+     "(80, 32)",
+     "(88, 32)"
+    ],
+    "ans": 2,
+    "why": "x = 10 x 8 = 80; y = 3 x 8 + 8 = 32."
+   },
+   {
+    "q": "Why does verm1_draw save ra and verm1_update does not?",
+    "opts": [
+     "draw is longer",
+     "draw calls other functions, which overwrite ra",
+     "update uses no registers",
+     "ra is saved automatically in update"
+    ],
+    "ans": 1,
+    "why": "A call writes the return address in ra. A function that makes calls must keep its own ra safe on the stack; a leaf function need not."
+   }
+  ],
+  "gloss": []
+ },
+ {
+  "n": 8,
+  "title": "Elements of Boolean Algebra",
+  "quiz": [
+   {
+    "q": "For which inputs is x NAND y equal to 0?",
+    "opts": [
+     "x = 0, y = 0",
+     "x = 0, y = 1",
+     "x = 1, y = 1",
+     "never"
+    ],
+    "ans": 2,
+    "why": "NAND is the complement of AND: it is 0 only when both inputs are 1."
+   },
+   {
+    "q": "By De Morgan, (a . b')' is equal to:",
+    "opts": [
+     "a' . b",
+     "a' + b",
+     "a + b'",
+     "a' + b'"
+    ],
+    "ans": 1,
+    "why": "(a . b')' = a' + (b')' = a' + b, using involution on the second term."
+   },
+   {
+    "q": "t0 = 0x0000005A. What is in t1 after andi t1, t0, 0x0F?",
+    "opts": [
+     "0x0000005A",
+     "0x00000050",
+     "0x0000000A",
+     "0x0000000F"
+    ],
+    "ans": 2,
+    "why": "0x5A = 0101 1010; AND with 0000 1111 keeps the low nibble: 1010 = 0xA."
+   },
+   {
+    "q": "Which instruction turns bit 5 of t0 to 1 and leaves every other bit unchanged?",
+    "opts": [
+     "andi t0, t0, 0x20",
+     "ori t0, t0, 0x20",
+     "xori t0, t0, 0x20",
+     "addi t0, t0, 0x20"
+    ],
+    "ans": 1,
+    "why": "OR with a mask: x + 1 = 1 on bit 5, x + 0 = x elsewhere. xori would toggle it; addi would carry into bit 6 if the bit was already 1."
+   }
+  ],
+  "gloss": [
+   [
+    "logic circuit",
+    "circuito logico"
+   ],
+   [
+    "truth table",
+    "tabella di verità"
+   ],
+   [
+    "switching network",
+    "rete di commutazione"
+   ],
+   [
+    "logic gate",
+    "porta logica"
+   ],
+   [
+    "analysis / synthesis",
+    "analisi / sintesi"
+   ],
+   [
+    "complement",
+    "complemento (negazione)"
+   ],
+   [
+    "logical product (AND)",
+    "prodotto logico (congiunzione)"
+   ],
+   [
+    "duality",
+    "dualità"
+   ],
+   [
+    "logical sum (OR)",
+    "somma logica (disgiunzione)"
+   ],
+   [
+    "mask",
+    "maschera"
+   ],
+   [
+    "involution",
+    "involuzione"
+   ],
+   [
+    "to set / clear / toggle",
+    "porre a 1 / azzerare / invertire"
+   ]
+  ]
+ },
+ {
+  "n": 9,
+  "title": "Elements of Boolean Algebra",
+  "quiz": [
+   {
+    "q": "How many distinct Boolean functions of three variables are there?",
+    "opts": [
+     "8",
+     "9",
+     "64",
+     "256"
+    ],
+    "ans": 3,
+    "why": "2^(2^3) = 2^8 = 256."
+   },
+   {
+    "q": "Which minterm of three variables A, B, C corresponds to row 5 of the truth table?",
+    "opts": [
+     "A'BC'",
+     "AB'C",
+     "A + B' + C",
+     "ABC'"
+    ],
+    "ans": 1,
+    "why": "Row 5 is 101: A = 1, B = 0, C = 1, so the minterm is A B' C."
+   },
+   {
+    "q": "In a Karnaugh map, a rectangular group of four adjacent 1s eliminates:",
+    "opts": [
+     "one variable",
+     "two variables",
+     "three variables",
+     "four variables"
+    ],
+    "ans": 1,
+    "why": "A group of 2^k cells eliminates k variables: four cells, two variables."
+   },
+   {
+    "q": "In a full adder, the carry out is 1 when:",
+    "opts": [
+     "exactly one input is 1",
+     "an odd number of inputs is 1",
+     "at least two inputs are 1",
+     "all three inputs are 1 only"
+    ],
+    "ans": 2,
+    "why": "Cout is the majority function: AB + Cin(A xor B) = AB + ACin + BCin. An odd number of 1s describes the sum bit S instead."
+   }
+  ],
+  "gloss": [
+   [
+    "literal",
+    "letterale"
+   ],
+   [
+    "canonical form",
+    "forma canonica"
+   ],
+   [
+    "clause, product term",
+    "clausola, termine prodotto"
+   ],
+   [
+    "sum of products (SOP)",
+    "somma di prodotti (tipo P)"
+   ],
+   [
+    "factor, sum term",
+    "fattore, termine somma"
+   ],
+   [
+    "product of sums (POS)",
+    "prodotto di somme (tipo S)"
+   ],
+   [
+    "minterm / maxterm",
+    "mintermine / maxtermine"
+   ],
+   [
+    "Karnaugh map",
+    "mappa di Karnaugh"
+   ],
+   [
+    "half adder / full adder",
+    "semisommatore / sommatore completo"
+   ],
+   [
+    "don't care",
+    "condizione di indifferenza"
+   ],
+   [
+    "carry in / carry out",
+    "riporto entrante / uscente"
+   ],
+   [
+    "ripple-carry adder",
+    "sommatore a propagazione del riporto"
+   ]
+  ]
+ },
+ {
+  "n": 10,
+  "title": "Introduction to Electronics and Digital Electronics",
+  "quiz": [
+   {
+    "q": "An LED drops 2 V and must carry 5 mA from a 3.3 V pin. Which resistor is needed?",
+    "opts": [
+     "26 Ω",
+     "260 Ω",
+     "400 Ω",
+     "660 Ω"
+    ],
+    "ans": 1,
+    "why": "R = (3.3 - 2) / 0.005 = 260 Ω."
+   },
+   {
+    "q": "In a CMOS inverter with the input at 0:",
+    "opts": [
+     "both transistors conduct",
+     "the pMOS conducts and the output is 1",
+     "the nMOS conducts and the output is 0",
+     "neither conducts and the output floats"
+    ],
+    "ans": 1,
+    "why": "A low gate closes the pMOS, which joins the output to the supply; the nMOS is open."
+   },
+   {
+    "q": "How many transistors does a two-input AND need in static CMOS?",
+    "opts": [
+     "2",
+     "4",
+     "6",
+     "8"
+    ],
+    "ans": 2,
+    "why": "A NAND (4) followed by an inverter (2)."
+   },
+   {
+    "q": "Why does the button input of the kit need a pull-up resistor?",
+    "opts": [
+     "To limit the current of the LED",
+     "To make the pin read a defined 1 when the button is released",
+     "To make the button faster",
+     "To protect the chip from 5 V"
+    ],
+    "ans": 1,
+    "why": "Without it the released pin would float; the pull-up ties it to 3.3 V, and the pressed switch overrides it to ground."
+   }
+  ],
+  "gloss": [
+   [
+    "voltage",
+    "tensione"
+   ],
+   [
+    "logic level",
+    "livello logico"
+   ],
+   [
+    "current",
+    "corrente"
+   ],
+   [
+    "noise margin",
+    "margine di rumore"
+   ],
+   [
+    "resistor / resistance",
+    "resistore / resistenza"
+   ],
+   [
+    "pull-up resistor",
+    "resistenza di pull-up"
+   ],
+   [
+    "capacitor",
+    "condensatore"
+   ],
+   [
+    "floating input",
+    "ingresso flottante"
+   ],
+   [
+    "ground",
+    "massa"
+   ],
+   [
+    "propagation delay",
+    "ritardo di propagazione"
+   ],
+   [
+    "semiconductor, doping",
+    "semiconduttore, drogaggio"
+   ],
+   [
+    "integrated circuit",
+    "circuito integrato"
+   ],
+   [
+    "gate, source, drain",
+    "gate, source, drain"
+   ],
+   [
+    "breadboard",
+    "basetta sperimentale (breadboard)"
+   ]
+  ]
+ },
+ {
+  "n": 11,
+  "title": "Combinational Machines",
+  "quiz": [
+   {
+    "q": "How many bits does a fixed-length binary code need for the 26 letters of the alphabet?",
+    "opts": [
+     "4",
+     "5",
+     "6",
+     "26"
+    ],
+    "ans": 1,
+    "why": "ceil(log2 26) = 5, since 2^4 = 16 < 26 <= 32 = 2^5. Six words remain unassigned: the code is incomplete."
+   },
+   {
+    "q": "A decoder has 3 input lines and no enable. How many outputs does it have, and how many are 1 at any time?",
+    "opts": [
+     "3 outputs, one at 1",
+     "6 outputs, two at 1",
+     "8 outputs, one at 1",
+     "8 outputs, three at 1"
+    ],
+    "ans": 2,
+    "why": "2^3 = 8 outputs, and exactly one is asserted: the decoded (one-hot) representation of the input word."
+   },
+   {
+    "q": "A multiplexer with 8 data inputs needs how many selection lines?",
+    "opts": [
+     "2",
+     "3",
+     "4",
+     "8"
+    ],
+    "ans": 1,
+    "why": "n selection lines choose among 2^n inputs: 3 lines for 8 inputs."
+   },
+   {
+    "q": "A word with one even-parity bit is received with two bits altered. The parity check:",
+    "opts": [
+     "detects the error and corrects it",
+     "detects the error but cannot correct it",
+     "does not detect the error",
+     "signals an error only if both bits were 1"
+    ],
+    "ans": 2,
+    "why": "Two alterations leave the parity unchanged. A single parity bit detects only an odd number of errors."
+   }
+  ],
+  "gloss": [
+   [
+    "combinational network",
+    "rete combinatoria"
+   ],
+   [
+    "decoder / encoder",
+    "decodificatore / codificatore"
+   ],
+   [
+    "propagation delay",
+    "ritardo di propagazione"
+   ],
+   [
+    "transcoder",
+    "transcodificatore"
+   ],
+   [
+    "cardinality",
+    "cardinalità"
+   ],
+   [
+    "multiplexer / demultiplexer",
+    "multiplexer / demultiplexer"
+   ],
+   [
+    "code word",
+    "parola codice"
+   ],
+   [
+    "enable",
+    "abilitazione"
+   ],
+   [
+    "fixed / variable length",
+    "lunghezza fissa / variabile"
+   ],
+   [
+    "comparator",
+    "comparatore"
+   ],
+   [
+    "redundant code",
+    "codice ridondante"
+   ],
+   [
+    "parity bit",
+    "bit di parità"
+   ]
+  ]
+ },
+ {
+  "n": 12,
+  "title": "Verm1, Part 2: Steering, Food and a Score",
+  "quiz": [
+   {
+    "q": "The player holds DOWN and RIGHT together: prg32_input_read returns",
+    "opts": [
+     "0x02",
+     "0x08",
+     "0x0a",
+     "0x10"
+    ],
+    "ans": 2,
+    "why": "0x08 OR 0x02 = 0x0a: one bit per button."
+   },
+   {
+    "q": "The worm goes UP (3). Which wish is refused?",
+    "opts": [
+     "RIGHT (0)",
+     "DOWN (1)",
+     "LEFT (2)",
+     "UP (3)"
+    ],
+    "ans": 1,
+    "why": "3 XOR 1 = 2: DOWN is the opposite of UP."
+   },
+   {
+    "q": "Why slli t1, t1, 2 before adding to the address of dx?",
+    "opts": [
+     "to make the code positive",
+     "each entry of the table is 4 bytes",
+     "to clear bit 1",
+     "tables start at address 4"
+    ],
+    "ans": 1,
+    "why": "The entries are words: entry k is at offset 4k."
+   },
+   {
+    "q": "xor t1, t1, t4 gives zero exactly when",
+    "opts": [
+     "t1 is zero",
+     "t4 is zero",
+     "t1 and t4 are equal",
+     "t1 and t4 are opposite"
+    ],
+    "ans": 2,
+    "why": "XOR is 1 where bits differ: no difference, all zeros."
+   }
+  ],
+  "gloss": []
+ },
+ {
+  "n": 13,
+  "title": "Sequential Machines",
+  "quiz": [
+   {
+    "q": "In a Moore machine the output depends on:",
+    "opts": [
+     "the present input only",
+     "the present state only",
+     "the present state and the present input",
+     "the next state and the input"
+    ],
+    "ans": 1,
+    "why": "Moore: w maps S to U. In a Mealy machine the output depends on the state and on the input."
+   },
+   {
+    "q": "An SR latch built with NOR gates has Q = 1. S and R are both 0. What happens?",
+    "opts": [
+     "Q becomes 0",
+     "Q oscillates",
+     "Q stays at 1",
+     "the state is undefined"
+    ],
+    "ans": 2,
+    "why": "S = R = 0 is the hold condition: the feedback keeps the stored value."
+   },
+   {
+    "q": "What distinguishes a D flip-flop from a D latch?",
+    "opts": [
+     "The flip-flop has two inputs",
+     "The flip-flop stores two bits",
+     "The flip-flop changes only on a clock edge",
+     "The flip-flop does not need a clock"
+    ],
+    "ans": 2,
+    "why": "The latch is transparent for the whole active level of the clock; the flip-flop samples D only on the edge."
+   },
+   {
+    "q": "How many flip-flops are needed for a finite-state machine with 10 states?",
+    "opts": [
+     "3",
+     "4",
+     "5",
+     "10"
+    ],
+    "ans": 1,
+    "why": "ceil(log2 10) = 4 state variables, with the minimum-length binary code of Lecture 11. Ten would be needed with a one-hot code."
+   }
+  ],
+  "gloss": [
+   [
+    "sequential network",
+    "rete sequenziale"
+   ],
+   [
+    "latch / flip-flop",
+    "latch / flip-flop (bistabile)"
+   ],
+   [
+    "finite-state machine",
+    "automa a stati finiti"
+   ],
+   [
+    "feedback",
+    "retroazione"
+   ],
+   [
+    "state table / diagram",
+    "tabella / diagramma degli stati"
+   ],
+   [
+    "rising / falling edge",
+    "fronte di salita / di discesa"
+   ],
+   [
+    "next-state function",
+    "funzione stato prossimo"
+   ],
+   [
+    "level- / edge-triggered",
+    "sensibile al livello / al fronte"
+   ],
+   [
+    "present / next state",
+    "stato presente / prossimo"
+   ],
+   [
+    "register",
+    "registro"
+   ],
+   [
+    "clock period",
+    "periodo di clock"
+   ],
+   [
+    "program counter",
+    "contatore di programma"
+   ]
+  ]
+ },
+ {
+  "n": 14,
+  "title": "Elementary Machines: Registers and Buses",
+  "quiz": [
+   {
+    "q": "Why does a common bus need three-state buffers?",
+    "opts": [
+     "To make transfers faster",
+     "So that only the enabled source drives the lines",
+     "To store the datum on the bus",
+     "To convert serial data to parallel"
+    ],
+    "ans": 1,
+    "why": "Several sources share the same lines; all but one must be electrically disconnected (high impedance), otherwise two outputs would fight over the wire."
+   },
+   {
+    "q": "How many clock pulses does a serial transfer of a 32-bit word need?",
+    "opts": [
+     "1",
+     "5",
+     "32",
+     "64"
+    ],
+    "ans": 2,
+    "why": "One bit per pulse: n pulses for n bits. A parallel transfer needs one pulse and n wires."
+   },
+   {
+    "q": "A memory has 10 address lines and 8 data lines. How many bits does it store?",
+    "opts": [
+     "80",
+     "1,024",
+     "8,192",
+     "10,240"
+    ],
+    "ans": 2,
+    "why": "2^10 = 1,024 words of 8 bits: 8,192 bits, that is 1 KiB."
+   }
+  ],
+  "gloss": [
+   [
+    "word gate",
+    "porta di parola"
+   ],
+   [
+    "three-state (tri-state)",
+    "a tre stati (tristate)"
+   ],
+   [
+    "register",
+    "registro"
+   ],
+   [
+    "high impedance",
+    "alta impedenza"
+   ],
+   [
+    "bus",
+    "bus"
+   ],
+   [
+    "shift register",
+    "registro a scorrimento"
+   ],
+   [
+    "dedicated / common bus",
+    "bus dedicato / comune"
+   ],
+   [
+    "serial / parallel transfer",
+    "trasferimento seriale / parallelo"
+   ],
+   [
+    "load, strobe",
+    "caricamento, strobe"
+   ],
+   [
+    "chip select",
+    "selezione del chip"
+   ]
+  ]
+ },
+ {
+  "n": 15,
+  "title": "Memory",
+  "quiz": [
+   {
+    "q": "A memory has 16 address lines and is byte-addressable. How large is it?",
+    "opts": [
+     "16 bytes",
+     "32 KiB",
+     "64 KiB",
+     "16 MiB"
+    ],
+    "ans": 2,
+    "why": "2^16 = 65,536 locations of one byte: 64 KiB, the address space of a Commodore 64."
+   },
+   {
+    "q": "On RISC-V, value: .word 0xCAFE0001 is at address A. What does lbu t0, 0(t0) read if t0 = A?",
+    "opts": [
+     "0xCA",
+     "0xFE",
+     "0x00",
+     "0x01"
+    ],
+    "ans": 3,
+    "why": "Little-endian: the least significant byte, 0x01, is at the lowest address."
+   },
+   {
+    "q": "Why must DRAM be refreshed?",
+    "opts": [
+     "Because its capacitors lose their charge",
+     "Because reading is slow",
+     "Because it is not random access",
+     "Because the clock is too fast"
+    ],
+    "ans": 0,
+    "why": "Each bit is a charge in a capacitor that leaks away; a circuit inside the memory rewrites every cell periodically."
+   },
+   {
+    "q": "How does a RISC-V program write to an output device?",
+    "opts": [
+     "With the out instruction",
+     "With sw to the address of a device register",
+     "With a special register x32",
+     "It cannot: only the firmware can"
+    ],
+    "ans": 1,
+    "why": "RISC-V has no I/O instructions: devices are memory-mapped and reached with ordinary loads and stores."
+   }
+  ],
+  "gloss": [
+   [
+    "main memory",
+    "memoria centrale"
+   ],
+   [
+    "access time",
+    "tempo di accesso"
+   ],
+   [
+    "volatile / persistent",
+    "volatile / persistente"
+   ],
+   [
+    "aligned word",
+    "parola allineata"
+   ],
+   [
+    "magnetic core",
+    "nucleo magnetico (di ferrite)"
+   ],
+   [
+    "address / data bus",
+    "bus indirizzi / bus dati"
+   ],
+   [
+    "refresh",
+    "rinfresco (refresh)"
+   ],
+   [
+    "read / write enable",
+    "abilitazione lettura / scrittura"
+   ],
+   [
+    "byte order",
+    "ordinamento dei byte"
+   ],
+   [
+    "memory-mapped I/O",
+    "I/O mappato in memoria"
+   ]
+  ]
+ },
+ {
+  "n": 16,
+  "title": "Permanent Memory",
+  "quiz": [
+   {
+    "q": "Which memory can be erased electrically, in blocks, without removing it from the board?",
+    "opts": [
+     "ROM",
+     "PROM",
+     "EPROM",
+     "Flash"
+    ],
+    "ans": 3,
+    "why": "Flash is the block-erasable evolution of EEPROM. EPROM needs ultraviolet light; ROM and PROM cannot be erased."
+   },
+   {
+    "q": "What happens on a cache miss?",
+    "opts": [
+     "The program stops with an error",
+     "The datum is fetched from main memory and copied into the cache, with its neighbours",
+     "The cache is erased",
+     "The processor skips the instruction"
+    ],
+    "ans": 1,
+    "why": "The access is simply slower: the block containing the address is loaded into the cache, betting that nearby addresses will be needed soon."
+   },
+   {
+    "q": "Which component of the access time of a hard disk depends on the rotation speed?",
+    "opts": [
+     "Seek time",
+     "Latency",
+     "Formatting time",
+     "Boot time"
+    ],
+    "ans": 1,
+    "why": "Latency is the wait for the sector to arrive under the head; seek time depends on the movement of the arm."
+   },
+   {
+    "q": "On an optical disk, a 1 is encoded as:",
+    "opts": [
+     "a pit",
+     "a land",
+     "a transition between pit and land",
+     "a double pit"
+    ],
+    "ans": 2,
+    "why": "A change of reflectivity, in either direction, is a 1; no change is a 0."
+   }
+  ],
+  "gloss": [
+   [
+    "motherboard",
+    "scheda madre"
+   ],
+   [
+    "track / sector / block",
+    "traccia / settore / blocco"
+   ],
+   [
+    "firmware",
+    "firmware"
+   ],
+   [
+    "seek time",
+    "tempo di posizionamento"
+   ],
+   [
+    "non-volatile",
+    "non volatile"
+   ],
+   [
+    "latency",
+    "tempo di latenza"
+   ],
+   [
+    "cache hit / miss",
+    "successo / fallimento di cache"
+   ],
+   [
+    "solid-state disk",
+    "disco a stato solido"
+   ],
+   [
+    "mass storage",
+    "memoria di massa"
+   ],
+   [
+    "tape library",
+    "libreria a nastri"
+   ]
+  ]
+ },
+ {
+  "n": 17,
+  "title": "Verm1, Part 3: A Body, Rules and States",
+  "quiz": [
+   {
+    "q": "head_i = 1 and length = 4. Which entries of the ring hold the worm?",
+    "opts": [
+     "1, 2, 3, 4",
+     "0, 1, 2, 3",
+     "254, 255, 0, 1",
+     "253, 254, 255, 0"
+    ],
+    "ans": 2,
+    "why": "From the tail, head_i - length + 1 = -2, that is 254 after AND 255, up to the head: 254, 255, 0, 1."
+   },
+   {
+    "q": "Which byte of grid describes the cell in column 7 of row 3?",
+    "opts": [
+     "byte 37",
+     "byte 127",
+     "byte 283",
+     "byte 307"
+    ],
+    "ans": 1,
+    "why": "3 x 40 + 7 = 127."
+   },
+   {
+    "q": "The player holds A down for two seconds on the title screen. What happens?",
+    "opts": [
+     "the game starts and ends at once",
+     "the game starts once",
+     "nothing, until A is released",
+     "the states cycle at every frame"
+    ],
+    "ans": 1,
+    "why": "Only the frame in which A goes down gives s1 = 0x10: one edge, one transition."
+   },
+   {
+    "q": "Why is the tail's byte cleared before the head's byte is tested?",
+    "opts": [
+     "to save an instruction",
+     "so that the head can enter the cell the tail leaves",
+     "because sb is faster than lbu",
+     "the order does not matter"
+    ],
+    "ans": 1,
+    "why": "In the same step the tail moves away: that cell is free for the head."
+   }
+  ],
+  "gloss": []
+ },
+ {
+  "n": 18,
+  "title": "The Processor",
+  "quiz": [
+   {
+    "q": "Which register of the general model has no counterpart in RISC-V?",
+    "opts": [
+     "the program counter",
+     "the status register with the flags",
+     "the stack pointer",
+     "the instruction register"
+    ],
+    "ans": 1,
+    "why": "RISC-V has no condition codes: branches compare registers directly."
+   },
+   {
+    "q": "In RISC-V, which instructions can read or write the main memory?",
+    "opts": [
+     "all of them",
+     "add and sub",
+     "only loads and stores",
+     "only jumps"
+    ],
+    "ans": 2,
+    "why": "It is a load-store architecture: lw, lh, lb, sw, sh, sb and their unsigned forms."
+   },
+   {
+    "q": "After addi sp, sp, -4 and sw t0, 0(sp), what has happened?",
+    "opts": [
+     "t0 was popped from the stack",
+     "t0 was pushed on the stack",
+     "the stack was emptied",
+     "sp was saved in t0"
+    ],
+    "ans": 1,
+    "why": "The pointer moves down by one word and the value is stored on the new top: a push."
+   },
+   {
+    "q": "In an accumulator machine, the instruction ADD y means:",
+    "opts": [
+     "y := y + accumulator",
+     "accumulator := accumulator + [y]",
+     "push y, then add",
+     "y := accumulator"
+    ],
+    "ans": 1,
+    "why": "The accumulator is the implicit operand and the destination."
+   }
+  ],
+  "gloss": [
+   [
+    "control unit",
+    "unità di controllo"
+   ],
+   [
+    "accumulator",
+    "accumulatore"
+   ],
+   [
+    "program counter",
+    "contatore di programma"
+   ],
+   [
+    "stack pointer",
+    "puntatore allo stack"
+   ],
+   [
+    "machine register",
+    "registro di macchina"
+   ],
+   [
+    "status register, flags",
+    "registro di stato, indicatori"
+   ],
+   [
+    "general / special register",
+    "registro generico / speciale"
+   ],
+   [
+    "supervisor / user state",
+    "stato supervisore / utente"
+   ],
+   [
+    "instruction set",
+    "insieme (set) di istruzioni"
+   ],
+   [
+    "privileged instruction",
+    "istruzione privilegiata"
+   ]
+  ]
+ },
+ {
+  "n": 19,
+  "title": "Instructions and Interrupts",
+  "quiz": [
+   {
+    "q": "In which bits of a RISC-V instruction is the opcode?",
+    "opts": [
+     "the seven most significant",
+     "the seven least significant",
+     "bits 14 to 12",
+     "it depends on the format"
+    ],
+    "ans": 1,
+    "why": "Bits 6 to 0, in every format: the processor always knows where to look first."
+   },
+   {
+    "q": "During the fetch of an RV32 instruction that is not compressed, the PC is increased by:",
+    "opts": [
+     "1",
+     "2",
+     "4",
+     "32"
+    ],
+    "ans": 2,
+    "why": "Addresses count bytes and an instruction is four bytes long."
+   },
+   {
+    "q": "Which register holds the address at which an interrupted RISC-V program will resume?",
+    "opts": [
+     "ra",
+     "mtvec",
+     "mepc",
+     "mcause"
+    ],
+    "ans": 2,
+    "why": "mepc, written by the hardware at the trap and used by mret. mtvec holds the address of the handler."
+   },
+   {
+    "q": "Which of these is an exception rather than an interrupt, in RISC-V terms?",
+    "opts": [
+     "a timer expires",
+     "a key is pressed",
+     "an illegal instruction is fetched",
+     "a packet arrives from the network"
+    ],
+    "ans": 2,
+    "why": "It is caused by the instruction being executed, synchronously; the others come from outside, at any moment."
+   }
+  ],
+  "gloss": [
+   [
+    "operation code (opcode)",
+    "codice operativo"
+   ],
+   [
+    "interrupt",
+    "interruzione"
+   ],
+   [
+    "operand",
+    "operando"
+   ],
+   [
+    "exception / trap",
+    "eccezione / trap"
+   ],
+   [
+    "addressing mode",
+    "modo di indirizzamento"
+   ],
+   [
+    "interrupt service routine",
+    "routine di servizio dell'interruzione"
+   ],
+   [
+    "fetch / decode / execute",
+    "prelievo / decodifica / esecuzione"
+   ],
+   [
+    "interrupt latency",
+    "latenza di interruzione"
+   ],
+   [
+    "pipeline stage",
+    "stadio della pipeline"
+   ],
+   [
+    "to mask an interrupt",
+    "mascherare un'interruzione"
+   ],
+   [
+    "context",
+    "contesto"
+   ],
+   [
+    "nesting",
+    "annidamento"
+   ]
+  ]
+ },
+ {
+  "n": 20,
+  "title": "Buses and the Video Card",
+  "quiz": [
+   {
+    "q": "How much memory does a frame of 640 x 480 pixels need in True Color (24 bits)?",
+    "opts": [
+     "307,200 bytes",
+     "614,400 bytes",
+     "921,600 bytes",
+     "7,372,800 bytes"
+    ],
+    "ans": 2,
+    "why": "307,200 pixels x 3 bytes = 921,600 bytes."
+   },
+   {
+    "q": "A 16-bit bus works at 50 MHz, one transfer per cycle. What is its transfer rate?",
+    "opts": [
+     "50 MB/s",
+     "100 MB/s",
+     "400 MB/s",
+     "800 MB/s"
+    ],
+    "ans": 1,
+    "why": "2 bytes x 50 million transfers per second = 100 MB/s."
+   },
+   {
+    "q": "In an 8-bit indexed frame buffer, the byte of a pixel contains:",
+    "opts": [
+     "its red component",
+     "its brightness",
+     "the position of its colour in a palette",
+     "its x coordinate"
+    ],
+    "ans": 2,
+    "why": "The byte is an index; the actual colour is looked up in a table of 256 entries, the palette."
+   },
+   {
+    "q": "What is GPGPU?",
+    "opts": [
+     "A faster video output",
+     "Using graphics processors for non-graphical computation",
+     "A bus for video cards",
+     "A kind of video memory"
+    ],
+    "ans": 1,
+    "why": "General-purpose computing on graphics processing units."
+   }
+  ],
+  "gloss": [
+   [
+    "peripheral",
+    "periferica"
+   ],
+   [
+    "resolution",
+    "risoluzione"
+   ],
+   [
+    "controller",
+    "controller (unità di controllo della periferica)"
+   ],
+   [
+    "colour depth",
+    "profondità di colore"
+   ],
+   [
+    "bus width",
+    "larghezza del bus"
+   ],
+   [
+    "palette",
+    "tavolozza (palette)"
+   ],
+   [
+    "transfer rate",
+    "velocità di trasferimento"
+   ],
+   [
+    "video memory",
+    "memoria video"
+   ],
+   [
+    "video card",
+    "scheda video"
+   ],
+   [
+    "device driver",
+    "driver di periferica"
+   ]
+  ]
+ },
+ {
+  "n": 21,
+  "title": "Input and Output",
+  "quiz": [
+   {
+    "q": "What does the encoder of a keyboard controller do?",
+    "opts": [
+     "It lights the key that was pressed",
+     "It turns a row and column combination into a key code",
+     "It sends the code to the monitor",
+     "It counts how long a key is held"
+    ],
+    "ans": 1,
+    "why": "From a decoded position in the key matrix to a compact n-bit code, as the encoder of Lecture 11."
+   },
+   {
+    "q": "In a colour LCD, a pixel is made of:",
+    "opts": [
+     "one cell that changes colour",
+     "three cells with red, green and blue filters",
+     "a phosphor dot hit by electrons",
+     "a transistor that emits light"
+    ],
+    "ans": 1,
+    "why": "Three sub-pixels, each a liquid crystal cell behind a colour filter; a TFT in each stores its state."
+   },
+   {
+    "q": "Why does a passive-matrix LCD show trails behind moving objects?",
+    "opts": [
+     "Its backlight is too weak",
+     "Its pixels are driven one at a time and must hold their state in between",
+     "It has too few colours",
+     "The video card is slow"
+    ],
+    "ans": 1,
+    "why": "Persistence: without a transistor per pixel, the cells respond slowly and keep their state badly while the others are scanned."
+   },
+   {
+    "q": "A PRG32 game reads the joystick once per frame. This technique is called:",
+    "opts": [
+     "direct memory access",
+     "interrupt-driven input",
+     "polling",
+     "memory mapping"
+    ],
+    "ans": 2,
+    "why": "The program asks the device periodically. With interrupts the device would call the program."
+   }
+  ],
+  "gloss": [
+   [
+    "cathode-ray tube",
+    "tubo a raggi catodici"
+   ],
+   [
+    "pointing device",
+    "periferica di puntamento"
+   ],
+   [
+    "liquid crystals",
+    "cristalli liquidi"
+   ],
+   [
+    "dot-matrix / ink-jet printer",
+    "stampante ad aghi / a getto d'inchiostro"
+   ],
+   [
+    "backlight",
+    "retroilluminazione"
+   ],
+   [
+    "drum / toner",
+    "tamburo / toner"
+   ],
+   [
+    "active matrix",
+    "matrice attiva"
+   ],
+   [
+    "polling",
+    "interrogazione ciclica"
+   ],
+   [
+    "keyboard / key",
+    "tastiera / tasto"
+   ],
+   [
+    "device driver",
+    "driver di periferica"
+   ]
+  ]
+ },
+ {
+  "n": 22,
+  "title": "Verm1, Part 4: The Finished Game",
+  "quiz": [
+   {
+    "q": "to_decimal receives a0 = 205. Which bytes does it store, from offset 0 to 2?",
+    "opts": [
+     "02 00 05",
+     "32 30 35",
+     "35 30 32",
+     "cd 00 00"
+    ],
+    "ans": 1,
+    "why": "The characters '2', '0', '5': 0x32, 0x30, 0x35. The units are stored at offset 2."
+   },
+   {
+    "q": "At which score does the worm take one step every 4 frames?",
+    "opts": [
+     "4",
+     "8",
+     "16",
+     "32"
+    ],
+    "ans": 1,
+    "why": "One step every 4 frames is 64/256: 32 + 4 x score = 64, so score = 8."
+   },
+   {
+    "q": "dirty is 0 when verm1_draw is called. How many machine instructions does it execute?",
+    "opts": [
+     "1",
+     "5",
+     "about 50",
+     "thousands"
+    ],
+    "ans": 1,
+    "why": "la is two instructions, auipc and addi; then lw, beqz and ret."
+   },
+   {
+    "q": "Why can to_decimal do without a stack frame?",
+    "opts": [
+     "it is short",
+     "it calls no function and uses only a and t registers",
+     "it has no arguments",
+     "frames are optional"
+    ],
+    "ans": 1,
+    "why": "A leaf function that touches only caller-saved registers has nothing to save."
+   }
+  ],
+  "gloss": []
+ },
+ {
+  "n": 23,
+  "title": "Verm1 on the Cartridge Store",
+  "quiz": [
+   {
+    "q": "You published version 1.0.0 and found a bug. What do you do?",
+    "opts": [
+     "upload 1.0.0 again",
+     "publish 1.0.1",
+     "change the id",
+     "ask for the old file to be edited"
+    ],
+    "ans": 1,
+    "why": "A published version is treated as permanent: a correction is a new version with the same id."
+   },
+   {
+    "q": "Why does metadata.json not contain the architectures entry?",
+    "opts": [
+     "it is optional",
+     "the metadata goes inside one cartridge, which has one architecture",
+     "QEMU does not support it",
+     "it would be too long"
+    ],
+    "ans": 1,
+    "why": "The list of files belongs to the bundle; a single cartridge states its own architecture, given on the command line."
+   },
+   {
+    "q": "Where should the Store token be kept?",
+    "opts": [
+     "in verm1.S, as a comment",
+     "in the manifest",
+     "in an environment variable of your shell",
+     "in the README of the repository"
+    ],
+    "ans": 2,
+    "why": "A token is a credential: it never goes into a file that is shared or versioned."
+   }
+  ],
+  "gloss": []
+ },
+ {
+  "n": 24,
+  "title": "Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs",
+  "quiz": [
+   {
+    "q": "A program is 80% parallel. What is the largest speed-up that any number of processors can give?",
+    "opts": [
+     "4",
+     "5",
+     "8",
+     "80"
+    ],
+    "ans": 1,
+    "why": "With n unlimited, S = 1 / (1 - p) = 1 / 0.2 = 5."
+   },
+   {
+    "q": "What does register renaming remove?",
+    "opts": [
+     "branches",
+     "the need for a stack",
+     "false dependences between uses of the same register name",
+     "cache misses"
+    ],
+    "ans": 2,
+    "why": "Two unrelated values that share a name get different physical registers and can be computed at the same time."
+   },
+   {
+    "q": "With 256-bit vector registers, how many turns does the vector loop need for the 960 bytes?",
+    "opts": [
+     "4",
+     "30",
+     "60",
+     "960"
+    ],
+    "ans": 1,
+    "why": "256 bits are 32 bytes per turn: 960 / 32 = 30. The code does not change."
+   },
+   {
+    "q": "A two-input look-up table stores, for inputs 00, 01, 10, 11, the bits 0, 1, 1, 1. Which gate is it?",
+    "opts": [
+     "AND",
+     "OR",
+     "XOR",
+     "NAND"
+    ],
+    "ans": 1,
+    "why": "The output is 1 whenever at least one input is 1: OR."
+   }
+  ],
+  "gloss": [
+   [
+    "superscalar",
+    "superscalare"
+   ],
+   [
+    "out-of-order execution",
+    "esecuzione fuori ordine"
+   ],
+   [
+    "register renaming",
+    "ridenominazione dei registri"
+   ],
+   [
+    "branch prediction",
+    "predizione dei salti"
+   ],
+   [
+    "speed-up",
+    "accelerazione (speed-up)"
+   ],
+   [
+    "node",
+    "nodo"
+   ],
+   [
+    "shared memory",
+    "memoria condivisa"
+   ],
+   [
+    "message passing",
+    "scambio di messaggi"
+   ],
+   [
+    "accelerator",
+    "acceleratore"
+   ],
+   [
+    "kernel (GPU)",
+    "kernel"
+   ],
+   [
+    "look-up table",
+    "tabella di look-up"
+   ],
+   [
+    "bitstream",
+    "bitstream"
+   ],
+   [
+    "hardware description language",
+    "linguaggio di descrizione dell'hardware"
+   ],
+   [
+    "soft core",
+    "soft core"
+   ]
+  ]
+ }
+]

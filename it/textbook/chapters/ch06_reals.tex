@@ -1,0 +1,552 @@
+% ============================================================================
+%  Capitolo 6 -- Rappresentazione dei numeri: i reali            (Lezione 06)
+% ============================================================================
+\chapter{Rappresentazione dei numeri: i reali}
+\label{ch:reals}
+
+\epigraphline{Conterò poco, è vero: --- diceva l'Uno ar Zero --- ma tu che
+vali? Gnente: propio gnente.}{Trilussa, \emph{Nummeri}, 1944}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item codificare interi con segno in complemento a uno e in eccesso-$k$, e dire a che cosa serve ciascuna codifica;
+\item rappresentare una grandezza frazionaria in virgola fissa e calcolare con essa usando istruzioni intere;
+\item spiegare mantissa, esponente e normalizzazione nella virgola mobile;
+\item codificare e decodificare un numero in IEEE~754 a precisione singola;
+\item riconoscere zero, numeri denormalizzati, infinito e NaN;
+\item dire perché l'ESP32-C6 non ha istruzioni in virgola mobile e che cosa fanno invece i giochi \prg.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+Una palla deve attraversare lentamente lo schermo. Un pixel per frame è troppo
+veloce; zero pixel per frame non è un movimento. Alla palla serve una via di
+mezzo: 0,375 pixel per frame. Ma il processore del kit è RV32IMAC: ha solo
+istruzioni intere, e nessuna virgola mobile. Il Listato~\ref{lst:real:ball}
+risolve il problema con un trucco.
+
+\asmfile[caption={Tre ottavi di pixel per frame, con i soli interi.},label=lst:real:ball]{code/l06/s04.S}
+
+La posizione è memorizzata \emph{moltiplicata per 256}, e viene divisa per 256
+solo quando la palla viene disegnata. In unità di $1/256$ di pixel la velocità
+è $0,375\times 256 = 96$, un onesto intero.
+
+\begin{prgtry}
+Eseguite il programma con \code{SPEED\_Q8} uguale a 96, poi 16, poi 1.
+\end{prgtry}
+
+Il trucco ha un nome, \term{virgola fissa}. Questo capitolo dice da dove viene
+e quando non basta, nel qual caso subentra la risposta generale, la
+\term{virgola mobile}. Prima dell'una e dell'altra servono altre due codifiche
+degli interi con segno, perché la virgola mobile è costruita con esse.
+
+% ----------------------------------------------------------------------------
+\section{Altre codifiche per gli interi con segno}
+
+\subsection{Complemento a uno}
+
+\begin{definition}{Complemento a uno}
+Su $n$ bit, un numero non negativo $0\le x<2^{n-1}$ è rappresentato da sé
+stesso, $X=x$; un numero negativo è rappresentato da $X = 2^{n}-1-|x|$.
+\end{definition}
+
+L'intervallo va da $-(2^{n-1}-1)$ a $+(2^{n-1}-1)$. Lo zero ha due
+rappresentazioni, \texttt{0000} e \texttt{1111}, quindi si rappresentano
+$2^{n}-1$ numeri, come in segno e modulo. La ragione per usarlo è che il cambio
+di segno è banale: poiché $2^{n}-1$ è una stringa di uni, sottrarre da esso
+complementa ogni bit,
+\[ -x \;=\; \mathtt{not}\ x. \]
+Quindi $6=\texttt{0110}$ e $-6=\texttt{1001}$; $5=\texttt{0101}$ e
+$-5=\texttt{1010}$; $1=\texttt{0001}$ e $-1=\texttt{1110}$. La \ins{not} bit a
+bit di \riscv calcola esattamente questo.
+
+L'aritmetica in complemento a uno lavora modulo $2^{n}-1$ invece che modulo
+$2^{n}$, e questo costa una correzione.
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Nessuna correzione}}\\
+3 + & 0011 +\\ -4 = & 1011 =\\\hline -1 & 1110\\ &
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Due negativi}}\\
+-2 + & 1101 +\\ -3 = & 1100 =\\\hline & \textcolor{prgred}{1}\,1001 + 1 =\\ -5 & 1010
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Risultato positivo}}\\
+5 + & 0101 +\\ -2 = & 1101 =\\\hline & \textcolor{prgred}{1}\,0010 + 1 =\\ 3 & 0011
+\end{tabular}
+\end{center}
+
+Ogni volta che c'è un riporto uscente dal bit più significativo, al risultato
+va sommato 1: il \term{riporto circolare} (end-around carry). La correzione
+serve quando entrambi gli operandi sono negativi, oppure quando gli operandi
+hanno segni opposti e la somma è positiva. Un sommatore e un complementatore
+bastano ancora; ma il passo in più e il doppio zero hanno fatto vincere il
+complemento a due.
+
+\subsection{Rappresentazione in eccesso-$k$}
+
+\begin{definition}{Eccesso-$k$}
+Nella rappresentazione in \term{eccesso-$k$} ogni numero è traslato verso
+l'alto di una costante $k$, il \term{bias}: $X = x+k$. Tipicamente
+$k=2^{n-1}$.
+\end{definition}
+
+Su quattro bit con $k=8$ la configurazione \texttt{0000} significa $-8$,
+\texttt{1000} significa 0 e \texttt{1111} significa $+7$. La proprietà decisiva
+è che l'ordine è conservato: se $x_1>x_2$ allora $X_1>X_2$, quindi i numeri con
+segno si confrontano come se fossero naturali. Il prezzo si paga
+nell'aritmetica: una somma va corretta sottraendo $k$, perché
+$X_1+X_2 = (x_1+x_2)+2k$, e moltiplicazione e divisione sono molto più scomode
+che con i complementi. L'eccesso-$k$ è quindi preferito dove servono solo somme
+e confronti, ed è esattamente la situazione dell'esponente di un numero in
+virgola mobile.
+
+\subsection{Quattro bit, cinque letture}
+
+La Tabella~\ref{tab:real:five} completa la tabella del
+Capitolo~\ref{ch:integers}. Segno e modulo e complemento a uno hanno due zeri.
+Complemento a due ed eccesso-8 coprono lo stesso intervallo, da $-8$ a $+7$,
+con un solo zero; differiscono soltanto nel bit più significativo, che è
+invertito. Solo l'eccesso-$k$ mantiene le configurazioni nello stesso ordine
+dei numeri.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro bit, cinque letture. S-M: segno e modulo; C1, C2: complemento a uno e a due; Ecc-8: eccesso-8.}\label{tab:real:five}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}cccccc@{\qquad}cccccc@{}}
+\toprule
+\textbf{Bit} & \textbf{Nat.} & \textbf{S-M} & \textbf{C1} & \textbf{C2} & \textbf{Ecc-8} &
+\textbf{Bit} & \textbf{Nat.} & \textbf{S-M} & \textbf{C1} & \textbf{C2} & \textbf{Ecc-8}\\
+\midrule
+\texttt{0000} & 0 & $+0$ & $+0$ & 0 & $-8$ & \texttt{1000} & 8 & $-0$ & $-7$ & $-8$ & 0\\
+\texttt{0001} & 1 & $+1$ & $+1$ & $+1$ & $-7$ & \texttt{1001} & 9 & $-1$ & $-6$ & $-7$ & $+1$\\
+\texttt{0010} & 2 & $+2$ & $+2$ & $+2$ & $-6$ & \texttt{1010} & 10 & $-2$ & $-5$ & $-6$ & $+2$\\
+\texttt{0011} & 3 & $+3$ & $+3$ & $+3$ & $-5$ & \texttt{1011} & 11 & $-3$ & $-4$ & $-5$ & $+3$\\
+\texttt{0100} & 4 & $+4$ & $+4$ & $+4$ & $-4$ & \texttt{1100} & 12 & $-4$ & $-3$ & $-4$ & $+4$\\
+\texttt{0101} & 5 & $+5$ & $+5$ & $+5$ & $-3$ & \texttt{1101} & 13 & $-5$ & $-2$ & $-3$ & $+5$\\
+\texttt{0110} & 6 & $+6$ & $+6$ & $+6$ & $-2$ & \texttt{1110} & 14 & $-6$ & $-1$ & $-2$ & $+6$\\
+\texttt{0111} & 7 & $+7$ & $+7$ & $+7$ & $-1$ & \texttt{1111} & 15 & $-7$ & $-0$ & $-1$ & $+7$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Virgola fissa}
+
+\subsection{Numeri in virgola fissa}
+
+In virgola fissa la parte intera e la parte frazionaria di un numero sono
+memorizzate una accanto all'altra in una sola parola. La posizione della
+virgola è fissa e implicita: non è memorizzata, la conosce il programma.
+
+\begin{definition}{Virgola fissa}
+Con $f$ bit frazionari un numero $x$ è memorizzato come l'intero
+$X = x\cdot 2^{f}$ (arrotondato). La \term{risoluzione} è $2^{-f}$. La
+notazione Q$m.f$ indica un formato con $m$ bit interi e $f$ bit frazionari.
+\end{definition}
+
+Di solito l'intera parola è in complemento a due. La virgola fissa è il modo in
+cui giochi, audio e software di controllo trattano le frazioni sui processori
+privi di un'unità in virgola mobile. È anche il modo in cui andrebbe
+memorizzato il denaro: come numero intero di centesimi.
+
+\subsection{La palla, bit per bit: Q24.8}
+
+La palla del riscaldamento è nel formato Q24.8
+(Figura~\ref{fig:real:q248}). Quando la sua variabile contiene
+$\hex{00002A60}=10848$, la palla si trova a $10848/256 = 42,375$ pixel: i 24
+bit alti, \hex{00002A}, sono i 42 pixel interi e gli 8 bassi, \hex{60}, sono
+$96/256 = 0,375$.
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,7,8,31}\\
+\bitbox{24}[bgcolor=prgaccent!20]{\texttt{0000 0000 0000 0000 0010 1010}} & \bitbox{8}[bgcolor=prgamber!30]{\texttt{0110 0000}}\\
+\bitbox[]{24}{\footnotesize parte intera: 24 bit\\\texttt{0x00002A} = 42 pixel} & \bitbox[]{8}{\footnotesize frazione: 8 bit\\\texttt{0x60} = 96/256}
+\end{bytefield}
+\caption{\code{ball\_x\_q8 = 0x00002A60}: la palla si trova a 42,375 pixel.}
+\label{fig:real:q248}
+\end{figure}
+
+Dopo un altro frame il valore è \hex{2AC0} (42,75), poi \hex{2B20} (43,125):
+la palla attraversa il confine di un pixel ogni due o tre frame, e in media
+avanza di 0,375.
+
+L'aritmetica in virgola fissa è aritmetica intera con un po' di attenzione
+(Tabella~\ref{tab:real:ops}). Somme e differenze non ne richiedono, perché le
+virgole dei due operandi sono allineate. Il prodotto di due numeri scalati di
+$2^{f}$ è scalato di $2^{2f}$, e va riportato indietro con uno scorrimento di
+$f$. Lo scorrimento che riporta ai pixel interi è quello \emph{aritmetico},
+\ins{srai}, che conserva il segno (Capitolo~\ref{ch:integers}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Le operazioni in virgola fissa.}\label{tab:real:ops}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Operazione} & \textbf{In virgola fissa} & \textbf{\riscv}\\
+\midrule
+somma, sottrazione & come tra interi: le virgole sono allineate & \ins{add}, \ins{sub}, \ins{addi}\\
+ai pixel interi & scorrimento a destra di $f$, conservando il segno & \code{srai a0, t1, 8}\\
+prodotto & moltiplicare, poi scorrere a destra di $f$ & \ins{mul}, poi \ins{srai}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Numeri razionali: l'errore di approssimazione}
+
+I numeri reali sono densi: anche in un intervallo limitato, non ogni numero si
+può rappresentare con un numero finito di bit. A ogni numero si associa quindi
+il più vicino tra quelli rappresentabili. In Q24.8 il numero 0,1 diventa
+$26/256 = 0,1015625$, perché $0,1\times 256 = 25,6$ viene arrotondato a 26: un
+errore di circa l'1,6\%.
+
+L'errore di approssimazione è al massimo metà della risoluzione: $1/512$ con
+otto bit frazionari. L'\term{underflow} è il caso di un numero vicino a zero,
+ma non zero, che viene rappresentato da zero: con una velocità di 0,001 pixel
+per frame la costante verrebbe arrotondata a 0, e la palla non si muoverebbe
+mai.
+
+\begin{prgconcept}
+In virgola fissa l'errore \emph{assoluto} è lo stesso ovunque sulla retta dei
+numeri. La risoluzione di otto bit frazionari è $1/256$: nulla di più piccolo
+si distingue da zero.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Virgola mobile}
+
+La virgola fissa spende tutti i suoi bit su un unico intervallo fissato. La
+virgola mobile ne spende alcuni per dire \emph{dove} si trova l'intervallo:
+scambia precisione con ampiezza dell'intervallo.
+
+\subsection{Numeri reali in virgola mobile}
+
+\begin{definition}{Virgola mobile}
+Un numero reale $x$ è rappresentato in virgola mobile da una coppia $(m,e)$
+tale che
+\[ x = m\cdot b^{\,e}, \]
+dove $m$ è la \term{mantissa}, $e$ l'\term{esponente} e $b$ la base.
+\end{definition}
+
+La virgola è «mobile» perché è l'esponente a dire dove si trova. È la notazione
+scientifica del laboratorio di fisica. Infinite coppie rappresentano lo stesso
+numero,
+\[
+346,09801 \;=\; (346,09801;\,0) \;=\; (346098,01;\,-3) \;=\; (0,034609801;\,4),
+\]
+e la \term{normalizzazione} sceglie un unico rappresentante: la virgola va
+subito dopo la prima cifra significativa, $(3,4609801;\,2)$.
+
+\subsection{L'intervallo di un piccolo formato decimale}
+
+Si consideri un formato in base 10 con quattro cifre per la mantissa e due per
+l'esponente (Figura~\ref{fig:real:line}). Rappresenta i numeri da
+$-9,999\times 10^{99}$ a $-1,000\times 10^{-99}$, lo zero, e i numeri da
+$+1,000\times 10^{-99}$ a $+9,999\times 10^{99}$. Si ha un \term{overflow}
+quando il modulo è troppo grande per l'esponente; un \term{underflow} quando è
+troppo piccolo, e il numero collassa a zero.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \draw[<->,thick,prgink] (-7,0) -- (7,0);
+  \fill[prgaccent!30] (-5.6,-0.22) rectangle (-1.0,0.22);
+  \fill[prgaccent!30] (1.0,-0.22) rectangle (5.6,0.22);
+  \fill[prgred!25] (-7,-0.22) rectangle (-5.6,0.22);
+  \fill[prgred!25] (5.6,-0.22) rectangle (7,0.22);
+  \fill[prgamber!35] (-1.0,-0.22) rectangle (1.0,0.22);
+  \draw[thick] (0,-0.3) -- (0,0.3) node[above,lbl]{0};
+  \foreach \x/\l in {-5.6/{$-9,999\times10^{99}$},-1.0/{$-1,000\times10^{-99}$},1.0/{$1,000\times10^{-99}$},5.6/{$9,999\times10^{99}$}}
+    \draw (\x,-0.3) -- (\x,0.3) node[above,font=\scriptsize]{\l};
+  \node[lbl,text=prgred] at (-6.3,-0.6) {overflow};
+  \node[lbl,text=prgred] at (6.3,-0.6) {overflow};
+  \node[lbl,text=prgamber] at (0,-0.6) {underflow};
+  \node[lbl,text=prgaccent] at (-3.3,-0.6) {rappresentabili};
+  \node[lbl,text=prgaccent] at (3.3,-0.6) {rappresentabili};
+\end{tikzpicture}
+\caption{Un formato decimale con quattro cifre di mantissa e due di esponente
+(non in scala).}
+\label{fig:real:line}
+\end{figure}
+
+\subsection{Approssimazione: errore assoluto ed errore relativo}
+
+In un formato del genere l'errore assoluto non è costante. Vicino a zero la
+distanza tra due numeri consecutivi è
+$1,001\times 10^{-99}-1,000\times 10^{-99} = 0,001\times 10^{-99}$; vicino al
+limite superiore è
+$9,999\times 10^{99}-9,998\times 10^{99} = 0,001\times 10^{99}$. L'errore
+assoluto è piccolo sui numeri piccoli e grande sui numeri grandi. Ciò che è
+costante lungo tutto l'asse è l'errore \emph{relativo}, perché il numero di
+cifre significative, quattro, è lo stesso ovunque.
+
+\begin{prgconcept}
+Virgola fissa: errore assoluto costante, errore relativo che esplode vicino a
+zero. Virgola mobile: errore relativo costante, errore assoluto che cresce con
+il numero.
+\end{prgconcept}
+
+\subsection{IEEE 754 a precisione singola}
+
+Fino al 1985 ogni costruttore aveva un proprio formato in virgola mobile, e i
+programmi davano risultati diversi su macchine diverse. Lo standard IEEE~754
+(1985, rivisto nel 2008 e nel 2019) vi ha posto fine \citep{ieee754}. Il suo
+formato a precisione singola divide 32 bit in tre campi
+(Figura~\ref{fig:real:ieee}).
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,22,23,30,31}\\
+\bitbox{1}[bgcolor=prgred!30]{S} & \bitbox{8}[bgcolor=prgamber!30]{E} & \bitbox{23}[bgcolor=prgaccent!20]{F}\\
+\bitbox[]{1}{\footnotesize segno} & \bitbox[]{8}{\footnotesize esponente: 8 bit\\eccesso-127} & \bitbox[]{23}{\footnotesize frazione: 23 bit\\modulo, dopo l'1 nascosto}
+\end{bytefield}
+\[ \text{valore} \;=\; (-1)^{S}\times 1,F\times 2^{\,E-127} \]
+\caption{IEEE 754 a precisione singola.}
+\label{fig:real:ieee}
+\end{figure}
+
+\begin{itemize}
+\item La mantissa è in segno e modulo: un bit di segno e 23 bit di modulo.
+\item Una mantissa binaria normalizzata comincia sempre con 1. Quel bit è
+  \term{nascosto}: non viene memorizzato, e si guadagna un bit di precisione.
+\item L'esponente è in eccesso-127 (non 128): gli esponenti veri vanno da
+  $-126$ a $+127$. Grazie alla codifica in eccesso, e alla posizione
+  dell'esponente prima della frazione, due numeri positivi in virgola mobile si
+  possono confrontare come se fossero naturali.
+\item Le configurazioni $E=0$ ed $E=255$ sono riservate: zero e numeri
+  denormalizzati, infinito e NaN.
+\end{itemize}
+
+\begin{example}{$-5,125$ in IEEE 754}
+\begin{enumerate}[nosep]
+\item Si convertono le due parti: $5=101_2$ e $0,125=1/8=0,001_2$, quindi
+  $5,125=101,001_2$.
+\item Si normalizza: $101,001_2 = 1,01001_2\times 2^{2}$.
+\item Segno $S=1$; esponente $E = 2+127 = 129 = \texttt{1000\,0001}$.
+\item Frazione $F=\texttt{01001}$ seguita da zeri: l'1 iniziale è nascosto.
+\end{enumerate}
+\[
+\underbrace{\texttt{1}}_{S}\;\underbrace{\texttt{1000\,0001}}_{E}\;
+\underbrace{\texttt{0100\,1000\,0000\,0000\,0000\,000}}_{F}
+\]
+Raggruppato a nibble, \texttt{1100 0000 1010 0100 0000 \ldots} è
+\hex{C0A40000}.
+\end{example}
+
+\subsection{IEEE 754 in sintesi}
+
+La Tabella~\ref{tab:real:formats} confronta i due formati di uso comune, e la
+Tabella~\ref{tab:real:special} elenca il significato di tutte le
+configurazioni.
+
+\begin{table}[htb]
+\centering\small
+\caption{IEEE 754 a precisione singola e doppia.}\label{tab:real:formats}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Precisione singola} & \textbf{Precisione doppia}\\
+\midrule
+Bit totali & 32 & 64\\
+Bit di segno & 1 & 1\\
+Bit di esponente & 8 & 11\\
+Bit di frazione & 23 & 52\\
+Codifica dell'esponente & eccesso-127 & eccesso-1023\\
+Intervallo dell'esponente & $-126\ldots+127$ & $-1022\ldots+1023$\\
+Minimo normalizzato & $2^{-126}\approx 1,2\times 10^{-38}$ & $2^{-1022}\approx 2,2\times 10^{-308}$\\
+Massimo & circa $2^{128}\approx 3,4\times 10^{38}$ & circa $2^{1024}\approx 1,8\times 10^{308}$\\
+Minimo denormalizzato & circa $1,4\times 10^{-45}$ & circa $4,9\times 10^{-324}$\\
+Cifre decimali & circa 7 & circa 16\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htb]
+\centering\small
+\caption{IEEE 754: che cosa significano le configurazioni.}\label{tab:real:special}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Tipo} & \textbf{Segno} & \textbf{Esponente $E$} & \textbf{Frazione $F$} & \textbf{Valore}\\
+\midrule
+Normalizzato & 0 o 1 & $0<E<\max$ & qualunque & $(-1)^{S}\times 1,F\times 2^{E-\mathit{bias}}$\\
+Denormalizzato & 0 o 1 & tutti zeri & non zero & $(-1)^{S}\times 0,F\times 2^{1-\mathit{bias}}$\\
+Zero & 0 o 1 & tutti zeri & tutti zeri & $+0$ o $-0$\\
+Infinito & 0 o 1 & tutti uni & tutti zeri & $+\infty$ o $-\infty$\\
+Not a Number & 0 o 1 & tutti uni & non zero & NaN: un risultato non valido\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+I numeri \term{denormalizzati} (o subnormali) riempiono il vuoto
+dell'underflow attorno allo zero con una precisione che diminuisce
+gradualmente. La divisione $1/0$ dà infinito; $0/0$ e la radice quadrata di
+$-1$ danno NaN. NaN non è uguale a nulla, nemmeno a sé stesso.
+
+\subsection{La virgola mobile non è l'insieme dei numeri reali}
+
+Un numero in virgola mobile è un numero razionale scelto da un insieme finito,
+e l'aritmetica su tali numeri obbedisce a leggi che non sono quelle del campo
+reale \citep{goldberg1991}.
+
+\begin{itemize}
+\item 0,1 non ha un'espansione binaria finita: è memorizzato in modo
+  approssimato, come 0,8 nel Capitolo~\ref{ch:integers}.
+\item Due risultati in virgola mobile non vanno mai confrontati per
+  uguaglianza: se ne confronta la differenza con una tolleranza
+  (Listato~\ref{lst:real:c}).
+\item L'addizione non è associativa: $(a+b)+c$ può differire da $a+(b+c)$.
+\item Sommare un numero molto piccolo a uno molto grande può lasciare invariato
+  quello grande.
+\item Per il denaro e per le posizioni di un gioco, gli interi scalati sono
+  spesso lo strumento giusto.
+\end{itemize}
+
+\cfile[caption={La somma più famosa dell'informatica.},label=lst:real:c,numbers=none]{code/l06/s22.c}
+
+\subsection{Oltre la singola e la doppia}
+
+La scelta di una rappresentazione è una decisione ingegneristica che si prende
+ancora oggi. La \emph{mezza precisione}, aggiunta allo standard nel 2008, ha
+sedici bit: 1 di segno, 5 di esponente, 10 di frazione; dà circa tre cifre
+decimali in metà della memoria della precisione singola. Conta perché le reti
+neurali contengono miliardi di numeri: dimezzare ciascuno dimezza memoria,
+banda ed energia. Molti modelli vanno oltre e vengono memorizzati, per
+\term{quantizzazione}, come interi a 8 bit con un fattore di scala: di nuovo
+virgola fissa, su scala industriale. I bit sono un bilancio; intervallo,
+precisione e costo tirano in direzioni diverse, su una GPU come su una palla in
+Q24.8.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{La virgola mobile su RISC-V, e sul kit}
+
+\riscv è modulare: una piccola base obbligatoria più estensioni facoltative
+(Tabella~\ref{tab:real:rv}). Un processore \riscv con le estensioni F e D ha
+altri trentadue registri, da \reg{f0} a \reg{f31}, per i valori in virgola
+mobile, e istruzioni come \ins{fadd.s}, \ins{fmul.s}, \ins{flw} e \ins{fsw} che
+lavorano su numeri IEEE~754; \ins{fcvt.w.s} converte in intero e
+\ins{fcvt.s.w} da intero. Processori così si trovano in portatili, server e
+supercalcolatori.
+
+L'ESP32-C6 è RV32IMAC: non ha né F né D, e quindi nessuna istruzione in virgola
+mobile. Un programma C può comunque usare il tipo \code{float}: il compilatore
+chiama routine software come \code{\_\_addsf3}, che realizzano esattamente
+l'algoritmo di questo capitolo con scorrimenti, maschere e somme intere, al
+costo di decine o centinaia di istruzioni intere per operazione. I giochi \prg
+usano interi e virgola fissa: veloci, abbastanza esatti, e visibili nel
+debugger.
+
+\begin{table}[htb]
+\centering\small
+\caption{Leggere il nome RV32IMAC.}\label{tab:real:rv}
+\begin{tabularx}{\textwidth}{@{}llLc@{}}
+\toprule
+\textbf{Lettera} & \textbf{Estensione} & \textbf{Che cosa aggiunge} & \textbf{ESP32-C6}\\
+\midrule
+RV32I & insieme intero di base & registri a 32 bit, somma, logica, load e store, salti & sì\\
+M & moltiplicazione e divisione & \ins{mul}, \ins{mulh}, \ins{div}, \ins{rem} e le loro forme senza segno & sì\\
+A & atomiche & istruzioni per la condivisione sicura tra task & sì\\
+C & compresse & codifiche a 16 bit delle istruzioni più comuni & sì\\
+F & precisione singola & da \reg{f0} a \reg{f31} e istruzioni IEEE 754 a precisione singola & no\\
+D & precisione doppia & istruzioni IEEE 754 a precisione doppia & no\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Un microcontrollore sceglie le estensioni che gli servono. È una delle ragioni
+per cui la stessa architettura scala da un chip che costa due euro a un
+supercalcolatore.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quale codifica con segno mantiene le configurazioni di bit nello stesso ordine dei numeri?}
+\item Segno e modulo
+\item Complemento a uno
+\item Complemento a due
+\item Eccesso-$k$
+\end{quiz}
+
+\begin{quiz}{In virgola fissa Q24.8, quale numero reale rappresenta la parola \hex{00000180}?}
+\item 384
+\item 1,5
+\item 1,8
+\item 0,375
+\end{quiz}
+
+\begin{quiz}{Quale numero reale è la configurazione IEEE 754 a precisione singola \hex{40400000}?}
+\item 2,0
+\item 3,0
+\item 4,0
+\item 0,75
+\end{quiz}
+
+\begin{quiz}{In IEEE 754, un campo esponente di tutti uni con una frazione di tutti zeri significa:}
+\item zero
+\item un numero denormalizzato
+\item infinito
+\item NaN
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Scrivete $-6$ su quattro bit in segno e modulo, complemento a uno,
+  complemento a due ed eccesso-8.
+\item Codificate 10,5 e 0,15625 in IEEE 754 a precisione singola; date il
+  risultato in esadecimale.
+\item Decodificate \hex{BF800000}.
+\item Eseguite la palla con \code{SPEED\_Q8} uguale a 96, 16 e 1. Dopo quanti
+  frame si sposta di un pixel in ciascun caso?
+\item Date alla palla anche una velocità verticale, e fatela rimbalzare:
+  cambiate di segno la velocità con \ins{neg} quando raggiunge un bordo.
+\end{enumerate}
+\expected{Su carta: \texttt{1110}, \texttt{1001}, \texttt{1010},
+\texttt{0010}; \hex{41280000} e \hex{3E200000}; $-1,0$. Su \prg: la palla
+avanza di un pixel ogni 2,67, 16 e 256 frame; con il rimbalzo si muove in
+diagonale e resta sullo schermo.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+one's complement & complemento a uno (alla base diminuita)\\
+excess-$k$ (biased) & eccesso-$k$\\
+fixed point & virgola fissa\\
+floating point & virgola mobile\\
+single / double precision & singola / doppia precisione\\
+rounding & arrotondamento\\
+mantissa / fraction & mantissa\\
+exponent & esponente\\
+normalisation & normalizzazione\\
+hidden bit & bit nascosto\\
+denormalised & denormalizzato\\
+Not a Number (NaN) & non un numero (NaN)\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Gli interi hanno più rappresentazioni: 8, 16, 32 o 64 bit, con segno o senza,
+complementi o eccesso. La virgola fissa memorizza una frazione come intero
+scalato: errore assoluto costante, la velocità degli interi. La virgola mobile
+memorizza una mantissa e un esponente: un intervallo enorme, errore relativo
+costante. IEEE~754 è lo standard universale per la virgola mobile, con
+configurazioni speciali per zero, infinito e NaN. Su un processore senza
+l'estensione F, la virgola fissa è la scelta naturale.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafo~3.5;
+\citet{goldberg1991}; \emph{Playing with RISC-V}, l'appendice sull'interfaccia
+del runtime, per playfield e parallasse in Q8 \citep{prg32textbook}.
+
+Il primo blocco è completo. Il prossimo capitolo mette al lavoro le sue quattro
+lezioni in un programma vero: la prima parte di \vermone.

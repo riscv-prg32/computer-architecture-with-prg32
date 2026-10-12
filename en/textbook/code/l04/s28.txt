@@ -1,0 +1,13 @@
+is_probably_prime(n):
+    repeat 30 times:
+        a = random(2, n - 2)
+        if a^(n-1) mod n != 1:
+            return COMPOSITE          # certain
+    return PROBABLY PRIME             # almost certain
+
+random_walk():
+    while t < t_final:
+        r = random(-1, 1)
+        x = x + r * u                 # a different path every run
+        y = y + r * v
+        t = t + 1

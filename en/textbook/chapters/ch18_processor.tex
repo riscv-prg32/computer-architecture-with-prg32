@@ -1,0 +1,562 @@
+% ============================================================================
+%  Chapter 18 -- The Processor                                   (Lecture 18)
+% ============================================================================
+\chapter{The Processor}
+\label{ch:processor}
+
+\epigraphline{One Ring to rule them all\ldots}
+  {J.\,R.\,R.\ Tolkien, \emph{The Lord of the Rings}, 1954--1955}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item name the components of a processor: control unit, ALU, registers, links to memory and to input/output;
+\item distinguish internal registers from machine registers, and general registers from special ones;
+\item explain how a stack works and how \riscv implements push and pop;
+\item compare the accumulator, stack and general-register models on the same computation;
+\item describe \riscv as a load-store, general-register processor, and read the name RV32IMAC;
+\item map every element of the general model onto the processor of the \prg kit.
+\end{itemize}
+\end{chapgoals}
+
+The reader has programmed a processor since Chapter~\ref{ch:firstcontact}.
+This chapter presents the general model of a processor, of which every real
+one is a variant, and uses \riscv as the reference: every abstract element
+has a name that the reader already knows.
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={One line of a high-level language: \code{z = x + y}.},label=lst:cpu:sum]{code/l18/s04.S}
+
+Seven lines for one sum (Listing~\ref{lst:cpu:sum}). Memory is touched only
+by \ins{lw} and \ins{sw}, and the arithmetic happens only between registers:
+it is the cycle ``load, modify, store'' of Chapter~\ref{ch:firstcontact}, now
+seen as a design choice. Other processors do the same job with three
+instructions, or with one. Why is \riscv made in this way? To answer, a
+model of the processor is needed.
+
+% ----------------------------------------------------------------------------
+\section{The processor}
+
+\subsection{The computer and its processor}
+
+An electronic computer is a numeric, automatic, stored-program system built
+with electronic circuits (Chapter~\ref{ch:boole1}), with three subsystems:
+processor, main memory and input/output, connected by buses. The processor
+can execute only a fixed set of instructions, from some tens to a few hundred,
+more or less complex. The \term{machine language} is the set of the strings
+of bits that encode the instructions which the circuits of a processor can
+execute. Instructions request transfers of information, inside the computer
+and to or from the I/O devices, and arithmetic and logic operations. The data
+and the instructions of a program are stored in the main memory.
+
+RV32I, the base of \riscv, has about forty instructions; with the M, A and C
+extensions of the kit, about a hundred encodings. The Motorola 68000 had
+fifty-six types of instruction, with many variants of each.
+
+\subsection{A reference model}
+
+Figure~\ref{fig:cpu:model} is the reference model of a processor. Its
+elements are the following.
+
+\begin{itemize}
+\item The \term{control network}, or control unit, which produces the commands
+  for all the rest.
+\item The \term{program counter} PC, which holds the address of the next
+  instruction, and the \term{decoding register} D, which holds the instruction
+  being executed.
+\item The \term{machine registers} $R_0,\dots,R_{n-1}$.
+\item The \term{ALU}, with its input registers $O_1$ and $O_2$ and its output
+  register $U$.
+\item The link to memory: the address register MA and the buffer register MB
+  of Chapter~\ref{ch:memory}.
+\item The link to input/output: an input register RI and an output register RU.
+\item An \term{internal bus} that joins them all.
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[draw=prgsteel,dashed,rounded corners,minimum width=116mm,minimum height=62mm,label={[lbl,anchor=north west]north west:CPU}] (cpu) at (5.3,-2.25) {};
+  \node[blk,fill=prgsteel,text=white,minimum width=20mm,minimum height=17mm] (cn) at (1.0,-0.6) {control\\network};
+  \node[blkred,minimum width=9mm,minimum height=7mm] (pc) at (0.5,-2.2) {PC};
+  \node[blkred,minimum width=9mm,minimum height=7mm] (d) at (1.5,-2.2) {D};
+  \foreach \i/\r in {0/{$R_0$},1/{$R_1$},2/{$\cdots$},3/{$R_{n-1}$}} \node[blkacc,minimum width=18mm,minimum height=5.5mm] (r\i) at (4.0,-\i*0.65+0.1) {\r};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (o1) at (6.9,0.1) {$O_1$};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (o2) at (8.3,0.1) {$O_2$};
+  \node[blkvio,minimum width=25mm,minimum height=9mm] (alu) at (7.6,-0.85) {\textbf{ALU}};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (u) at (7.6,-1.9) {$U$};
+  \draw[prgamber,line width=3pt] (-0.2,-2.95) -- (10.8,-2.95) node[pos=0.93,above,lbl,text=prgamber]{internal bus};
+  \node[blkgrn,minimum width=11mm,minimum height=7mm] (ma) at (1.0,-4.1) {MA};
+  \node[blkgrn,minimum width=11mm,minimum height=7mm] (mb) at (2.6,-4.1) {MB};
+  \node[blkamb,minimum width=11mm,minimum height=7mm] (ri) at (7.0,-4.1) {RI};
+  \node[blkamb,minimum width=11mm,minimum height=7mm] (ru) at (8.6,-4.1) {RU};
+  \foreach \n in {pc,d,u} \draw[<->,thick] (\n.south) -- (\n.south|-0,-2.95);
+  \draw[<->,thick] (r3.south) -- (r3.south|-0,-2.95);
+  \foreach \n in {ma,mb,ri,ru} \draw[<->,thick] (\n.north) -- (\n.north|-0,-2.95);
+  \draw[->,thick] (o1) -- (o1|-alu.north); \draw[->,thick] (o2) -- (o2|-alu.north); \draw[->,thick] (alu) -- (u);
+  \draw[<->,bus] (1.8,-4.45) -- (1.8,-6.0) node[below,lbl]{to the memory};
+  \draw[<->,bus] (7.8,-4.45) -- (7.8,-6.0) node[below,lbl]{to input/output};
+\end{tikzpicture}
+\caption{The reference model of a processor.}
+\label{fig:cpu:model}
+\end{figure}
+
+Although they are based on the same logical scheme, and are therefore made of
+rather similar components, the processors on the market can be very different
+from one another. Table~\ref{tab:cpu:map} puts the model and \riscv side by
+side. The two rows marked ``absent'' are deliberate simplifications of
+\riscv, discussed below and in Chapter~\ref{ch:memory}. The MC68000 of the
+previous editions of this course had all the elements of the model: eight
+data registers and eight address registers, a status register with condition
+codes, and separate circuitry for interrupts.
+
+\begin{table}[htb]
+\centering\small
+\caption{The model and \riscv.}\label{tab:cpu:map}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}LL@{}}
+\toprule
+\textbf{Element of the model} & \textbf{In \riscv} & \textbf{Seen by the programmer?}\\
+\midrule
+PC, program counter & \reg{pc}, 32 bits & indirectly: branches, jumps and \ins{auipc} use it\\
+D, decoding register & the instruction register & no\\
+$R_0\ldots R_{n-1}$, machine registers & \reg{x0}\ldots\reg{x31}, thirty-two registers of 32 bits & yes: \reg{zero}, \reg{ra}, \reg{sp}, \reg{t0}, \reg{a0}, \reg{s0}, \ldots\\
+$O_1$, $O_2$, $U$, registers of the ALU & the inputs and the output of the ALU & no\\
+MA, MB, link to memory & the address and the datum of a load or store & no\\
+RI, RU, link to input/output & absent: devices are memory-mapped & --\\
+status register with flags & absent: no condition codes & --\\
+special registers & the control and status registers (CSR) & only by privileged software\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Internal registers and machine registers}
+
+\begin{definition}{Internal and machine registers}
+The \term{internal registers} are not directly visible to the programmer, and
+are necessary for the processor to work: PC, MA, MB, D, $O_1$, $O_2$, $U$.
+The \term{machine registers} define the programming model; they are divided
+into \term{general} registers and \term{special} registers.
+\end{definition}
+
+A processor handles three kinds of information: instructions, memory
+addresses and data. The size of MA and of the PC depends on the size of the
+addresses; the size of the registers of the ALU depends on the size of the
+data. In RV32 all three are 32 bits wide: one size for registers, addresses
+and instructions. The ``32'' of the name is the width of the registers: RV64
+has registers and addresses of 64 bits, and the same instructions of 32 bits.
+
+\subsection{How real processors differ from the model}
+
+In general, real processors may have a different and usually richer set of
+general registers; their machine registers may be specific memory locations;
+the I/O section may be missing altogether and be implemented by dedicated
+chips; and very simple arithmetic units can be extended by dedicated chips
+that improve the ALU, as the floating-point coprocessors 68881 for the 68000
+family and 8087 for the 8086 did.
+
+\riscv on the \prg kit has thirty-two general registers in a bank inside the
+processor; no I/O section, since the peripheral controllers are on the same
+chip and are reached as memory; optional \emph{extensions} instead of extra
+chips, of which M adds multiplication and division; and no F extension, so
+that floating point would be done in software (Chapter~\ref{ch:reals}).
+
+\subsection{Words or bytes: the length of machine words}
+
+In a \emph{word processor} all the machine words have the same length, sized
+on the longest piece of information; this is awkward with data of
+intrinsically variable nature. Every \riscv instruction is 32 bits long (16
+in the compressed form). In a \emph{character}, or byte, processor the length
+of machine words is variable, a multiple of a byte, which suits the treatment
+of strings: an Intel x86 instruction takes from 1 to 15 bytes, and an MC68000
+instruction from one to five words of 16 bits. A characteristic parameter of
+a processor is the number of bits of its registers, the parallelism of its
+internal transfers: 8, 16, 32 or 64.
+
+\subsection{User state and supervisor state}
+
+A processor is in \term{supervisor state} when it executes the operating
+system, and may then execute every instruction of its set; it is in \term{user
+state} when it executes a user program, and may then execute everything
+except the \term{privileged instructions}.
+
+\riscv defines three \term{privilege modes}. Machine mode (M), the most
+privileged and the only mandatory one, runs the firmware. Supervisor mode
+(S) runs the kernel of an operating system such as Linux. User mode (U) runs
+applications. The ESP32-C6 implements M and U. The passage from one mode to
+another happens through traps, the subject of Chapter~\ref{ch:instructions}.
+
+% ----------------------------------------------------------------------------
+\section{Registers}
+
+\subsection{Kinds of registers}
+
+A register can be specialised, or can do several jobs. Specialised registers
+need specialised operation codes for the same operation on different banks;
+concentrating several functions in the same registers gives more internal
+complexity and more flexibility of use. The machine registers, different in
+number and often grouped in banks, can be organised as an addressable memory
+(a bank $R$, of which $R_i$ is a register) or as autonomous registers, each
+with its own name. Some processors placed their general registers in the
+first locations of memory: the ``page zero'' of the 6502.
+
+\riscv has one bank of thirty-two registers, addressed by 5 bits inside the
+instruction; the names \reg{t0}, \reg{a0}, \reg{sp} are only conventions.
+
+\subsection{The functions of registers}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Transit of data.] From memory to a register, from register to register,
+  from a register to memory: load, move, store.
+\item[Accumulation of results.] Needed for arithmetic and logic:
+  $R:=\mathrm{op}\,R$, or $R:=R\ \mathrm{op}\ X$.
+\item[Addressing.] Finding the address of an operand: index registers, base
+  registers.
+\item[Stack pointers.] Managing a stack implemented in memory.
+\item[Indicators, or flags.] Binary information about events: zero, sign,
+  overflow, carry, illegal addresses or codes. Produced during the execution
+  of an instruction, they can condition the following ones.
+\end{description}
+
+In \riscv the first four functions are all served by the general registers;
+the fifth does not exist as a register.
+
+\subsection{The thirty-two registers of RISC-V}
+
+\begin{table}[htb]
+\centering\small
+\caption{The registers of \riscv and their conventional roles.}\label{tab:cpu:regs}
+\begin{tabular}{@{}lll@{\qquad}lll@{}}
+\toprule
+\textbf{Register} & \textbf{Name} & \textbf{Function} & \textbf{Register} & \textbf{Name} & \textbf{Function}\\
+\midrule
+\reg{x0} & \reg{zero} & always 0 & \reg{x8}--\reg{x9} & \reg{s0}--\reg{s1} & saved\\
+\reg{x1} & \reg{ra} & return address & \reg{x10}--\reg{x11} & \reg{a0}--\reg{a1} & arguments, results\\
+\reg{x2} & \reg{sp} & stack pointer & \reg{x12}--\reg{x17} & \reg{a2}--\reg{a7} & arguments\\
+\reg{x3} & \reg{gp} & global pointer & \reg{x18}--\reg{x27} & \reg{s2}--\reg{s11} & saved\\
+\reg{x4} & \reg{tp} & thread pointer & \reg{x28}--\reg{x31} & \reg{t3}--\reg{t6} & temporaries\\
+\reg{x5}--\reg{x7} & \reg{t0}--\reg{t2} & temporaries & \reg{pc} & -- & program counter\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The hardware treats \reg{x1} to \reg{x31} identically, and only \reg{x0} is
+special (Table~\ref{tab:cpu:regs}); the program counter is not in the bank.
+The roles come from the calling convention. The MC68000, instead, separated
+the data registers D0--D7 from the address registers A0--A7, with A7 as stack
+pointer.
+
+\subsection{Flags: the status register, and its absence}
+
+Many processors have a \term{status register}: bits, called flags, accessible
+from the program. The usual ones are Z (zero), N (negative), V (overflow) and
+C (carry), sometimes with a parity bit. An instruction sets them, and a later
+conditional branch tests them. The MC68000 has its condition code register,
+and x86 its flags register.
+
+\riscv has no flags. A branch compares two registers and jumps, in one
+instruction: \ins{beq}, \ins{bne}, \ins{blt}, \ins{bge}, \ins{bltu},
+\ins{bgeu}. The instructions \ins{slt} and \ins{sltu} write the result of a
+comparison in a general register. Carry and overflow are computed when they
+are needed (Chapter~\ref{ch:integers}). There is less hidden state, which
+makes pipelines and interrupts simpler.
+
+\subsection{Special registers of RISC-V: the CSRs}
+
+The special registers of \riscv are the \term{control and status registers}
+(CSR): a separate bank of up to 4\,096 registers, read and written only with
+the instructions \ins{csrrw}, \ins{csrrs} and \ins{csrrc}, and only by
+privileged code (Table~\ref{tab:cpu:csr}). They are the ``registers of the
+interrupts'' of the general model, and the subject of
+Chapter~\ref{ch:instructions}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Some machine-mode CSRs.}\label{tab:cpu:csr}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Register} & \textbf{Name} & \textbf{What it holds}\\
+\midrule
+\reg{mstatus} & machine status & the global interrupt enable and the previous privilege mode\\
+\reg{mtvec} & trap vector & the address of the routine that handles interrupts and exceptions\\
+\reg{mepc} & exception program counter & the address of the instruction that was interrupted\\
+\reg{mcause} & trap cause & a code that says why the trap happened\\
+\reg{mie}, \reg{mip} & interrupt enable, interrupt pending & one bit per source of interrupt\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{The stack}
+
+\subsection{Last in, first out}
+
+\begin{definition}{Stack}
+A \term{stack} is an abstract data structure with two operations: \emph{push}
+stores an element as the last of the pile, and \emph{pop} takes the last
+element away. The last value pushed is the first one popped (LIFO).
+\end{definition}
+
+A stack works always and only on its top: there is no need to say where to
+store or where to fetch. It is used to set aside the contents of registers
+that must be freed to carry out a task, and to restore them afterwards: this
+happens in subprograms and in interrupts. It is implemented with a pointer,
+in memory or in a dedicated register, which indicates at every instant the
+position of the last element. Operations on a stack should check for overflow
+on a push and for an empty stack on a pop.
+
+\subsection{Push and pop in RISC-V}
+
+In \riscv the stack lives in memory, grows towards the low addresses, and the
+register \reg{sp} points to its top (Figure~\ref{fig:cpu:stack}). There are
+no instructions called push and pop: each is two ordinary instructions.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.42\textwidth}\centering
+\begin{tikzpicture}[x=0.7cm,y=0.62cm,font=\ttfamily\small]
+  \foreach \i/\v/\f in {0/(free)/prgpanel, 1/(free)/prgpanel, 2/-28/prgamber!60, 3/-17/prgaccent!18, 4/739/prgaccent!18, 5/43/prgaccent!18}{
+    \draw[prgsteel,fill=\f] (0,-\i) rectangle (2.6,-\i-1);
+    \node at (1.3,-\i-0.5) {\v};
+  }
+  \draw[->,very thick,prgred] (-1.1,-2.5) node[left,font=\ttfamily\bfseries]{sp} -- (-0.05,-2.5);
+  \node[lbl,anchor=west,text=prgcomment] at (2.7,-0.5) {low addresses};
+  \node[lbl,anchor=west,text=prgcomment] at (2.7,-5.5) {bottom};
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{asm}[numbers=none,xleftmargin=4pt,basicstyle=\ttfamily\footnotesize]
+# push t0
+addi sp, sp, -4      # make room
+sw   t0, 0(sp)       # store on the new top
+
+# pop t0
+lw   t0, 0(sp)       # read the top
+addi sp, sp, 4       # release it
+\end{asm}
+\end{minipage}
+\caption{A stack in memory, and the two operations in \riscv.}
+\label{fig:cpu:stack}
+\end{figure}
+
+In practice a \riscv program does not push and pop single values: a
+\emph{stack frame} is allocated once per function, sixteen bytes at a time,
+and is filled with ordinary stores, as every function of \vermone that makes
+a call has done. Other processors have dedicated forms: on the 68000,
+\code{MOVE (SP)+, D0} pops with a post-increment.
+
+% ----------------------------------------------------------------------------
+\section{Processor models}
+
+Processors are classified according to where the operands of an operation
+live.
+
+\subsection{Four architectures}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[General registers.] The processor has a set of registers that can be
+  used interchangeably.
+\item[Accumulator.] All the arithmetic, logic and comparison instructions have
+  an implicit operand: one special register, the accumulator.
+\item[Stack.] There are neither accumulators nor general registers, only the
+  stack pointer; the instructions work on the data on top of the stack.
+\item[Orthogonal.] A single bank of general registers, some of which serve,
+  when needed, as stack pointer or as other special registers.
+\end{description}
+
+\subsection{\texttt{z = x + y} in four processors}
+
+\begin{table}[htb]
+\centering\small
+\caption{The same computation in four models.}\label{tab:cpu:models}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}P{0.2\textwidth}Lc@{}}
+\toprule
+\textbf{Model} & \textbf{Example} & \textbf{Program} & \textbf{Accesses}\\
+\midrule
+accumulator & Motorola 6809, MOS 6502 & \code{LDA x; ADD y; STA z} & 3\\
+stack & Java virtual machine, WebAssembly & \code{PUSH x; PUSH y; ADD; POP z} & 3 + stack\\
+general registers, memory operands & MC68000, Intel x86 & \code{MOVE x,D0; ADD y,D0; MOVE D0,z} & 3\\
+general registers, load-store & \riscv & \code{lw t1,x; lw t2,y; add t3,t1,t2; sw t3,z} & 3\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The accesses to memory are the same three everywhere
+(Table~\ref{tab:cpu:models}): what changes is how many instructions there are,
+and how complex each one is. In the register-memory model an instruction
+such as \code{ADD y, D0} reads memory \emph{and} computes; in the load-store
+model every instruction does one thing. Stack machines with the stack in
+memory are generally slower than general-register machines. (In the table,
+\code{lw t1, x} is a shorthand that the assembler accepts for the pair
+\ins{la} and \ins{lw} of the warm-up.)
+
+\subsection{RISC-V: a load-store, general-register processor}
+
+\begin{prgconcept}[Load, compute, store]
+Only loads and stores touch memory; every other instruction works from
+register to register. It is the rhythm of every \riscv program, from the
+first counter to the last game.
+\end{prgconcept}
+
+The reasons are four. Instructions that work on registers are faster than
+those that work on memory locations, so that the most used data are kept in
+registers. An instruction has three operands, two sources and a destination,
+so that no value is destroyed unless the programmer wants it to be. Each
+instruction does one simple thing and has a fixed size: it is easy to decode,
+and easy to execute in a pipeline. This is the meaning of RISC, \emph{reduced
+instruction set computer}: the forms that go from memory to a register and
+from a register to memory, which exist in CISC processors, are exactly what
+RISC gives up.
+
+% ----------------------------------------------------------------------------
+\section{The ALU and the whole picture}
+
+\subsection{The arithmetic logic unit}
+
+The ALU of Chapter~\ref{ch:combinational}, seen from the processor,
+supervises the arithmetic and logic operations between operands. In the model
+it has two input registers, $O_1$ and $O_2$, and an output register $U$. It
+is physically included in the processor in elementary architectures and is an
+independent apparatus in more complex ones; a widespread solution is a reduced
+arithmetic unit inside the processor with independent apparatus for the more
+sophisticated operations. In \riscv that apparatus is the extensions: M for
+multiplication and division, F and D for floating point. The operations
+available depend on the types of data and on their representation: logical
+values, strings of characters, pointers, and numbers in the encodings of
+Chapters \ref{ch:integers} and~\ref{ch:reals}.
+
+\subsection{The architecture of an RV32 processor}
+
+Figure~\ref{fig:cpu:datapath} reduces to its blocks the classic single-cycle
+\riscv datapath of \citet{patterson2020}. The PC gives the address of the
+instruction; the instruction is fetched from memory; the decoder separates its
+fields and the control unit produces the commands; the register file supplies
+the operands; the ALU computes a result or forms an address; the data memory
+is read or written; and the result goes back to the register file. The
+instruction memory and the data memory are the same address space, drawn
+twice for clarity.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkred,text width=12mm,minimum height=16mm] (pc) {\textbf{PC}};
+  \node[blkvio,text width=19mm,minimum height=16mm,right=of pc] (im) {\textbf{instruction memory}\\\scriptsize fetch};
+  \node[blk,fill=prgsteel,text=white,text width=20mm,minimum height=16mm,right=of im] (dec) {\textbf{decoder and control}\\\scriptsize fields, commands};
+  \node[blkacc,text width=19mm,minimum height=16mm,right=of dec] (rf) {\textbf{register file}\\\scriptsize \texttt{x0}--\texttt{x31}};
+  \node[blkamb,text width=16mm,minimum height=16mm,right=of rf] (alu) {\textbf{ALU}\\\scriptsize compute, or form an address};
+  \node[blkvio,text width=16mm,minimum height=16mm,right=of alu] (dm) {\textbf{data memory}\\\scriptsize load, store};
+  \foreach \a/\b in {pc/im,im/dec,dec/rf,rf/alu,alu/dm} \draw[->,bus] (\a) -- (\b);
+  \draw[->,bus,prgred,rounded corners=2mm] (dm.south) -- ++(0,-8mm) -| (rf.south) node[pos=0.25,below,lbl,text=prgred]{write back the result};
+  \draw[->,bus,prgsteel,rounded corners=2mm] (alu.north) -- ++(0,8mm) -| (pc.north) node[pos=0.25,above,lbl]{next PC: $PC+4$ or a branch target};
+\end{tikzpicture}
+\caption{The architecture of an RV32 processor, reduced to its blocks.}
+\label{fig:cpu:datapath}
+\end{figure}
+
+\subsection{The processor of the PRG32 kit}
+
+\begin{table}[htb]
+\centering\small
+\caption{The ESP32-C6 (from the datasheet of Espressif).}\label{tab:cpu:c6}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Feature} & \textbf{ESP32-C6}\\
+\midrule
+Instruction set & RV32IMAC: base integer set, multiply and divide, atomics, compressed instructions\\
+Main core & one 32-bit \riscv core, up to 160 MHz, four-stage pipeline\\
+Second core & a low-power \riscv core, up to 20 MHz, for tasks that run while the main core sleeps\\
+Privilege modes & machine and user\\
+Floating point & none: no F or D extension\\
+Memory & 512 KB of SRAM, 320 KB of ROM, external flash\\
+On the same chip & Wi-Fi 6, Bluetooth, Thread and Zigbee radios; SPI, I2S, GPIO and timer peripherals\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The chip of Table~\ref{tab:cpu:c6} is a complete computer on a few square
+millimetres that costs about two euros: processor, memory and input/output
+are all there, as in the model with which the chapter began.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{Which register of the general model has no counterpart in \riscv?}
+\item the program counter
+\item the status register with the flags
+\item the stack pointer
+\item the instruction register
+\end{quiz}
+
+\begin{quiz}{In \riscv, which instructions can read or write the main memory?}
+\item all of them
+\item \ins{add} and \ins{sub}
+\item only loads and stores
+\item only jumps
+\end{quiz}
+
+\begin{quiz}{After \code{addi sp, sp, -4} and \code{sw t0, 0(sp)}, what has happened?}
+\item \reg{t0} was popped from the stack
+\item \reg{t0} was pushed on the stack
+\item the stack was emptied
+\item \reg{sp} was saved in \reg{t0}
+\end{quiz}
+
+\begin{quiz}{In an accumulator machine, the instruction \code{ADD y} means:}
+\item $y := y + \text{accumulator}$
+\item $\text{accumulator} := \text{accumulator} + [y]$
+\item push $y$, then add
+\item $y := \text{accumulator}$
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Write $z=(a+b)-(c+d)$ for an accumulator machine, for a stack machine
+  and for \riscv; count the instructions and the memory accesses.
+\item Write the push and the pop of two registers, \reg{t0} and \reg{t1},
+  keeping \reg{sp} a multiple of 16 as the calling convention requires.
+\item For each register used in your last \prg program, say which function it
+  serves: transit, accumulation, addressing, stack.
+\item In \prgqt, single-step a call and its return: watch \reg{pc}, \reg{ra}
+  and \reg{sp}, and the word saved on the stack.
+\item Find in the datasheet of the processor of your telephone or laptop:
+  instruction set, number of cores, clock, privilege levels.
+\end{enumerate}
+\expected{Accumulator: \code{LDA a; ADD b; STA tmp; LDA c; ADD d; STA tmp2;
+LDA tmp; SUB tmp2; STA z}. Stack: \code{PUSH a; PUSH b; ADD; PUSH c; PUSH d;
+ADD; SUB; POP z}. \riscv: four loads, two \ins{add}, one \ins{sub}, one
+store. In \prgqt: \reg{sp} drops by 16 at the prologue and returns at the
+epilogue; \reg{ra} holds the address after the call.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+control unit & unit\`a di controllo\\
+program counter & contatore di programma\\
+machine register & registro di macchina\\
+general / special register & registro generico / speciale\\
+instruction set & insieme (set) di istruzioni\\
+accumulator & accumulatore\\
+stack pointer & puntatore allo stack\\
+status register, flags & registro di stato, indicatori\\
+supervisor / user state & stato supervisore / utente\\
+privileged instruction & istruzione privilegiata\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+The processor commands and controls, relying on the memory and on the
+input/output systems. Registers are storage locations that may be physically
+inside or outside the processor, and the kinds of registers and the way in
+which they are used determine the model of the processor: accumulator, stack,
+general registers. The ALU carries out the operations between operands.
+\riscv is a load-store, general-register processor with no flags and no I/O
+instructions: few elements, each one simple.
+
+\paragraph{Reading.} \citet{patterson2020}, chapters 2 and~4; the \riscv
+instruction set manual, volume~I \citep{riscvisa}; \citet{stallings2021}, the
+chapters on the structure and function of the processor.
+Appendix~\ref{app:riscv} is the complete reference.

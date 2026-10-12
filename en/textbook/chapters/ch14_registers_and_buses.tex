@@ -1,0 +1,474 @@
+% ============================================================================
+%  Chapter 14 -- Elementary Machines: Registers and Buses        (Lecture 14)
+% ============================================================================
+\chapter{Elementary Machines: Registers and Buses}
+\label{ch:registers}
+
+\epigraphline{Roads? Where we're going, we don't need roads.}
+  {Dr.\ Emmett Brown, \emph{Back to the Future}, Robert Zemeckis, 1985}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item describe a register as a set of flip-flops with a common clock, and explain its load signal;
+\item explain what a bus is, and compare dedicated buses with a common bus;
+\item say why a common bus needs three-state buffers, and what high impedance means;
+\item describe a shift register and its four combinations of serial and parallel input and output;
+\item convert a datum from parallel to serial and back, in hardware and in \riscv assembly.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+The display and the sound chip of the kit are connected to the processor by a
+few wires, not by thirty-two. A word must therefore travel one bit after
+another: a \term{serial} transfer. Listing~\ref{lst:rb:serial} sends a byte
+in this way.
+
+\asmfile[caption={Send a byte one bit at a time, most significant bit first.},label=lst:rb:serial]{code/l14/s04.S}
+
+The loop is a shift register in software: shift, take one bit, repeat. (The
+two lines left out would write to registers of the chip that control its
+pins, a subject of Chapter~\ref{ch:memory}.) The ESP32-C6 contains hardware
+that does exactly this, millions of times per second: every pixel of the
+display of the kit arrives one bit at a time. This chapter builds the
+machines that do it.
+
+% ----------------------------------------------------------------------------
+\section{Word gates and registers}
+
+\subsection{Word gates}
+
+A \term{word} is a vector of $n$ bits, $V=(v_0,v_1,\dots,v_{n-1})$. A
+\term{word gate} acts on all the bits of a word at once: with a control
+signal $a$, it computes $a\cdot v_i$ for every $i$. With $a=1$ the word
+passes unchanged; with $a=0$ every bit is forced to 0. It is $n$ identical
+gates that share one control input, the building block of every datapath. The
+multiplexer on words of Chapter~\ref{ch:combinational} is built from word
+gates, and the bitwise instructions \ins{and}, \ins{or} and \ins{xor} of
+\riscv are word gates thirty-two bits wide.
+
+\subsection{The register}
+
+A \term{register} is a device able to store a group of bits. In its simplest
+form it is a group of flip-flops with a common synchronisation signal, a clock
+or an enable (Chapter~\ref{ch:sequential}). \term{Loading} a register means
+storing the datum present on its inputs, which happens when the \term{load}
+signal is active, typically in step with the clock.
+
+The classical example is the 74273, a register of 8 bits in one chip
+(Figure~\ref{fig:rb:chip}): eight D flip-flops, one clock and one clear,
+inputs $D_0$ to $D_7$ and outputs $Q_0$ to $Q_7$. In \riscv each of the
+registers \reg{x1} to \reg{x31} is thirty-two such flip-flops.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.45\textwidth}\centering
+\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{chip_74273.jpg}
+\caption{SN74LS273: eight D flip-flops}\label{fig:rb:chip}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.45\textwidth}\centering
+\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{pcb.jpg}
+\caption{Bus lines on a printed circuit board}\label{fig:rb:pcb}
+\end{subfigure}
+\caption{A register and a bus, as objects.}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Buses}
+
+\subsection{Data transfers and the bus}
+
+\begin{definition}{Bus}
+A \term{bus} is a communication channel that lets the components of an
+electronic system exchange data by transmitting and receiving signals: the set
+of lines that carries a datum.
+\end{definition}
+
+The name is a contraction of the Latin \emph{omnibus}, ``for all''. A bus of
+$n$ lines carries a word of $n$ bits in one step. The transfer of a datum
+from a register $X$ to a register $Y$ is the fundamental operation of the
+architecture of a computer: almost every instruction of
+Chapter~\ref{ch:firstcontact} is, at bottom, a sequence of register transfers.
+
+\subsection{Two technical solutions}
+
+With \term{dedicated buses} there is one set of lines for each possible
+transfer. Several transfers can happen at the same time; the solution is
+efficient but expensive, because the wires grow with the square of the number
+of registers. With a \term{common bus} a single path collects many potential
+transfers: each time, one source and one destination are chosen, and a
+transfer takes two steps, from the source to the bus and from the bus to the
+destination. The common bus is cheap and widespread; it is less efficient,
+because transfers cannot be simultaneous. Real processors use intermediate
+solutions: several buses, each shared by a group of registers.
+
+\subsection{Parallel, serial and mixed transfers}
+
+In a \term{parallel} transfer the $n$ bits of the word travel together on $n$
+lines, in one step. In a \term{serial} transfer the bits travel one after
+another on a single line, in $n$ steps. A transfer can also be \emph{mixed}:
+serial on the byte, for example, with eight lines that carry one byte at a
+time.
+
+Buses come in very different physical sizes (Figure~\ref{fig:rb:pcb}). Inside
+a chip they are parallel. Between chips and between machines they are today
+almost always serial: USB, SATA, PCI Express, HDMI and Ethernet are all
+serial, because at very high speeds it is easier to keep one fast line clean
+than to keep thirty-two lines in step.
+
+\subsection{From bus to register, and from register to bus}
+
+Figure~\ref{fig:rb:busreg} shows the two elementary operations on a common
+bus. \emph{From bus to register}: the datum is loaded into the register $R$
+when the load signal $c$ is active (a \term{strobe}, usually in step with the
+clock). \emph{From register to bus}: the content of $R$ reaches the bus
+through a \term{buffer} controlled by an enable signal; when the enable is not
+active the register must leave the bus free for the others. How it does so is
+the subject of the next section.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \draw[prgamber,line width=3pt] (0,0) -- (5,0) node[pos=0.1,above,lbl,text=prgamber]{bus A};
+  \node[blkacc,minimum width=26mm,minimum height=9mm] (r1) at (2.5,-1.6) {register $R$};
+  \draw[->,bus] (2.5,0) -- (r1.north);
+  \draw[->,thick,prgred] (0,-1.6) node[left,lbl,text=prgred]{load $c$} -- (r1.west);
+  \node[lbl] at (2.5,-2.5) {from bus to register};
+  \draw[prgamber,line width=3pt] (7,0) -- (12,0) node[pos=0.1,above,lbl,text=prgamber]{bus A};
+  \node[blkacc,minimum width=26mm,minimum height=9mm] (r2) at (9.5,-2.2) {register $R$};
+  \node[blkvio,minimum width=14mm,minimum height=6mm] (b) at (9.5,-1.0) {buffer};
+  \draw[->,bus] (r2.north) -- (b.south);
+  \draw[->,bus] (b.north) -- (9.5,0);
+  \draw[->,thick,prgred] (7.3,-1.0) node[left,lbl,text=prgred]{enable} -- (b.west);
+  \node[lbl] at (9.5,-3.1) {from register to bus};
+\end{tikzpicture}
+\caption{The two elementary transfers on a common bus.}
+\label{fig:rb:busreg}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Three-state buffers}
+
+\subsection{The three-state gate}
+
+If two registers drove the same wire, one with 0 and one with 1, the result
+would be a short circuit between the supply and ground.
+
+\begin{definition}{Three-state output}
+A \term{three-state} (or \emph{tri-state}) output has a third condition
+besides 0 and 1: \term{high impedance}, written $z$. In high impedance the
+output is electrically disconnected: it neither drives nor loads the wire.
+\end{definition}
+
+An enable signal $a$ decides: with $a=1$ the gate works normally, with $a=0$
+its output is $z$. Electrically, both output transistors of the gate
+(Chapter~\ref{ch:electronics}) are switched off. The table below describes a
+three-state AND with an active-high enable.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{ccc|c}
+\textrm{$a$}&\textrm{$x$}&\textrm{$y$}&\textrm{output}\\\hline
+1&0&0&0\\1&0&1&0\\1&1&0&0\\1&1&1&1\\\rowcolor{prgamber!15}0&\textrm{any}&\textrm{any}&z
+\end{tabular}
+\end{center}
+
+It is the most widespread technique for connecting several source registers
+to a common bus.
+
+\subsection{Enabling a bus}
+
+A three-state \emph{word} gate placed between a bus $X$ and a bus $Y$, with an
+enable signal $a$, makes $Y$ reproduce $X$ if $a$ is active; otherwise all the
+lines of $Y$ are at high impedance, and $Y$ takes the neutral value. One says
+that $Y$ is \emph{sustained} by a three-state buffer.
+
+\begin{prgmachine}
+The GPIO pins of the ESP32-C6 work in this way: each pin can be an output, or
+can be released and used as an input. On the kit the pins of the joystick are
+configured as inputs, with their output buffers in high impedance, and the
+pins of the display as outputs.
+\end{prgmachine}
+
+\subsection{Connecting buses: the bus OR}
+
+Several source registers are connected to one bus simply by joining their
+outputs, each through a three-state buffer (Figure~\ref{fig:rb:busor}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\n/\e in {0/A/\alpha,1/B/\beta,2/X/\xi}{
+    \node[blkacc,minimum width=22mm,minimum height=8mm] (r\i) at (\i*3.3,0) {register \n};
+    \node[blkvio,minimum width=14mm,minimum height=6mm] (t\i) at (\i*3.3,-1.2) {3-state};
+    \draw[->,bus] (r\i) -- (t\i);
+    \draw[->,bus] (t\i.south) -- (\i*3.3,-2.2);
+    \draw[->,thick,prgred] (\i*3.3-1.5,-1.2) node[left,lbl,text=prgred]{$\e$} -- (t\i.west);
+  }
+  \draw[prgamber,line width=3pt] (-1.8,-2.2) -- (8.4,-2.2) node[right,lbl,text=prgamber]{common bus $Y$};
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm,minimum height=8mm] (d) at (3.3,-3.5) {destination registers};
+  \draw[->,bus] (3.3,-2.2) -- (d.north);
+\end{tikzpicture}
+\caption{Three sources on a common bus, each behind a three-state buffer with
+its own enable.}
+\label{fig:rb:busor}
+\end{figure}
+
+\begin{prgconcept}[The rule of the common bus]
+Of the $n$ sources that flow into a bus, at most one is enabled at a time: one
+active signal, and the other $n-1$ neutral.
+\end{prgconcept}
+
+Inside modern chips long shared lines are usually replaced by multiplexers,
+which make the same selection without high-impedance states; between chips,
+three-state buses are still the rule.
+
+% ----------------------------------------------------------------------------
+\section{Shift registers}
+
+\subsection{Definition}
+
+\begin{definition}{Shift register}
+A \term{shift register} is a chain of one-bit memory cells connected to each
+other: at every clock pulse each bit moves from one cell to the adjacent one.
+\end{definition}
+
+Each cell is a D flip-flop whose input is the output of its neighbour
+(Figure~\ref{fig:rb:sipo}). The shift can go in one fixed direction or in a
+direction chosen by a control line (bidirectional registers). Edge-triggered
+flip-flops are essential here: with transparent latches a bit would run
+through the whole chain during one clock pulse.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i in {0,1,2,3}{
+    \node[blkacc,minimum width=17mm,minimum height=11mm] (f\i) at (\i*2.9,0) {D\hfill Q};
+    \draw[->,thick] (f\i.south) -- ++(0,-7mm) node[below,font=\ttfamily\small]{Q\i};
+    \draw[->,thick,prgred] (\i*2.9-0.5,-2.1) -- (\i*2.9-0.5,-0.55);
+  }
+  \draw[->,thick] (-2.1,0) node[left,lbl]{serial in} -- (f0.west);
+  \foreach \a/\b in {0/1,1/2,2/3} \draw[->,thick] (f\a.east) -- (f\b.west);
+  \draw[->,thick] (f3.east) -- ++(1.0,0) node[right,lbl]{serial out};
+  \draw[thick,prgred] (-2.1,-2.1) node[left,font=\ttfamily]{CK} -- (3*2.9-0.5,-2.1);
+\end{tikzpicture}
+\caption{A shift register of four bits built with D flip-flops, with serial
+input and both serial and parallel outputs.}
+\label{fig:rb:sipo}
+\end{figure}
+
+\subsection{Four kinds of shift register}
+
+The input and the output of a shift register can each be serial or parallel,
+which gives four kinds (Table~\ref{tab:rb:four}). They make the reading and
+the writing of data easier, because they turn parallel data into serial data
+and back.
+
+\begin{table}[htb]
+\centering\small
+\caption{Four kinds of shift register.}\label{tab:rb:four}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Kind} & \textbf{Name} & \textbf{Use}\\
+\midrule
+serial in, serial out & SISO & a delay of $n$ clock pulses; a serial link between two registers\\
+serial in, parallel out & SIPO & conversion from serial to parallel: the receiver\\
+parallel in, serial out & PISO & conversion from parallel to serial: the transmitter\\
+parallel in, parallel out & PIPO & an ordinary register that can also shift\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Transfers between registers}
+
+In a serial transfer the serial output of one shift register feeds the serial
+input of another: $n$ clock pulses move a word of $n$ bits, and one wire is
+enough. In a parallel transfer the parallel outputs of one register feed the
+parallel inputs of another: one clock pulse moves the whole word, and $n$
+wires are needed.
+
+\begin{prgconcept}
+Moving a word of $n$ bits costs either time or copper: $n$ pulses or $n$
+wires. It is the same trade-off as between dedicated and common buses.
+\end{prgconcept}
+
+\subsection{Serial to parallel and back}
+
+A complete serial link works in five steps (Figure~\ref{fig:rb:serpar}). The
+datum of $n$ bits is placed in parallel in a register $R$. $R$ is a shift
+register, and the $n$ bits leave it one after another, in $n$ successive
+steps. A single line carries them to the equipment downstream. There another
+register is loaded serially in $n$ steps, rebuilding the datum bit by bit.
+Finally the rebuilt datum is passed on in parallel.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=15mm] (a) {\textbf{Load}\\[1pt]\footnotesize in parallel};
+  \node[blkamb,text width=21mm,minimum height=15mm,right=of a] (b) {\textbf{Shift out}\\[1pt]\footnotesize $n$ steps};
+  \node[blkvio,text width=21mm,minimum height=15mm,right=of b] (c) {\textbf{Travel}\\[1pt]\footnotesize one line};
+  \node[blkgrn,text width=21mm,minimum height=15mm,right=of c] (d) {\textbf{Shift in}\\[1pt]\footnotesize $n$ steps};
+  \node[blkred,text width=21mm,minimum height=15mm,right=of d] (e) {\textbf{Use}\\[1pt]\footnotesize in parallel};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{The conversion of a datum from parallel to serial and back.}
+\label{fig:rb:serpar}
+\end{figure}
+
+This is the hardware of the warm-up. The display of the kit receives each
+pixel in this way over a bus called SPI, and the keyboard of
+Chapter~\ref{ch:io} sends each key code in this way. UART, SPI, I2C, I2S and
+USB all rest on a pair of shift registers, one at each end.
+
+\subsection{Registers with an address: a first memory}
+
+Take four registers of three bits and put a decoder in front of them
+(Figure~\ref{fig:rb:mem}). Two address lines, $A_1$ and $A_0$, go to the
+2-to-4 decoder, which selects one register. Three data inputs, $I_2I_1I_0$,
+reach all the registers, but only the selected one is loaded; three data
+outputs, $O_2O_1O_0$, show the content of the selected register through
+three-state buffers. Three control lines govern the whole: a \term{chip
+select} (CS), which enables the device, a line that chooses between reading
+and writing, and an \emph{output enable} (OE). The result is a memory of 4
+words by 3 bits.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkamb,minimum width=16mm,minimum height=31mm] (dec) at (0,-1.17) {decoder\\2-to-4};
+  \foreach \i in {0,1,2,3}{
+    \node[blkacc,minimum width=36mm,minimum height=6.5mm] (r\i) at (3.7,-\i*0.78) {register \i\ (3 bits)};
+    \draw[->,thick,prgamber] (dec.east|-r\i.west) -- (r\i.west);
+  }
+  \draw[->,thick] (-2.2,-1.17) node[left,font=\ttfamily]{A1 A0} -- (dec.west);
+  \draw[->,bus] (3.7,1.0) node[above,font=\ttfamily]{I2 I1 I0} -- (r0.north);
+  \draw[->,bus] (r3.south) -- (3.7,-3.4) node[below,font=\ttfamily]{O2 O1 O0};
+  \node[lbl,text=prgred] at (-0.6,-3.4) {control: CS, RD, OE};
+\end{tikzpicture}
+\caption{Four registers and a decoder: a memory of 4 words by 3 bits.}
+\label{fig:rb:mem}
+\end{figure}
+
+\begin{prgconcept}
+A decoder in front of a group of registers makes a memory. The next chapter
+scales this up to the main memory of a computer.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{Buses on the PRG32 kit}
+
+The kit contains an example of nearly every kind of bus of this chapter
+(Table~\ref{tab:rb:kit}). The chip select of the display is the CS of the
+small memory just seen: several devices can share the same serial bus because
+only the selected one listens.
+
+\begin{table}[htb]
+\centering\small
+\caption{Buses on the \prg kit (from \fname{docs/hardware} of the
+repository).}\label{tab:rb:kit}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}P{0.16\textwidth}LL@{}}
+\toprule
+\textbf{Connection} & \textbf{Kind} & \textbf{Lines} & \textbf{What travels on it}\\
+\midrule
+inside the ESP32-C6 & parallel & 32 data lines, address and control & instructions, data and register transfers\\
+display (ILI9341) & serial, SPI & clock, data out, chip select, data/command & every pixel of every frame, bit by bit\\
+sound amplifier & serial, I2S & bit clock, word select, data & audio samples, 22\,050 per second\\
+joystick and buttons & one wire per button & one input pin each & a decoded representation: one line per button\\
+USB to the laptop & serial, differential pair & two data wires & the firmware and the debug console\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Shifts in RISC-V: a shift register in one instruction}
+
+\ins{slli} and \ins{srli} move all the bits of a register by a given number
+of positions, filling with zeros; \ins{srai} fills with copies of the sign
+bit (Chapter~\ref{ch:integers}); \ins{sll}, \ins{srl} and \ins{sra} take the
+amount from a second register. With them the two conversions are two
+instructions each (Listing~\ref{lst:rb:shift}).
+
+\asmfile[caption={Parallel to serial, and serial to parallel.},label=lst:rb:shift]{code/l14/s25.S}
+
+A true shift register needs $n$ clock pulses to shift by $n$ positions. The
+processor does not work in that way: in hardware a shift by any amount in one
+step is done by a \term{barrel shifter}, which is made of layers of
+multiplexers, not of a chain of flip-flops. It is combinational, it does its
+work within one clock period, and it is one of the units of the ALU of
+Chapter~\ref{ch:combinational}.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{Why does a common bus need three-state buffers?}
+\item To make transfers faster
+\item So that only the enabled source drives the lines
+\item To store the datum on the bus
+\item To convert serial data to parallel
+\end{quiz}
+
+\begin{quiz}{How many clock pulses does a serial transfer of a 32-bit word need?}
+\item 1
+\item 5
+\item 32
+\item 64
+\end{quiz}
+
+\begin{quiz}{A memory has 10 address lines and 8 data lines. How many bits does it store?}
+\item 80
+\item 1\,024
+\item 8\,192
+\item 10\,240
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Draw a 4-bit serial-in, parallel-out shift register with D flip-flops,
+  and fill in its contents over four clock pulses for the input 1, 0, 1, 1.
+\item Three registers share a common bus: write the enable and load signals
+  needed to copy register $B$ into register $A$.
+\item Complete the warm-up: write the loop that receives eight bits from a
+  line and rebuilds the byte.
+\item On \prg, show a byte as eight lamps and shift it to the left by one
+  position every half second.
+\item Make the bit that leaves on the left come back in on the right (a
+  rotation): a \emph{ring counter}.
+\end{enumerate}
+\expected{The third task is \code{slli a1, a1, 1} and then \ins{or} with the
+received bit, eight times. The last is \code{srli t1, a0, 7};
+\code{andi t1, t1, 1}; \code{slli a0, a0, 1}; \code{or a0, a0, t1};
+\code{andi a0, a0, 255}. On \prg: a pattern of lamps that walks to the left
+and, in the last task, goes round for ever.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+word gate & porta di parola\\
+register & registro\\
+bus & bus\\
+dedicated / common bus & bus dedicato / comune\\
+load, strobe & caricamento, strobe\\
+three-state (tri-state) & a tre stati (tristate)\\
+high impedance & alta impedenza\\
+shift register & registro a scorrimento\\
+serial / parallel transfer & trasferimento seriale / parallelo\\
+chip select & selezione del chip\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Registers are an evolved form of memory with an elementary way of working.
+Reading and writing them happens through buses of different kinds. For a
+common bus to work, three-state circuits are needed: 0, 1, and disconnected.
+Data can be transferred serially or in parallel, and shift registers convert
+between the two. A decoder in front of a group of registers makes a memory:
+the subject of the next chapter.
+
+\paragraph{Reading.} \citet{patterson2020}, appendix~A; \citet{bucci2017},
+the chapters on registers and buses; \fname{docs/hardware/hardware.md} in the
+\prg repository.

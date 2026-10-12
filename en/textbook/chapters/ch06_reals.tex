@@ -1,0 +1,544 @@
+% ============================================================================
+%  Chapter 6 -- Number Representation: Real Numbers              (Lecture 06)
+% ============================================================================
+\chapter{Number Representation: Real Numbers}
+\label{ch:reals}
+
+\epigraphline{I may count for little, it's true, said the One to the Zero, but
+what are you worth? Nothing: nothing at all.}{Trilussa, \emph{Nummeri}, 1944}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item encode signed integers in one's complement and in excess-$k$, and say what each is good for;
+\item represent a fractional quantity in fixed point and compute with it using integer instructions;
+\item explain mantissa, exponent and normalisation in floating point;
+\item encode and decode a number in IEEE~754 single precision;
+\item recognise zero, denormalised numbers, infinity and NaN;
+\item say why the ESP32-C6 has no floating-point instructions and what \prg games do instead.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+A ball must cross the screen slowly. One pixel per frame is too fast; zero
+pixels per frame is not a movement. The ball needs something in between:
+0.375 pixels per frame. But the processor of the kit is RV32IMAC: it has
+integer instructions only, and no floating point at all.
+Listing~\ref{lst:real:ball} solves the problem with a trick.
+
+\asmfile[caption={Three-eighths of a pixel per frame, with integers only.},label=lst:real:ball]{code/l06/s04.S}
+
+The position is stored \emph{multiplied by 256}, and is divided by 256 only
+when the ball is drawn. In units of $1/256$ of a pixel the speed is
+$0.375\times 256 = 96$, an honest integer.
+
+\begin{prgtry}
+Run the program with \code{SPEED\_Q8} equal to 96, then 16, then 1.
+\end{prgtry}
+
+The trick has a name, \term{fixed point}. This chapter says where it comes
+from and when it is not enough, in which case the general answer,
+\term{floating point}, takes over. Before either, two more encodings of the
+signed integers are needed, because floating point is built from them.
+
+% ----------------------------------------------------------------------------
+\section{More encodings for signed integers}
+
+\subsection{One's complement}
+
+\begin{definition}{One's complement}
+On $n$ bits, a non-negative number $0\le x<2^{n-1}$ is represented by itself,
+$X=x$; a negative number is represented by $X = 2^{n}-1-|x|$.
+\end{definition}
+
+The range goes from $-(2^{n-1}-1)$ to $+(2^{n-1}-1)$. Zero has two
+representations, \texttt{0000} and \texttt{1111}, so that $2^{n}-1$ numbers
+are represented, as in sign and magnitude. The reason for using it is that
+negation is trivial: since $2^{n}-1$ is a string of ones, subtracting from it
+complements every bit,
+\[ -x \;=\; \mathtt{not}\ x. \]
+Thus $6=\texttt{0110}$ and $-6=\texttt{1001}$; $5=\texttt{0101}$ and
+$-5=\texttt{1010}$; $1=\texttt{0001}$ and $-1=\texttt{1110}$. The bitwise
+\ins{not} of \riscv computes exactly this.
+
+Arithmetic in one's complement works modulo $2^{n}-1$ rather than modulo
+$2^{n}$, and this costs a correction.
+
+\begin{center}\ttfamily
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small No correction}}\\
+3 + & 0011 +\\ -4 = & 1011 =\\\hline -1 & 1110\\ &
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Two negatives}}\\
+-2 + & 1101 +\\ -3 = & 1100 =\\\hline & \textcolor{prgred}{1}\,1001 + 1 =\\ -5 & 1010
+\end{tabular}\qquad\qquad
+\begin{tabular}{@{}r@{\quad}r@{}}
+\multicolumn{2}{c}{\textsf{\small Positive result}}\\
+5 + & 0101 +\\ -2 = & 1101 =\\\hline & \textcolor{prgred}{1}\,0010 + 1 =\\ 3 & 0011
+\end{tabular}
+\end{center}
+
+Whenever there is a carry out of the most significant bit, 1 must be added to
+the result: the \term{end-around carry}. The correction is needed when both
+operands are negative, or when the operands have opposite signs and the sum is
+positive. An adder and a complementer are still enough; but the extra step
+and the double zero made two's complement win.
+
+\subsection{Excess-$k$ (biased) representation}
+
+\begin{definition}{Excess-$k$}
+In the \term{excess-$k$} representation every number is shifted upward by a
+constant $k$, the \term{bias}: $X = x+k$. Typically $k=2^{n-1}$.
+\end{definition}
+
+On four bits with $k=8$ the pattern \texttt{0000} means $-8$, \texttt{1000}
+means 0 and \texttt{1111} means $+7$. The decisive property is that the order
+is preserved: if $x_1>x_2$ then $X_1>X_2$, so that signed numbers are compared
+as if they were naturals. The price is paid in arithmetic: a sum must be
+corrected by subtracting $k$, since $X_1+X_2 = (x_1+x_2)+2k$, and
+multiplication and division are much more awkward than with the complements.
+Excess-$k$ is therefore preferred where only additions and comparisons are
+needed, and that is exactly the situation of the exponent of a floating-point
+number.
+
+\subsection{Four bits, five readings}
+
+Table~\ref{tab:real:five} completes the table of Chapter~\ref{ch:integers}.
+Sign and magnitude and one's complement have two zeros. Two's complement and
+excess-8 cover the same range, $-8$ to $+7$, with a single zero; they differ
+only in the most significant bit, which is inverted. Only excess-$k$ keeps
+the patterns in the same order as the numbers.
+
+\begin{table}[htb]
+\centering\small
+\caption{Four bits, five readings.}\label{tab:real:five}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}cccccc@{\qquad}cccccc@{}}
+\toprule
+\textbf{Bits} & \textbf{Uns.} & \textbf{S-M} & \textbf{1's} & \textbf{2's} & \textbf{Exc-8} &
+\textbf{Bits} & \textbf{Uns.} & \textbf{S-M} & \textbf{1's} & \textbf{2's} & \textbf{Exc-8}\\
+\midrule
+\texttt{0000} & 0 & $+0$ & $+0$ & 0 & $-8$ & \texttt{1000} & 8 & $-0$ & $-7$ & $-8$ & 0\\
+\texttt{0001} & 1 & $+1$ & $+1$ & $+1$ & $-7$ & \texttt{1001} & 9 & $-1$ & $-6$ & $-7$ & $+1$\\
+\texttt{0010} & 2 & $+2$ & $+2$ & $+2$ & $-6$ & \texttt{1010} & 10 & $-2$ & $-5$ & $-6$ & $+2$\\
+\texttt{0011} & 3 & $+3$ & $+3$ & $+3$ & $-5$ & \texttt{1011} & 11 & $-3$ & $-4$ & $-5$ & $+3$\\
+\texttt{0100} & 4 & $+4$ & $+4$ & $+4$ & $-4$ & \texttt{1100} & 12 & $-4$ & $-3$ & $-4$ & $+4$\\
+\texttt{0101} & 5 & $+5$ & $+5$ & $+5$ & $-3$ & \texttt{1101} & 13 & $-5$ & $-2$ & $-3$ & $+5$\\
+\texttt{0110} & 6 & $+6$ & $+6$ & $+6$ & $-2$ & \texttt{1110} & 14 & $-6$ & $-1$ & $-2$ & $+6$\\
+\texttt{0111} & 7 & $+7$ & $+7$ & $+7$ & $-1$ & \texttt{1111} & 15 & $-7$ & $-0$ & $-1$ & $+7$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Fixed point}
+
+\subsection{Numbers in fixed point}
+
+In fixed point the integer part and the fractional part of a number are stored
+side by side in one word. The position of the point is fixed and implicit: it
+is not stored, the program knows it.
+
+\begin{definition}{Fixed point}
+With $f$ fractional bits a number $x$ is stored as the integer
+$X = x\cdot 2^{f}$ (rounded). The \term{resolution} is $2^{-f}$. The notation
+Q$m.f$ denotes a format with $m$ integer bits and $f$ fractional bits.
+\end{definition}
+
+Usually the whole word is in two's complement. Fixed point is how games,
+audio and control software handle fractions on processors without a
+floating-point unit. It is also how money should be stored: as an integer
+number of cents.
+
+\subsection{The ball, bit by bit: Q24.8}
+
+The ball of the warm-up is in the format Q24.8
+(Figure~\ref{fig:real:q248}). When its variable holds
+$\hex{00002A60}=10848$, the ball is at $10848/256 = 42.375$ pixels: the upper
+24 bits, \hex{00002A}, are the 42 whole pixels and the lower 8, \hex{60}, are
+$96/256 = 0.375$.
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,7,8,31}\\
+\bitbox{24}[bgcolor=prgaccent!20]{\texttt{0000 0000 0000 0000 0010 1010}} & \bitbox{8}[bgcolor=prgamber!30]{\texttt{0110 0000}}\\
+\bitbox[]{24}{\footnotesize integer part: 24 bits\\\texttt{0x00002A} = 42 pixels} & \bitbox[]{8}{\footnotesize fraction: 8 bits\\\texttt{0x60} = 96/256}
+\end{bytefield}
+\caption{\code{ball\_x\_q8 = 0x00002A60}: the ball is at 42.375 pixels.}
+\label{fig:real:q248}
+\end{figure}
+
+After one more frame the value is \hex{2AC0} (42.75), then \hex{2B20}
+(43.125): the ball crosses the boundary of a pixel every two or three frames,
+and on average advances by 0.375.
+
+Arithmetic in fixed point is integer arithmetic with a little care
+(Table~\ref{tab:real:ops}). Sums and differences need none, because the
+points of the two operands are aligned. A product of two numbers scaled by
+$2^{f}$ is scaled by $2^{2f}$, and must be shifted back by $f$. The shift
+that returns to whole pixels is the \emph{arithmetic} one, \ins{srai}, which
+keeps the sign (Chapter~\ref{ch:integers}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Operations in fixed point.}\label{tab:real:ops}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Operation} & \textbf{In fixed point} & \textbf{\riscv}\\
+\midrule
+add, subtract & as integers: the points are aligned & \ins{add}, \ins{sub}, \ins{addi}\\
+to whole pixels & shift right by $f$, keeping the sign & \code{srai a0, t1, 8}\\
+multiply & multiply, then shift right by $f$ & \ins{mul}, then \ins{srai}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Rational numbers: the approximation error}
+
+The real numbers are dense: even in a limited interval, not every number can
+be represented with a finite number of bits. Each number is therefore
+associated with the nearest representable one. In Q24.8 the number 0.1
+becomes $26/256 = 0.1015625$, because $0.1\times 256 = 25.6$ is rounded to 26:
+an error of about 1.6\%.
+
+The approximation error is at most half the resolution: $1/512$ with eight
+fractional bits. \term{Underflow} is the case of a number close to zero, but
+not zero, that is represented by zero: with a speed of 0.001 pixels per frame
+the constant would be rounded to 0, and the ball would never move.
+
+\begin{prgconcept}
+In fixed point the \emph{absolute} error is the same everywhere on the number
+line. The resolution of eight fractional bits is $1/256$: nothing smaller can
+be told apart from zero.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Floating point}
+
+Fixed point spends all its bits on one fixed range. Floating point spends
+some of them to say \emph{where} the range is: it trades range for precision.
+
+\subsection{Real numbers in floating point}
+
+\begin{definition}{Floating point}
+A real number $x$ is represented in floating point by a pair $(m,e)$ such that
+\[ x = m\cdot b^{\,e}, \]
+where $m$ is the \term{mantissa}, $e$ the \term{exponent} and $b$ the base.
+\end{definition}
+
+The point ``floats'' because the exponent says where it is. This is the
+scientific notation of the physics laboratory. Infinitely many pairs
+represent the same number,
+\[
+346.09801 \;=\; (346.09801,\,0) \;=\; (346098.01,\,-3) \;=\; (0.034609801,\,4),
+\]
+and \term{normalisation} chooses a single representative: the point goes
+immediately after the first significant digit, $(3.4609801,\,2)$.
+
+\subsection{The range of a small decimal format}
+
+Consider a format in base 10 with four digits for the mantissa and two for
+the exponent (Figure~\ref{fig:real:line}). It represents the numbers from
+$-9.999\times 10^{99}$ to $-1.000\times 10^{-99}$, zero, and the numbers from
+$+1.000\times 10^{-99}$ to $+9.999\times 10^{99}$. An \term{overflow} occurs
+when the magnitude is too large for the exponent; an \term{underflow} when it
+is too small, and the number collapses to zero.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \draw[<->,thick,prgink] (-7,0) -- (7,0);
+  \fill[prgaccent!30] (-5.6,-0.22) rectangle (-1.0,0.22);
+  \fill[prgaccent!30] (1.0,-0.22) rectangle (5.6,0.22);
+  \fill[prgred!25] (-7,-0.22) rectangle (-5.6,0.22);
+  \fill[prgred!25] (5.6,-0.22) rectangle (7,0.22);
+  \fill[prgamber!35] (-1.0,-0.22) rectangle (1.0,0.22);
+  \draw[thick] (0,-0.3) -- (0,0.3) node[above,lbl]{0};
+  \foreach \x/\l in {-5.6/{$-9.999\times10^{99}$},-1.0/{$-1.000\times10^{-99}$},1.0/{$1.000\times10^{-99}$},5.6/{$9.999\times10^{99}$}}
+    \draw (\x,-0.3) -- (\x,0.3) node[above,font=\scriptsize]{\l};
+  \node[lbl,text=prgred] at (-6.3,-0.6) {overflow};
+  \node[lbl,text=prgred] at (6.3,-0.6) {overflow};
+  \node[lbl,text=prgamber] at (0,-0.6) {underflow};
+  \node[lbl,text=prgaccent] at (-3.3,-0.6) {representable};
+  \node[lbl,text=prgaccent] at (3.3,-0.6) {representable};
+\end{tikzpicture}
+\caption{A decimal format with four digits of mantissa and two of exponent
+(not to scale).}
+\label{fig:real:line}
+\end{figure}
+
+\subsection{Approximation: absolute and relative error}
+
+In such a format the absolute error is not constant. Near zero the distance
+between two consecutive numbers is
+$1.001\times 10^{-99}-1.000\times 10^{-99} = 0.001\times 10^{-99}$; near the
+upper limit it is
+$9.999\times 10^{99}-9.998\times 10^{99} = 0.001\times 10^{99}$. The absolute
+error is small on small numbers and large on large numbers. What is constant
+along the whole axis is the \emph{relative} error, because the number of
+significant digits, four, is the same everywhere.
+
+\begin{prgconcept}
+Fixed point: constant absolute error, relative error that explodes near zero.
+Floating point: constant relative error, absolute error that grows with the
+number.
+\end{prgconcept}
+
+\subsection{IEEE 754 single precision}
+
+Until 1985 every manufacturer had its own floating-point format, and programs
+gave different results on different machines. The standard IEEE~754 (1985,
+revised in 2008 and 2019) put an end to this \citep{ieee754}. Its
+single-precision format divides 32 bits into three fields
+(Figure~\ref{fig:real:ieee}).
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.029\textwidth,bitheight=8mm]{32}
+\bitheader[endianness=big]{0,22,23,30,31}\\
+\bitbox{1}[bgcolor=prgred!30]{S} & \bitbox{8}[bgcolor=prgamber!30]{E} & \bitbox{23}[bgcolor=prgaccent!20]{F}\\
+\bitbox[]{1}{\footnotesize sign} & \bitbox[]{8}{\footnotesize exponent: 8 bits\\excess-127} & \bitbox[]{23}{\footnotesize fraction: 23 bits\\magnitude, after the hidden 1}
+\end{bytefield}
+\[ \text{value} \;=\; (-1)^{S}\times 1.F\times 2^{\,E-127} \]
+\caption{IEEE 754 single precision.}
+\label{fig:real:ieee}
+\end{figure}
+
+\begin{itemize}
+\item The mantissa is in sign and magnitude: one sign bit and 23 bits of
+  magnitude.
+\item A normalised binary mantissa always starts with 1. That bit is
+  \term{hidden}: it is not stored, and one bit of precision is gained.
+\item The exponent is in excess-127 (not 128): the true exponents go from
+  $-126$ to $+127$. Thanks to the excess encoding, and to the position of the
+  exponent before the fraction, two positive floating-point numbers can be
+  compared as if they were naturals.
+\item The patterns $E=0$ and $E=255$ are reserved: zero and denormalised
+  numbers, infinity and NaN.
+\end{itemize}
+
+\begin{example}{$-5.125$ in IEEE 754}
+\begin{enumerate}[nosep]
+\item Convert the two parts: $5=101_2$ and $0.125=1/8=0.001_2$, so
+  $5.125=101.001_2$.
+\item Normalise: $101.001_2 = 1.01001_2\times 2^{2}$.
+\item Sign $S=1$; exponent $E = 2+127 = 129 = \texttt{1000\,0001}$.
+\item Fraction $F=\texttt{01001}$ followed by zeros: the leading 1 is hidden.
+\end{enumerate}
+\[
+\underbrace{\texttt{1}}_{S}\;\underbrace{\texttt{1000\,0001}}_{E}\;
+\underbrace{\texttt{0100\,1000\,0000\,0000\,0000\,000}}_{F}
+\]
+Regrouped in nibbles, \texttt{1100 0000 1010 0100 0000 \ldots} is
+\hex{C0A40000}.
+\end{example}
+
+\subsection{IEEE 754 at a glance}
+
+Table~\ref{tab:real:formats} compares the two formats in common use, and
+Table~\ref{tab:real:special} lists the meaning of all the patterns.
+
+\begin{table}[htb]
+\centering\small
+\caption{IEEE 754 single and double precision.}\label{tab:real:formats}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Single precision} & \textbf{Double precision}\\
+\midrule
+Total bits & 32 & 64\\
+Sign bits & 1 & 1\\
+Exponent bits & 8 & 11\\
+Fraction bits & 23 & 52\\
+Exponent encoding & excess-127 & excess-1023\\
+Exponent range & $-126\ldots+127$ & $-1022\ldots+1023$\\
+Smallest normalised & $2^{-126}\approx 1.2\times 10^{-38}$ & $2^{-1022}\approx 2.2\times 10^{-308}$\\
+Largest & about $2^{128}\approx 3.4\times 10^{38}$ & about $2^{1024}\approx 1.8\times 10^{308}$\\
+Smallest denormalised & about $1.4\times 10^{-45}$ & about $4.9\times 10^{-324}$\\
+Decimal digits & about 7 & about 16\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htb]
+\centering\small
+\caption{IEEE 754: what the patterns mean.}\label{tab:real:special}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Kind} & \textbf{Sign} & \textbf{Exponent $E$} & \textbf{Fraction $F$} & \textbf{Value}\\
+\midrule
+Normalised & 0 or 1 & $0<E<\max$ & any pattern & $(-1)^{S}\times 1.F\times 2^{E-\mathit{bias}}$\\
+Denormalised & 0 or 1 & all zeros & not zero & $(-1)^{S}\times 0.F\times 2^{1-\mathit{bias}}$\\
+Zero & 0 or 1 & all zeros & all zeros & $+0$ or $-0$\\
+Infinity & 0 or 1 & all ones & all zeros & $+\infty$ or $-\infty$\\
+Not a Number & 0 or 1 & all ones & not zero & NaN: an invalid result\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\term{Denormalised} (or subnormal) numbers fill the gap of underflow around
+zero with a precision that decreases gradually. The division $1/0$ gives
+infinity; $0/0$ and the square root of $-1$ give NaN. NaN is not equal to
+anything, itself included.
+
+\subsection{Floating point is not the real numbers}
+
+A floating-point number is a rational number chosen from a finite set, and
+arithmetic on such numbers obeys laws that are not those of the real field
+\citep{goldberg1991}.
+
+\begin{itemize}
+\item 0.1 has no finite binary expansion: it is stored approximately, like 0.8
+  in Chapter~\ref{ch:integers}.
+\item Two floating-point results should never be tested for equality: their
+  difference is compared with a tolerance (Listing~\ref{lst:real:c}).
+\item Addition is not associative: $(a+b)+c$ can differ from $a+(b+c)$.
+\item Adding a very small number to a very large one can leave the large one
+  unchanged.
+\item For money and for the positions of a game, scaled integers are often the
+  right tool.
+\end{itemize}
+
+\cfile[caption={The most famous sum in computing.},label=lst:real:c,numbers=none]{code/l06/s22.c}
+
+\subsection{Beyond single and double}
+
+The choice of a representation is an engineering decision that is still being
+made today. \emph{Half precision}, added to the standard in 2008, has sixteen
+bits: 1 of sign, 5 of exponent, 10 of fraction; it gives about three decimal
+digits in half the memory of single precision. It matters because neural
+networks hold thousands of millions of numbers: halving each one halves
+memory, bandwidth and energy. Many models go further and are stored, by
+\term{quantisation}, as 8-bit integers with a scale factor: fixed point again,
+at industrial scale. Bits are a budget; range, precision and cost pull in
+different directions, on a GPU as on a Q24.8 ball.
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{Floating point on RISC-V, and on the kit}
+
+\riscv is modular: a small mandatory base plus optional extensions
+(Table~\ref{tab:real:rv}). A \riscv processor with the F and D extensions has
+thirty-two more registers, \reg{f0} to \reg{f31}, for floating-point values,
+and instructions such as \ins{fadd.s}, \ins{fmul.s}, \ins{flw} and \ins{fsw}
+that work on IEEE~754 numbers; \ins{fcvt.w.s} converts to an integer and
+\ins{fcvt.s.w} from an integer. Such processors are found in laptops, servers
+and supercomputers.
+
+The ESP32-C6 is RV32IMAC: it has no F and no D, and therefore no
+floating-point instructions at all. A C program can still use the type
+\code{float}: the compiler calls software routines such as
+\code{\_\_addsf3}, which implement exactly the algorithm of this chapter with
+shifts, masks and integer additions, at a cost of tens to hundreds of integer
+instructions per operation. \prg games use integers and fixed point: fast,
+exact enough, and visible in the debugger.
+
+\begin{table}[htb]
+\centering\small
+\caption{Reading the name RV32IMAC.}\label{tab:real:rv}
+\begin{tabularx}{\textwidth}{@{}llLc@{}}
+\toprule
+\textbf{Letter} & \textbf{Extension} & \textbf{What it adds} & \textbf{ESP32-C6}\\
+\midrule
+RV32I & base integer set & 32-bit registers, add, logic, load and store, branches & yes\\
+M & multiply and divide & \ins{mul}, \ins{mulh}, \ins{div}, \ins{rem} and their unsigned forms & yes\\
+A & atomic & instructions for safe sharing between tasks & yes\\
+C & compressed & 16-bit encodings of the most common instructions & yes\\
+F & single precision & \reg{f0} to \reg{f31} and IEEE 754 single-precision instructions & no\\
+D & double precision & IEEE 754 double-precision instructions & no\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A microcontroller picks the extensions that it needs. This is one reason why
+the same architecture scales from a chip that costs two euros to a
+supercomputer.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{Which signed encoding keeps the bit patterns in the same order as the numbers?}
+\item Sign and magnitude
+\item One's complement
+\item Two's complement
+\item Excess-$k$
+\end{quiz}
+
+\begin{quiz}{In Q24.8 fixed point, which real number does the word \hex{00000180} represent?}
+\item 384
+\item 1.5
+\item 1.8
+\item 0.375
+\end{quiz}
+
+\begin{quiz}{Which real number is the IEEE 754 single-precision pattern \hex{40400000}?}
+\item 2.0
+\item 3.0
+\item 4.0
+\item 0.75
+\end{quiz}
+
+\begin{quiz}{In IEEE 754, an exponent field of all ones with a fraction of all zeros means:}
+\item zero
+\item a denormalised number
+\item infinity
+\item NaN
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item Write $-6$ on four bits in sign and magnitude, one's complement, two's
+  complement and excess-8.
+\item Encode 10.5 and 0.15625 in IEEE 754 single precision; give the result in
+  hexadecimal.
+\item Decode \hex{BF800000}.
+\item Run the ball with \code{SPEED\_Q8} equal to 96, 16 and 1. After how many
+  frames does it move by one pixel in each case?
+\item Give the ball a vertical speed too, and make it bounce: negate the speed
+  with \ins{neg} when it reaches an edge.
+\end{enumerate}
+\expected{On paper: \texttt{1110}, \texttt{1001}, \texttt{1010},
+\texttt{0010}; \hex{41280000} and \hex{3E200000}; $-1.0$. On \prg: the ball
+advances one pixel every 2.67, 16 and 256 frames; with the bounce it moves
+diagonally and stays on the screen.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+one's complement & complemento a uno (alla base diminuita)\\
+excess-$k$ (biased) & eccesso-$k$\\
+fixed point & virgola fissa\\
+floating point & virgola mobile\\
+single / double precision & singola / doppia precisione\\
+rounding & arrotondamento\\
+mantissa / fraction & mantissa\\
+exponent & esponente\\
+normalisation & normalizzazione\\
+hidden bit & bit nascosto\\
+denormalised & denormalizzato\\
+Not a Number (NaN) & non un numero (NaN)\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Integers have several representations: 8, 16, 32 or 64 bits, signed or
+unsigned, complements or excess. Fixed point stores a fraction as a scaled
+integer: constant absolute error, the speed of integers. Floating point
+stores a mantissa and an exponent: a huge range, constant relative error.
+IEEE~754 is the universal standard for floating point, with special patterns
+for zero, infinity and NaN. On a processor without the F extension, fixed
+point is the natural choice.
+
+\paragraph{Reading.} \citet{patterson2020}, section~3.5;
+\citet{goldberg1991}; \emph{Playing with RISC-V}, the appendix on the runtime
+interface, for playfields and parallax in Q8 \citep{prg32textbook}.
+
+The first block is complete. The next chapter puts its four lectures to work
+in a real program: the first part of \vermone.

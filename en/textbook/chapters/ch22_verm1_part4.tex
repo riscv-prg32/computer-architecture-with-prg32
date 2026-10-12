@@ -1,0 +1,448 @@
+% ============================================================================
+%  Chapter 22 -- Verm1, Part 4: The Finished Game                (Lecture 22)
+% ============================================================================
+\chapter{Verm1, Part 4: The Finished Game}
+\label{ch:verm1p4}
+
+\epigraphline{Premature optimization is the root of all evil.}{Donald Knuth, 1974}
+
+\begin{chapgoals}
+By the end of this chapter you will have
+\begin{itemize}
+\item the score and the best score written in digits, converted by your own division by ten;
+\item a worm that goes faster as the score grows, up to a limit;
+\item two sounds: a short note for a meal, a long low one for the end;
+\item a \code{draw} function that touches a handful of cells per step instead of the whole screen;
+\item the finished \vermone, ready to be packaged in Chapter~\ref{ch:store}.
+\end{itemize}
+\end{chapgoals}
+
+In this last tutorial on the program the machine itself enters the game.
+Knuth's sentence is its motto: the game was made to \emph{work} in Part~3,
+and only now, with a measure in hand, is it made \emph{fast}.
+Table~\ref{tab:v4:from} lists what is taken from Chapters \ref{ch:processor}
+to~\ref{ch:io}; Chapter~\ref{ch:information} comes back too, because a digit
+becomes a character by adding 48, the ASCII code of \texttt{0}. The reference
+file is \fname{verm1\_part4.S} (Appendix~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{What Part 4 takes from the chapters on the machine.}\label{tab:v4:from}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{From} & \textbf{Idea} & \textbf{Where it appears}\\
+\midrule
+Chapter \ref{ch:processor} & the calling convention: \reg{a}, \reg{t}, \reg{s} registers, \reg{ra}, the stack & small functions with contracts; leaf functions\\
+Chapter \ref{ch:processor} & the M extension: \ins{divu} and \ins{remu}, quotient and remainder & the digits of the score\\
+Chapter \ref{ch:instructions} & the processor cycle: every instruction costs time & the measure before and after step 4\\
+Chapter \ref{ch:video} & the screen is memory: writing pixels is the cost & draw only what has changed\\
+Chapter \ref{ch:io} & devices belong to the runtime: the program asks, the runtime does & \code{prg32\_audio\_note}, with a duration\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p4_title.png}\caption{\texttt{TITLE}, with the best score}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p4_play.png}\caption{\texttt{PLAY}: the score in digits}\label{fig:v4:play}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p4_over.png}\caption{\texttt{OVER}}\label{fig:v4:over}\end{subfigure}
+\caption{Where this chapter is going.}
+\end{figure}
+
+Start from a Part~3 that runs; if yours does not, copy
+\fname{verm1\_part3.S}. The chapter has four steps, and the program runs
+after each one.
+
+\begin{prgtry}[Before you start: measure]
+Run Part~3 in debug mode and write down what the telemetry shows during a
+game: retired instructions, frames per second, late frames. The numbers will
+be needed in step~5.
+\end{prgtry}
+
+% ----------------------------------------------------------------------------
+\section{Step 1: the score in digits}
+
+\subsection{A number is not its digits}
+
+The variable \code{score} holds a binary number: 137 is \hex{89}, one byte.
+The screen wants three characters, \texttt{'1'}, \texttt{'3'}, \texttt{'7'},
+that is, the bytes \hex{31}, \hex{33}, \hex{37}. The conversion is the
+algorithm of Chapter~\ref{ch:integers}, done by the program instead of by
+hand: divide by ten, three times.
+\begin{align*}
+137 / 10 &= 13, &&\text{remainder 7: the units;}\\
+13 / 10 &= 1, &&\text{remainder 3: the tens;}\\
+1 / 10 &= 0, &&\text{remainder 1: the hundreds.}
+\end{align*}
+The digits come out from the right, and are stored from the last character to
+the first. A digit $d$ becomes a character by adding 48.
+
+\subsection{\texttt{to\_decimal}}
+
+\asmfile[caption={Step 1 \textbf{(new)}: \code{to\_decimal}.},label=lst:v4:dec]{code/l22/s08.S}
+
+The contract of Listing~\ref{lst:v4:dec} is: $\reg{a0}=\text{value}$,
+$\reg{a1}=\text{where the three characters go}$. \ins{remu} gives the digit
+and \ins{divu} what is left: two instructions of the M extension. \ins{sb}
+stores a byte at the offsets 2, 1 and 0 from \reg{a1}. The function is a
+leaf that uses only \reg{t} registers: it needs no frame at all. Values above
+999 would show only their last three digits, a limit that no player will meet
+soon. The division instructions are slow, tens of clock cycles each on a
+small processor; ten of them per step of the worm are nothing.
+
+\subsection{\texttt{draw\_score}: two numbers, two texts}
+
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{draw\_score}.},label=lst:v4:score]{code/l22/s09.S}
+
+Replace \code{draw\_score} of Part~3 with Listing~\ref{lst:v4:score}: the
+marks go. The digits are written into a string in RAM, and then the string is
+drawn like any other; the address \code{best\_txt+5} skips the word
+\texttt{BEST} and the space, five characters. Text is drawn with its
+background colour, so that new digits cover the old ones without any
+clearing.
+
+\subsection{The variables of Part 4}
+
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}.},label=lst:v4:data]{code/l22/s10.S}
+
+Replace the \code{.data} of Part~3 with Listing~\ref{lst:v4:data}, and type
+all of it now. The two strings \code{score\_txt} and \code{best\_txt} are in
+\code{.data} and not in \code{.rodata}, because the program writes into them.
+The six variables from \code{dirty} to \code{erase\_y} are not used until
+step~3.
+
+\begin{prgcheck}[Run it: digits]
+\begin{enumerate}[nosep]
+\item Build and run, press \key{A}: the top line reads \texttt{VERM1 000} and,
+  on the right, \texttt{BEST 000}.
+\item Play and eat: \texttt{001}, \texttt{002}, \ldots
+\item Lose: on the game-over screen \texttt{BEST} shows your score.
+\item In the debugger find \code{score\_txt} in memory and read its bytes:
+  \texttt{30 30 33 00} after three meals.
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 2: levels}
+
+The speed becomes a function of the score.
+
+\asmfile[caption={Step 2 \textbf{(changed)}: constants. Only the two \code{SPEED} lines differ from Part~3.},label=lst:v4:const]{code/l22/s13.S}
+
+\code{SPEED\_Q8} is replaced by a minimum and a maximum
+(Listing~\ref{lst:v4:const}): $32/256$, one step every 8 frames, at the
+start, and $96/256$, three steps every 8 frames, at most.
+
+\asmfile[caption={Step 2 \textbf{(changed)}: the timer at the end of \code{play\_update}.},label=lst:v4:speed]{code/l22/s14.S}
+
+The speed is $32+4\times\mathit{score}$: a shift and an add
+(Listing~\ref{lst:v4:speed}). Then \ins{ble} and \ins{mv} take the smaller of
+the speed and 96. It is a \emph{saturation}: the value follows a line and
+then stays at the limit, like the clamp of Chapter~\ref{ch:integers}. The
+limit is reached at 16 points (Table~\ref{tab:v4:levels}). With fixed point
+the speed changes by a sixty-fourth of a cell per frame at each meal: no
+integer speed could be so fine.
+
+\begin{table}[htb]
+\centering\small
+\caption{The levels, in numbers. $256/\mathit{speed}$ gives the frames per
+step.}\label{tab:v4:levels}
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{Score} & \textbf{Speed ($1/256$ cell/frame)} & \textbf{Frames per step} & \textbf{Cells/s at 30 fps}\\
+\midrule
+0 & 32 & 8 & 3.75\\
+4 & 48 & 5.3 & 5.6\\
+8 & 64 & 4 & 7.5\\
+12 & 80 & 3.2 & 9.4\\
+16 and more & 96 & 2.7 & 11.25\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Fractions of a frame are real: at $48/256$ the steps come every 5 or 6
+frames, 5.33 on average. Compute the row of score 2 as an exercise.
+
+\begin{prgcheck}[Run it: faster and faster]
+\begin{enumerate}[nosep]
+\item Build and run: the worm starts more slowly than in Part~3, and gains
+  speed at every meal.
+\item Count with the debugger the frames between two steps at score 0: eight.
+\item Reach 16 points: the speed no longer changes.
+\item Try $\code{SPEED\_MAX}=256$, if you dare.
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 3: \texttt{step} tells what it changed}
+
+This step adds the sounds, and the notes that \code{draw} will need in
+step~4.
+
+\subsection{\texttt{play\_note}: one function, any note}
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{play\_note} replaces \code{eat\_sound}.},label=lst:v4:note]{code/l22/s18.S}
+
+The caller chooses the note and the duration, in \reg{a2} and \reg{a4}; the
+function fills in the other three arguments
+(Listing~\ref{lst:v4:note}). The arguments stay in the registers where
+\code{prg32\_audio\_note} expects them: designing a contract round the callee
+saves moves.
+
+\subsection{\texttt{step}: what it leaves for \texttt{draw}}
+
+The function \code{step} of Part~3 is changed in five places.
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} remembers the old head.},label=lst:v4:s1]{code/l22/s19.S}
+
+Two stores are added (Listing~\ref{lst:v4:s1}): \code{old\_x} and
+\code{old\_y}, the cell that the head is leaving, which \code{draw} will
+repaint in the colour of the body.
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step}, when the worm eats.},label=lst:v4:s2]{code/l22/s20.S}
+
+When the worm eats, the tail stays and there is nothing to erase:
+$\code{erase\_on}=0$ says so to \code{draw} (Listing~\ref{lst:v4:s2}).
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} notes the tail, and calls the end.},label=lst:v4:s3]{code/l22/s21.S}
+
+When it does not eat, the tail leaves a cell, and \code{step} remembers
+which: $\code{erase\_on}=1$ means that \code{draw} must paint it black
+(Listing~\ref{lst:v4:s3}). The end of this fragment is shorter than in
+Part~3, because the collision is now one call, to \code{game\_is\_over}.
+
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} writes the new head (as in Part~3).},label=lst:v4:s4]{code/l22/s22.S}
+
+\asmfile[caption={Step 3 \textbf{(new)}: the end of \code{step}.},label=lst:v4:s5]{code/l22/s23.S}
+
+At the end (Listing~\ref{lst:v4:s5}) $\code{dirty}=1$ records that a step
+has happened and that \code{draw} has work to do. A meal is a point, new food
+and a short high note: note 72 for 60 milliseconds, the sound of Part~2
+through the new function.
+
+\subsection{\texttt{game\_is\_over}: the transition, in one place}
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{game\_is\_over}.},label=lst:v4:over]{code/l22/s24.S}
+
+A transition of the state machine deserves a function of its own
+(Listing~\ref{lst:v4:over}): the state, the outputs and the sound are in one
+place. The function stores \texttt{OVER}, updates the best score as in
+Part~3, sets $\code{dirty}=2$ because a new screen must be drawn, and plays a
+long low note: 36, for 400 milliseconds.
+
+\begin{prgcheck}[Run it: the sound of defeat]
+\begin{enumerate}[nosep]
+\item Build and run: the game looks exactly as after step~2.
+\item A meal sounds as before; biting yourself gives a long low note.
+\item In the debugger watch \code{erase\_x} and \code{erase\_y} follow the
+  tail, one step behind.
+\item \code{dirty} stays at 1 or 2: nobody reads it yet.
+\end{enumerate}
+\textbf{Expected result.} No visible change: the screen is still drawn
+completely at every frame. The new variables are written and not yet used.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 4: draw only what changed}
+
+\subsection{What does a frame cost?}
+
+Part~3 clears 64\,000 pixels and redraws the title, the score, the whole worm
+and the food, thirty times per second. But between two steps nothing on the
+screen changes, and a step changes very little: at most the cell that the
+tail has left, which becomes black; the old head, which becomes body; the new
+head; and perhaps the food and the score.
+
+\begin{prgconcept}
+Remember what changed, and draw only that. The picture stays on the screen by
+itself: the frame buffer is memory (Chapter~\ref{ch:video}).
+\end{prgconcept}
+
+A worm of 200 cells costs 200 rectangles per frame in Part~3, and three per
+step in Part~4. This is what the old home computers did, because they had no
+choice.
+
+\subsection{\texttt{draw}: nothing, a little, or everything}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v4:draw]{code/l22/s28.S}
+
+The variable \code{dirty} has three values (Listing~\ref{lst:v4:draw}). With
+0 the function returns at once, with no frame and no call: the common case,
+in which nothing has changed, costs five machine instructions. With 1 a step
+has happened, and the changes are drawn. With 2 there is a new screen, and
+everything is drawn. The flag is cleared as soon as it is read.
+
+\subsection{\texttt{draw\_changes}: three cells and the score}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_changes}.},label=lst:v4:changes]{code/l22/s29.S}
+
+The order matters (Listing~\ref{lst:v4:changes}): first the cell that the
+tail has left, if any, in black; then the old head, in the colour of the
+body; then the new head, the food and the score. Since the head may enter the
+cell that the tail has just left, erasing first and drawing the head
+afterwards gives the right picture.
+
+\subsection{\texttt{draw\_full}: a whole screen}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, first half.},label=lst:v4:full1]{code/l22/s30.S}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, \texttt{PLAY} and \texttt{OVER}.},label=lst:v4:full2]{code/l22/s31.S}
+
+\code{draw\_full} is the body of the old \code{verm1\_draw}, and is called
+once for each change of state (Listings \ref{lst:v4:full1}
+and~\ref{lst:v4:full2}). The score is drawn on the title screen too.
+
+\subsection{Three small functions}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_head}.},label=lst:v4:head]{code/l22/s32.S}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_food}.},label=lst:v4:food]{code/l22/s33.S}
+
+\asmfile[caption={Step 4: \code{draw\_text}, the helper of Part~3.},label=lst:v4:text]{code/l22/s34.S}
+
+\subsection{Every transition asks for a screen}
+
+Three small additions complete the mechanism: wherever the state changes,
+\code{dirty} becomes 2.
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_init} asks for the first screen.},label=lst:v4:init]{code/l22/s35.S}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_update}, from \texttt{OVER} to \texttt{TITLE}.},label=lst:v4:upd]{code/l22/s36.S}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: the end of \code{new\_game}, from \texttt{TITLE} to \texttt{PLAY}.},label=lst:v4:new]{code/l22/s37.S}
+
+\begin{prgwarn}
+Every transition of the machine asks for a full drawing; every step asks for
+a partial one. Forgetting one of them is the typical bug of this technique:
+the screen shows a state that is no longer true.
+\end{prgwarn}
+
+\begin{prgcheck}[Run it: the finished Verm1]
+The same game as after step~3, pixel for pixel (Figures \ref{fig:v4:play}
+and~\ref{fig:v4:over}). If you see trails or holes, a change was not
+recorded: use the debugger.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 5: measure}
+
+\prgqt is now used as an instrument: count before you believe.
+
+\begin{prgtry}[Before and after, with numbers]
+\begin{enumerate}[nosep]
+\item Run the finished game in debug mode and start a game.
+\item Read the telemetry during ten seconds of play: retired instructions,
+  frames per second, late frames.
+\item Compare with the numbers written down for Part~3 at the beginning of the
+  chapter.
+\item Let the worm grow to twenty cells in both versions and read again: one
+  number grows with the worm, the other does not.
+\item Put a breakpoint on the first instruction of \code{draw\_changes}: it
+  stops once per step, not once per frame.
+\item Write the numbers in your notes: they go in the description of the game
+  in Chapter~\ref{ch:store}.
+\end{enumerate}
+\end{prgtry}
+
+The numbers are deliberately not printed here: they must be measured. One
+caution in reading them: the telemetry counts the instructions of the
+cartridge, not those of the runtime that fills the rectangles, so that the
+real saving on the board is larger than the count shows; there every pixel
+also travels over SPI to the display.
+
+\subsection{Follow a call with the debugger}
+
+The calling convention of Chapter~\ref{ch:processor} can be watched
+instruction by instruction.
+
+\begin{enumerate}
+\item Break on \code{call to\_decimal} inside \code{draw\_score}, and read
+  \reg{a0}, \reg{a1}, \reg{ra} and \reg{sp}.
+\item Step once: the PC jumps into \code{to\_decimal}, and \reg{ra} now holds
+  the address of the instruction after the call.
+\item Step through: only \reg{t} registers and \reg{a0} change, and \reg{sp}
+  never moves. It is a leaf function.
+\item At \ins{ret} the PC takes the value of \reg{ra}: the program is back in
+  \code{draw\_score}.
+\item Do the same with \code{call draw\_text}: \reg{sp} goes down by 16,
+  \reg{ra} is stored at \code{12(sp)}, and comes back.
+\end{enumerate}
+
+In the listing of the debugger \ins{call} appears as \ins{jal}, or as
+\ins{auipc} followed by \ins{jalr}, and \ins{ret} as \code{c.jr ra}.
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{\code{to\_decimal} receives $\reg{a0}=205$. Which bytes does it store, from offset 0 to 2?}
+\item \texttt{02 00 05}
+\item \texttt{32 30 35}
+\item \texttt{35 30 32}
+\item \texttt{cd 00 00}
+\end{quiz}
+
+\begin{quiz}{At which score does the worm take one step every 4 frames?}
+\item 4
+\item 8
+\item 16
+\item 32
+\end{quiz}
+
+\begin{quiz}{\code{dirty} is 0 when \code{verm1\_draw} is called. How many machine instructions does it execute?}
+\item 1
+\item 5
+\item about 50
+\item thousands
+\end{quiz}
+
+\begin{quiz}{Why can \code{to\_decimal} do without a stack frame?}
+\item it is short
+\item it calls no function and uses only \reg{a} and \reg{t} registers
+\item it has no arguments
+\item frames are optional
+\end{quiz}
+
+\section{Make it yours}
+
+\begin{exercise}[on \prg]
+\begin{enumerate}[nosep]
+\item A pause: button \key{B} stops the game and writes \texttt{PAUSE};
+  \key{B} again resumes. A fourth state.
+\item A melody on the title screen: a table of notes in \code{.rodata}, one
+  note every 15 frames.
+\item Bonus food: every fifth piece is yellow, is worth three points, and
+  disappears after 100 frames.
+\item Your own colours with \code{prg32\_palette\_set}, or your own rules:
+  this is your game now.
+\end{enumerate}
+\expected{The version published in Chapter~\ref{ch:store} should have
+something that is yours. Change the title string, too. (Hints: the pause is
+a state \texttt{PAUSED} with transitions on the edge of \key{B}, \hex{20},
+and $\code{dirty}=2$ at both transitions. The melody needs an index and a
+frame counter in \code{.data}; the table is read like \code{dx}.)}
+\end{exercise}
+
+\section{The functions that did not change}
+
+Eight parts of the file are those of Part~3 and are kept as they are. They
+are reprinted here so that this chapter contains the whole program.
+
+\asmfile[caption={\textbf{Unchanged}: \code{verm1\_update}, buttons and edges.},label=lst:v4:u1]{code/l22/s48.S}
+\asmfile[caption={\textbf{Unchanged}: \code{new\_game}, the map and the worm.},label=lst:v4:u2]{code/l22/s49.S}
+\asmfile[caption={\textbf{Unchanged}: \code{play\_update}, the steering.},label=lst:v4:u3]{code/l22/s50.S}
+\asmfile[caption={\textbf{Unchanged}: \code{step}, the table lookup.},label=lst:v4:u4]{code/l22/s51.S}
+\asmfile[caption={\textbf{Unchanged}: \code{place\_food}.},label=lst:v4:u5]{code/l22/s52.S}
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_worm}, used by \code{draw\_full} only.},label=lst:v4:u6]{code/l22/s53.S}
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v4:u7]{code/l22/s54.S}
+\asmfile[caption={\textbf{Unchanged}: \code{.rodata}.},label=lst:v4:u8]{code/l22/s55.S}
+
+\section{Where we are, and what comes next}
+
+\vermone is finished: about six hundred lines of \riscv assembly, all written
+by the reader. It began as three functions that return, and grew one runnable
+step at a time. Every chapter of the book is in it: numbers, logic, state,
+memory, calls, pixels, devices.
+
+A program that only its author can run is half finished. The next chapter
+gives it a name, an icon, credits, a bundle for two architectures, and the
+Cartridge Store.

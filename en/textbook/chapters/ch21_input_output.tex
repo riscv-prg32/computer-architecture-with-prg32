@@ -1,0 +1,394 @@
+% ============================================================================
+%  Chapter 21 -- Input and Output                                (Lecture 21)
+% ============================================================================
+\chapter{Input and Output}
+\label{ch:io}
+
+\epigraphline{Need input!}{Number 5, in the film \emph{Short Circuit}, John
+Badham, 1986}
+
+\begin{chapgoals}
+By the end of this chapter you will be able to
+\begin{itemize}
+\item describe how a picture is formed on a CRT and on an LCD, and what a TFT active matrix adds;
+\item explain the path of a key press: matrix, encoder, shift register, serial interface;
+\item say what a mouse sends to the computer, and how often;
+\item describe the stages of laser printing;
+\item explain how the \prg kit reads its joystick, and compare polling, interrupts and DMA.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Warm-up on the machine}
+
+\asmfile[caption={Read the world, once per frame.},label=lst:io:warm]{code/l21/s04.S}
+
+The reader has read the joystick since the first chapters
+(Listing~\ref{lst:io:warm}). Each button is a switch on one input pin of the
+chip: pressed or released, one bit. The runtime reads the pins, which are
+memory-mapped registers configured as inputs, and packs them into one word: a
+decoded representation, in the sense of Chapter~\ref{ch:combinational}. And
+the game asks once per frame: this is called \term{polling}.
+
+The listing also repeats a lesson of Chapter~\ref{ch:instructions}. The mask
+of the buttons is kept in \reg{s0}, a saved register, and therefore survives
+the call that plays the note: the marker moves with \key{LEFT} also while
+\key{A} sounds. In \reg{t0} the mask would be lost at the call. (The program
+was built as a cartridge and run on the headless runner of \prgqt.)
+
+A keyboard has a hundred keys, a mouse moves in two dimensions, a display has
+thousands of pixels: how do they talk to a processor?
+
+% ----------------------------------------------------------------------------
+\section{Displays}
+
+\subsection{The video: an introduction}
+
+The first displays showed mostly characters, in black and white; today they
+are graphical and in colour. A graphical display is a matrix of points, the
+\term{pixels}, each lit with a different intensity, and an image is composed
+by switching the pixels on and off. A different density of pixels gives a
+different resolution; the colours go from 256 (8 bits) to 16 million (24
+bits) and beyond. The size is measured in inches along the diagonal. The
+display of the \prg kit has a diagonal of 2.8 inches, 320 by 240 pixels and
+65\,536 colours.
+
+\subsection{The cathode-ray tube}
+
+\begin{table}[htb]
+\centering\small
+\caption{A short history of the cathode-ray tube.}\label{tab:io:crt}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Year} & \textbf{Who} & \textbf{What}\\
+\midrule
+early 1870s & William Crookes & the Crookes tube: the first cathode-ray tube, a laboratory instrument\\
+1897 & Karl Ferdinand Braun & the Braun tube and the first cathode-ray oscilloscope: the first practical application\\
+1907 & Boris Rosing & a CRT displays simple geometric shapes from a received video signal: the root of television\\
+1934 & Telefunken & the first television set with a CRT on the market, in Germany\\
+1970s--1990s & the computer industry & the CRT monitor: the display of every terminal and personal computer\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+In a \term{cathode-ray tube} (CRT; Table~\ref{tab:io:crt},
+Figure~\ref{fig:io:crt}) the cathode is a small metal element heated to
+incandescence, which emits electrons by the thermionic effect. Inside the
+tube the electrons are directed into a beam by a high difference of potential
+between cathode and anode, and other electromagnetic fields focus the beam.
+The beam, the ``electron brush'', is deflected by magnetic fields (the
+Lorentz force) or by electric fields, and strikes a point on the inner
+surface of the screen, which is coated with phosphor and lights up. Sweeping
+the beam line by line, many times per second, paints the picture.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{mac_classic.jpg}\caption{A compact Macintosh: a 9-inch CRT}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.36\textwidth}\centering
+\begin{tikzpicture}[x=0.42cm,y=0.42cm,font=\sffamily\tiny]
+  \draw[prgsteel,thick,fill=prgpanel] (0,-0.9) -- (4.2,-0.9) -- (8,-2.9) -- (8.5,-2.9) arc (-35:35:5.05) -- (8,2.9) -- (4.2,0.9) -- (0,0.9) -- cycle;
+  \draw[prgred,thick] (0.5,-0.25) rectangle (1.3,0.25);
+  \fill[prgsteel] (2.0,1.1) rectangle (3.4,1.6) (2.0,-1.6) rectangle (3.4,-1.1);
+  \fill[prgamber] (4.4,1.5) rectangle (5.6,2.0) (4.4,-2.0) rectangle (5.6,-1.5);
+  \draw[prggreen,very thick,dashed] (1.3,0) -- (4.6,0) .. controls (6,0.2) .. (9.35,1.6);
+  \fill[prggreen] (9.35,1.6) circle (2.5pt);
+  \node[anchor=north] at (0.9,-1.0) {cathode};
+  \node[anchor=south] at (2.7,1.6) {focusing};
+  \node[anchor=south] at (5.0,2.0) {deflection};
+  \node[anchor=west] at (9.6,1.6) {phosphor};
+  \node[anchor=north] at (5.2,-3.0) {electron beam, anode at high voltage};
+\end{tikzpicture}
+\caption{The scheme of a CRT}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{crt_scope.jpg}\caption{An oscilloscope used as a display}\end{subfigure}
+\caption{The cathode-ray tube.}
+\label{fig:io:crt}
+\end{figure}
+
+\subsection{Liquid crystal displays}
+
+LCD monitors have almost completely replaced the cathode-ray tube: they give
+a better picture, with less bulk, weight and power, and less strain on the
+eyes. \term{Liquid crystals} are viscous organic molecules that flow like a
+liquid but have a spatial structure. An electric field changes the
+orientation of the molecules, and with it an optical property of the crystal:
+the angle of polarisation of the light that crosses it. A crystal is a valve
+for light, opened and closed by a voltage.
+
+\subsection{Inside an LCD panel}
+
+The screen is made of many cells, often one per pixel, in which the liquid
+crystals are trapped (Figure~\ref{fig:io:lcd}). Each cell has electrical
+contacts, so that a field can be applied to the liquid that it contains. The
+cells lie between two polarising filters whose axes are perpendicular to each
+other, with a light, the \term{backlight}, behind the rear one. Polarisation
+decides whether the light passes: when the crystals are not driven the light
+is rotated and crosses the front polariser; when they are driven it is
+completely blocked. In a colour screen each cell is divided into three
+sections with a red, a green and a blue filter: the three fields of the
+RGB565 colour of Chapter~\ref{ch:information} end up here, as three voltages.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.46\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{lcd_layers.jpg}\caption{The layers of an LCD}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.46\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{lcd_pixels.jpg}\caption{Red, green and blue sub-pixels}\end{subfigure}
+\caption{Liquid crystal displays.}
+\label{fig:io:lcd}
+\end{figure}
+
+\subsection{Driving the cells: from segments to the active matrix}
+
+In calculators and digital watches there is one electrical contact per
+segment, which becomes impossible as the number of elements grows. A
+\emph{passive matrix} has one group of contacts per row and one per column,
+not per pixel; only one pixel at a time is driven, and the others must
+remember their state. The consequences are \emph{persistence}, the trails
+behind moving objects, and crosstalk between neighbouring cells.
+
+High-resolution screens use an \term{active matrix}. The panel contains a
+thin film of transistors (TFT, \emph{thin-film transistor}) on a transparent
+semiconductor layer; the field is applied exactly where it is needed by a
+transistor in each cell, and the transistor stores the electrical state of
+its pixel while the others are updated. Each pixel is, in effect, an analogue
+memory cell. The display of the kit is a TFT panel with an ILI9341
+controller. In the more recent OLED displays each pixel emits its own light,
+and no backlight is needed.
+
+% ----------------------------------------------------------------------------
+\section{Keyboard and mouse}
+
+\subsection{The keyboard}
+
+The keyboard derives from that of typewriters, and is the main device for the
+input of characters. Its keys are grouped: alphanumeric keys; special keys
+such as enter and backspace; arrow keys and function keys. Keyboard and video
+are not directly connected to each other: it is the processor that reproduces
+on the video the information typed on the keyboard. The echo of a key on the
+screen is a program: read a code, draw a character. Today's keyboards
+connect through USB, or without wires.
+
+\subsection{The path of a key press}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \k/\x/\y in {Q/0/0,W/1/0,E/2/0,R/3/0,A/0.3/1,S/1.3/1,D/2.3/1,F/3.3/1,Z/0.6/2,X/1.6/2,C/2.6/2,V/3.6/2}{
+    \def\kd{D}\ifx\k\kd \def\c{prgamber}\else\def\c{prgsteel}\fi
+    \node[draw=white,fill=\c,text=white,rounded corners=1pt,minimum size=5.5mm,font=\ttfamily\bfseries\small] at (\x*0.62,-\y*0.62) {\k};
+  }
+  \node[lbl,text=prgcomment] at (1.2,-1.9) {\emph{rows and columns of switches}};
+  \node[blkacc,text width=27mm,minimum height=14mm] (e) at (5.2,-0.6) {\textbf{encoder}\\\footnotesize row and column to an $n$-bit code};
+  \node[blkvio,text width=27mm,minimum height=14mm] (s) at (8.6,-0.6) {\textbf{shift register}\\\footnotesize $n$ bits in parallel to $n$ in series};
+  \node[blkgrn,text width=27mm,minimum height=14mm] (u) at (12.0,-0.6) {\textbf{serial interface}\\\footnotesize e.g.\ a USB controller};
+  \draw[->,thick] (2.9,-0.6) -- (e); \draw[->,thick] (e) -- (s); \draw[->,thick] (s) -- (u);
+\end{tikzpicture}
+\caption{The path of a key press.}
+\label{fig:io:key}
+\end{figure}
+
+The keys of a keyboard are switches arranged in rows and columns
+(Figure~\ref{fig:io:key}). A key that is pressed joins one row to one column;
+an \emph{encoder} turns that combination of row and column into a key code of
+$n$ bits; a \emph{shift register} turns the $n$ bits from parallel to serial;
+and a \emph{serial interface}, for example a USB controller, sends them to
+the computer.
+
+\begin{prgconcept}
+Every block of Figure~\ref{fig:io:key} is a machine that the reader has
+already designed. This is the pay-off of Chapters \ref{ch:combinational}
+to~\ref{ch:registers}.
+\end{prgconcept}
+
+\subsection{The mouse}
+
+The mouse was invented in the 1960s by Douglas Engelbart (the first prototype
+is of 1964, the patent was filed in 1967 and the famous public demonstration
+is of 1968): it was the first pointing device in history. It was a wooden box
+with two wheels underneath and a wire leaving from the back, like the tail of
+a mouse. The two wheels detected the movements along the horizontal and the
+vertical axis, and the electronics turned them into electrical signals. In a
+\emph{mechanical} mouse a ball turns two rollers, each of which drives a
+counter; in an \emph{optical} mouse a source of light and a tiny camera
+measure the movement of the surface underneath.
+
+\subsection{What a mouse sends}
+
+Every time it has moved by a minimum distance, about a hundredth of an inch,
+called a \emph{mickey}, the mouse sends three bytes: how many units it has
+moved along $x$ since the last report; the movement along $y$; and the state
+of the buttons. The two movements are signed numbers in two's complement
+(Chapter~\ref{ch:integers}). Modern mice report up to a thousand times per
+second. Inside, the mouse is two counters, a shift register that puts the
+three bytes in series, and a serial interface; on the side of the computer
+the control software, the \term{device driver}, supervises the communication
+with the processor.
+
+% ----------------------------------------------------------------------------
+\section{Printers}
+
+\subsection{The printer}
+
+A printer is an output device that prints information on paper. Its speed is
+measured in lines per minute, characters per second or pages per minute; its
+resolution, that is, the quality of the print, in dots per inch. The
+daisy-wheel and chain printers are now disused; a \emph{dot-matrix} printer
+strikes an inked ribbon with needles; an \emph{ink-jet} printer throws tiny
+drops of ink; and then there is the laser printer. A printer is also a small
+computer: it has its own processor, memory and firmware.
+
+\subsection{The laser printer}
+
+The laser printer derives from the photocopier
+(Figure~\ref{fig:io:laser}). It works in six stages.
+
+\begin{enumerate}
+\item A drum is charged electrically, to about 1\,000 volts.
+\item A laser beam, reflected by a rotating mirror, scans the length of the
+  drum; the beam is modulated so as to produce a pattern of light and dark
+  points.
+\item The points struck by the beam lose their charge. After each line the
+  drum turns by a fraction of a degree.
+\item The toner is attracted by the points that are still charged: an image of
+  the line is formed.
+\item The drum is pressed against the paper and transfers the toner to it;
+  heated rollers fix it permanently.
+\item The drum is discharged and cleaned.
+\end{enumerate}
+
+The page is first built as a bitmap in the memory of the printer: a frame
+buffer for paper.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{laser_printer.jpg}
+\caption{The path of the paper in a laser printer.}
+\label{fig:io:laser}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Back to the machine}
+
+\subsection{The devices of the PRG32 kit}
+
+\begin{table}[htb]
+\centering\small
+\caption{The devices of the \prg kit.}\label{tab:io:kit}
+\begin{tabularx}{\textwidth}{@{}P{0.2\textwidth}lLL@{}}
+\toprule
+\textbf{Device} & \textbf{Direction} & \textbf{How it is connected} & \textbf{How a cartridge uses it}\\
+\midrule
+joystick and buttons & input & one switch per input pin (GPIO) & \code{prg32\_input\_read}: one bit per button\\
+display, $320\times 240$ TFT & output & SPI serial bus, with DMA & the \code{prg32\_gfx\_*} calls draw into the frame buffer\\
+amplifier and speaker & output & I2S serial bus & the \code{prg32\_audio\_*} calls: notes, samples, music\\
+Wi-Fi radio & input and output & inside the chip & cartridge upload, the Store, multiplayer\\
+USB serial port & input and output & USB & flashing the firmware, debug messages\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+One detail of Table~\ref{tab:io:kit} was promised in
+Chapter~\ref{ch:electronics}: a switch bounces for a few milliseconds when it
+is pressed, and sampling it once per frame, every few tens of milliseconds,
+hides the bounce.
+
+\subsection{Three ways to deal with a device}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Polling (programmed I/O).] The program asks the device, again and again,
+  whether it has something. It is simple, and it is what a game does once
+  per frame; it is wasteful when nothing happens.
+\item[Interrupts.] The device asks for attention when it needs it; the
+  processor suspends what it is doing, serves the device and resumes
+  (Chapter~\ref{ch:instructions}).
+\item[Direct memory access.] The device exchanges whole blocks of data with
+  the memory by itself; the processor only starts the transfer and is told
+  when it ends (Chapter~\ref{ch:memory}).
+\end{description}
+
+\begin{prgmachine}
+On the kit all three are at work at the same time: the game polls the
+joystick, the timer that paces the frames interrupts, and the display and the
+sound are fed by DMA.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{What does the encoder of a keyboard controller do?}
+\item It lights the key that was pressed
+\item It turns a row and column combination into a key code
+\item It sends the code to the monitor
+\item It counts how long a key is held
+\end{quiz}
+
+\begin{quiz}{In a colour LCD, a pixel is made of:}
+\item one cell that changes colour
+\item three cells with red, green and blue filters
+\item a phosphor dot hit by electrons
+\item a transistor that emits light
+\end{quiz}
+
+\begin{quiz}{Why does a passive-matrix LCD show trails behind moving objects?}
+\item Its backlight is too weak
+\item Its pixels are driven one at a time and must hold their state in between
+\item It has too few colours
+\item The video card is slow
+\end{quiz}
+
+\begin{quiz}{A \prg game reads the joystick once per frame. This technique is called:}
+\item direct memory access
+\item interrupt-driven input
+\item polling
+\item memory mapping
+\end{quiz}
+
+\section{Exercises}
+
+\begin{exercise}[paper first, then \prg]
+\begin{enumerate}[nosep]
+\item A keyboard has 104 keys: how many bits does the key code need? How many
+  rows and columns could the matrix have?
+\item A page of 8 by 11 inches at 600 dots per inch, one bit per dot: how much
+  memory does the printer need for the bitmap?
+\item Move a pointer on the \prg screen with the joystick, as a mouse would:
+  keep $x$ and $y$, and clamp them to the screen.
+\item Make button \key{A} act only once per press (edge detection,
+  Chapter~\ref{ch:sequential}).
+\item Draw a seven-segment score with rectangles, using the transcoder table
+  of Chapter~\ref{ch:combinational}.
+\end{enumerate}
+\expected{On paper: 7 bits and, for example, 8 rows by 13 columns;
+$4\,800\times 6\,600$ dots, that is 31\,680\,000 bits, about 4~MB. On \prg: a
+pointer that stays on the screen, and a button that fires once per press.}
+\end{exercise}
+
+\section{Glossary}
+
+\begin{glossarytable}
+cathode-ray tube & tubo a raggi catodici\\
+liquid crystals & cristalli liquidi\\
+backlight & retroilluminazione\\
+active matrix & matrice attiva\\
+keyboard / key & tastiera / tasto\\
+pointing device & periferica di puntamento\\
+dot-matrix / ink-jet printer & stampante ad aghi / a getto d'inchiostro\\
+drum / toner & tamburo / toner\\
+polling & interrogazione ciclica\\
+device driver & driver di periferica\\
+\end{glossarytable}
+
+\section{Conclusions and reading}
+
+Input/output devices are a fundamental component of computers. Display
+technology has made enormous progress, from the electron beam to a transistor
+behind every pixel. Keyboard, mouse and printer have changed little in form,
+and inside they are built from encoders, counters and shift registers. A
+device reaches the processor through a controller and a bus, and is handled
+by polling, by interrupts or by DMA. On the \prg kit the whole chain, from a
+switch to a pixel, can be followed instruction by instruction.
+
+\paragraph{Reading.} \citet{tanenbaum2013}, section~2.4 (input/output);
+\citet{stallings2021}, the chapter on input/output; \emph{Playing with
+RISC-V}, chapter~6, ``State and Input'' \citep{prg32textbook}.
+
+The fourth block is complete. The next chapter finishes \vermone, and the one
+after it publishes the game.

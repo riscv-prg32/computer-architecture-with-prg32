@@ -1,0 +1,64 @@
+% ============================================================================
+%  Appendix D -- The complete sources of Verm1
+% ============================================================================
+\chapter{Verm1: The Complete Sources}
+\label{app:verm1}
+
+This appendix prints in full the four reference programs of the project and
+the files of the Store bundle. The reference implementation of \vermone was
+contributed by Giuseppe Coviello; the tutorial chapters are built on it. They are the files that the automatic tests
+of the course material build, run on the headless runner of \prgqt and play
+with a scripted player; the listings of the tutorial chapters are regions of
+these same files. A reader whose program refuses to work at the beginning of
+a tutorial starts from the file of the previous part
+(Table~\ref{tab:verm1:files}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The reference programs.}\label{tab:verm1:files}
+\begin{tabularx}{\textwidth}{@{}llrL@{}}
+\toprule
+\textbf{File} & \textbf{Chapter} & \textbf{Lines} & \textbf{The game at this point}\\
+\midrule
+\fname{verm1\_part1.S} & \ref{ch:verm1p1} & 78 & a grid, a head that moves by itself, a world without edges\\
+\fname{verm1\_part2.S} & \ref{ch:verm1p2} & 231 & steering, the U-turn rule, food, a score in marks, a sound\\
+\fname{verm1\_part3.S} & \ref{ch:verm1p3} & 435 & a body that grows, collisions, three states, a best score\\
+\fname{verm1\_part4.S} & \ref{ch:verm1p4} & 565 & digits, levels, two sounds, incremental drawing: the finished game\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Every part is built and run with the same two commands:
+
+\begin{shell}
+python3 -m prg32 cartridge build verm1_part4.S --portable \
+    --entry-prefix verm1 --name verm1 --out verm1.prg32
+python3 -m prg32 esp32c6 upload-and-run verm1.prg32 \
+    --url http://localhost:8080 --slot cart0
+\end{shell}
+
+\section{Part 1: a head that crosses the world}
+\asmfile[caption={\fname{verm1\_part1.S}.},label=lst:verm1:p1]{code/verm1/verm1_part1.S}
+
+\section{Part 2: steering, food and a score}
+\asmfile[caption={\fname{verm1\_part2.S}.},label=lst:verm1:p2]{code/verm1/verm1_part2.S}
+
+\section{Part 3: a body, rules and states}
+\asmfile[caption={\fname{verm1\_part3.S}.},label=lst:verm1:p3]{code/verm1/verm1_part3.S}
+
+\section{Part 4: the finished game}
+\asmfile[caption={\fname{verm1\_part4.S}.},label=lst:verm1:p4]{code/verm1/verm1_part4.S}
+
+\section{The files of the Store bundle}
+
+The three files that follow are those of Chapter~\ref{ch:store}, for the
+reference game. In a bundle of the reader's own, the identifier, the title
+and every occurrence of \texttt{Your Name} are replaced; the acknowledgement
+of the reference implementation stays, as for any work that starts from
+somebody else's.
+
+\jsonfile[caption={\fname{manifest.json}.},label=lst:verm1:manifest]{code/verm1/store/manifest.json}
+
+\jsonfile[caption={\fname{metadata.json}: the manifest without \code{assets} and \code{architectures}.},label=lst:verm1:metadata]{code/verm1/store/metadata.json}
+
+\jsonfile[caption={\fname{colophon.json}.},label=lst:verm1:colophon]{code/verm1/store/colophon.json}

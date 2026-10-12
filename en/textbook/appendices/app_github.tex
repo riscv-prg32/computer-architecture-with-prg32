@@ -1,0 +1,529 @@
+% ============================================================================
+%  Appendix C -- Git and GitHub Reference
+% ============================================================================
+\chapter{Git and GitHub Reference}
+\label{app:github}
+
+The platform of this book, the tools, the companion manual and the book
+itself live on GitHub, and so should the reader's project. This appendix is a
+reference of Git, the program that records the history of a project, and of
+GitHub, the service that hosts it: the concepts, the commands of every day,
+the workflow with which one contributes to \prg, and the way in which a
+project such as \vermone is kept and released. It assumes no previous
+experience. The authoritative sources are \citet{progit} and the
+documentation of GitHub \citep{githubdocs}.
+
+% ----------------------------------------------------------------------------
+\section{Why version control}
+
+Chapter~\ref{ch:verm1p1} gave an instruction that every tutorial repeated:
+\emph{keep a copy of each finished part}. A folder full of files called
+\fname{verm1\_part2\_ok.S} and \fname{verm1\_final\_really.S} is the
+handmade form of version control. Git does the same thing properly: it
+remembers every recorded state of the files, says exactly what changed
+between two states, and returns to any of them.
+
+\begin{prgconcept}
+\textbf{Git} records snapshots of a project, called \term{commits}; each one
+is a labelled state to which one can return. \textbf{GitHub} hosts a Git
+repository on line, so that the work is backed up, can be shared and can be
+reviewed. Together they turn ``I think I broke something'' into ``let me see
+exactly what I changed''.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Concepts}
+
+\begin{table}[htb]
+\centering\small
+\caption{The vocabulary of Git and GitHub.}\label{tab:git:terms}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Term} & \textbf{Meaning}\\
+\midrule
+repository & a project with its whole history: the folder \fname{.git} inside the project holds it\\
+working tree & the files as they are now in the folder\\
+staging area (index) & the changes chosen for the next commit\\
+commit & a recorded snapshot, with an author, a date, a message and a unique identifier (a hash of 40 hexadecimal digits, usually abbreviated to 7)\\
+branch & a movable name for a line of commits; the default one is \code{main}\\
+\code{HEAD} & the commit on which the working tree is based\\
+tag & a fixed name for one commit, typically a version: \code{v1.0.0}\\
+remote & a copy of the repository elsewhere, typically on GitHub; the default name is \code{origin}\\
+clone & a complete local copy of a remote repository\\
+fork & a copy of somebody else's repository under one's own GitHub account\\
+push / fetch / pull & send commits to a remote / receive them / receive and merge them\\
+merge & to join the histories of two branches\\
+pull request (PR) & a proposal, on GitHub, to merge a branch into another, with a discussion and a review\\
+issue & a report or a task attached to a repository on GitHub\\
+release & a tag published on GitHub with notes and, optionally, files to download\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=7mm]
+  \node[blkacc,text width=27mm,minimum height=14mm] (w) {\textbf{working tree}\\\footnotesize the files you edit};
+  \node[blkamb,text width=27mm,minimum height=14mm,right=of w] (s) {\textbf{staging area}\\\footnotesize the next commit};
+  \node[blkvio,text width=27mm,minimum height=14mm,right=of s] (l) {\textbf{local repository}\\\footnotesize the history};
+  \node[blkgrn,text width=27mm,minimum height=14mm,right=of l] (r) {\textbf{remote}\\\footnotesize GitHub};
+  \draw[->,thick] (w) -- node[above,font=\ttfamily\scriptsize]{add} (s);
+  \draw[->,thick] (s) -- node[above,font=\ttfamily\scriptsize]{commit} (l);
+  \draw[->,thick] ([yshift=2mm]l.east) -- node[above,font=\ttfamily\scriptsize]{push} ([yshift=2mm]r.west);
+  \draw[->,thick] ([yshift=-2mm]r.west) -- node[below,font=\ttfamily\scriptsize]{fetch} ([yshift=-2mm]l.east);
+  \draw[->,thick,rounded corners=3mm] (l.south) -- ++(0,-7mm) -| node[pos=0.25,below,font=\ttfamily\scriptsize]{restore, switch} (w.south);
+\end{tikzpicture}
+\caption{The four places in which a change can be, and the commands that move it.}
+\label{fig:git:areas}
+\end{figure}
+
+A change travels through four places (Figure~\ref{fig:git:areas}). It is
+made in the working tree; \code{git add} chooses it for the next commit;
+\code{git commit} records it in the local repository; \code{git push} sends
+it to the remote. Nothing leaves the computer before the push.
+
+% ----------------------------------------------------------------------------
+\section{Installing and configuring}
+
+Git is installed with the system's package manager (\code{brew install git}
+on macOS, \code{sudo apt install git} on Debian and Ubuntu) or, on Windows,
+with \emph{Git for Windows} from \url{https://git-scm.com}; it was already
+installed in Chapter~\ref{ch:setup}. It is configured once per computer
+(Listing~\ref{lst:git:config}).
+
+\begin{shell}[caption={Configuring Git, once.},label=lst:git:config]
+git --version
+git config --global user.name  "Your Name"
+git config --global user.email "your.address@studenti.uniparthenope.it"
+git config --global init.defaultBranch main
+git config --list
+\end{shell}
+
+A GitHub account is created at \url{https://github.com}. To let Git talk to
+GitHub without typing a password at every push, the simplest way is the
+official command-line client, \code{gh}, whose command \code{gh auth login}
+opens a browser and stores the credential in the keychain of the system; the
+alternative is an SSH key (\code{ssh-keygen -t ed25519}), whose \emph{public}
+half is pasted in the settings of the account.
+
+\begin{prgwarn}
+A private key, a password and a token are never committed, pasted in a file
+of the project or shown in a screenshot. This applies to the token of the
+Cartridge Store exactly as to the credentials of GitHub.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Getting a repository}
+
+There are two ways of obtaining a repository: copying an existing one, or
+making a folder into one (Listing~\ref{lst:git:get}).
+
+\begin{shell}[caption={Cloning the platform; starting a project of one's own.},label=lst:git:get]
+# 1. clone an existing repository: the platform, the debugger, the manual
+git clone https://github.com/riscv-prg32/PRG32
+git clone https://github.com/riscv-prg32/PRG32-QT
+git clone https://github.com/riscv-prg32/Playing-with-RISC-V_PRG32_textbook
+
+# 2. start a new repository in the folder of your game
+cd ~/verm1
+git init
+git add verm1.S
+git commit -m "Verm1 part 1: a head that crosses the world"
+\end{shell}
+
+To bring a clone up to date with the remote: \code{git pull}.
+
+% ----------------------------------------------------------------------------
+\section{The everyday cycle}
+
+Three commands cover most of the daily use: \code{status}, to see what has
+changed; \code{add}, to choose what to keep; \code{commit}, to record it with
+a message (Listing~\ref{lst:git:cycle}).
+
+\begin{shell}[caption={Inspect, stage, commit.},label=lst:git:cycle]
+git status                      # what has changed?
+git diff                        # exactly which lines?
+git add verm1.S                 # choose the changes to record
+git diff --staged               # what is about to be recorded?
+git commit -m "Part 2: steering, with the U-turn rule as one XOR"
+git log --oneline               # the history, one line per commit
+\end{shell}
+
+\begin{prgconcept}[Commit after every \emph{Run it}]
+The method of this book is one runnable step at a time. Commit at each
+checkpoint at which the program runs and behaves as stated: then any break
+is, at worst, one step's worth of work to inspect or to undo.
+\end{prgconcept}
+
+A commit message is a note to one's future self. Its first line says in the
+imperative what the commit does, in fifty characters or so: ``Add the edge
+detector for button A'', not ``stuff'' or ``fix''. If more is needed, a
+blank line follows and then an explanation of \emph{why}.
+
+\subsection{What not to commit: \texttt{.gitignore}}
+
+Generated files do not belong in a repository: they can be rebuilt from the
+sources, and they change at every build. A file named \fname{.gitignore}
+lists the patterns that Git must ignore (Listing~\ref{lst:git:ignore}).
+
+\begin{plain}[caption={A \fname{.gitignore} for a cartridge project.},label=lst:git:ignore]
+# build products
+build/
+*.o
+*.elf
+*.prg32
+*.zip
+
+# editors and operating systems
+.vscode/
+.DS_Store
+Thumbs.db
+
+# secrets: never
+.env
+*.token
+\end{plain}
+
+Whether the built cartridge is kept under version control is a matter of
+choice; the usual answer is no, because a release (Section~\ref{sec:git:release})
+is the right place for it.
+
+% ----------------------------------------------------------------------------
+\section{Looking at the history}
+
+\begin{shell}[caption={Reading the history.},label=lst:git:log]
+git log --oneline --graph --all     # all the branches, as a graph
+git log -p verm1.S                  # the changes made to one file
+git show 3f2a9c1                    # one commit: message and changes
+git diff v1.0.0 HEAD                # from a version to now
+git blame verm1.S                   # who wrote each line, and when
+git bisect start                    # find the commit that broke something
+\end{shell}
+
+\code{git bisect} deserves a word. Given a commit in which the program
+worked and one in which it does not, it proposes the commit half-way, asks
+whether that one is good or bad, and repeats: a binary search in the history,
+which finds the guilty commit among a thousand in ten steps.
+
+% ----------------------------------------------------------------------------
+\section{Undoing}
+
+\begin{table}[htb]
+\centering\small
+\caption{How to undo, from the least to the most drastic.}\label{tab:git:undo}
+\begin{tabularx}{\textwidth}{@{}LP{0.44\textwidth}@{}}
+\toprule
+\textbf{Situation} & \textbf{Command}\\
+\midrule
+discard the changes of a file since the last commit & \code{git restore verm1.S}\\
+take a file out of the staging area, keeping its changes & \code{git restore -{}-staged verm1.S}\\
+correct the message, or add a forgotten file, of the last commit not yet pushed & \code{git commit -{}-amend}\\
+bring back one file as it was in an older commit & \code{git restore -{}-source 3f2a9c1 verm1.S}\\
+cancel the effect of a commit already published, with a new commit & \code{git revert 3f2a9c1}\\
+put work aside for a moment, and take it back & \code{git stash} ; \code{git stash pop}\\
+look at an old state without changing anything & \code{git switch -{}-detach 3f2a9c1}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}
+The commands that rewrite history, such as \code{git reset -{}-hard} and
+\code{git push -{}-force}, destroy work, one's own and other people's.
+History that has been pushed is corrected with \code{git revert}, which adds a
+commit, and never by rewriting it.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Branches}
+
+A \term{branch} is an independent line of work. Before a risky change, for
+example the incremental drawing of Chapter~\ref{ch:verm1p4}, one makes a
+branch: if the experiment fails the branch is discarded and the main line is
+untouched; if it succeeds it is merged (Listing~\ref{lst:git:branch}).
+
+\begin{shell}[caption={Working on a branch.},label=lst:git:branch]
+git switch -c feature/pause-state   # create a branch and move to it
+# ... edit, build, run, commit, as many times as needed ...
+git switch main                     # back to the main line
+git merge feature/pause-state       # bring the work in
+git branch -d feature/pause-state   # the branch is no longer needed
+
+git branch                          # list the branches
+git switch -                        # go back to the previous branch
+\end{shell}
+
+\paragraph{Conflicts.} If two branches have changed the same lines, the merge
+stops and Git marks the place in the file:
+\begin{plain}
+<<<<<<< HEAD
+.equ SPEED_MIN, 32
+=======
+.equ SPEED_MIN, 40
+>>>>>>> feature/levels
+\end{plain}
+The conflict is resolved by editing the file until it says what is wanted,
+removing the three marker lines, and then running \code{git add} and
+\code{git commit}. \code{git merge -{}-abort} gives up and returns to the
+state before the merge.
+
+% ----------------------------------------------------------------------------
+\section{Working with GitHub}
+
+\subsection{Publishing a repository}
+
+\begin{shell}[caption={Publishing a local repository on GitHub.},label=lst:git:publish]
+# with the GitHub client: create the repository and push, in one step
+gh repo create verm1-yourname --public --source . --push
+
+# or: create an empty repository on github.com, then
+git remote add origin https://github.com/yourname/verm1-yourname.git
+git push -u origin main
+
+# afterwards
+git push            # send new commits
+git pull            # receive the commits made elsewhere
+git remote -v       # where does this repository point?
+\end{shell}
+
+\subsection{The files of a good repository}
+
+The \prg repository is a model of the conventions
+(Table~\ref{tab:git:files}): the files that orient a newcomer and make a
+project easy to evaluate.
+
+\begin{table}[htb]
+\centering\small
+\caption{The files that a repository should contain.}\label{tab:git:files}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{File} & \textbf{Content}\\
+\midrule
+\fname{README.md} & what the project is, a screenshot, how to build it and run it, the controls\\
+\fname{LICENSE} & what others may do with it: MIT for \prg and for the programs of this book\\
+\fname{.gitignore} & what is not to be recorded\\
+\fname{CITATION.cff} & how to cite the project in a report or in a thesis\\
+\fname{CONTRIBUTING.md} & how to propose a change\\
+\fname{CHANGELOG.md} & what changed from one version to the next\\
+\fname{.github/workflows/} & the automatic checks run by GitHub Actions\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{plain}[caption={A \fname{README.md} for a variant of \vermone.},label=lst:git:readme]
+# Verm1 Deluxe
+
+A hungry worm on a 40 by 24 grid: a tribute to Snake, written in RISC-V
+assembly for the PRG32 platform. My variant adds walls and a pause.
+
+![The game](screenshot.png)
+
+## Build and run
+
+    python3 -m prg32 cartridge build verm1.S --portable \
+        --entry-prefix verm1 --name verm1 --out verm1.prg32
+    python3 -m prg32 esp32c6 upload-and-run verm1.prg32 \
+        --url http://localhost:8080 --slot cart0
+
+## Controls
+
+Joystick: steer. A: start. B: pause.
+
+## Credits and licence
+
+Written by Your Name for ARC12, University of Naples "Parthenope".
+MIT License: see LICENSE.
+\end{plain}
+
+Files with the extension \fname{.md} are written in Markdown: a line that
+begins with \code{\#} is a title, \code{**bold**} is bold, a line indented by
+four spaces is code, and \code{[text](address)} is a link.
+
+\subsection{Forks and pull requests}
+
+One cannot push to a repository of which one is not a maintainer. The way of
+proposing a change to somebody else's project is the \term{pull request}
+(Figure~\ref{fig:git:pr}, Listing~\ref{lst:git:pr}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=15mm] (a) {\textbf{Fork}\\[1pt]\footnotesize your copy on GitHub};
+  \node[blkamb,text width=21mm,minimum height=15mm,right=of a] (b) {\textbf{Branch}\\[1pt]\footnotesize one clear goal};
+  \node[blkvio,text width=21mm,minimum height=15mm,right=of b] (c) {\textbf{Commit, push}\\[1pt]\footnotesize to your fork};
+  \node[blkgrn,text width=21mm,minimum height=15mm,right=of c] (d) {\textbf{Pull request}\\[1pt]\footnotesize propose, discuss};
+  \node[blkred,text width=21mm,minimum height=15mm,right=of d] (e) {\textbf{Review, merge}\\[1pt]\footnotesize by a maintainer};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{The path of a contribution.}
+\label{fig:git:pr}
+\end{figure}
+
+\begin{shell}[caption={A contribution to \prg, from the fork to the pull request.},label=lst:git:pr]
+gh repo fork riscv-prg32/PRG32 --clone       # fork, and clone the fork
+cd PRG32
+git switch -c docs/cartridge-workflow-notes  # a branch from main
+
+# ... make the smallest change that proves the idea; run the checks ...
+
+git add docs/
+git commit -m "Clarify the cartridge workflow for first-time users"
+git push -u origin docs/cartridge-workflow-notes
+gh pr create --fill                          # open the pull request
+
+# keep the fork up to date with the original
+git remote add upstream https://github.com/riscv-prg32/PRG32.git
+git fetch upstream
+git switch main
+git merge upstream/main
+\end{shell}
+
+The rules of the \prg repository, in its \fname{CONTRIBUTING.md}, are written
+for students first: pick one clear goal; create a branch from \code{main};
+make the smallest change that proves the idea; update the documentation when
+behaviour, commands, paths or interfaces change; run the checks; and open a
+pull request that says what the \emph{context} was, what \emph{method} was
+followed and how the change was \emph{validated}, on QEMU or on hardware.
+Branch names say the kind of work: \code{lab/\ldots}, \code{game/\ldots},
+\code{docs/\ldots}
+
+\paragraph{Reviewing.} A pull request shows the changes line by line, and
+anyone may comment on a line. A reviewer approves, or asks for changes; the
+author answers by pushing further commits to the same branch, which update
+the pull request. The checklist of Chapter~\ref{ch:store}, used by a
+colleague on one's bundle, is a review.
+
+\subsection{Issues}
+
+An \term{issue} reports a defect or proposes a task. A good report of a
+defect contains what was done (the exact command), what was expected, what
+happened (the \emph{whole} message, as text), and the environment: the
+operating system, the version of the tools, the host. A commit or a pull
+request whose message contains \code{Fixes \#12} closes issue 12 when it is
+merged.
+
+\subsection{GitHub Actions: checks that run by themselves}
+
+A file in \fname{.github/workflows} describes a job that GitHub runs at every
+push or pull request, on a clean machine: typically, building the project and
+running its tests. The workflow of the \prg repository builds the in-tree
+cartridges with the same command-line tool that is used locally, for the
+ESP32-C6 and for QEMU, and exposes them as files to download. A green mark
+next to a commit means that the checks passed; a red cross means that
+something which worked on the author's computer does not work on a clean one,
+which is exactly what one wants to know before a merge.
+
+\begin{plain}[caption={The outline of a workflow file (YAML). The build step is
+project-specific: for a cartridge it requires the ESP-IDF toolchain.},label=lst:git:actions]
+name: build
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: ./scripts/build-and-test.sh
+\end{plain}
+
+% ----------------------------------------------------------------------------
+\section{Versions, tags and releases}\label{sec:git:release}
+
+Chapter~\ref{ch:store} gave \vermone a version, 1.0.0, with the rule that a
+published version is never replaced. The numbering is called \term{semantic
+versioning}: \emph{major.minor.patch}, where the patch grows for a fix, the
+minor for a new feature that breaks nothing, and the major for a change that
+is not compatible. In Git a version is a \term{tag}, and on GitHub a tag
+becomes a \term{release}, to which files can be attached
+(Listing~\ref{lst:git:release}).
+
+\begin{shell}[caption={Tagging version 1.0.0 and releasing the bundle.},label=lst:git:release]
+git tag -a v1.0.0 -m "Verm1 1.0.0: first release"
+git push origin v1.0.0
+
+# publish a release on GitHub and attach the bundle of the Store
+gh release create v1.0.0 verm1-1.0.0.zip \
+    --title "Verm1 1.0.0" --notes "First release: the finished game."
+
+git tag                 # list the versions
+git switch --detach v1.0.0   # look at the sources of a version
+\end{shell}
+
+The tag guarantees that the sources from which a published bundle was built
+can always be found again: it ties the file that players install to the lines
+that the author wrote.
+
+% ----------------------------------------------------------------------------
+\section{This book and Overleaf}
+
+The sources of this book are a folder of \LaTeX{} files that compiles on
+Overleaf (upload the folder as a ZIP file, or import the repository; the main
+document is \fname{main.tex} and the compiler is pdf\LaTeX). Overleaf can be
+linked to a GitHub repository, with which it exchanges commits; and every
+Overleaf project is itself a Git repository that can be cloned, so that the
+text can be edited in a browser and versioned in the same way as a program.
+The slide decks of the course are generated from sources kept in the same
+manner, and corrections are welcome as pull requests.
+
+% ----------------------------------------------------------------------------
+\section{Citing software}
+
+Software that is used in a report, in a thesis or in a paper is cited, like
+any other source. A repository that contains a file \fname{CITATION.cff}
+shows on GitHub a button, \emph{Cite this repository}, which produces the
+reference in the usual formats. The \prg repository has one, and its entry
+in the bibliography of this book \citep{prg32repo} is the model to follow.
+
+% ----------------------------------------------------------------------------
+\section{Command summary}
+
+{\small
+\begin{longtable}{@{}p{0.43\textwidth}p{0.51\textwidth}@{}}
+\caption{The commands of Git and of the GitHub client used in this appendix.}\label{tab:git:summary}\\
+\toprule
+\textbf{Command} & \textbf{Effect}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Command} & \textbf{Effect}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{git config -{}-global user.name "\ldots"} & set the name of the author\\
+\code{git init} & make the current folder a repository\\
+\code{git clone URL} & copy a remote repository\\
+\code{git status} & what has changed\\
+\code{git diff} ; \code{git diff -{}-staged} & the changes not yet staged; those staged\\
+\code{git add FILE} ; \code{git add -p} & stage a file; stage a part of the changes\\
+\code{git commit -m "message"} & record a snapshot\\
+\code{git log -{}-oneline -{}-graph} & the history\\
+\code{git show COMMIT} & one commit\\
+\code{git restore FILE} & discard the changes of a file\\
+\code{git restore -{}-staged FILE} & unstage a file\\
+\code{git revert COMMIT} & undo a commit with a new commit\\
+\code{git stash} ; \code{git stash pop} & put work aside; take it back\\
+\code{git switch -c NAME} & create a branch and move to it\\
+\code{git switch NAME} & move to a branch\\
+\code{git merge NAME} & merge a branch into the current one\\
+\code{git branch} ; \code{git branch -d NAME} & list the branches; delete one\\
+\code{git remote -v} ; \code{git remote add NAME URL} & list the remotes; add one\\
+\code{git fetch} ; \code{git pull} & receive commits; receive and merge\\
+\code{git push} ; \code{git push -u origin NAME} & send commits; the first push of a branch\\
+\code{git tag -a v1.0.0 -m "\ldots"} & name a version\\
+\code{git bisect start} / \code{good} / \code{bad} & find the commit that introduced a defect\\
+\midrule
+\code{gh auth login} & sign in to GitHub from the terminal\\
+\code{gh repo create NAME -{}-source . -{}-push} & create a repository on GitHub from the current folder\\
+\code{gh repo fork OWNER/REPO -{}-clone} & fork a repository and clone the fork\\
+\code{gh pr create} ; \code{gh pr status} ; \code{gh pr checkout N} & open a pull request; see its state; try one locally\\
+\code{gh issue create} ; \code{gh issue list} & open an issue; list them\\
+\code{gh release create TAG FILES} & publish a release\\
+\end{longtable}}
+
+\begin{prgcheck}
+You should now be able to clone the platform, record your work step by step
+with meaningful messages, experiment on a branch, undo an unwanted change,
+publish your repository, propose a change with a pull request and release a
+version of your game. These operations are enough for a first year of
+coursework, and for a first contribution to an open project.
+\end{prgcheck}

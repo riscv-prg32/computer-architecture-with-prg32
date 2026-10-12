@@ -1,0 +1,579 @@
+% ============================================================================
+%  Capitolo 1 -- PRG32 e PRG32-QT: allestire l'officina          (Lezione 01)
+% ============================================================================
+\chapter{PRG32 e PRG32-QT: allestire l'officina}
+\label{ch:setup}
+
+\epigraphline{Datemi sei ore per abbattere un albero, e passerò le prime
+quattro ad affilare l'ascia.}{attribuita ad Abraham Lincoln}
+
+\begin{chapgoals}
+Alla fine di questo capitolo avrete
+\begin{itemize}
+\item un quadro chiaro dei pezzi di \prg: runtime, cartuccia, strumenti, host, Store;
+\item \prgqt installato sul vostro portatile, per eseguire qualunque cartuccia e guardarci dentro;
+\item la toolchain \riscv installata e verificata, per compilare cartucce vostre;
+\item una cartuccia compilata da voi, in esecuzione in \prgqt e fermata nel debugger;
+\item un elenco di che cosa fare quando qualcosa non funziona.
+\end{itemize}
+\end{chapgoals}
+
+Il primo lavoro di un artigiano in una nuova officina è mettere gli attrezzi
+dove la mano se li aspetta. Questo capitolo è quel lavoro. Non contiene teoria,
+ed è l'unico capitolo del libro il cui contenuto invecchierà: i numeri di
+versione sono quelli di ottobre 2026, e prima di seguire i passi conviene
+controllare le pagine dei rilasci dei progetti. Tutto il resto del libro
+dipende dall'ultima riga del riepilogo qui sopra: il ciclo che consiste nel
+compilare una cartuccia, inviarla a un host e fermarla nel debugger si ripete
+in ogni capitolo che segue.
+
+I comandi della Sezione~\ref{sec:setup:build} sono stati eseguiti per questo
+libro su macOS con \prgqt. Le installazioni per Windows e Linux seguono le
+istruzioni ufficiali dei progetti e non sono state eseguite per questo testo.
+
+% ----------------------------------------------------------------------------
+\section{Quattro livelli: installate ciò che vi serve}
+
+Non tutto va installato, e non tutto subito. La
+Tabella~\ref{tab:setup:levels} ordina i pezzi secondo la necessità. Il corso, e
+il libro, si possono seguire con i soli livelli 1 e 2: \emph{non serve alcuna
+scheda}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro livelli di installazione.}\label{tab:setup:levels}
+\begin{tabularx}{\textwidth}{@{}cP{0.24\textwidth}LP{0.22\textwidth}@{}}
+\toprule
+\textbf{Livello} & \textbf{Installate} & \textbf{Potete} & \textbf{Serve}\\
+\midrule
+1 & \prgqt & eseguire cartucce, scaricarle dallo Store, usare il debugger & a tutti, subito\\
+2 & ESP-IDF e il repository di \prg & compilare cartucce vostre da assembly o C & a tutti, prima del Capitolo~\ref{ch:firstcontact}\\
+3 & l'emulatore QEMU & eseguire il firmware vero sul portatile & facoltativo\\
+4 & il kit: una scheda ESP32-C6 & eseguire sull'hardware vero & facoltativo\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il livello~1 richiede cinque minuti. Il livello~2 è un download voluminoso e
+richiede da mezz'ora a un'ora: conviene farlo a casa, con una buona
+connessione. I livelli 3 e 4 sono per i curiosi, e per il laboratorio.
+
+% ----------------------------------------------------------------------------
+\section{La piattaforma, in dettaglio}
+
+\subsection{Un runtime, un formato di file, un insieme di strumenti}
+
+Il nome \prg copre quattro cose.
+
+\begin{itemize}
+\item Un \textbf{firmware residente}, detto anche \term{runtime}: il programma
+  che possiede lo schermo, i pulsanti e il suono.
+\item Un \textbf{formato di cartuccia}: un gioco come un unico piccolo file,
+  \fname{.prg32}.
+\item Uno \textbf{strumento} sul portatile: il comando \code{python3 -m prg32},
+  che compila, carica e confeziona.
+\item Un \textbf{Cartridge Store}, dove si condividono i giochi finiti.
+\end{itemize}
+
+Il codice di una cartuccia gira come vero codice macchina \riscv a 32 bit,
+RV32IMAC, e il contratto tra un gioco e il runtime sono tre funzioni:
+\code{init}, \code{update} e \code{draw}. Il runtime chiama \code{init} una
+volta e poi \code{update} e \code{draw} a ogni frame; il
+Capitolo~\ref{ch:firstcontact} parte da questo contratto.
+
+\subsection{Da un file sorgente allo schermo}
+
+La Figura~\ref{fig:setup:flow} segue un programma dall'editor allo schermo. Il
+sorgente, in assembly o in C, viene tradotto in codice macchina dalla toolchain
+\riscv; il compilatore è \code{riscv32-esp-elf-gcc}, installato da ESP-IDF, il
+kit di sviluppo di Espressif. Il risultato viene impacchettato in una
+cartuccia, fatta di codice, dati e un'intestazione. La cartuccia viene inviata
+attraverso la rete a un \term{host}, dove il runtime la carica e comincia a
+chiamare le sue tre funzioni.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=5mm]
+  \node[blkacc,text width=21mm,minimum height=15mm] (a) {\texttt{verm1.S}\\[1pt]\footnotesize il vostro sorgente};
+  \node[blkamb,text width=21mm,minimum height=15mm,right=of a] (b) {compilatore\\[1pt]\footnotesize toolchain \riscv};
+  \node[blkvio,text width=23mm,minimum height=15mm,right=of b] (c) {\texttt{verm1.prg32}\\[1pt]\footnotesize una cartuccia};
+  \node[blkgrn,text width=19mm,minimum height=15mm,right=of c] (d) {caricamento\\[1pt]\footnotesize su un host};
+  \node[blkred,text width=21mm,minimum height=15mm,right=of d] (e) {runtime\\[1pt]\footnotesize chiama \texttt{init}, \texttt{update}, \texttt{draw}};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] ([yshift=-2mm]a.south west) -- node[below=5pt,lbl]{sul vostro portatile: serve il livello 2} ([yshift=-2mm]c.south east);
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] ([yshift=-2mm]d.south west) -- node[below=5pt,lbl]{un host: \prgqt, QEMU o la scheda} ([yshift=-2mm]e.south east);
+\end{tikzpicture}
+\caption{Da un file sorgente allo schermo.}\label{fig:setup:flow}
+\end{figure}
+
+Una cartuccia viene caricata all'indirizzo \hex{40800000} e raggiunge il
+runtime soltanto attraverso una tabella di funzioni, l'\term{application binary
+interface} (ABI). È la ragione per cui lo stesso file gira su tre host
+diversi: non tocca mai direttamente l'hardware, e ogni host fornisce la stessa
+tabella.
+
+\subsection{Il kit: una console su breadboard}
+
+L'hardware di \prg (Figura~\ref{fig:setup:kit}) è costruito attorno a un
+ESP32-C6 di Espressif: un core \riscv a 160~MHz, con Wi-Fi. Un display a colori
+da 2,8~pollici di 320 per 240 pixel (un controller ILI9341 su un bus SPI)
+mostra i giochi, che disegnano in un viewport di 320 per 200. Uno o due piccoli
+amplificatori audio (MAX98357A, su un bus I2S), un joystick e dei pulsanti sono
+collegati direttamente ai piedini del chip. Un gioco raggiunge la scheda via
+Wi-Fi: la scheda crea una rete chiamata \code{PRG32}, e la cartuccia vi viene
+caricata. L'elenco dei componenti e i collegamenti sono nella cartella
+\fname{docs/hardware} del repository.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.7\textwidth]{kit_breadboard.png}
+\caption{Il kit \prg su breadboard.}\label{fig:setup:kit}
+\end{figure}
+
+\subsection{Tre modi di eseguire la stessa cartuccia}
+
+Il file della cartuccia è lo stesso su ogni host; cambia il modo in cui le sue
+istruzioni vengono eseguite e ciò che si può osservare
+(Tabella~\ref{tab:setup:hosts}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Tre host per la stessa cartuccia.}\label{tab:setup:hosts}
+\begin{tabularx}{\textwidth}{@{}P{0.19\textwidth}LLL@{}}
+\toprule
+ & \textbf{Scheda ESP32-C6} & \textbf{QEMU di Espressif} & \textbf{\prgqt}\\
+\midrule
+Come gira il codice & in modo nativo sul chip & in modo nativo su un ESP32-C3 emulato & guest RV32IMAC interpretato\\
+Serve una toolchain & sì (ESP-IDF) & sì (ESP-IDF) & no, per giocare e fare debug\\
+La cartuccia arriva con & caricamento via Wi-Fi, Store & scrittura nell'immagine della flash & importazione di file, Store, caricamento HTTP\\
+Esecuzione passo-passo & con JTAG e GDB & con GDB & debugger integrato\\
+Gira su & il kit hardware & Windows, Linux, macOS & desktop, Raspberry Pi, iOS, Android, TV\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La regola pratica è: usate la scheda quando volete la verità sul \emph{tempo},
+e \prgqt quando volete la verità su un \emph{registro}. L'emulatore modella un
+ESP32-C3 e non un C6 perché Espressif mantiene per quel chip un emulatore
+maturo con grafica; esegue le stesse istruzioni \riscv, e la cartuccia non se
+ne accorge.
+
+\subsection{PRG32-QT: la console sul portatile}
+
+\prgqt è un'applicazione per Windows, macOS, Linux, Raspberry Pi, telefoni,
+tablet e televisori. Contiene un interprete di RV32IMAC, che esegue una
+cartuccia istruzione per istruzione e le offre le stesse funzioni del firmware.
+Ha tre velocità, scelte in \emph{Settings}: \emph{Accurate}, temporizzata come
+l'ESP32-C6, che è quella predefinita; \emph{Optimal}, a 30 frame al secondo; e
+\emph{Unlimited}, veloce quanto lo è il portatile. Il profilo accurato
+attribuisce a ogni istruzione e a ogni chiamata un costo in cicli di un clock a
+160~MHz: non è un modello esatto al ciclo del chip, ma è abbastanza vicino da
+far vedere quando un frame è in ritardo. \prgqt contiene anche un browser dello
+Store e il debugger descritto nel Capitolo~\ref{ch:intro}.
+
+I comandi della console corrispondono alla tastiera come nella
+Tabella~\ref{tab:setup:keys}. Un controller di gioco USB o Bluetooth viene
+riconosciuto da \prgqt quando lo si collega.
+
+\begin{table}[htb]
+\centering\small
+\caption{I comandi, su una tastiera.}\label{tab:setup:keys}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Sul kit} & \textbf{In \prgqt} & \textbf{In QEMU}\\
+\midrule
+Joystick & tasti freccia, oppure \key{W A S D} & gli stessi, battuti nel terminale\\
+Pulsante A & \key{Z} o \key{J} & \key{Z} o \key{J}\\
+Pulsante B & \key{X} o \key{K} & \key{X} o \key{K}\\
+Start / Select & \key{Invio} o \key{Spazio} & \key{Invio} o \key{Spazio}\\
+Uscire dal gioco & \key{Esc}: ritorno a Setup & chiudere QEMU\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{prgwarn}
+QEMU legge la tastiera dal terminale che lo ha lanciato, non dalla finestra con
+l'immagine. È la classica sorpresa della prima sessione.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Passo 1: installare PRG32-QT}
+
+Cinque minuti; nessun compilatore, nessun account. Dalla pagina
+\url{https://github.com/riscv-prg32/PRG32-QT}, sotto \emph{Releases}, prendete
+l'ultima versione del file per il vostro sistema
+(Tabella~\ref{tab:setup:files}). Un file \fname{SHA256SUMS-platforms.txt} sulla
+stessa pagina elenca le somme di controllo; lì ci sono anche le versioni per
+Android e per i televisori.
+
+\begin{table}[htb]
+\centering\small
+\caption{Gli installer di \prgqt (versione 0.4.1, ottobre 2026; i nomi seguono
+questo schema con il numero corrente).}\label{tab:setup:files}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Sistema} & \textbf{File} & \textbf{Tipo}\\
+\midrule
+Windows 10 o 11 & \fname{PRG32-QT-0.4.1-Windows-X64-Setup.exe} & installer\\
+macOS, Apple Silicon & \fname{PRG32-QT-0.4.1-macOS-ARM64.dmg} & immagine disco\\
+macOS, Intel & \fname{PRG32-QT-0.4.1-macOS-Intel-X64.dmg} & immagine disco\\
+Linux, PC a 64 bit & \fname{PRG32-QT-0.4.1-Linux-X64.deb} & pacchetto Debian\\
+Raspberry Pi OS, 64 bit & \fname{PRG32-QT-0.4.1-Raspberry-Pi-OS-ARM64.deb} & pacchetto Debian\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Windows.} Scaricate il file che termina con
+\fname{Windows-X64-Setup.exe} ed eseguitelo. Se Windows mostra un avviso blu di
+SmartScreen, scegliete \emph{Ulteriori informazioni} e poi \emph{Esegui
+comunque}. Accettate la cartella proposta: l'installer porta con sé le librerie
+Qt e il runtime del compilatore, e non c'è altro da installare. Avviate
+\emph{PRG32} dal menu Start; se il firewall lo chiede, autorizzatelo sulle reti
+private. La domanda compare perché \prgqt ascolta sulla porta 8080 le cartucce
+inviate dagli strumenti.
+
+\paragraph{macOS.} Dal menu Apple scegliete \emph{Informazioni su questo Mac}:
+«Chip Apple M\ldots» significa ARM64, «Processore Intel» significa X64. Aprite
+il \fname{.dmg} e trascinate \emph{PRG32} sulla cartella Applicazioni. Al primo
+avvio, se macOS dice che lo sviluppatore non può essere verificato
+(l'applicazione è distribuita fuori dall'App Store), fate clic con il tasto
+destro su \emph{PRG32} e scegliete \emph{Apri}, oppure andate in
+\emph{Impostazioni di Sistema, Privacy e sicurezza, Apri comunque}. Accettate
+le connessioni in entrata e l'accesso alla rete locale quando viene chiesto:
+servono all'interfaccia di dispositivo sulla porta 8080 e al suo annuncio sulla
+rete locale.
+
+\paragraph{Linux.} Il pacchetto richiede Qt~6.5 o successivo, che Debian~13 e
+Ubuntu~25.04 forniscono; sui sistemi più vecchi (Ubuntu~24.04 ha Qt~6.4) il
+programma si compila da sorgente (Listato~\ref{lst:setup:qtlinux}). Su
+Raspberry Pi OS usate il pacchetto ARM64, oppure lo script
+\fname{scripts/build-raspbian.sh}.
+
+\shfile[caption={\prgqt su Linux.},label=lst:setup:qtlinux]{code/l01/s15.sh}
+
+\begin{prgtry}[Eseguite: la vostra prima cartuccia, dallo Store]
+\begin{enumerate}[nosep]
+\item Avviate \prgqt: compare la schermata \emph{Setup}, la stessa che il
+  firmware mostra sul kit.
+\item Scegliete \emph{Browse Store}: viene scaricato il catalogo del Cartridge
+  Store.
+\item Scegliete un gioco, scaricatelo, e scegliete \emph{Run Cartridge}.
+\item Giocate con i tasti freccia, \key{Z} e \key{X}. \key{Esc} vi riporta a
+  Setup.
+\item Aprite \emph{Settings}: guardate i tre profili di prestazioni e le scelte
+  di disposizione.
+\end{enumerate}
+\textbf{Risultato atteso.} Un gioco dello Store gira sul vostro portatile
+(Figura~\ref{fig:setup:screens}). Questo è il livello~1: da ora potete eseguire
+qualunque cartuccia, e guardarci dentro. Se l'elenco dello Store resta vuoto,
+il portatile non raggiunge Internet oppure c'è di mezzo un proxy:
+\emph{Settings} mostra l'indirizzo dello Store.
+\end{prgtry}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{menu_main.png}\caption{Il menu Setup}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{prg32qt_store.png}\caption{Browse Store}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{prg32qt_settings.png}\caption{Settings}\end{subfigure}
+\caption{Che cosa dovreste vedere: le stesse tre schermate su ogni sistema.}
+\label{fig:setup:screens}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Passo 2: installare la toolchain}
+
+\subsection{Un'idea dietro ogni installazione}
+
+Il compilatore per la famiglia ESP32 arriva con ESP-IDF, il kit di sviluppo di
+Espressif \citep{espidf}. \prg richiede ESP-IDF~5.4 o successivo, installato
+per due chip: \code{esp32c6}, il kit, ed \code{esp32c3}, l'emulatore. Dopo di
+che, un solo comando fa tutto: \code{python3 -m prg32}.
+
+\begin{prgwarn}[ESP-IDF non è attivo da solo]
+Ogni nuovo terminale deve accendere ESP-IDF prima che gli strumenti funzionino.
+Quasi ogni problema di installazione è ESP-IDF non attivo \emph{nel terminale
+in cui state scrivendo}. Il sintomo è sempre lo stesso messaggio:
+\begin{center}\code{idf.py: command not found}\end{center}
+(oppure \code{riscv32-esp-elf-gcc} non trovato). Su Windows, attivare significa
+aprire la \emph{ESP-IDF PowerShell}; su macOS e Linux, eseguire
+\fname{export.sh}.
+\end{prgwarn}
+
+\subsection{Windows}
+
+Installate Git for Windows e Python~3, poi eseguite l'ESP-IDF Tools Installer e
+lavorate nella finestra di PowerShell che esso crea
+(Listato~\ref{lst:setup:win}). Usate la ESP-IDF PowerShell, mai un terminale
+qualunque; su Windows il comando è \code{python}, non \code{python3};
+\code{pip} installa nell'ambiente di ESP-IDF, ed è voluto. Evitate le cartelle
+con spazi o lettere accentate nel percorso. Chi preferisce un editor può usare
+Visual Studio Code con l'estensione Espressif ESP-IDF, che installa la stessa
+toolchain.
+
+\shfile[caption={La toolchain su Windows.},label=lst:setup:win]{code/l01/s20.sh}
+
+\subsection{macOS}
+
+Prima viene Homebrew, perché fornisce \code{git}, \code{cmake} e \code{python}
+(Listato~\ref{lst:setup:mac}); \code{git} può chiedere, la prima volta, di
+installare gli strumenti a riga di comando di Xcode. Il clone ricorsivo e
+\fname{install.sh} scaricano qualche gigabyte: abbiate pazienza. Il punto prima
+di \fname{export.sh} conta, perché fa sì che lo script modifichi \emph{questo}
+terminale. La procedura funziona su Apple Silicon e su Intel.
+
+\shfile[caption={La toolchain su macOS.},label=lst:setup:mac]{code/l01/s21.sh}
+
+\subsection{Linux (Debian, Ubuntu)}
+
+I prerequisiti sono una lunga riga di \code{apt}, da copiare per intero
+(Listato~\ref{lst:setup:linux}); i passi 2 e 3 sono gli stessi di macOS. Altre
+distribuzioni hanno gli stessi pacchetti con altri nomi. Solo per il kit,
+l'utente deve appartenere al gruppo \code{dialout}, che dà accesso alla porta
+seriale della scheda: \code{sudo usermod -aG dialout \$USER}, poi si esce e si
+rientra nella sessione.
+
+\shfile[caption={La toolchain su Linux.},label=lst:setup:linux]{code/l01/s22.sh}
+
+\subsection{A ogni nuovo terminale: accendere ESP-IDF}
+
+\fname{export.sh} agisce sul terminale in cui viene eseguito, e solo su quello.
+Una nuova finestra è un nuovo terminale, e va attivata di nuovo. Due alias
+risparmiano battute (Listato~\ref{lst:setup:activate}); sono una comodità, non
+un obbligo. I comandi \code{prg32} si eseguono dalla cartella di \prg.
+
+\shfile[caption={Attivare ESP-IDF in un nuovo terminale.},label=lst:setup:activate]{code/l01/s23.sh}
+
+\begin{prgtry}[Vedete l'errore una volta, di proposito]
+Chiudete il terminale, apritene uno nuovo ed eseguite \code{python3 -m prg32
+doctor} \emph{senza} attivare ESP-IDF. Leggete il messaggio. È meglio
+incontrarlo qui che nel mezzo di un tutorial.
+\end{prgtry}
+
+\subsection{Il doctor}
+
+Il comando \code{doctor} controlla l'installazione
+(Listato~\ref{lst:setup:doctor}). La riga su \code{idf.py} dice che ESP-IDF è
+attivo; quella su \code{riscv32-esp-elf-gcc} che il compilatore \riscv è
+raggiungibile; quelle sulle partizioni che la cartella di \prg è completa. I
+quattro slot per le cartucce, da \code{cart0} a \code{cart3}, sono regioni
+della memoria flash della scheda, di 131\,072 byte ciascuna. Ogni riga marcata
+\code{ERROR} dice che cosa fare. Se il doctor passa, il livello~2 è fatto.
+
+\txtfile[caption={Il doctor (messaggi di ottobre 2026).},label=lst:setup:doctor]{code/l01/s24.sh}
+
+% ----------------------------------------------------------------------------
+\section{Passo 3: la vostra prima compilazione}\label{sec:setup:build}
+
+\subsection{Compilare una cartuccia dagli esempi}
+
+Il repository contiene giochi completi. Compilarne uno dimostra che il
+compilatore funziona prima ancora di aver scritto una sola riga
+(Listato~\ref{lst:setup:build}).
+
+\txtfile[caption={Compilare Pong, in C, dagli esempi.},label=lst:setup:build]{code/l01/s26.sh}
+
+Il comando \code{cartridge build} prende un sorgente e produce un file
+\fname{.prg32}. L'opzione \code{-{}-entry-prefix} dà il nome che nel sorgente
+precede \code{\_init}, \code{\_update} e \code{\_draw}; \code{-{}-portable}
+chiede una cartuccia che giri su ogni host, e non su un solo firmware. Un Pong
+intero sono tremila byte. Nel Capitolo~\ref{ch:firstcontact} il sorgente sarà
+quello del lettore, in assembly, e il comando sarà lo stesso. Su Windows
+scrivete \code{python} e mettete il comando su una sola riga.
+
+\subsection{Inviarla a PRG32-QT}
+
+\prgqt risponde sulla porta 8080 esattamente come una scheda
+(Listato~\ref{lst:setup:send}). Il comando \code{runtime} stampa lo stato
+dell'host ed è una prova rapida della connessione; \code{upload-and-run}
+memorizza la cartuccia in uno slot e la avvia. Il comando dice \code{esp32c6}
+perché, per lo strumento, \prgqt \emph{è} una scheda. Se \code{localhost} non
+risponde, leggete l'indirizzo mostrato nella schermata Setup di \prgqt e usate
+quello. Senza gli strumenti, lo stesso risultato si ottiene in \prgqt
+importando il file \fname{pong.prg32} e scegliendo \emph{Run Cartridge}; con
+\code{-{}-url http://192.168.4.1} lo stesso comando invia il gioco a una scheda
+vera.
+
+\txtfile[caption={Inviare la cartuccia a \prgqt, in esecuzione sullo stesso calcolatore.},label=lst:setup:send]{code/l01/s27.sh}
+
+\subsection{Guardare dentro: il debugger}
+
+\begin{prgtry}[Aprite la macchina]
+\begin{enumerate}[nosep]
+\item In \prgqt aprite \emph{Settings} e attivate \emph{Run cartridges in
+  RISC-V debug mode}.
+\item Eseguite di nuovo la cartuccia: il gioco è a sinistra, la macchina a
+  destra (Figura~\ref{fig:setup:debug}).
+\item Premete \key{Pause} (il pulsante con due barre): il gioco si blocca, e
+  nel listato è evidenziata un'istruzione.
+\item Premete \key{Step} (il triangolo con una barra) qualche volta:
+  l'evidenziazione si sposta, e alcuni registri cambiano valore.
+\item Premete \key{Update}, poi \key{Draw}: il listato salta a quelle due
+  funzioni della cartuccia.
+\item Premete \key{Resume} (il triangolo): il gioco prosegue. Abbassate la
+  velocità a 0.1x e guardatelo al rallentatore.
+\end{enumerate}
+\end{prgtry}
+
+I tre pulsanti di trasporto del debugger sono disegnati come su un lettore
+video; questo libro li chiama \key{Pause}, \key{Resume} e \key{Step}.
+Questo è solo un primo sguardo: il prossimo capitolo spiega che cosa sono i
+registri. Qui importa che il debugger si apra e risponda. La modalità debug
+resta attiva finché non viene disattivata.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.95\textwidth]{prg32qt_debugger_details.png}
+\caption{La macchina, aperta: l'assembly con l'istruzione corrente, i 32
+registri, la memoria, e i contatori del frame. Se vedete questo con la vostra
+cartuccia, siete pronti per il resto del libro.}
+\label{fig:setup:debug}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Facoltativo: QEMU e il kit}
+
+\subsection{Livello 3: l'emulatore QEMU}
+
+QEMU emula un chip intero ed esegue il firmware vero
+(Listato~\ref{lst:setup:qemu}). Il comando \code{qemu build} compila il
+firmware e la prima volta richiede parecchi minuti, perché scarica dei
+componenti; \code{qemu upload} scrive una cartuccia nell'immagine della flash,
+e mentre gira QEMU deve essere chiuso. Se il caricamento fallisce, eseguite
+QEMU una volta perché l'immagine della flash esista, chiudetelo, e caricate di
+nuovo. Da ottobre 2026 il firmware parte per impostazione predefinita dal menu
+\emph{Setup}, su QEMU e sulla scheda: scegliete \emph{Run Cartridge}, poi lo
+slot \code{cart0}. Questa procedura viene dalla documentazione di \prg
+(\fname{docs/usage/qemu.md}) e non è stata eseguita per questo libro.
+
+\shfile[caption={Livello 3: l'emulatore QEMU.},label=lst:setup:qemu]{code/l01/s31.sh}
+
+\subsection{Livello 4: il kit}
+
+Il firmware viene scritto sulla scheda una volta, attraverso un cavo USB; dopo
+di che i giochi arrivano via Wi-Fi e il cavo non serve più
+(Listato~\ref{lst:setup:kit}). Il comando di caricamento è lo stesso usato per
+\prgqt, con un altro indirizzo. Se la porta seriale non viene trovata la si
+indica esplicitamente: \code{COM}$x$ su Windows, \fname{/dev/ttyACM0} su Linux,
+\fname{/dev/cu.usbmodem\ldots} su macOS. Uno schermo nero dopo la scrittura
+significa di solito che è stato scritto il firmware per QEMU invece di quello
+per la scheda. Anche questa procedura viene dalla documentazione e non è stata
+eseguita per questo libro.
+
+\shfile[caption={Livello 4: il kit.},label=lst:setup:kit]{code/l01/s32.sh}
+
+% ----------------------------------------------------------------------------
+\section{Quando qualcosa non funziona}
+
+La Tabella~\ref{tab:setup:trouble} elenca i sintomi che si incontrano più
+spesso; la prima riga copre la maggior parte dei casi. Il file
+\fname{docs/usage/troubleshooting.md} del repository contiene l'elenco
+completo.
+
+\begin{table}[htb]
+\centering\small
+\caption{Risoluzione dei problemi.}\label{tab:setup:trouble}
+\begin{tabularx}{\textwidth}{@{}P{0.27\textwidth}LL@{}}
+\toprule
+\textbf{Vedete} & \textbf{Significa} & \textbf{Fate così}\\
+\midrule
+\code{idf.py: command not found} & ESP-IDF non è attivo in questo terminale & eseguite \fname{export.sh}, o aprite la ESP-IDF PowerShell\\
+manca \code{riscv32-esp-elf-gcc} & i compilatori non sono stati installati, o non sono attivi & \code{./install.sh esp32c3,esp32c6}, poi \fname{export.sh}\\
+\code{No module named prg32} & non siete nella cartella di \prg & \code{cd} nella cartella che avete clonato\\
+upload: connection refused & \prgqt non è in esecuzione, o un firewall blocca la porta 8080 & avviatelo; autorizzatelo; usate l'indirizzo della sua schermata Setup\\
+macOS non apre PRG32 & l'applicazione viene da fuori dell'App Store & clic destro, Apri; oppure Privacy e sicurezza, Apri comunque\\
+Linux: PRG32 non parte & il Qt del sistema è più vecchio della 6.5 & una distribuzione più recente, o compilate da sorgente\\
+QEMU ignora i tasti & la tastiera va al terminale & fate clic sul terminale che ha lanciato QEMU\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgconcept}[Come chiedere aiuto]
+Incollate il comando e il messaggio \emph{intero} come testo. Non mandate mai
+una fotografia dello schermo.
+\end{prgconcept}
+
+\subsection{Pronti per il prossimo capitolo?}
+
+Cinque controlli, e l'officina è pronta.
+
+\begin{enumerate}
+\item \prgqt parte ed esegue un gioco dello Store (passo~1).
+\item In un nuovo terminale, dopo aver attivato ESP-IDF, \code{doctor} mostra
+  solo \code{OK} (passo~2).
+\item \code{cartridge build} produce \fname{pong.prg32} (passo~3).
+\item \code{upload-and-run} lo avvia in \prgqt (passo~3).
+\item In modalità debug, \key{Pause} e \key{Step} funzionano (passo~3).
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{In un nuovo terminale, \code{python3 -m prg32 doctor} dice:
+\code{idf.py missing}. Qual è la causa più probabile?}
+\item ESP-IDF va installato di nuovo
+\item ESP-IDF non è attivo in questo terminale
+\item \prgqt non è in esecuzione
+\item la scheda non è collegata
+\end{quiz}
+
+\begin{quiz}{Quale host permette di eseguire una cartuccia e farne il debug senza installare un compilatore?}
+\item la scheda ESP32-C6
+\item QEMU
+\item \prgqt
+\item nessuno
+\end{quiz}
+
+\begin{quiz}{Perché lo stesso \fname{pong.prg32} gira sulla scheda, su QEMU e su \prgqt?}
+\item viene ricompilato a ogni avvio
+\item contiene tre programmi
+\item chiama il runtime attraverso la stessa tabella di funzioni su ogni host
+\item \prgqt lo traduce in C
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[l'officina sopravvive a un riavvio]
+\begin{enumerate}[nosep]
+\item Completate i cinque controlli qui sopra sul vostro portatile.
+\item Scaricate tre cartucce dallo Store, e in ciascuna trovate con il debugger
+  la prima istruzione di \code{update}.
+\item Compilate uno degli altri esempi in \fname{examples/games}, ed
+  eseguitelo.
+\item Chiudete tutto, riavviate il calcolatore, e tornate a una cartuccia in
+  esecuzione senza questo libro.
+\item Facoltativo: installate QEMU ed eseguite lì la stessa cartuccia.
+\end{enumerate}
+\expected{La vostra officina sopravvive a un riavvio, e sapete aprirla senza
+aiuto. Il quarto compito è la vera prova: mostra se l'attivazione di ESP-IDF è
+stata capita.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+toolchain & catena di strumenti di sviluppo\\
+cartridge & cartuccia\\
+emulator & emulatore\\
+to build & compilare (costruire)\\
+host & macchina ospite\\
+firmware & firmware\\
+runtime & ambiente di esecuzione\\
+interpreter & interprete\\
+to flash & scrivere nella memoria flash\\
+breakpoint & punto di interruzione\\
+\end{glossarytable}
+
+\section{Riepilogo e letture}
+
+\prg è un runtime, un formato di cartuccia, uno strumento e uno Store; una
+cartuccia gira senza modifiche sulla scheda, su QEMU e su \prgqt. \prgqt basta
+per giocare e per fare debug; ESP-IDF e il repository di \prg servono per
+compilare. ESP-IDF va attivato in ogni nuovo terminale: ricordatelo e la
+maggior parte dei problemi scompare. Avete compilato una cartuccia, l'avete
+inviata a \prgqt e l'avete fermata nel debugger: è il ciclo di tutto il libro.
+
+\paragraph{Letture.} Il \fname{README} e la cartella \fname{docs/usage} del
+repository di \prg \citep{prg32repo}; il \fname{README} e la documentazione di
+\prgqt \citep{prg32qt}; i capitoli sull'installazione e su \prgqt di
+\emph{Playing with RISC-V} \citep{prg32textbook}. L'Appendice~\ref{app:prg32}
+di questo libro è un riferimento della piattaforma e dei suoi comandi.

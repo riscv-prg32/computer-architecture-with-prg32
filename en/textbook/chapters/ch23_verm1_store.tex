@@ -1,0 +1,353 @@
+% ============================================================================
+%  Chapter 23 -- Verm1 on the Cartridge Store                    (Lecture 23)
+% ============================================================================
+\chapter{Verm1 on the Cartridge Store}
+\label{ch:store}
+
+\epigraphline{Real artists ship.}{Steve Jobs, to the Macintosh team, 1983}
+
+\begin{chapgoals}
+By the end of this chapter you will have
+\begin{itemize}
+\item your \vermone built for two architectures, the ESP32-C6 kit and QEMU, from the same source;
+\item a manifest that gives the game an identity: id, title, version, authors, licence;
+\item an icon, and a colophon with credits and controls;
+\item a bundle, one ZIP file, checked and ready for the Cartridge Store;
+\item a clear idea of what happens after you publish, and of what you are responsible for.
+\end{itemize}
+\end{chapgoals}
+
+This is the last chapter of the project, and it is a tutorial again: at its
+end the reader has a bundle, \fname{verm1-1.0.0.zip}, checked and ready for
+submission. Everything up to the upload was run on the reference game by the
+tests of the course material; the upload itself is a personal act made with a
+personal token, and was not run for this book.
+
+% ----------------------------------------------------------------------------
+\section{Why publish?}
+
+A program that runs only on its author's computer is an exercise; one that
+others can install is a product. Publishing forces the questions that an
+exercise lets one skip: what is it called, who made it, on what does it run,
+what may others do with it. The Cartridge Store
+(Figure~\ref{fig:st:store}) is the shelf of \prg: games and programs that
+install on the kit, on QEMU and on \prgqt. Every cartridge there was written
+by someone who started where the reader started, and the reader's can be next
+to them. The Store is at \url{https://store.prg32.uniparthenope.it}, and
+\prgqt has a Store browser of its own.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.75\textwidth]{prg32qt_store.png}
+\caption{The Cartridge Store, seen from \prgqt.}
+\label{fig:st:store}
+\end{figure}
+
+The path from the source to the shelf has six stations
+(Figure~\ref{fig:st:flow}). The first four happen on the author's computer:
+nothing leaves it before the command that publishes.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=3mm]
+  \node[blkacc,text width=17mm,minimum height=15mm] (a) {\texttt{verm1.S}\\[1pt]\scriptsize your source};
+  \node[blkamb,text width=17mm,minimum height=15mm,right=of a] (b) {2 cartridges\\[1pt]\scriptsize one per architecture};
+  \node[blkvio,text width=17mm,minimum height=15mm,right=of b] (c) {metadata\\[1pt]\scriptsize identity, icon, credits};
+  \node[blkgrn,text width=17mm,minimum height=15mm,right=of c] (d) {bundle\\[1pt]\scriptsize one ZIP file};
+  \node[blkred,text width=17mm,minimum height=15mm,right=of d] (e) {review\\[1pt]\scriptsize an editor checks it};
+  \node[blk,fill=prgsteel,text=white,text width=17mm,minimum height=15mm,right=of e] (f) {Store\\[1pt]\scriptsize anyone installs};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e,e/f} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{From source to shelf.}
+\label{fig:st:flow}
+\end{figure}
+
+\subsection{Before you package: is it finished?}
+
+\begin{table}[htb]
+\centering\small
+\caption{Is the game finished?}\label{tab:st:finished}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}LP{0.2\textwidth}@{}}
+\toprule
+\textbf{Check} & \textbf{How} & \textbf{With}\\
+\midrule
+It starts, plays and ends & play three whole games, lose in three different ways & \prgqt\\
+No frame is late & telemetry during a long game: late frames stay at zero & \prgqt, debug mode\\
+Memory is consistent & pause at random and compare the ring, the map and the screen & \prgqt, memory view\\
+It runs on the second architecture & build for QEMU, upload, play & QEMU\\
+It runs on real hardware & upload to a kit, play with the real joystick and speaker & the kit, if you have one\\
+It is yours & a title, a rule or a look that the reference does not have & you\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The debugger is used one last time, as an instrument of quality
+(Table~\ref{tab:st:finished}). A cartridge that was never run on a target
+should not be published for that target.
+
+% ----------------------------------------------------------------------------
+\section{Step 1: one source, two cartridges}
+
+\shfile[caption={Building for the kit and for QEMU.},label=lst:sto:build]{code/l23/s07.sh}
+
+Listing~\ref{lst:sto:build} is the command of every chapter with one more
+option: \code{-{}-architecture} names the target of the file. The names
+follow a rule, \fname{game-architecture.prg32}. The builder answers with the
+name, the load address \hex{40800000} and the size of the code: the finished
+\vermone is about 6 kilobytes (6\,216 bytes for the reference game).
+
+\txtfile[caption={Is it portable?},label=lst:sto:summary]{code/l23/s08.sh}
+
+The command \code{summary} prints what the file declares about itself
+(Listing~\ref{lst:sto:summary}). The value \code{abi-table} of
+\code{import\_model} means that the cartridge reaches the runtime through a
+table of functions, the ABI of \prg, of which \code{prg32\_gfx\_rect} and the
+others are entries. Such a cartridge does not depend on one build of the
+firmware: it is \term{portable}, and the Store accepts portable cartridges. A
+cartridge that is not portable is linked against the addresses of one firmware
+image, and breaks at the next update. Repeat the check on the file for QEMU.
+
+% ----------------------------------------------------------------------------
+\section{Step 2: an identity}
+
+\subsection{\texttt{manifest.json}: who is this game?}
+
+Create the file of Listing~\ref{lst:sto:manifest} in
+\fname{\textasciitilde/verm1} with a text editor. (The description is cut in
+the listing; the complete file of the reference game is in
+Appendix~\ref{app:verm1}.)
+
+\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/s10.json}
+
+The line \code{abi} says which version of the metadata format this is. The
+other fields are commitments (Table~\ref{tab:st:fields}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The fields of the manifest, and what they commit their author to.}\label{tab:st:fields}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{Field} & \textbf{Rule} & \textbf{For \vermone}\\
+\midrule
+\code{id} & by custom a reverse domain name; it never changes & one per author: put your own name in it\\
+\code{version} & major.minor.patch; a published version is never replaced & 1.0.0, then 1.0.1 for a fix\\
+\code{title} & what the player reads & Verm1, or the name of your variant\\
+\code{authors} & the people who wrote it & you, and whoever worked with you\\
+\code{license} & what others may do with it & MIT, if you want others to learn from it\\
+\code{tags} & how it will be found & arcade, snake, assembly, education\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}
+Treat an id and a version, once published, as permanent. A mistake is corrected
+by a new version, not by a replacement. And two authors cannot publish the same
+id: each uses an id of their own, for example
+\code{it.uniparthenope.arc12.}\emph{surname}\code{.verm1}.
+\end{prgwarn}
+
+\subsection{An icon}
+
+The icon is a small PNG that represents the game on the shelf
+(Figure~\ref{fig:st:icon}). The reference icon is 64 by 64 pixels: a worm
+and a piece of food, in the colours of the game. Pixel art suits a machine of
+320 by 200 pixels: draw it large, cell by cell, with any editor that saves
+PNG, or draw it with a program, as the reference icon was. Save it as
+\fname{icon.png} next to the manifest, which names it under \code{assets}. An
+icon taken from the web is somebody else's work: draw your own.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=28mm]{verm1_icon.png}
+\caption{\fname{icon.png}, enlarged.}
+\label{fig:st:icon}
+\end{figure}
+
+\subsection{\texttt{colophon.json}: credits and controls}
+
+\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/s13.json}
+
+\emph{Colophon} is the printers' word for the note at the end of a book that
+says who made it. Here it is the credits page of the cartridge
+(Listing~\ref{lst:sto:colophon}): roles and names, giving credit to everyone;
+the controls, that is, what each input does, for the player; the
+acknowledgements. Replace \texttt{Your Name} everywhere, and set the release
+date. The first acknowledgement stays: a game that starts from the reference
+implementation of \vermone, contributed by Giuseppe Coviello, says so.
+
+\subsection{A tribute is not a copy}
+
+\vermone is a tribute to Snake: the idea of a growing worm is as old as
+\emph{Blockade} (1976) and is free for all. The name, the code, the icon and
+the sounds are original: nothing was taken from another game. The rules of a
+game are not protected; code, pictures, music and names are. Before
+publishing, ask of every piece: did I write or draw this myself? If not,
+does its licence allow me to publish it, and did I give credit? The names and
+the characters of commercial games are trademarks, and must not be used. The
+licence chosen tells others what they may do with the work: MIT lets them
+study, change and share it, keeping the author's name.
+
+\begin{prgconcept}[The rule]
+Your name goes on it. Publish only what you would sign.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Step 3: the cartridge carries its papers}
+
+\shfile[caption={\fname{metadata.json}, and attaching it.},label=lst:sto:attach]{code/l23/s16.sh}
+
+The file \fname{metadata.json} is a copy of the manifest without the two
+entries \code{assets} and \code{architectures}. The command
+\code{attach-metadata} writes title, icon and credits \emph{inside} the
+cartridge, once per file and with its own architecture
+(Listing~\ref{lst:sto:attach}): a cartridge copied by hand still says what it
+is. The tool answers, for the reference game, \code{legacy=6316 blocks=3}:
+the three blocks are the metadata, the icon and the colophon, appended after
+the program, which is itself untouched.
+
+\begin{prgwarn}
+Giving the full manifest to \code{-{}-metadata} makes the tool fail, because
+of the entry \code{assets}.
+\end{prgwarn}
+
+\txtfile[caption={Reading the metadata back (output abridged).},label=lst:sto:inspect]{code/l23/s17.sh}
+
+\begin{prgconcept}
+Never trust a write that you have not read back. It is the habit of the
+whole book: the memory view of the debugger, and now this.
+\end{prgconcept}
+
+Check the id, the title, the version and the architecture
+(Listing~\ref{lst:sto:inspect}); \code{trailer\_present} says that the papers
+are in the file. Then run the cartridge once more: it must still work.
+
+% ----------------------------------------------------------------------------
+\section{Step 4: the bundle}
+
+\txtfile[caption={Packing the bundle (real output for the reference game).},label=lst:sto:pack]{code/l23/s19.sh}
+
+The tool reads the manifest and collects the files that it names
+(Listing~\ref{lst:sto:pack}), which must be in the same folder as the
+manifest. A missing or misnamed file stops it here, and not at the Store.
+The name of the bundle carries the version. The whole game, for two machines,
+is 16 kilobytes.
+
+\begin{prgcheck}[Run it: test the bundle, not your folder]
+\begin{enumerate}[nosep]
+\item Unzip \fname{verm1-1.0.0.zip} into an empty folder.
+\item In \prgqt import \fname{verm1-esp32c6.prg32} from that folder and run
+  it: title, icon and credits must be yours.
+\item Upload \fname{verm1-qemu.prg32} to QEMU and play one game.
+\item If you have a kit, upload the ESP32-C6 file and play with the real
+  joystick.
+\item Ask a colleague to do the same on another computer: the first user who
+  is not you.
+\end{enumerate}
+\textbf{Expected result.} The game runs from the files in the bundle, on
+every target declared, on a computer that is not yours. Testing the packaged
+files, and not those in the working folder, catches the classic mistake: a
+bundle built before the last fix.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 5: publication}
+
+\shfile[caption={Publishing: a token and one command.},label=lst:sto:publish]{code/l23/s22.sh}
+
+To publish, the author signs in to the Store, creates a \term{token} on the
+\emph{Tokens} page, keeps it in the environment of the shell and submits the
+bundle (Listing~\ref{lst:sto:publish}).
+
+\begin{prgwarn}[The token is you]
+Whoever has the token publishes in your name. It is a secret: it does not go
+in the source, in a file, in a repository or in a screenshot. If it is lost
+or shown by mistake, revoke it and make a new one.
+\end{prgwarn}
+
+\subsection{What happens next}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Pending.] The bundle is stored as a submission: it is not yet on the
+  shelf.
+\item[Review.] An editor checks that it installs, that it runs, that it is
+  described honestly and that it contains nothing that is not the author's.
+\item[Published.] The game appears in the Store, for the architectures
+  declared.
+\item[A bug?] Fix it, raise the version to 1.0.1, pack and submit again:
+  1.0.0 stays as it was.
+\end{description}
+
+Moderation protects the players and the authors. A rejection comes with a
+reason, and is answered with a new version.
+
+\subsection{The submission checklist}
+
+A checklist is not bureaucracy: it is how pilots and surgeons avoid the
+mistakes that experts make.
+
+\begin{enumerate}
+\item The game was played to the end on every architecture in the manifest.
+\item \code{cartridge summary} says \code{import\_model: abi-table} for every
+  file.
+\item The id is yours and unique; the version is new; title, summary and
+  description say what the game is.
+\item Authors, licence and colophon are complete; every piece is yours or
+  credited.
+\item \code{inspect-metadata} shows the right id, version and architecture in
+  each cartridge.
+\item The bundle was unzipped and tested on another computer.
+\item The token is in no file, no screenshot and no repository.
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{You published version 1.0.0 and found a bug. What do you do?}
+\item upload 1.0.0 again
+\item publish 1.0.1
+\item change the id
+\item ask for the old file to be edited
+\end{quiz}
+
+\begin{quiz}{Why does \fname{metadata.json} not contain the \code{architectures} entry?}
+\item it is optional
+\item the metadata goes inside one cartridge, which has one architecture
+\item QEMU does not support it
+\item it would be too long
+\end{quiz}
+
+\begin{quiz}{Where should the Store token be kept?}
+\item in \fname{verm1.S}, as a comment
+\item in the manifest
+\item in an environment variable of your shell
+\item in the \fname{README} of the repository
+\end{quiz}
+
+\section{Your release}
+
+\begin{exercise}[the deliverable of the project]
+\begin{enumerate}[nosep]
+\item Choose your id and your title, and write the manifest and the colophon
+  for your variant of \vermone.
+\item Draw your icon.
+\item Build, attach, inspect, pack: produce your bundle, and pass the
+  checklist with a colleague as reviewer.
+\item If you want your game on the shelf, publish it.
+\end{enumerate}
+\expected{A bundle of your own game, reviewed by a colleague against the
+checklist. Publication is optional and personal; the bundle, with the source
+of your variant, is the deliverable of the project, and the oral examination
+can start from any line of it.}
+\end{exercise}
+
+\section{What you built}
+
+A game of six hundred lines of assembly, from three functions that only
+returned. With it, every layer of the machine: bits and numbers, gates and
+tables, state and memory, the processor, the screen, the devices. A method:
+one runnable step at a time, and a look inside whenever something is
+surprising. And the last step, which makes it engineering: a product with a
+name, a version and an author.
+
+The next game is the reader's to choose. The next chapter shows where the
+same instructions run at scale.

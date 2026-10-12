@@ -1,0 +1,535 @@
+% ============================================================================
+%  Chapter 17 -- Verm1, Part 3: A Body, Rules and States         (Lecture 17)
+% ============================================================================
+\chapter{Verm1, Part 3: A Body, Rules and States}
+\label{ch:verm1p3}
+
+\epigraphline{Show me your tables, and I won't usually need your flowcharts;
+they'll be obvious.}{Fred Brooks, \emph{The Mythical Man-Month}}
+
+\begin{chapgoals}
+By the end of this chapter you will have
+\begin{itemize}
+\item a worm with a body that follows the head and grows by one cell at every meal;
+\item a game that can be lost: the worm must not bite itself;
+\item three screens, a title, the game and a game over, linked by button \key{A};
+\item food that never appears on the worm;
+\item a best score, kept as long as the cartridge stays in memory.
+\end{itemize}
+\end{chapgoals}
+
+In this third tutorial memory enters the game: a ring of bytes, a map of the
+world, a machine with three states. With ``data structures'' in the place of
+``tables'', the sentence of Brooks quoted above is the motto of the chapter:
+once the data are designed well, the code is a transcription.
+Table~\ref{tab:v3:from} lists what is taken from Chapters \ref{ch:sequential}
+to~\ref{ch:storage}. The frame is the clock of the machine: \code{update}
+computes the next state from the present state and from the inputs. The
+reference file is \fname{verm1\_part3.S} (Appendix~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{What Part 3 takes from the chapters on state and memory.}\label{tab:v3:from}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{From} & \textbf{Idea} & \textbf{Where it appears}\\
+\midrule
+Chapter \ref{ch:sequential} & a finite-state machine: states, inputs, transitions & \texttt{TITLE}, \texttt{PLAY}, \texttt{OVER}\\
+Chapter \ref{ch:sequential} & an edge is a change, not a level & \key{A} pressed now and not one frame ago\\
+Chapter \ref{ch:registers} & a register keeps a value for the next clock & \code{prev\_btn}: the buttons of the last frame\\
+Chapter \ref{ch:memory} & memory is an array of bytes: address = base + index & the body, the map of the world\\
+Chapter \ref{ch:storage} & what stays in the file and what lives in RAM & \code{.rodata} and \code{.data}; the best score\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_title.png}\caption{\texttt{TITLE}}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_play.png}\caption{\texttt{PLAY}: seven cells after four meals}\label{fig:v3:play}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_over.png}\caption{\texttt{OVER}}\label{fig:v3:over}\end{subfigure}
+\caption{Where this chapter is going: three screens, one program.}
+\label{fig:v3:screens}
+\end{figure}
+
+Start from a Part~2 that runs; if yours does not, copy
+\fname{verm1\_part2.S}. The working loop is that of
+Listing~\ref{lst:v1:build}. In this part the file changes a great deal: build
+after every \emph{Run it}, not only at the end.
+
+% ----------------------------------------------------------------------------
+\section{The design, before the code}
+
+Two data structures and one diagram are designed first.
+
+\subsection{The body is a ring of 256 entries}
+
+The body is kept in two arrays of bytes, \code{body\_x} and \code{body\_y}:
+entry $k$ holds the cell of one segment. Nothing is ever shifted: a step
+writes one new entry and moves an index (Figure~\ref{fig:v3:ring}). Two
+numbers describe the worm: \code{head\_i}, the entry of the head, and
+\code{length}, the number of entries in use. The tail is the entry
+\[ \code{head\_i}-\code{length}+1 . \]
+After entry 255 comes entry 0, and the wrap is one instruction: the index AND
+255. The structure is a \term{ring}, or circular buffer: the structure
+behind every first-in, first-out queue.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=7mm,y=7mm]
+  \foreach \row/\h/\len/\cap in {0/2/3/{A new game: three cells, the head in entry 2},
+                                 1/3/3/{One step: write the new head in entry 3; the tail is now entry 1},
+                                 2/4/4/{One step with a meal: the head advances, the tail stays}}{
+    \begin{scope}[yshift=-\row*19mm]
+      \foreach \k in {0,...,15}{
+        \pgfmathtruncatemacro{\tail}{\h-\len+1}
+        \ifnum\k=\h \def\col{green!75!black}\else\ifnum\k<\tail \def\col{prgpanel}\else\ifnum\k>\h \def\col{prgpanel}\else\def\col{prggreen!55}\fi\fi\fi
+        \draw[prgsteel,fill=\col] (\k,0) rectangle ++(1,1);
+        \node[font=\ttfamily\scriptsize,text=prgcomment] at (\k+0.5,1.3) {\k};
+      }
+      \node[font=\ttfamily\scriptsize] at (16.6,0.5) {\ldots 255};
+      \node[lbl,anchor=west] at (0,-0.45) {\cap};
+      \draw[->,thick,prgred] (\h+0.5,2.1) node[above,font=\ttfamily\scriptsize,text=prgred]{head\_i} -- (\h+0.5,1.55);
+    \end{scope}
+  }
+\end{tikzpicture}
+\caption{The first sixteen entries of the ring in three successive moments.}
+\label{fig:v3:ring}
+\end{figure}
+
+Moving a worm of 200 cells therefore costs the same as moving one of 3. The
+size 256 is chosen because it is a power of two, so that the wrap is a mask.
+
+\subsection{The world is a map of 960 bytes}
+
+Does the new head touch the body? Looking at every segment would cost up to
+255 comparisons. Instead the program keeps a \emph{map}: one byte per cell, 1
+if a segment is there and 0 if not. The cell in column $c$ of row $r$ is the
+byte number
+\[ r\times 40+c,\qquad\text{from 0 to 959}, \]
+and its address is $\code{grid}+r\times 40+c$: a two-dimensional world in a
+one-dimensional memory, the address computation of Chapter~\ref{ch:memory}. A
+step sets one byte, that of the new head, and clears one, that of the old
+tail. The collision test is a single load, whatever the length of the worm.
+
+It is the classic exchange of memory for time. The map and the ring say the
+same thing in two ways, and the program must keep them consistent: every write
+to one is paired with a write to the other.
+
+\subsection{The game is a machine with three states}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\sffamily\footnotesize}]
+  \node[st,fill=prgsteel,text=white,minimum size=15mm] (t) at (0,0) {TITLE};
+  \node[st,fill=prgaccent,text=white,minimum size=15mm] (p) at (4.6,0) {PLAY};
+  \node[st,fill=prgred,text=white,minimum size=15mm] (o) at (9.2,0) {OVER};
+  \path (t) edge node[above]{\textbf{A} pressed} node[below]{\scriptsize\texttt{new\_game}} (p)
+        (p) edge node[above]{head on the body} node[below]{\scriptsize update \texttt{best}} (o)
+        (o) edge[bend left=32] node[below]{\textbf{A} pressed} (t);
+\end{tikzpicture}
+\caption{The state diagram of \vermone. In every other case the state does not change.}
+\label{fig:v3:fsm}
+\end{figure}
+
+The state is one word in memory (Figure~\ref{fig:v3:fsm}). \code{update}
+looks at the state first and then at the inputs. And ``\key{A} pressed''
+means: down now, and up one frame ago. Holding \key{A} must not skip the
+title: what is wanted is an edge, not a level.
+
+% ----------------------------------------------------------------------------
+\section{Step 1: the memory of the game}
+
+Replace the constants, the \code{.rodata} and the \code{.data} of Part~2 with
+Listings \ref{lst:v3:const}, \ref{lst:v3:ro} and~\ref{lst:v3:data}.
+
+\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v3:const]{code/l17/s11.S}
+
+There is a darker green, \hex{03e0}, for the body; \code{BTN\_A} is bit~4 of
+the word of buttons; the states are numbers, 0, 1 and 2.
+
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.rodata}, what stays in the file.},label=lst:v3:ro]{code/l17/s12.S}
+
+Three strings and the two tables of Part~2: read-only data, to which the
+program never writes, and which on the board could stay in flash.
+
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}, what lives in RAM.},label=lst:v3:data]{code/l17/s13.S}
+
+\code{head\_x} and \code{head\_y} are gone: the head is in the ring. The
+directive \code{.space} reserves bytes without naming each one:
+$256+256+960$ bytes, the worm and its world. Everything here is lost when the
+cartridge is unloaded (Chapter~\ref{ch:storage}): \code{best} survives a game,
+not a power-off. A best score that survives would need permanent memory,
+which a portable cartridge does not have: an honest limit.
+
+% ----------------------------------------------------------------------------
+\section{Step 2: three states}
+
+The machine is built first, with functions that do nothing yet.
+
+\subsection{\texttt{init}: start on the title}
+
+Replace \code{verm1\_init} with Listing~\ref{lst:v3:init}, and delete from
+the file \code{verm1\_update}, \code{step} and \code{verm1\_draw} of Part~2:
+the next listings replace them. Keep \code{place\_food}, \code{eat\_sound}
+and \code{draw\_cell}.
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/s15.S}
+
+\code{init} only chooses the first state; the game itself is prepared by
+\code{new\_game}.
+
+\subsection{\texttt{update}: buttons, and their edges}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, first half.},label=lst:v3:edge]{code/l17/s16.S}
+
+In Listing~\ref{lst:v3:edge} \reg{s0} holds the buttons now and
+\code{prev\_btn} the buttons one frame ago. The variable \code{prev\_btn} is
+a register in the sense of Chapter~\ref{ch:registers}: it delays its input by
+one clock, and here the clock is the frame. The expression ``now AND NOT
+before'' is 1 only where a press has begun:
+\[ \reg{s1}=\reg{s0}\cdot\nott{\code{prev\_btn}} . \]
+It is the edge detector of Chapter~\ref{ch:sequential}: a flip-flop and an AND
+gate with one inverted input. \reg{s0} and \reg{s1} must survive the calls,
+and are saved in the frame.
+
+\subsection{\texttt{update}: one branch per state}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, second half.},label=lst:v3:states]{code/l17/s17.S}
+
+Listing~\ref{lst:v3:states} is the transition table, line by line. The state
+is read first: it decides who looks at the inputs. \texttt{TITLE} and
+\texttt{OVER} react only to a new press of \key{A}; \texttt{PLAY} passes the
+buttons that are held to \code{play\_update}. The transition from
+\texttt{OVER} to \texttt{TITLE} only stores the new state; that from
+\texttt{TITLE} to \texttt{PLAY} calls \code{new\_game}, which stores
+\texttt{PLAY} itself.
+
+\subsection{\texttt{draw}: what to show in each state}
+
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}, first half.},label=lst:v3:draw1]{code/l17/s18.S}
+
+The title line is always drawn (Listing~\ref{lst:v3:draw1}). In
+\texttt{TITLE} only the invitation \texttt{PRESS A} is added, at $x=132$,
+which centres 7 characters of 8 pixels; in \texttt{PLAY} and \texttt{OVER}
+the score, the worm and the food. The output depends only on the state and on
+the memory: \code{draw} changes nothing. It is a Moore machine.
+
+\asmfile[caption={Step 2 \textbf{(changed)}: the end of \code{verm1\_draw}, and \code{draw\_text}.},label=lst:v3:draw2]{code/l17/s19.S}
+
+\texttt{OVER} adds two words on top of the scene
+(Listing~\ref{lst:v3:draw2}). The helper \code{draw\_text} writes white on
+black: it fills \reg{a3} and \reg{a4} and lets \reg{a0} to \reg{a2} pass
+through, removing two lines from every call that writes text.
+
+\subsection{Four functions that do nothing}
+
+\asmfile[caption={Step 2: temporary stubs.},label=lst:v3:stubs]{code/l17/s20.S}
+
+The stubs of Listing~\ref{lst:v3:stubs} make the names exist, so that the
+program builds; \code{new\_game} only changes the state. Steps 3 and 4
+replace them one at a time. It is the method of
+Chapter~\ref{ch:firstcontact}: start with returns that do nothing, then add
+one thing at a time.
+
+\begin{prgcheck}[Run it: a machine with nothing inside]
+\begin{enumerate}[nosep]
+\item Build and run: the title line, and \texttt{PRESS A} in the middle of the
+  screen.
+\item Press \key{A}: the invitation disappears. A red cell is in the top-left
+  corner: the food, at column 0 of row 0, because \code{food\_x} and
+  \code{food\_y} start at zero and the stub of \code{new\_game} does not call
+  \code{place\_food}.
+\item Nothing moves and the game cannot end: \texttt{PLAY} has no rules yet.
+\item In the debugger, find the variable \code{state} and watch it change from
+  0 to 1 when you press \key{A}.
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 3: a worm in memory}
+
+\subsection{\texttt{new\_game}: empty the map, lay the worm}
+
+Replace the stub of \code{new\_game} with Listings \ref{lst:v3:new1}
+and~\ref{lst:v3:new2}.
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, first half.},label=lst:v3:new1]{code/l17/s23.S}
+
+The 960 bytes of the map are set to zero, one \ins{sb} at a time. Then three
+segments are laid in columns 3, 4 and 5 of row 12, and each is written twice:
+in the ring and in the map. The expression \code{grid+12*COLS} is computed by
+the assembler: it is the address of the first byte of row 12. \ins{sb}
+stores one byte; the index is added to the base address with no shift,
+because each entry is one byte.
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, second half.},label=lst:v3:new2]{code/l17/s24.S}
+
+$\code{head\_i}=2$ and $\code{length}=3$ describe the worm; direction, timer
+and score start from zero. The state is stored last: the transition from
+\texttt{TITLE} to \texttt{PLAY} is complete only when everything is ready.
+
+\subsection{\texttt{draw\_worm}: walk the ring backwards}
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/s25.S}
+
+Segment $i$ is the entry $(\code{head\_i}-i)$ AND 255
+(Listing~\ref{lst:v3:worm}). \ins{lbu} loads one byte as an unsigned number,
+and not \ins{lb}: a column is a number from 0 to 39, never negative. Both
+would work here, since with \ins{lb} only a byte of 128 or more would become
+negative (Chapter~\ref{ch:integers}); but \ins{lbu} says what is meant.
+Segment 0 is the head, in a brighter green.
+
+\subsection{\texttt{draw\_score}}
+
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/s26.S}
+
+This is the loop that was inside \code{verm1\_draw} in Part~2, now a function
+(Listing~\ref{lst:v3:score}). It uses \reg{s0}, so it saves it and restores
+it. One stub is left (Listing~\ref{lst:v3:stub2}): the worm exists, and
+stands still.
+
+\asmfile[caption={Step 3: the last stub.},label=lst:v3:stub2]{code/l17/s27.S}
+
+\begin{prgcheck}[Run it: a worm that stands still]
+\begin{enumerate}[nosep]
+\item Build and run, press \key{A}: a worm of three cells in row 12, columns 3
+  to 5, the head, brighter, on the right.
+\item The food is now at a random cell: \code{new\_game} calls
+  \code{place\_food}.
+\item In the debugger, break at the start of \code{draw\_worm} and step until
+  \code{la t0, body\_x} has run: \reg{t0} holds the address of
+  \code{body\_x}. Type it in the \emph{Memory} field: the first bytes are
+  \texttt{03 04 05}.
+\item Find $\code{grid}+12\times 40+3$: three bytes at \texttt{01} in a sea of
+  zeros. (\code{grid} is 512 bytes after \code{body\_x}, and row 12 starts 480
+  bytes after \code{grid}.)
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 4: rules}
+
+One step of the worm has three movements: decide, look, write.
+
+\subsection{\texttt{play\_update}: the update of Part 2}
+
+Replace the last stub with Listings \ref{lst:v3:play1}
+and~\ref{lst:v3:play2}. They are the body of the old \code{verm1\_update}
+under a new name; the buttons arrive in \reg{a0}, so that there is no call to
+read them.
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the steering.},label=lst:v3:play1]{code/l17/s30.S}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the timer.},label=lst:v3:play2]{code/l17/s31.S}
+
+\subsection{\texttt{step}: three registers to keep}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the beginning.},label=lst:v3:s1]{code/l17/s32.S}
+
+\code{step} needs three values that must survive a call to
+\code{place\_food}: the cell of the new head, in \reg{s0} and \reg{s1}, and a
+flag in \reg{s2} that is zero when the worm eats. They are kept in \reg{s}
+registers, and the frame has room for four words: \reg{ra} and the three
+saved registers (Listing~\ref{lst:v3:s1}). The table lookup is that of
+Part~2.
+
+\subsection{\texttt{step}: where will the head be?}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the new cell.},label=lst:v3:s2]{code/l17/s33.S}
+
+The present head is the entry \code{head\_i} of the ring: one byte each for
+column and row, loaded with \ins{lbu}. \code{dx} and \code{dy} are added and
+the result is wrapped as in Part~2 (Listing~\ref{lst:v3:s2}). Nothing is
+written yet: first the program must look.
+
+\subsection{\texttt{step}: eat, or move the tail}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the tail.},label=lst:v3:s3]{code/l17/s34.S}
+
+The comparator of Part~2 leaves its result in \reg{s2}
+(Listing~\ref{lst:v3:s3}). If the worm eats, the length grows by one and the
+tail stays where it is. If it does not, the tail is found at the entry
+$\code{head\_i}-\code{length}+1$, and its column and row are put in \reg{t3}
+and \reg{t4}. At 255 cells the worm stops growing.
+
+\begin{prgconcept}
+Growing and not moving the tail are the same thing. It is the whole trick of
+Snake.
+\end{prgconcept}
+
+\subsection{\texttt{step}: free the tail, test the head}
+
+\asmfile[caption={Step 4 \textbf{(new)}: \code{step}, the collision.},label=lst:v3:s4]{code/l17/s35.S}
+
+The number of a byte of the map is $\mathit{row}\times 40+\mathit{column}$:
+one \ins{mul} and one \ins{add} (Listing~\ref{lst:v3:s4}); \ins{mul} belongs
+to the M extension of \riscv, which the ESP32-C6 has. The byte of the tail
+is cleared \emph{first}, and then the byte of the head is tested. The order
+matters: in this way the head may enter the cell that the tail has just left,
+and the worm can chase its own tail, as in the original game. If the cell is
+occupied the state becomes \texttt{OVER}, and \code{best} is updated.
+
+\subsection{\texttt{step}: write the new head}
+
+\asmfile[caption={Step 4 \textbf{(new)}: the end of \code{step}.},label=lst:v3:s5]{code/l17/s36.S}
+
+The cell is marked in the map, while \reg{t0} still points to it; the index
+\code{head\_i} becomes $(\code{head\_i}+1)$ AND 255, and the ring closes;
+column and row are written in the new entry (Listing~\ref{lst:v3:s5}). If
+\reg{s2} is zero there is a point, new food and a sound. After a collision
+the function jumps straight to its last label: nothing is written, and the
+screen shows the worm as it was before the fatal step.
+
+\subsection{\texttt{place\_food}: not on the worm}
+
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{place\_food}.},label=lst:v3:food]{code/l17/s37.S}
+
+A cell is drawn at random, and then the map is consulted: if the cell is
+occupied another is drawn, until a free one comes
+(Listing~\ref{lst:v3:food}). The column waits in \reg{s0} during the second
+call. The loop ends quickly: even with 255 cells out of 960 occupied, the
+average is fewer than two attempts.
+
+\begin{prgcheck}[Run it: Verm1, Part 3]
+The worm follows the head and grows (Figure~\ref{fig:v3:play}); turning into
+the body ends the game (Figure~\ref{fig:v3:over}); \key{A} returns to the
+title, and \key{A} again starts a new game.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Step 5: look at memory move}
+
+\begin{prgtry}[Watch the ring turn]
+\begin{enumerate}[nosep]
+\item Run in debug mode, press \key{A} to start a game, then pause.
+\item Press \key{Update} and put a breakpoint on the first instruction of
+  \code{step}.
+\item \key{Resume}: the program stops once per step of the worm, not once per
+  frame.
+\item Type the address of \code{body\_x} in the \emph{Memory} field: the bytes
+  \texttt{03 04 05} of the start, then \texttt{06}, \texttt{07}, \ldots, one
+  new byte per step.
+\item Go down for a few steps: \code{body\_x} repeats the same column, and
+  \code{body\_y}, 256 bytes further on, counts the rows.
+\item Eat, and compare \code{head\_i} and \code{length} before and after: both
+  grow by one.
+\end{enumerate}
+\end{prgtry}
+
+The bytes of the old positions are never erased: the ring keeps the whole
+history of the last 256 steps, and \code{length} says how much of it is still
+worm. After 256 steps the writing starts again from the first byte.
+
+\subsection{Catch the edge of button A}
+
+Put a breakpoint on \code{and s1, s0, t1} in \code{verm1\_update}, hold
+\key{A} and press \key{Resume} three times. Table~\ref{tab:v3:edge} shows
+what is read: \reg{s1} is \hex{10} in one frame only, the frame in which the
+button goes down. (The test of the reference file holds \key{A} for 28 frames
+and checks that exactly one transition happens.)
+
+\begin{table}[htb]
+\centering\small
+\caption{The edge of button \key{A}.}\label{tab:v3:edge}
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+\textbf{Frame} & \textbf{A is} & \textbf{\reg{s0} (now)} & \textbf{\code{prev\_btn}} & \textbf{\reg{s1} = \reg{s0} AND NOT prev} & \textbf{Effect}\\
+\midrule
+$n$ & up & \hex{00} & \hex{00} & \hex{00} & --\\
+$n+1$ & down & \hex{10} & \hex{00} & \hex{10} & transition\\
+$n+2$ & down & \hex{10} & \hex{10} & \hex{00} & --\\
+$n+3$ & up & \hex{00} & \hex{10} & \hex{00} & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Three questions for the debugger}
+
+\begin{itemize}
+\item \emph{Where is \code{state}?} After \code{la t0, state} in
+  \code{verm1\_update}, \reg{t0} holds its address. Watch \texttt{00},
+  \texttt{01}, \texttt{02} as you play and lose.
+\item \emph{Is the map consistent with the ring?} Pause, read the head from
+  \code{body\_x} and \code{body\_y}, compute
+  $\mathit{row}\times 40+\mathit{column}$, and look at that byte of
+  \code{grid}.
+\item \emph{What did the fatal step see?} Break on the \ins{lbu} that follows
+  the second \ins{mul} in \code{step}: \reg{t1} is 1 exactly once, at the
+  bite. At that moment \reg{s0} and \reg{s1} hold the cell that the head
+  wanted to enter, and the screen shows that it is part of the body.
+\end{itemize}
+
+\begin{prgconcept}
+A program is right when its memory is right. Learn to read it.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Check your understanding}
+
+\begin{quiz}{$\code{head\_i}=1$ and $\code{length}=4$. Which entries of the ring hold the worm?}
+\item 1, 2, 3, 4
+\item 0, 1, 2, 3
+\item 254, 255, 0, 1
+\item 253, 254, 255, 0
+\end{quiz}
+
+\begin{quiz}{Which byte of \code{grid} describes the cell in column 7 of row 3?}
+\item byte 37
+\item byte 127
+\item byte 283
+\item byte 307
+\end{quiz}
+
+\begin{quiz}{The player holds \key{A} down for two seconds on the title screen. What happens?}
+\item the game starts and ends at once
+\item the game starts once
+\item nothing, until \key{A} is released
+\item the states cycle at every frame
+\end{quiz}
+
+\begin{quiz}{Why is the tail's byte cleared before the head's byte is tested?}
+\item to save an instruction
+\item so that the head can enter the cell the tail leaves
+\item because \ins{sb} is faster than \ins{lbu}
+\item the order does not matter
+\end{quiz}
+
+\section{Make it yours}
+
+\begin{exercise}[on \prg]
+\begin{enumerate}[nosep]
+\item Walls: the worm dies when it leaves the screen instead of wrapping.
+\item Start with a worm of five cells; then let the length at the start depend
+  on the best score.
+\item Poison: a second, blue cell that makes the worm one cell shorter.
+\item On the game-over screen show the best score as marks on the second line.
+\end{enumerate}
+\expected{Each change touches one or two functions. Keep a copy of the
+working Part~3: Part~4 starts from it. (Hints: for the walls, replace each
+wrap in \code{step} with a jump to the code that stores \texttt{OVER}. For
+the poison, move the tail twice in one step, clearing both bytes of the map,
+and never go below length 1.)}
+\end{exercise}
+
+\section{Two functions that did not change}
+
+\code{eat\_sound} and \code{draw\_cell} are those of Part~2 and are kept as
+they are. They are reprinted here so that this chapter contains the whole
+program: the complete file is the sum of the listings marked new and changed,
+plus these two.
+
+\asmfile[caption={\textbf{Unchanged}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/s49.S}
+
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/s50.S}
+
+\section{Where we are, and what comes next}
+
+\vermone is now a game: it has a goal, a risk, a beginning and an end. A
+machine with three states, a ring of bytes, a map: sequential logic and memory
+written as a program, in about 450 lines of assembly that the reader has
+written and can explain. Three things are missing: the program redraws the
+whole screen at every frame, the score is a row of marks, and the speed never
+changes. The next four chapters open the machine that runs those lines: how
+the processor executes, calls and division, how video and sound work. Part~4
+is the finished game.

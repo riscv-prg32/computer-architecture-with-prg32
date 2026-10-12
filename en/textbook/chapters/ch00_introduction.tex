@@ -1,0 +1,605 @@
+% ============================================================================
+%  Chapter 0 -- Course Introduction                              (Lecture 00)
+% ============================================================================
+\chapter{Introduction: Program First, Formalise Later}
+\label{ch:intro}
+
+\epigraphline{The Matrix is a system, Neo. That system is our enemy.}
+  {\emph{The Matrix}, Lana and Lilly Wachowski, 1999}
+
+\begin{chapgoals}
+\begin{itemize}
+\item What the course is, who teaches it and how its ninety-six hours are used.
+\item The method: a program that runs comes first, its theory comes after.
+\item The machine: \prg, \riscv and the debugger \prgqt.
+\item The project: \vermone, a game written from an empty file and published.
+\item The rules: syllabus, learning outcomes, assessment, material.
+\end{itemize}
+\end{chapgoals}
+
+A computer is the most complicated object that most people use every day, and
+the one whose inner working they are least encouraged to look at. Its makers
+have spent seventy years hiding the machine behind layers that are each easier
+to use than the one below: logic gates behind instructions, instructions behind
+languages, languages behind libraries, libraries behind applications, and now
+applications behind conversational assistants. The layers are what make
+computing useful. They are also a system in the sense of the film quoted
+above: one can live inside it for a lifetime without knowing that there is
+anything underneath.
+
+Computer architecture is the discipline that looks underneath. It studies how
+a machine that can only switch currents on and off comes to represent numbers,
+text, pictures and sound; how a handful of logical operations, repeated
+thousands of millions of times a second, become arithmetic, decisions and
+memory; and how the whole is organised so that a sequence of very simple
+orders, a \term{program}, can make it do anything that can be computed at all.
+This chapter explains how the course approaches that study, with which machine
+and through which project, and then states the practical rules.
+
+% ----------------------------------------------------------------------------
+\section{The course at a glance}
+
+\emph{Computer Architecture and Computer Architecture Laboratory}, code ARC12,
+is a first-year, first-semester course of the Bachelor's Degree in Computer
+Science of the University of Naples ``Parthenope''. It is worth 12~ECTS
+credits, belongs to the scientific area INFO-01/A (Informatics) and consists
+of 96~hours, divided equally between lectures and laboratory
+(Table~\ref{tab:intro:glance}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The course at a glance.}\label{tab:intro:glance}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+Name & Computer Architecture and Computer Architecture Laboratory (ARC12)\\
+Position & First year, first semester, Bachelor's Degree in Computer Science\\
+Credits & 12 ECTS, 96 hours; scientific area INFO-01/A (Informatics)\\
+Lectures & Raffaele Montella, 6 ECTS, 48 hours\\
+Laboratory & Mariacarla Staffa, 6 ECTS, 48 hours\\
+Office hours & Room 420, Tuesday 14:00--16:00, by appointment; also on
+  Microsoft Teams (team code \code{c7rf33g})\\
+Extra credits & Accenture SuperSkills! gives 2 ECTS as further knowledge
+  (\url{https://richiediaccesso.uniparthenope.it})\\
+Prerequisites & None\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+There are no formal prerequisites. No previous experience of programming, of
+electronics or of mathematics beyond the school curriculum is assumed: the
+only real prerequisite is a passion for computing and for the technologies that
+make it possible.
+
+The two halves of the course are two views of the same matter. In the
+\textbf{lectures} the ideas are presented: information, numbers, Boolean
+algebra, logic networks, memory, the processor, input and output. Every topic
+opens with a program that can be run and is then formalised with definitions,
+methods and proofs; every lecture closes with multiple-choice questions in the
+style of the midterm test; and every four lectures a tutorial adds the next
+part of \vermone, the game of the course. In the \textbf{laboratory} the same
+ideas are practised: number representation and conversion techniques;
+analysis, synthesis and minimisation of logic circuits; \riscv assembly
+programming on the \prg platform; and, finally, the student's own project, a
+variant of \vermone or a game of the student's invention. This book is the
+text of the lectures; its exercises are the natural material of the
+laboratory.
+
+% ----------------------------------------------------------------------------
+\section{A new approach}
+
+\begin{prgconcept}[Program first. Formalise later.]
+From the first days the student writes \riscv assembly that runs on a real
+processor. Each formal topic then answers a question that the student's own
+program has already raised.
+\end{prgconcept}
+
+The traditional order of the subject is deductive: representation, then logic,
+then circuits, then the processor, then, at last, a program. It is the order
+in which the machine is \emph{built}, and it has the elegance of every
+construction from first principles. It is not the order in which the machine
+is \emph{understood}. A student who meets two's complement in the third week
+of a deductive course has never seen a negative number inside a computer, and
+has no reason to care how it is written. A student who, the week before, has
+moved a rectangle to the left of the screen until its coordinate, shown by the
+debugger, has turned from \hex{00000000} into \hex{FFFFFFFF} has a question,
+and two's complement is its answer.
+
+The course is therefore organised as a spiral, repeated for every topic
+(Figure~\ref{fig:intro:spiral}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=7mm]
+  \node[blkacc,text width=27mm,minimum height=20mm] (a) {\textbf{Play}\\[2pt]\footnotesize type a few instructions, build a cartridge, run it};
+  \node[blkamb,text width=27mm,minimum height=20mm,right=of a] (b) {\textbf{Observe}\\[2pt]\footnotesize a number wraps, a bit lights a lamp, a rectangle moves};
+  \node[blkvio,text width=27mm,minimum height=20mm,right=of b] (c) {\textbf{Formalise}\\[2pt]\footnotesize definitions, theorems and methods explain why};
+  \node[blkgrn,text width=27mm,minimum height=20mm,right=of c] (d) {\textbf{Return}\\[2pt]\footnotesize predict the result before running it};
+  \draw[->,thick,prgink] (a) -- (b); \draw[->,thick,prgink] (b) -- (c); \draw[->,thick,prgink] (c) -- (d);
+  \draw[->,thick,prgink,rounded corners=3mm] (d.south) -- ++(0,-7mm) -| node[pos=0.25,below,lbl]{next topic} (a.south);
+\end{tikzpicture}
+\caption{The learning spiral, repeated for every topic of the course.}
+\label{fig:intro:spiral}
+\end{figure}
+
+First one \emph{plays}: a few instructions are typed, a cartridge is built and
+run. Then one \emph{observes}: something happens that was not expected, or was
+expected and can now be seen. Then one \emph{formalises}: definitions and
+theorems explain exactly why. Finally one \emph{returns} to the machine,
+and the measure of understanding is the ability to predict a result before
+running the program. A mark is an opinion; a paddle that leaves the screen is
+a fact. The course uses facts, and then explains them.
+
+\subsection{What the course aims at}
+
+The aims are those of every serious course on the subject; only the path is
+different. The course
+
+\begin{itemize}
+\item presents the fundamental aspects of the architecture of modern computers;
+\item uses, in the laboratory, the basic concepts needed to program them
+  efficiently in low-level languages: machine language and assembly;
+\item treats rigorously the tools from which a processor is built, namely
+  Boolean algebra with the synthesis of combinational and sequential logic
+  networks, and binary representation with binary arithmetic;
+\item describes in detail the functional and physical structure of the CPU, of
+  the memory and of the input/output subsystem;
+\item develops assembly code that makes visible how a processor really works
+  and how the basic units of a computer interact.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{The machine: PRG32 and RISC-V}
+
+\subsection{A retro console programmed in assembly}
+
+\prg is an open-source educational runtime for teaching \riscv assembly and C,
+developed at the University of Naples ``Parthenope'' \citep{prg32repo}. To
+the eye it is a small games console of the kind that was sold in the early
+1980s (Figure~\ref{fig:intro:prg32}); to the programmer it is a deliberately
+thin contract.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\includegraphics[width=\textwidth]{menu_main.png}
+\caption{The menu of the resident firmware.}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\includegraphics[width=\textwidth]{game_pong.png}
+\caption{Pong: native \riscv machine code.}
+\end{subfigure}
+\caption{\prg, the machine of the course.}
+\label{fig:intro:prg32}
+\end{figure}
+
+\begin{itemize}
+\item The student's code runs \emph{natively}, as 32-bit \riscv machine code
+  of the RV32IMAC instruction set. It is not interpreted by a teaching
+  simulator: the instructions written are the instructions executed.
+\item The contract consists of three functions that the student writes:
+  \code{init} runs once; \code{update} and \code{draw} run once per frame.
+\item Games travel as small \term{cartridges}, files with the extension
+  \fname{.prg32}.
+\item The machine offers a viewport of 320 by 200 pixels, a joystick with a
+  few buttons, and sound: small enough to be held in one's head, rich enough
+  to exercise the whole course.
+\end{itemize}
+
+\subsection{The philosophy behind PRG32}
+
+Six principles, taken from the textbook of the platform
+\citep{prg32textbook}, shape both \prg and the way this book uses it.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Small enough to understand.] One processor, a screen of 320 by 200
+  pixels, a joystick, a small speaker. Nothing is hidden: the whole machine can be
+  held in one's head.
+\item[Real, not simulated.] The instructions written are those that the chip
+  executes. What is learnt here is true on every \riscv processor, from a
+  sensor to a supercomputer.
+\item[Limits make you creative.] A few kilobytes and three functions. The
+  games of the 1980s were born from limits like these: a constraint is an
+  invitation.
+\item[One thing at a time.] Start with functions that only return. Add one
+  thing, run, look. \code{update} changes the state, \code{draw} shows it.
+  Sound comes last.
+\item[Look inside.] When something is surprising, stop the program and read
+  registers and memory. The debugger is part of the method, not an emergency
+  tool.
+\item[Make, then share.] A cartridge is a file that can be given to a friend.
+  The Cartridge Store is the shelf where finished work meets its players.
+\end{description}
+
+The platform has, accordingly, two uses in the course. It is a
+\emph{gymnasium}: every chapter opens with a short program that runs and
+closes by going back to the machine; an exercise consists of a prediction and
+of a check; and the machine never flatters, because a wrong mask lights the
+wrong lamp. And it is a \emph{workshop}: a blank cartridge and a screen, on
+which rules, colours, sounds and levels are design decisions that belong to
+the author. The project of the course starts guided and ends free, and what
+is finished can be published. First-year students rarely expect a course on
+architecture to ask them for an idea; this one does.
+
+\subsection{PRG32-QT: the debugger of the course}
+
+\prgqt is \prg on a laptop: an application that runs the same cartridges with
+no board and no compiler \citep{prg32qt}. In debug mode it opens the machine
+(Figure~\ref{fig:intro:debugger}): the program can be paused, resumed and
+advanced one instruction at a time; breakpoints can be placed on any
+instruction of \code{init}, \code{update} or \code{draw}; the thirty-two
+registers and 128~bytes of memory at any address are displayed; the speed can
+be set between 0.01 and 4 times the real one; and counters report frames,
+instructions executed and frames that arrived late.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.92\textwidth]{prg32qt_debugger.png}
+\caption{\prgqt in debug mode: the game on the left, the machine on the right.}
+\label{fig:intro:debugger}
+\end{figure}
+
+The debugger is used in every chapter: to check a prediction, to find a
+mistake, to measure. It also supplies the working definition of understanding
+adopted in this book.
+
+\begin{prgconcept}[When is a program understood?]
+A program is understood when one can say what each register will hold
+\emph{before} pressing \key{Step}.
+\end{prgconcept}
+
+\subsection{Why RISC-V?}
+
+The choice of the processor is not neutral, and four reasons led to \riscv.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[It is open.] \riscv is an open standard instruction set: anyone may
+  design, build and sell a \riscv processor without paying a licence for the
+  architecture \citep{riscvisa}.
+\item[It is small.] The base integer instruction set has about forty
+  instructions and thirty-two registers. All of it can be learnt in one
+  semester, and Appendix~\ref{app:riscv} lists all of it.
+\item[It is real.] \ins{addi}, \ins{lw}, \ins{sw} and \ins{beqz} are not a
+  teaching dialect. Industry ships \riscv cores by the billion, and they
+  execute exactly these instructions.
+\item[It is European.] Europe treats \riscv as a lever for technological
+  sovereignty: the European Chips Act and projects such as DARE (Digital
+  Autonomy with RISC-V in Europe, a EuroHPC Joint Undertaking project) build
+  processors on it \citep{eurohpcdare}.
+\end{description}
+
+\subsection{The map: every topic is met twice}
+
+Table~\ref{tab:intro:map} is the course on one page. Each formal topic of the
+left column is met first on the machine, in the form given by the right
+column, and only then in its general form. It is worth coming back to this
+table at the beginning of each part of the book.
+
+\begin{table}[htb]
+\centering\small
+\caption{Every formal topic is met first on \prg.}\label{tab:intro:map}
+\begin{tabularx}{\textwidth}{@{}P{0.36\textwidth}L@{}}
+\toprule
+\textbf{Formal topic} & \textbf{First met on \prg as\ldots}\\
+\midrule
+Positional notation, hexadecimal & the colour \hex{07E0} and the value shown by the debugger\\
+Two's complement, overflow & a position that moves left past zero and shows \hex{FFFFFFFF}\\
+Fixed and floating point & a ball that moves 0.375 pixels per frame on a chip with no floating-point unit\\
+Boolean algebra, bit masks & \code{andi t3, t0, 1} to test whether \key{LEFT} is pressed\\
+Electronics, logic gates & the button that joins a pin of the chip to ground\\
+Combinational networks, adders & what \ins{add} actually does to thirty-two bits\\
+Sequential networks, registers & the counter that survives from one frame to the next\\
+CPU, datapath, instruction cycle & single-stepping one instruction in \prgqt\\
+Memory and input/output & \ins{lw} and \ins{sw}, the stack, the joystick and the display\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{The project: Verm1}
+
+\vermone, read \emph{vermone}, ``the big worm'', is a tribute to Snake: the
+game of the arcade machine \emph{Blockade} (1976) and of the Nokia telephones
+(1997). A worm moves on a grid, eats, grows, and must not bite itself. The
+student writes every line of it in \riscv assembly, with no engine and no
+library beyond the calls of \prg. The game is small enough for a first-year
+student and rich enough to need every topic of the course; at the end it is
+ready for the Cartridge Store with its author's name on it. The reference
+implementation, against which every reader can compare a program of their
+own, was contributed by Giuseppe Coviello (Appendix~\ref{app:verm1}).
+
+The project is the thread of the book. It is built in four parts and a
+publication (Table~\ref{tab:intro:verm1}, Figure~\ref{fig:intro:verm1}), and
+each part uses exactly what the four chapters before it have taught. Each
+part ends with a game that runs: the reader never goes home with a broken
+program.
+
+\begin{table}[htb]
+\centering\small
+\caption{\vermone: four parts and a publication.}\label{tab:intro:verm1}
+\begin{tabularx}{\textwidth}{@{}lP{0.20\textwidth}LP{0.22\textwidth}@{}}
+\toprule
+\textbf{Chapter} & \textbf{After the part on} & \textbf{\vermone gains} & \textbf{With}\\
+\midrule
+\ref{ch:verm1p1}\quad Part 1 & information and numbers & a grid, a head that moves, a world without edges & colours, shifts, fixed point\\
+\ref{ch:verm1p2}\quad Part 2 & logic and circuits & steering, food, a score & masks, XOR, tables\\
+\ref{ch:verm1p3}\quad Part 3 & state and memory & a body that grows, collisions, three screens & a state machine, arrays\\
+\ref{ch:verm1p4}\quad Part 4 & the machine & digits, levels, sound, fast drawing & calls, division, the frame buffer\\
+\ref{ch:store}\quad The Store & the whole course & a name, an icon, credits, a bundle & the \prg tools\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p1.png}\caption{Part 1: a head}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p2.png}\caption{Part 2: food, score}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p3_play.png}\caption{Part 3: a body}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p4_play.png}\caption{Part 4: finished}\end{subfigure}
+\caption{\vermone grows with the reader: the same file, four sittings. The
+screenshots are taken from the reference programs by the automatic tests of
+the course material.}
+\label{fig:intro:verm1}
+\end{figure}
+
+A tutorial chapter obeys four rules. It is \emph{self-contained}: it shows the
+whole program, and every line is either new, changed, or reprinted unchanged.
+It proceeds \emph{step by step}: a few lines at a time, and after each step
+the program is built, run and compared with a stated result. It uses
+\emph{the debugger}: each tutorial has a session in \prgqt, with a breakpoint,
+a register to watch and a region of memory to read. And its result belongs to
+the reader: each tutorial ends with changes to be made independently, because
+the game that is published should not be identical to the one printed here.
+
+% ----------------------------------------------------------------------------
+\section{The course in blocks}
+
+The order of the topics was chosen for learning. First comes what a bit
+means; then how bits are combined; then how they are remembered; then the
+machine that does all three. The processor is presented before the devices
+that it drives. After each block the project uses it. The last lecture is an
+outlook, held before a visit to the computing systems of the Department
+(Table~\ref{tab:intro:blocks}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The blocks of the course. Numbers are those of the lectures and of
+the chapters of this book.}\label{tab:intro:blocks}
+\begin{tabularx}{\textwidth}{@{}lLP{0.28\textwidth}@{}}
+\toprule
+\textbf{Block} & \textbf{Lectures} & \textbf{Then}\\
+\midrule
+Start & 0 Introduction; 1 \prg and \prgqt: setting up; 2 First contact with \riscv & \\
+Information & 3 History; 4 Digital information; 5 Integers; 6 Reals & 7 \vermone, part 1\\
+Logic & 8 and 9 Boolean algebra; 10 Electronics; 11 Combinational machines & 12 \vermone, part 2\\
+State and memory & 13 Sequential machines; 14 Registers and buses; 15 Memory; 16 Permanent memory & 17 \vermone, part 3\\
+The machine & 18 Processor; 19 Instructions and interrupts; 20 Video card; 21 Input and output & 22 \vermone, part 4\\
+Publication & & 23 \vermone on the Cartridge Store\\
+Outlook & 24 Beyond one core: superscalar \riscv, HPC, GPUs and FPGAs & the visit to the computing systems\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Syllabus and learning outcomes}
+
+\subsection{Syllabus}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Computer organisation.] Hardware and software; application and system
+  software; the von Neumann model; operating principles of a computer.
+\item[Boolean algebra and logic.] Boolean functions, truth tables;
+  combinational networks and their minimisation; adders; finite-state
+  machines; sequential networks; flip-flops, registers.
+\item[Data representation.] Encoding; redundant codes, error detection and
+  correction; decoders, multiplexers; positional systems; naturals, integers,
+  reals; arithmetic.
+\item[Structure of a computer.] The CPU: control unit, ALU, registers; the
+  instruction cycle; the datapath; main memory; the I/O subsystem;
+  microprogrammed architectures.
+\item[RISC-V assembly.] Instruction set; registers, addressing; arithmetic and
+  logic; branches; subroutines, calling convention, stack; memory and I/O.
+\item[Project.] \vermone: a game in \riscv assembly on \prg, built in four
+  guided parts, then varied, documented and packaged by the student or by a
+  small team.
+\end{description}
+
+The detailed syllabus is published on the university's information system and
+on the e-learning portal, \url{https://elearning.uniparthenope.it}.
+
+\subsection{Learning outcomes}
+
+The outcomes are stated, as usual in European higher education, along the five
+Dublin descriptors.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Knowledge and understanding.] A sound knowledge of the binary system, of
+  digital logic and of the operating principles of computers. No previous
+  computing background is assumed.
+\item[Applying knowledge.] The ability to apply theory to exercises and to
+  \riscv assembly programs, and to recognise both the capabilities and the
+  limits of computers on real problems.
+\item[Making judgements.] The ability to write assembly programs that represent
+  and process real problems in binary, choosing suitable data representations
+  and control structures.
+\item[Communication skills.] The ability to take an active part in teams that
+  design, implement and document assembly applications, using correct
+  technical terminology.
+\item[Learning skills.] The ability to connect representation, logic networks
+  and processors into one picture, and to keep up to date independently from
+  reliable technical sources.
+\end{description}
+
+% ----------------------------------------------------------------------------
+\section{Organisation and assessment}
+
+This section records the rules of the academic year 2026/27. Dates that had
+not been fixed when the book was compiled are announced in class and on the
+e-learning portal, which prevail over this text in case of difference.
+
+\subsection{Timetable}
+
+From September to December 2026 the course meets four times a week in Aula~1:
+lectures on Monday (14:00--16:00) and Wednesday (09:00--11:00), laboratory on
+Tuesday and Friday (09:00--11:00). An internal calendar with the actual
+distribution of lectures and laboratory sessions is shared with the students.
+
+\subsection{One midterm test}
+
+There is one midterm test, taken in person and on paper in about 45~minutes:
+\textbf{ten multiple-choice questions plus two exercises}. It is held on a
+Monday, 14:00--16:00, in Aula~1, on a date to be announced; students may be
+split into groups and the test run in shifts. Candidates bring an identity
+document and a pen, and must know their institutional e-mail address and
+student number.
+
+The test assesses both sides, students and teachers: it is needed to know
+where the course is going. It closes the first three blocks
+(Table~\ref{tab:intro:midterm}); the fourth, the machine, is examined in the
+oral. \riscv instructions appear in the examples of the test: the
+first-contact material of Chapter~\ref{ch:firstcontact} is assumed, and the
+code of \vermone, parts 1 to 3, is a natural source of questions. Every
+chapter of this book ends with questions of the same kind, and the best
+preparation is to answer them week by week.
+
+\begin{table}[htb]
+\centering\small
+\caption{What the midterm test covers.}\label{tab:intro:midterm}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Block} & \textbf{Lectures} & \textbf{Topics}\\
+\midrule
+Information & 3 to 6 & history of computing; digital information; number representation: integers and reals\\
+Logic & 8 to 11 & Boolean algebra; electronics and logic gates; combinational machines\\
+State and memory & 13 to 16 & sequential machines: latches, flip-flops, state machines; registers and buses; memory and permanent storage\\
+\emph{Not in the midterm} & 18 to 24 & the processor, instructions and interrupts, the video card, input and output, the outlook: part of the oral exam\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}[No tech. No GPT.]
+The midterm test and the exam are \emph{\#nogpt}. No technological or human
+help of any kind is allowed: no devices, no ChatGPT or other large language
+models, no generative AI. Cheating cancels the test at once; more serious
+behaviour has more serious consequences.
+\end{prgwarn}
+
+\subsection{Assessment}
+
+The exam has two parts, and both must be passed.
+
+\begin{itemize}
+\item \textbf{Theory (50\%)}: an oral examination with impromptu questions on
+  the whole syllabus; some answers need a diagram or a calculation on the
+  board. The oral can also lower the mark obtained in the midterm test.
+\item \textbf{Practical (50\%)}: the laboratory exam with Prof.\ Staffa.
+\end{itemize}
+
+The final mark is the mean of the theory mark and of the practical mark.
+Midterm and exam results are kept within the current academic year.
+
+To finalise the exam a positive mark is needed in both theory and practice,
+and finalisation happens only during a theory exam session. The laboratory
+exam is usually held one week before the theory session, and both sessions are
+booked on \url{https://uniparthenope.esse3.cineca.it}. Two questions are asked
+every year. \emph{Can the theory exam be taken before the practical one has
+been passed?} Yes: the result is kept for one academic year, but the exam is
+finalised only after the practical part has been passed. \emph{Can the theory
+session be booked without the practical test?} Yes, the case is the same.
+
+\subsection{Midterm week and the closing event}
+
+During the midterm week the lectures are replaced by seminars on emerging
+computer architectures. At the end of the course, a student or a team that
+presents its game at the closing ceremony, a variant of \vermone or a game of
+its own, can earn bonus points for the exam. The closing morning has two
+halves: the last lecture, beyond one core, from superscalar \riscv to
+supercomputers (Chapter~\ref{ch:beyond}), and a visit to the supercomputing
+systems of the Department of Science and Technology. Finished games can be
+published on the \prg Cartridge Store, as Chapter~\ref{ch:store} shows.
+
+% ----------------------------------------------------------------------------
+\section{Material}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Slides.] The slide decks that this book follows are always available in
+  a shared Google Drive folder and are periodically published on
+  \url{https://elearning.uniparthenope.it}. They are generated from source:
+  corrections and new exercises are welcome as contributions.
+\item[Platform.] \prg, free and open source, at
+  \url{https://github.com/riscv-prg32/PRG32}, with its own textbook,
+  \emph{Playing with RISC-V: Assembly, C, and Retro Games on the PRG32
+  Platform} \citep{prg32textbook}.
+\item[Textbooks.] \citet{patterson2020}, \emph{Computer Organization and
+  Design, RISC-V Edition}, and \citet{tanenbaum2013}, \emph{Structured
+  Computer Organization}, are the two references of the course. The syllabus
+  also lists \citet{stallings2021} and \citet{bucci2017}.
+\item[Standards.] The official \riscv documentation at
+  \url{https://riscv.org} \citep{riscvisa}.
+\end{description}
+
+The teaching material lives in a folder shared with the students, who can
+contribute to it; to obtain access a student sends the address of an account
+linked to the service to the lecturer. All other communication with the
+lecturer goes through the institutional address of the student.
+
+\begin{prgaside}[Cineforum]
+Thirty films and series about computing accompany the course, as a reminder
+that the subject has a culture as well as a technique: \emph{The Social
+Network} (2010), \emph{Steve Jobs} (2015), \emph{Pirates of Silicon Valley}
+(1999), \emph{The Imitation Game} (2014), \emph{Hackers} (1995), \emph{Ex
+Machina} (2014), \emph{Her} (2013), \emph{Tron} (1982), \emph{Tron: Legacy}
+(2010), \emph{The Matrix} (1999), \emph{WarGames} (1983), \emph{Sneakers}
+(1992), \emph{Jobs} (2013), \emph{Antitrust} (2001), \emph{Blackhat} (2015),
+\emph{The Fifth Estate} (2013), \emph{The Circle} (2017), \emph{Silicon
+Valley} (2014--2019), \emph{Source Code} (2011), \emph{Chappie} (2015),
+\emph{Mr.\ Robot} (2015--2019), \emph{Ghost in the Shell} (1995),
+\emph{Minority Report} (2002), \emph{Transcendence} (2014), \emph{Ready Player
+One} (2018), \emph{A.I.\ Artificial Intelligence} (2001), \emph{Revolt}
+(2017), \emph{The Thirteenth Floor} (1999), \emph{Eagle Eye} (2008) and
+\emph{Terminator~2: Judgment Day} (1991). \emph{Ready Player One} is also the
+cultural reference of the \prg textbook: fluency with the foundational layers
+is a literacy that keeps its value.
+\end{prgaside}
+
+% ----------------------------------------------------------------------------
+\section{First contact: who are you?}
+
+The first lecture ends with questions put to the room, and a reader working
+alone may put them to themselves. Their purpose is not to select but
+to find where to begin.
+
+\begin{itemize}
+\item \textbf{Hardware.} Have you ever assembled a computer? Have you played
+  with an Arduino or an ESP32?
+\item \textbf{Software.} How many programming languages do you know? Have you
+  ever read a line of assembly?
+\item \textbf{Culture.} What are retrocomputing and retrogaming? Have you ever
+  visited a computer museum?
+\item \textbf{Concepts.} Can you tell the difference between ROM, RAM and
+  storage? What is cloud computing? And the Internet of Things?
+\item \textbf{RISC-V.} Have you heard of \riscv? Which processor is inside your
+  telephone, your laptop, your router?
+\end{itemize}
+
+In class the questions are followed by a short anonymous questionnaire, the
+\emph{Sorting Hat}, on what attracts each student most in the future of
+computing and of science; its results are discussed and used to tune examples
+and projects.
+
+\section{Before the next chapter}
+
+Chapter~\ref{ch:setup} installs everything, step by step, on Windows, macOS
+and Linux. It goes faster if the long downloads are already done.
+
+\begin{exercise}[preparation]
+\begin{enumerate}[nosep]
+\item Have a laptop on which you are allowed to install programs.
+\item Download the \prgqt installer for your system from the \emph{Releases}
+  page of \url{https://github.com/riscv-prg32/PRG32-QT}.
+\item On a good connection, start the long download: ESP-IDF, following the
+  \fname{README} of \url{https://github.com/riscv-prg32/PRG32} for your system.
+\item If something fails, do not fight it alone: keep the error message.
+\end{enumerate}
+\expected{You begin Chapter~\ref{ch:setup} with the downloads done. In two
+hours you have \prgqt running and a cartridge built on your own laptop.}
+\end{exercise}

@@ -1,0 +1,290 @@
+% ============================================================================
+%  arc12style.sty  --  Style package for
+%  "Computer Architecture: Program First, Formalise Later"
+%  Derived from prg32style.sty of "Playing with RISC-V" so that the two books
+%  read as one family: same palette, same boxes, same listings.
+% ============================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{arc12style}[2026/10/06 ARC12 Computer Architecture textbook style]
+
+% ---- Encoding & fonts ------------------------------------------------------
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{textcomp}
+\RequirePackage{lmodern}
+\RequirePackage[protrusion=true,expansion=false]{microtype}
+\RequirePackage{xspace}
+\RequirePackage{parskip}
+
+% ---- Page geometry ---------------------------------------------------------
+\RequirePackage[a4paper,inner=1.25in,outer=1in,top=1.15in,bottom=1.2in,headheight=15pt]{geometry}
+
+% ---- Colour palette (the PRG32 palette) ------------------------------------
+\RequirePackage{xcolor}
+\definecolor{prgink}{HTML}{1B2530}
+\definecolor{prgsteel}{HTML}{2E4A62}
+\definecolor{prgaccent}{HTML}{0E7C86}
+\definecolor{prgamber}{HTML}{C7791B}
+\definecolor{prgred}{HTML}{B23A48}
+\definecolor{prggreen}{HTML}{2F7D4F}
+\definecolor{prgpaper}{HTML}{FBFAF6}
+\definecolor{prgpanel}{HTML}{EEF2F4}
+\definecolor{prgcode}{HTML}{F4F1EA}
+\definecolor{prgrule}{HTML}{C9C9C9}
+\definecolor{prgcomment}{HTML}{6A7B6F}
+\definecolor{prgkeyword}{HTML}{1F5673}
+\definecolor{prgstring}{HTML}{8A5A28}
+\definecolor{prgviolet}{HTML}{6B4FA0}
+\definecolor{prgplum}{HTML}{A03A8A}
+
+% ---- Graphics, tables, math ------------------------------------------------
+\RequirePackage{graphicx}
+\graphicspath{{figures/}}
+\RequirePackage{colortbl}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{tabularx}
+\RequirePackage{longtable}
+\RequirePackage{multirow}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+\RequirePackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt,parsep=0pt}
+\RequirePackage{float}
+\RequirePackage{subcaption}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.15}
+
+% ---- TikZ for diagrams -----------------------------------------------------
+\RequirePackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,shapes.geometric,shapes.misc,fit,
+  backgrounds,decorations.pathreplacing,automata,matrix,patterns}
+\RequirePackage[siunitx,europeanresistors]{circuitikz}
+\RequirePackage{karnaugh-map}
+\RequirePackage{tikz-timing}
+\RequirePackage{bytefield}
+\tikzset{
+  >={Stealth[length=2.2mm]},
+  blk/.style={draw=prgsteel,fill=prgpanel,rounded corners=1.5pt,minimum height=8mm,
+    minimum width=18mm,align=center,font=\sffamily\small,line width=0.6pt},
+  blkacc/.style={blk,draw=prgaccent,fill=prgaccent!10},
+  blkamb/.style={blk,draw=prgamber,fill=prgamber!12},
+  blkgrn/.style={blk,draw=prggreen,fill=prggreen!10},
+  blkred/.style={blk,draw=prgred,fill=prgred!8},
+  blkvio/.style={blk,draw=prgviolet,fill=prgviolet!8},
+  lbl/.style={font=\sffamily\footnotesize,text=prgink},
+  wire/.style={draw=prgink,line width=0.6pt},
+  bus/.style={draw=prgsteel,line width=1.6pt},
+  st/.style={state,draw=prgsteel,fill=prgpanel,font=\sffamily\small,minimum size=11mm,inner sep=1pt},
+}
+\ctikzset{logic ports=ieee,logic ports/scale=0.8}
+
+% ---- Captions --------------------------------------------------------------
+\RequirePackage[font=small,labelfont=bf,labelsep=period]{caption}
+
+% ---- Headers and footers ---------------------------------------------------
+\RequirePackage{fancyhdr}
+\RequirePackage{emptypage}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[LE]{\small\nouppercase{\leftmark}}
+\fancyhead[RO]{\small\nouppercase{\rightmark}}
+\fancyfoot[C]{\thepage}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}}
+
+% ---- Section title styling -------------------------------------------------
+\RequirePackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\huge\bfseries\color{prgsteel}}
+  {\sffamily\Large\color{prgaccent}\MakeUppercase{\chaptertitlename} \thechapter}
+  {1ex}
+  {\vspace{0.4ex}\color{prgrule}\titlerule[1pt]\vspace{0.8ex}\color{prgsteel}}
+  [\vspace{0.4ex}{\color{prgrule}\titlerule[0.4pt]}]
+\titleformat{\section}
+  {\normalfont\sffamily\Large\bfseries\color{prgsteel}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\sffamily\large\bfseries\color{prgink}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\sffamily\normalsize\bfseries\color{prgink}}{\thesubsubsection}{1em}{}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{1}
+
+% ---- Listings (code) -------------------------------------------------------
+\RequirePackage{listings}
+\lstdefinestyle{prgbase}{
+  backgroundcolor=\color{prgcode},
+  basicstyle=\ttfamily\small,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  columns=fullflexible,
+  commentstyle=\color{prgcomment}\itshape,
+  keepspaces=true,
+  keywordstyle=\color{prgkeyword}\bfseries,
+  keywordstyle=[2]\color{prgviolet},
+  numbers=left,
+  numbersep=8pt,
+  numberstyle=\tiny\color{prgcomment},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  stringstyle=\color{prgstring},
+  tabsize=4,
+  frame=single,
+  rulecolor=\color{prgrule},
+  framesep=5pt,
+  xleftmargin=20pt,
+  aboveskip=1.0em,
+  belowskip=0.8em,
+  inputencoding=utf8,
+  upquote=false,
+}
+\lstdefinelanguage{riscv}{
+  morekeywords={add,addi,sub,and,andi,or,ori,xor,xori,sll,slli,srl,srli,sra,
+    srai,slt,slti,sltu,sltiu,lw,sw,lh,lhu,lb,lbu,sh,sb,lui,auipc,beq,bne,blt,
+    bge,bltu,bgeu,beqz,bnez,bltz,bgez,blez,bgtz,j,jal,jalr,jr,call,tail,ret,la,
+    li,mv,neg,not,nop,ble,bgt,bleu,bgtu,mul,mulh,mulhu,mulhsu,div,divu,rem,
+    remu,ecall,ebreak,mret,wfi,fence,csrr,csrw,csrs,csrc,csrrw,csrrs,csrrc,
+    csrrwi,csrrsi,csrrci,seqz,snez,sltz,sgtz,lr.w,sc.w,amoswap.w,amoadd.w,
+    vsetvli,vle32.v,vse32.v,vadd.vv,vmul.vv,vmacc.vv,vfmacc.vf,vle8.v,vse8.v},
+  morekeywords=[2]{.text,.data,.rodata,.bss,.section,.global,.globl,.word,
+    .half,.byte,.asciz,.ascii,.string,.space,.zero,.align,.balign,.p2align,
+    .option,.equ,.set,.type,.size,.macro,.endm,norelax,.include},
+  morecomment=[l]{\#},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  sensitive=true,
+  alsoletter={.},
+}
+\lstdefinestyle{asm}{style=prgbase,language=riscv}
+\lstdefinestyle{c}{style=prgbase,language=C,
+  morekeywords={uint32_t,uint16_t,uint8_t,int8_t,int16_t,int32_t,size_t,bool}}
+\lstdefinestyle{json}{style=prgbase,numbers=none,morestring=[b]"}
+\lstdefinestyle{bash}{style=prgbase,language=bash,numbers=none,
+  morekeywords={python3,python,git,brew,apt,sudo,pip}}
+\lstdefinestyle{plain}{style=prgbase,numbers=none}
+\lstdefinestyle{verilog}{style=prgbase,language=Verilog}
+\lstset{style=prgbase}
+\renewcommand{\lstlistingname}{Listing}
+\renewcommand{\lstlistlistingname}{List of Listings}
+% Shorthands: \asmfile[caption/label options]{path}
+\newcommand{\asmfile}[2][]{\lstinputlisting[style=asm,#1]{#2}}
+\newcommand{\shfile}[2][]{\lstinputlisting[style=bash,#1]{#2}}
+\newcommand{\txtfile}[2][]{\lstinputlisting[style=plain,#1]{#2}}
+\newcommand{\jsonfile}[2][]{\lstinputlisting[style=json,#1]{#2}}
+\newcommand{\cfile}[2][]{\lstinputlisting[style=c,#1]{#2}}
+\lstnewenvironment{asm}[1][]{\lstset{style=asm,#1}}{}
+\lstnewenvironment{shell}[1][]{\lstset{style=bash,#1}}{}
+\lstnewenvironment{plain}[1][]{\lstset{style=plain,#1}}{}
+
+% ---- Callout boxes (tcolorbox) ---------------------------------------------
+\RequirePackage[most]{tcolorbox}
+\tcbset{
+  prgbox/.style={
+    enhanced, breakable,
+    fonttitle=\sffamily\bfseries, coltitle=white,
+    colframe=prgsteel, boxrule=0.8pt, sharp corners,
+    left=3mm,right=3mm,top=2.5mm,bottom=2.5mm,
+    toptitle=1mm,bottomtitle=1mm,
+    before skip=1.0em, after skip=1.0em,
+    title={Note}}
+}
+\newtcolorbox{prgconcept}[1][Concept]{prgbox, colback=prgpanel, colframe=prgsteel,
+  colbacktitle=prgsteel, title={#1}}
+\newtcolorbox{prgtry}[1][Try It Yourself]{prgbox, colback=prggreen!6, colframe=prggreen,
+  colbacktitle=prggreen, title={#1}}
+\newtcolorbox{prgwarn}[1][Watch Out]{prgbox, colback=prgamber!8, colframe=prgamber,
+  colbacktitle=prgamber, title={#1}}
+\newtcolorbox{prgcheck}[1][Checkpoint]{prgbox, colback=prgaccent!6, colframe=prgaccent,
+  colbacktitle=prgaccent, title={#1}}
+\newtcolorbox{prgaside}[1][Historical Note]{prgbox, colback=prgpaper, colframe=prgink!45,
+  colbacktitle=prgink!70, title={#1}}
+\newtcolorbox{prgmachine}[1][Back to the Machine]{prgbox, colback=prgviolet!6,
+  colframe=prgviolet, colbacktitle=prgviolet, title={#1}}
+
+% Definitions, theorems: numbered per chapter, in the amber "definition" look
+\newtcolorbox[auto counter,number within=chapter]{definition}[1]{prgbox,
+  colback=prgamber!7, colframe=prgamber!85!black, colbacktitle=prgamber!85!black,
+  title={Definition \thetcbcounter\ (#1)}}
+\newtcolorbox[auto counter,number within=chapter]{theorem}[1]{prgbox,
+  colback=prgpanel, colframe=prgsteel, colbacktitle=prgsteel,
+  title={Theorem \thetcbcounter\ (#1)}}
+\newtcolorbox[auto counter,number within=chapter]{example}[1]{prgbox,
+  colback=white, colframe=prgink!45, colbacktitle=prgink!70,
+  title={Example \thetcbcounter\ (#1)}}
+
+% ---- Chapter apparatus -----------------------------------------------------
+% Opening epigraph and "what this chapter does" box
+\newcommand{\epigraphline}[2]{\begin{flushright}\small\itshape ``#1''\\[2pt]
+  \upshape\color{prgcomment}--- #2\end{flushright}\vspace{0.5em}}
+\newtcolorbox{chapgoals}{prgbox, colback=prgaccent!5, colframe=prgaccent,
+  colbacktitle=prgaccent, title={In this chapter}}
+\newcommand{\lecture}[1]{\marginpar{\footnotesize\sffamily\color{prgaccent}%
+  \textbf{Lecture #1}}}
+
+% Multiple-choice questions.  Answers are collected in an appendix.
+\newcounter{quiz}[chapter]
+\renewcommand{\thequiz}{\thechapter.\arabic{quiz}}
+\newenvironment{quiz}[1]{\refstepcounter{quiz}\par\medskip\noindent
+  \textbf{\sffamily\color{prgsteel}Q\thequiz}\quad #1\par
+  \begin{enumerate}[label=\textbf{\Alph*.},leftmargin=3em,itemsep=1pt,topsep=3pt]}
+  {\end{enumerate}}
+\newcommand{\answer}[3]{\item[\textbf{Q#1}] \textbf{#2.} #3}
+
+% Exercises
+\newcounter{exercise}[chapter]
+\renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
+\newenvironment{exercise}[1][]{\refstepcounter{exercise}\par\medskip\noindent
+  \textbf{\sffamily\color{prggreen}Exercise \theexercise}%
+  \ifx\relax#1\relax\else\ \textsf{(#1)}\fi\quad}{\par}
+\newcommand{\expected}[1]{\par\smallskip\noindent{\small\textsf{\color{prggreen}%
+  Expected result.} #1}}
+
+% Bilingual glossary table: \begin{glossarytable} English & Italiano \\ ... \end{glossarytable}
+\newenvironment{glossarytable}{\begin{center}\small
+  \begin{tabular}{@{}P{0.42\textwidth}P{0.48\textwidth}@{}}\toprule
+  \textbf{English} & \textbf{Italiano}\\\midrule}{\bottomrule\end{tabular}\end{center}}
+
+% ---- Hyperlinks ------------------------------------------------------------
+\RequirePackage[hidelinks,bookmarks=true,bookmarksnumbered=true]{hyperref}
+\hypersetup{
+  pdftitle={Computer Architecture: Program First, Formalise Later},
+  pdfauthor={Raffaele Montella},
+  colorlinks=true, linkcolor=prgsteel, citecolor=prgaccent, urlcolor=prgaccent}
+\urlstyle{same}
+
+% ---- Bibliography ----------------------------------------------------------
+\RequirePackage[round,authoryear]{natbib}
+\bibliographystyle{plainnat}
+
+% ---- Convenience macros ----------------------------------------------------
+% Robust, so that they survive in captions, headings and other moving arguments
+\DeclareRobustCommand{\prg}{PRG32\xspace}
+\DeclareRobustCommand{\prgqt}{PRG32\nobreakdash-QT\xspace}
+\DeclareRobustCommand{\vermone}{Verm1\xspace}
+\DeclareRobustCommand{\riscv}{RISC\nobreakdash-V\xspace}
+\newcommand{\reg}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\fname}[1]{\texttt{#1}}
+\newcommand{\ins}[1]{\texttt{#1}}
+\newcommand{\hex}[1]{\texttt{0x#1}}
+\newcommand{\bin}[1]{\texttt{#1}\textsubscript{2}}
+\newcommand{\base}[2]{#1_{#2}}
+\newcommand{\term}[1]{\emph{#1}}
+\newcommand{\ita}[1]{(It.\ \emph{#1})}
+\newcommand{\nott}[1]{\overline{#1}}
+\newcommand{\key}[1]{\textsf{\textbf{#1}}}
+
+\setlength{\emergencystretch}{2.5em}
+\hbadness=2500
+\raggedbottom
+
+\endinput

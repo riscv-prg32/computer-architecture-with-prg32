@@ -1,0 +1,103 @@
+\chapter{How to Use This Book}
+
+\section*{One chapter, one lecture}
+
+The book has twenty-five chapters, numbered from~0 to~24 as the lectures of the
+course are, and as almost everything else in this book is: bits, registers,
+rows and columns all start from zero. Chapter~$N$ follows the slide deck of
+Lecture~$N$: the order of the sections is the order of the slides, the
+listings are the same files, the questions at the end are those shown in class.
+A reader who has attended the lecture finds here the sentences that a slide has
+no room for; a reader who has missed it finds the lecture.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lP{0.36\textwidth}L@{}}
+\toprule
+\textbf{Part} & \textbf{Chapters} & \textbf{Then, the project}\\
+\midrule
+Start & 0 Introduction, 1 Setting up, 2 First contact & \\
+Information & 3 History, 4 Digital information, 5 Integers, 6 Reals & 7 \vermone, part 1\\
+Logic & 8--9 Boolean algebra, 10 Electronics, 11 Combinational machines & 12 \vermone, part 2\\
+State and memory & 13 Sequential machines, 14 Registers and buses, 15 Memory, 16 Permanent memory & 17 \vermone, part 3\\
+The machine & 18 Processor, 19 Instructions and interrupts, 20 Video card, 21 Input and output & 22 \vermone, part 4\\
+Publication, outlook & 24 Beyond one core & 23 \vermone on the Cartridge Store\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{The shape of a topical chapter}
+
+Every chapter that presents a topic has the same five movements.
+
+\begin{enumerate}
+\item \textbf{Warm-up on the machine.} A few lines of \riscv on \prg that
+  produce a fact needing an explanation. Run them before reading on.
+\item \textbf{The formal treatment.} Definitions, theorems, methods and worked
+  examples.
+\item \textbf{Back to the machine.} The same rules, as \riscv implements them.
+\item \textbf{Check your understanding.} Multiple-choice questions in the style
+  of the midterm test. Answers, with a line of explanation each, are in
+  Appendix~\ref{app:answers}: read them after answering, not instead.
+\item \textbf{Exercises, glossary, reading.} Exercises are done on paper first
+  and on \prg afterwards; the glossary gives the Italian term for every English
+  one, since the course is taught in a bilingual setting.
+\end{enumerate}
+
+\section*{The shape of a tutorial chapter}
+
+Chapters 7, 12, 17, 22 and 23 build \vermone. They are self-contained and
+meant to be followed at the keyboard. Each step shows a few lines, says
+whether they are \textbf{new}, \textbf{changed} or \textbf{unchanged}, and ends
+with a \emph{Run it} checkpoint stating what the screen must show. If a
+program refuses to work at the beginning of a tutorial, start from the
+reference file of the previous part (Appendix~\ref{app:verm1}): nobody should
+be left behind by a bug.
+
+\section*{Boxes}
+
+\begin{prgconcept}
+A \textbf{Concept} box states an idea that the rest of the chapter depends on.
+\end{prgconcept}
+\begin{definition}{how definitions look}
+Formal definitions and theorems are numbered within the chapter.
+\end{definition}
+\begin{prgtry}
+A \textbf{Try It Yourself} box asks for something to be done at the keyboard,
+and says what must be observed.
+\end{prgtry}
+\begin{prgwarn}
+A \textbf{Watch Out} box marks a mistake that is made every year.
+\end{prgwarn}
+\begin{prgmachine}
+A \textbf{Back to the Machine} box ties a formal result to an instruction, a
+register or a screen of the debugger.
+\end{prgmachine}
+\begin{prgaside}
+A \textbf{Historical Note} box tells where an idea comes from.
+\end{prgaside}
+
+\section*{Notation}
+
+Numbers without a mark are decimal. Hexadecimal numbers are written as the
+assembler wants them, \hex{07E0}; binary numbers as \code{0b1010} in code and
+with a subscript, $1010_2$, in formulas. Bits are numbered from the right
+starting at zero, so that bit~$i$ has weight $2^{i}$. Registers
+(\reg{a0}, \reg{sp}), instructions (\ins{addi}) and file names are set in a
+typewriter face. In Boolean expressions the complement of $x$ is $\nott{x}$,
+the sum is $+$ and the product is written by juxtaposition. Multiples of bytes
+follow the binary prefixes where precision matters:
+$1~\mathrm{KiB}=2^{10}$ bytes, $1~\mathrm{MiB}=2^{20}$ bytes.
+
+\section*{The appendices}
+
+Appendix~\ref{app:riscv} is a complete reference of the \riscv instruction set
+used in the book: registers, formats, every instruction of RV32I and of the M,
+A, C and Zicsr extensions, pseudo-instructions, assembler directives, the
+calling convention and the machine-mode control registers.
+Appendix~\ref{app:prg32} is the reference of \prg: the contract, the
+programming interface, the cartridge format, the command-line tools, the hosts
+and the Cartridge Store. Appendix~\ref{app:github} is a reference of Git and
+GitHub, the tools with which the platform, this book and the reader's project
+are kept and shared. Appendix~\ref{app:verm1} prints the four reference
+programs of \vermone in full; Appendix~\ref{app:answers} the answers to all the
+questions; Appendix~\ref{app:glossary} the complete English--Italian glossary.

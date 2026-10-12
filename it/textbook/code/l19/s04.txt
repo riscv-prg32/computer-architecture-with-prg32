@@ -1,0 +1,6 @@
+indirizzo   codice macchina  che cosa avete scritto
+
+0x000       0x0002A303       lw   t1, 0(t0)
+0x004       0x00130313       addi t1, t1, 1
+0x008       0x0062A023       sw   t1, 0(t0)
+0x00C       0x00008067       ret

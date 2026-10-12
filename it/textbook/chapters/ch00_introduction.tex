@@ -1,0 +1,623 @@
+% ============================================================================
+%  Capitolo 0 -- Introduzione al corso                           (Lezione 00)
+% ============================================================================
+\chapter{Introduzione: prima programmare, poi formalizzare}
+\label{ch:intro}
+
+\epigraphline{Matrix è un sistema, Neo. E quel sistema è nostro nemico.}
+  {\emph{Matrix}, Lana e Lilly Wachowski, 1999}
+
+\begin{chapgoals}
+\begin{itemize}
+\item Che cos'è il corso, chi lo tiene e come sono usate le sue novantasei ore.
+\item Il metodo: prima viene un programma che gira, poi la sua teoria.
+\item La macchina: \prg, \riscv e il debugger \prgqt.
+\item Il progetto: \vermone, un gioco scritto da un file vuoto e pubblicato.
+\item Le regole: programma, risultati di apprendimento, valutazione, materiale.
+\end{itemize}
+\end{chapgoals}
+
+Un calcolatore è l'oggetto più complicato che la maggior parte delle persone
+usa ogni giorno, e quello di cui meno sono incoraggiate a guardare il
+funzionamento interno. I suoi costruttori hanno passato settant'anni a
+nascondere la macchina dietro strati ciascuno più facile da usare di quello
+sottostante: le porte logiche dietro le istruzioni, le istruzioni dietro i
+linguaggi, i linguaggi dietro le librerie, le librerie dietro le applicazioni,
+e ora le applicazioni dietro gli assistenti conversazionali. Sono gli strati a
+rendere utile l'informatica. Sono anche un sistema nel senso del film citato
+qui sopra: ci si può vivere dentro per una vita senza sapere che sotto c'è
+qualcosa.
+
+L'architettura dei calcolatori è la disciplina che guarda sotto. Studia come
+una macchina capace soltanto di accendere e spegnere correnti arrivi a
+rappresentare numeri, testo, immagini e suono; come una manciata di operazioni
+logiche, ripetute miliardi di volte al secondo, diventino aritmetica, decisioni
+e memoria; e come il tutto sia organizzato in modo che una sequenza di ordini
+semplicissimi, un \term{programma}, possa farle fare qualunque cosa sia
+calcolabile. Questo capitolo spiega come il corso affronta questo studio, con
+quale macchina e attraverso quale progetto, e poi enuncia le regole pratiche.
+
+% ----------------------------------------------------------------------------
+\section{Il corso in breve}
+
+\emph{Architettura dei Calcolatori e Laboratorio di Architettura dei
+Calcolatori}, codice ARC12, è un insegnamento del primo anno, primo semestre,
+del Corso di Laurea in Informatica dell'Università degli Studi di Napoli
+«Parthenope». Vale 12~CFU, appartiene al settore scientifico-disciplinare
+INFO-01/A (Informatica) e consiste di 96~ore, divise in parti uguali tra
+lezioni e laboratorio (Tabella~\ref{tab:intro:glance}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Il corso in breve.}\label{tab:intro:glance}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+Nome & Architettura dei Calcolatori e Laboratorio di Architettura dei Calcolatori (ARC12)\\
+Collocazione & Primo anno, primo semestre, Corso di Laurea in Informatica\\
+Crediti & 12 CFU, 96 ore; settore INFO-01/A (Informatica)\\
+Lezioni & Raffaele Montella, 6 CFU, 48 ore\\
+Laboratorio & Mariacarla Staffa, 6 CFU, 48 ore\\
+Ricevimento & Stanza 420, martedì 14:00--16:00, su appuntamento; anche su
+  Microsoft Teams (codice del team \code{c7rf33g})\\
+Crediti aggiuntivi & Accenture SuperSkills! dà 2 CFU come ulteriori conoscenze
+  (\url{https://richiediaccesso.uniparthenope.it})\\
+Prerequisiti & Nessuno\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Non ci sono prerequisiti formali. Non si presuppone alcuna esperienza
+precedente di programmazione, di elettronica o di matematica oltre il programma
+scolastico: l'unico vero prerequisito è la passione per l'informatica e per le
+tecnologie che la rendono possibile.
+
+Le due metà del corso sono due viste della stessa materia. Nelle
+\textbf{lezioni} si presentano le idee: informazione, numeri, algebra di Boole,
+reti logiche, memoria, processore, ingresso e uscita. Ogni argomento si apre
+con un programma che si può eseguire e viene poi formalizzato con definizioni,
+metodi e dimostrazioni; ogni lezione si chiude con domande a risposta multipla
+nello stile della prova intercorso; e ogni quattro lezioni un tutorial aggiunge
+la parte successiva di \vermone, il gioco del corso. Nel \textbf{laboratorio}
+le stesse idee vengono esercitate: rappresentazione dei numeri e tecniche di
+conversione; analisi, sintesi e minimizzazione di circuiti logici;
+programmazione in assembly \riscv sulla piattaforma \prg; e, infine, il
+progetto dello studente, una variante di \vermone o un gioco di sua invenzione.
+Questo libro è il testo delle lezioni; i suoi esercizi sono il materiale
+naturale del laboratorio.
+
+% ----------------------------------------------------------------------------
+\section{Un approccio nuovo}
+
+\begin{prgconcept}[Prima programmare. Poi formalizzare.]
+Fin dai primi giorni lo studente scrive assembly \riscv che gira su un
+processore vero. Ogni argomento formale risponde poi a una domanda che il
+programma dello studente ha già sollevato.
+\end{prgconcept}
+
+L'ordine tradizionale della materia è deduttivo: la rappresentazione, poi la
+logica, poi i circuiti, poi il processore, poi, finalmente, un programma. È
+l'ordine in cui la macchina viene \emph{costruita}, e ha l'eleganza di ogni
+costruzione dai primi principi. Non è l'ordine in cui la macchina viene
+\emph{capita}. Uno studente che incontra il complemento a due nella terza
+settimana di un corso deduttivo non ha mai visto un numero negativo dentro un
+calcolatore, e non ha alcuna ragione di interessarsi a come si scrive. Uno
+studente che, la settimana prima, ha spostato un rettangolo verso sinistra
+finché la sua coordinata, mostrata dal debugger, è passata da \hex{00000000} a
+\hex{FFFFFFFF} ha una domanda, e il complemento a due è la risposta.
+
+Il corso è quindi organizzato come una spirale, ripetuta per ogni argomento
+(Figura~\ref{fig:intro:spiral}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=7mm]
+  \node[blkacc,text width=27mm,minimum height=20mm] (a) {\textbf{Gioca}\\[2pt]\footnotesize si scrivono poche istruzioni, si compila una cartuccia, la si esegue};
+  \node[blkamb,text width=27mm,minimum height=20mm,right=of a] (b) {\textbf{Osserva}\\[2pt]\footnotesize un numero fa il giro, un bit accende una lampada, un rettangolo si muove};
+  \node[blkvio,text width=27mm,minimum height=20mm,right=of b] (c) {\textbf{Formalizza}\\[2pt]\footnotesize definizioni, teoremi e metodi spiegano perché};
+  \node[blkgrn,text width=27mm,minimum height=20mm,right=of c] (d) {\textbf{Ritorna}\\[2pt]\footnotesize si prevede il risultato prima di eseguire};
+  \draw[->,thick,prgink] (a) -- (b); \draw[->,thick,prgink] (b) -- (c); \draw[->,thick,prgink] (c) -- (d);
+  \draw[->,thick,prgink,rounded corners=3mm] (d.south) -- ++(0,-7mm) -| node[pos=0.25,below,lbl]{argomento successivo} (a.south);
+\end{tikzpicture}
+\caption{La spirale di apprendimento, ripetuta per ogni argomento del corso.}
+\label{fig:intro:spiral}
+\end{figure}
+
+Prima si \emph{gioca}: si scrivono poche istruzioni, si compila e si esegue una
+cartuccia. Poi si \emph{osserva}: succede qualcosa che non ci si aspettava,
+oppure che ci si aspettava e che ora si può vedere. Poi si \emph{formalizza}:
+definizioni e teoremi spiegano esattamente perché. Infine si \emph{ritorna}
+alla macchina, e la misura della comprensione è la capacità di prevedere un
+risultato prima di eseguire il programma. Un voto è un'opinione; una racchetta
+che esce dallo schermo è un fatto. Il corso usa i fatti, e poi li spiega.
+
+\subsection{Gli obiettivi del corso}
+
+Gli obiettivi sono quelli di ogni corso serio sulla materia; cambia solo il
+percorso. Il corso
+
+\begin{itemize}
+\item presenta gli aspetti fondamentali dell'architettura dei calcolatori
+  moderni;
+\item usa, in laboratorio, i concetti di base necessari a programmarli in modo
+  efficiente con linguaggi di basso livello: linguaggio macchina e assembly;
+\item tratta con rigore gli strumenti con cui si costruisce un processore,
+  cioè l'algebra di Boole con la sintesi di reti logiche combinatorie e
+  sequenziali, e la rappresentazione binaria con l'aritmetica binaria;
+\item descrive in dettaglio la struttura funzionale e fisica della CPU, della
+  memoria e del sottosistema di ingresso/uscita;
+\item sviluppa codice assembly che rende visibile come lavora davvero un
+  processore e come interagiscono le unità fondamentali di un calcolatore.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{La macchina: PRG32 e RISC-V}
+
+\subsection{Una console rétro programmata in assembly}
+
+\prg è un runtime didattico open source per insegnare l'assembly \riscv e il C,
+sviluppato all'Università degli Studi di Napoli «Parthenope»
+\citep{prg32repo}. All'occhio è una piccola console per videogiochi del tipo
+che si vendeva nei primi anni Ottanta (Figura~\ref{fig:intro:prg32}); per il
+programmatore è un contratto volutamente sottile.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\includegraphics[width=\textwidth]{menu_main.png}
+\caption{Il menu del firmware residente.}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\includegraphics[width=\textwidth]{game_pong.png}
+\caption{Pong: codice macchina \riscv nativo.}
+\end{subfigure}
+\caption{\prg, la macchina del corso.}
+\label{fig:intro:prg32}
+\end{figure}
+
+\begin{itemize}
+\item Il codice dello studente gira in modo \emph{nativo}, come codice macchina
+  \riscv a 32 bit dell'insieme di istruzioni RV32IMAC. Non è interpretato da
+  un simulatore didattico: le istruzioni scritte sono le istruzioni eseguite.
+\item Il contratto consiste di tre funzioni scritte dallo studente:
+  \code{init} gira una volta; \code{update} e \code{draw} girano una volta per
+  frame.
+\item I giochi viaggiano come piccole \term{cartucce}, file con estensione
+  \fname{.prg32}.
+\item La macchina offre un viewport di 320 per 200 pixel, un joystick con
+  pochi pulsanti, e il suono: abbastanza piccola da tenerla tutta in mente,
+  abbastanza ricca da mettere alla prova l'intero corso.
+\end{itemize}
+
+\subsection{La filosofia di PRG32}
+
+Sei principi, presi dal libro di testo della piattaforma
+\citep{prg32textbook}, danno forma sia a \prg sia al modo in cui questo libro
+lo usa.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Abbastanza piccola da capirla.] Un processore, uno schermo di 320 per
+  200 pixel, un joystick, un piccolo altoparlante. Nulla è nascosto: l'intera
+  macchina si può tenere in mente.
+\item[Vera, non simulata.] Le istruzioni scritte sono quelle che il chip
+  esegue. Ciò che si impara qui è vero su ogni processore \riscv, da un
+  sensore a un supercalcolatore.
+\item[I limiti rendono creativi.] Pochi kilobyte e tre funzioni. I giochi
+  degli anni Ottanta sono nati da limiti come questi: un vincolo è un invito.
+\item[Una cosa alla volta.] Si comincia con funzioni che si limitano a
+  ritornare. Si aggiunge una cosa, si esegue, si guarda. \code{update} cambia
+  lo stato, \code{draw} lo mostra. Il suono viene per ultimo.
+\item[Guardare dentro.] Quando qualcosa sorprende, si ferma il programma e si
+  leggono registri e memoria. Il debugger fa parte del metodo, non è uno
+  strumento d'emergenza.
+\item[Fare, poi condividere.] Una cartuccia è un file che si può dare a un
+  amico. Il Cartridge Store è lo scaffale su cui il lavoro finito incontra i
+  suoi giocatori.
+\end{description}
+
+La piattaforma ha quindi due usi nel corso. È una \emph{palestra}: ogni
+capitolo si apre con un breve programma che gira e si chiude tornando alla
+macchina; un esercizio consiste di una previsione e di una verifica; e la
+macchina non lusinga mai, perché una maschera sbagliata accende la lampada
+sbagliata. Ed è un'\emph{officina}: una cartuccia vuota e uno schermo, su cui
+regole, colori, suoni e livelli sono decisioni di progetto che spettano
+all'autore. Il progetto del corso comincia guidato e finisce libero, e ciò che
+è finito si può pubblicare. Gli studenti del primo anno di rado si aspettano
+che un corso di architettura chieda loro un'idea; questo lo fa.
+
+\subsection{PRG32-QT: il debugger del corso}
+
+\prgqt è \prg su un portatile: un'applicazione che esegue le stesse cartucce
+senza scheda e senza compilatore \citep{prg32qt}. In modalità debug apre la
+macchina (Figura~\ref{fig:intro:debugger}): il programma può essere messo in
+pausa, ripreso e fatto avanzare di un'istruzione alla volta; si possono
+mettere breakpoint su qualunque istruzione di \code{init}, \code{update} o
+\code{draw}; vengono mostrati i trentadue registri e 128~byte di memoria a
+qualunque indirizzo; la velocità si può regolare tra 0,01 e 4 volte quella
+reale; e dei contatori riportano i frame, le istruzioni eseguite e i frame
+arrivati in ritardo.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.92\textwidth]{prg32qt_debugger.png}
+\caption{\prgqt in modalità debug: a sinistra il gioco, a destra la macchina.}
+\label{fig:intro:debugger}
+\end{figure}
+
+Il debugger si usa in ogni capitolo: per verificare una previsione, per trovare
+un errore, per misurare. Fornisce anche la definizione operativa di
+comprensione adottata in questo libro.
+
+\begin{prgconcept}[Quando si è capito un programma?]
+Un programma è capito quando si sa dire che cosa conterrà ciascun registro
+\emph{prima} di premere \key{Step}.
+\end{prgconcept}
+
+\subsection{Perché RISC-V?}
+
+La scelta del processore non è neutra, e quattro ragioni hanno portato a
+\riscv.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[È aperto.] \riscv è un insieme di istruzioni a standard aperto: chiunque
+  può progettare, costruire e vendere un processore \riscv senza pagare una
+  licenza per l'architettura \citep{riscvisa}.
+\item[È piccolo.] L'insieme di istruzioni intero di base ha una quarantina di
+  istruzioni e trentadue registri. Lo si può imparare tutto in un semestre, e
+  l'Appendice~\ref{app:riscv} lo elenca tutto.
+\item[È reale.] \ins{addi}, \ins{lw}, \ins{sw} e \ins{beqz} non sono un
+  dialetto didattico. L'industria consegna core \riscv a miliardi, ed essi
+  eseguono esattamente queste istruzioni.
+\item[È europeo.] L'Europa considera \riscv una leva per la sovranità
+  tecnologica: lo European Chips Act e progetti come DARE (Digital Autonomy
+  with RISC-V in Europe, un progetto della EuroHPC Joint Undertaking)
+  costruiscono processori su di esso \citep{eurohpcdare}.
+\end{description}
+
+\subsection{La mappa: ogni argomento si incontra due volte}
+
+La Tabella~\ref{tab:intro:map} è il corso in una pagina. Ogni argomento formale
+della colonna di sinistra si incontra prima sulla macchina, nella forma data
+dalla colonna di destra, e solo dopo nella sua forma generale. Vale la pena di
+tornare a questa tabella all'inizio di ogni parte del libro.
+
+\begin{table}[htb]
+\centering\small
+\caption{Ogni argomento formale si incontra prima su \prg.}\label{tab:intro:map}
+\begin{tabularx}{\textwidth}{@{}P{0.36\textwidth}L@{}}
+\toprule
+\textbf{Argomento formale} & \textbf{Incontrato prima su \prg come\ldots}\\
+\midrule
+Notazione posizionale, esadecimale & il colore \hex{07E0} e il valore mostrato dal debugger\\
+Complemento a due, overflow & una posizione che va a sinistra oltre lo zero e mostra \hex{FFFFFFFF}\\
+Virgola fissa e virgola mobile & una palla che si muove di 0,375 pixel per frame su un chip senza unità in virgola mobile\\
+Algebra di Boole, maschere di bit & \code{andi t3, t0, 1} per verificare se \key{LEFT} è premuto\\
+Elettronica, porte logiche & il pulsante che collega un piedino del chip a massa\\
+Reti combinatorie, sommatori & che cosa fa davvero \ins{add} a trentadue bit\\
+Reti sequenziali, registri & il contatore che sopravvive da un frame al successivo\\
+CPU, datapath, ciclo dell'istruzione & l'esecuzione passo-passo di un'istruzione in \prgqt\\
+Memoria e ingresso/uscita & \ins{lw} e \ins{sw}, lo stack, il joystick e il display\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Il progetto: Verm1}
+
+\vermone, che si legge \emph{vermone}, è un omaggio a Snake: il gioco del
+cabinato \emph{Blockade} (1976) e dei telefoni Nokia (1997). Un verme si muove
+su una griglia, mangia, cresce, e non deve mordersi. Lo studente ne scrive ogni
+riga in assembly \riscv, senza motore e senza librerie oltre alle chiamate di
+\prg. Il gioco è abbastanza piccolo per uno studente del primo anno e
+abbastanza ricco da richiedere ogni argomento del corso; alla fine è pronto per
+il Cartridge Store con sopra il nome del suo autore. L'implementazione di
+riferimento, con cui ogni lettore può confrontare il proprio programma, è un
+contributo di Giuseppe Coviello (Appendice~\ref{app:verm1}).
+
+Il progetto è il filo del libro. Si costruisce in quattro parti e una
+pubblicazione (Tabella~\ref{tab:intro:verm1}, Figura~\ref{fig:intro:verm1}), e
+ogni parte usa esattamente ciò che i quattro capitoli precedenti hanno
+insegnato. Ogni parte finisce con un gioco che gira: il lettore non torna mai
+a casa con un programma rotto.
+
+\begin{table}[htb]
+\centering\small
+\caption{\vermone: quattro parti e una pubblicazione.}\label{tab:intro:verm1}
+\begin{tabularx}{\textwidth}{@{}lP{0.20\textwidth}LP{0.22\textwidth}@{}}
+\toprule
+\textbf{Capitolo} & \textbf{Dopo la parte su} & \textbf{\vermone acquista} & \textbf{Con}\\
+\midrule
+\ref{ch:verm1p1}\quad Parte 1 & informazione e numeri & una griglia, una testa che si muove, un mondo senza bordi & colori, scorrimenti, virgola fissa\\
+\ref{ch:verm1p2}\quad Parte 2 & logica e circuiti & la sterzata, il cibo, un punteggio & maschere, XOR, tabelle\\
+\ref{ch:verm1p3}\quad Parte 3 & stato e memoria & un corpo che cresce, le collisioni, tre schermate & una macchina a stati, vettori\\
+\ref{ch:verm1p4}\quad Parte 4 & la macchina & cifre, livelli, suono, disegno veloce & chiamate, divisione, il frame buffer\\
+\ref{ch:store}\quad Lo Store & l'intero corso & un nome, un'icona, i crediti, un bundle & gli strumenti di \prg\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p1.png}\caption{Parte 1: una testa}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p2.png}\caption{Parte 2: cibo, punteggio}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p3_play.png}\caption{Parte 3: un corpo}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.24\textwidth}\includegraphics[width=\textwidth]{verm1_p4_play.png}\caption{Parte 4: finito}\end{subfigure}
+\caption{\vermone cresce con il lettore: lo stesso file, quattro sedute. Le
+schermate sono prese dai programmi di riferimento dai test automatici del
+materiale del corso.}
+\label{fig:intro:verm1}
+\end{figure}
+
+Un capitolo tutorial obbedisce a quattro regole. È \emph{autonomo}: mostra
+l'intero programma, e ogni riga è nuova, modificata, oppure ristampata
+invariata. Procede \emph{passo per passo}: poche righe alla volta, e dopo ogni
+passo il programma viene compilato, eseguito e confrontato con un risultato
+dichiarato. Usa \emph{il debugger}: ogni tutorial ha una sessione in \prgqt,
+con un breakpoint, un registro da osservare e una regione di memoria da
+leggere. E il suo risultato appartiene al lettore: ogni tutorial finisce con
+modifiche da fare in autonomia, perché il gioco che viene pubblicato non
+dovrebbe essere identico a quello stampato qui.
+
+% ----------------------------------------------------------------------------
+\section{Il corso in blocchi}
+
+L'ordine degli argomenti è stato scelto per l'apprendimento. Prima viene che
+cosa significa un bit; poi come i bit si combinano; poi come si ricordano; poi
+la macchina che fa tutte e tre le cose. Il processore è presentato prima dei
+dispositivi che pilota. Dopo ogni blocco il progetto lo usa. L'ultima lezione è
+uno sguardo in avanti, tenuta prima di una visita ai sistemi di calcolo del
+Dipartimento (Tabella~\ref{tab:intro:blocks}).
+
+\begin{table}[htb]
+\centering\small
+\caption{I blocchi del corso. I numeri sono quelli delle lezioni e dei
+capitoli di questo libro.}\label{tab:intro:blocks}
+\begin{tabularx}{\textwidth}{@{}lLP{0.28\textwidth}@{}}
+\toprule
+\textbf{Blocco} & \textbf{Lezioni} & \textbf{Poi}\\
+\midrule
+Partenza & 0 Introduzione; 1 \prg e \prgqt: installazione; 2 Primo contatto con \riscv & \\
+Informazione & 3 Storia; 4 Informazione digitale; 5 Interi; 6 Reali & 7 \vermone, parte 1\\
+Logica & 8 e 9 Algebra di Boole; 10 Elettronica; 11 Macchine combinatorie & 12 \vermone, parte 2\\
+Stato e memoria & 13 Macchine sequenziali; 14 Registri e bus; 15 Memoria; 16 Memoria permanente & 17 \vermone, parte 3\\
+La macchina & 18 Processore; 19 Istruzioni e interruzioni; 20 Scheda video; 21 Ingresso e uscita & 22 \vermone, parte 4\\
+Pubblicazione & & 23 \vermone sul Cartridge Store\\
+Prospettive & 24 Oltre un solo core: \riscv superscalare, HPC, GPU e FPGA & la visita ai sistemi di calcolo\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Programma e risultati di apprendimento}
+
+\subsection{Programma}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Organizzazione del calcolatore.] Hardware e software; software
+  applicativo e di sistema; il modello di von Neumann; principi di
+  funzionamento di un calcolatore.
+\item[Algebra di Boole e logica.] Funzioni booleane, tabelle di verità; reti
+  combinatorie e loro minimizzazione; sommatori; macchine a stati finiti; reti
+  sequenziali; flip-flop, registri.
+\item[Rappresentazione dei dati.] Codifica; codici ridondanti, rilevazione e
+  correzione degli errori; decodificatori, multiplexer; sistemi posizionali;
+  naturali, interi, reali; aritmetica.
+\item[Struttura di un calcolatore.] La CPU: unità di controllo, ALU, registri;
+  il ciclo dell'istruzione; il datapath; la memoria centrale; il sottosistema
+  di I/O; architetture microprogrammate.
+\item[Assembly RISC-V.] Insieme di istruzioni; registri, indirizzamento;
+  aritmetica e logica; salti; sottoprogrammi, convenzione di chiamata, stack;
+  memoria e I/O.
+\item[Progetto.] \vermone: un gioco in assembly \riscv su \prg, costruito in
+  quattro parti guidate, poi variato, documentato e confezionato dallo
+  studente o da un piccolo gruppo.
+\end{description}
+
+Il programma dettagliato è pubblicato sul sistema informativo dell'ateneo e sul
+portale di e-learning, \url{https://elearning.uniparthenope.it}.
+
+\subsection{Risultati di apprendimento}
+
+I risultati sono enunciati, come d'uso nell'istruzione superiore europea,
+secondo i cinque descrittori di Dublino.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Conoscenza e capacità di comprensione.] Una solida conoscenza del sistema
+  binario, della logica digitale e dei principi di funzionamento dei
+  calcolatori. Non si presuppone alcuna formazione informatica precedente.
+\item[Capacità di applicare conoscenza e comprensione.] La capacità di
+  applicare la teoria a esercizi e a programmi in assembly \riscv, e di
+  riconoscere sia le capacità sia i limiti dei calcolatori su problemi reali.
+\item[Autonomia di giudizio.] La capacità di scrivere programmi assembly che
+  rappresentano ed elaborano in binario problemi reali, scegliendo
+  rappresentazioni dei dati e strutture di controllo adeguate.
+\item[Abilità comunicative.] La capacità di partecipare attivamente a gruppi
+  che progettano, realizzano e documentano applicazioni assembly, usando una
+  terminologia tecnica corretta.
+\item[Capacità di apprendimento.] La capacità di collegare rappresentazione,
+  reti logiche e processori in un unico quadro, e di aggiornarsi in autonomia
+  da fonti tecniche affidabili.
+\end{description}
+
+% ----------------------------------------------------------------------------
+\section{Organizzazione e valutazione}
+
+Questa sezione riporta le regole dell'anno accademico 2026/27. Le date non
+ancora fissate al momento della compilazione del libro vengono comunicate in
+aula e sul portale di e-learning, che in caso di differenze prevalgono su
+questo testo.
+
+\subsection{Orario}
+
+Da settembre a dicembre 2026 il corso si tiene quattro volte alla settimana in
+Aula~1: lezioni il lunedì (14:00--16:00) e il mercoledì (09:00--11:00),
+laboratorio il martedì e il venerdì (09:00--11:00). Un calendario interno con
+l'effettiva distribuzione di lezioni e sessioni di laboratorio è condiviso con
+gli studenti.
+
+\subsection{Una prova intercorso}
+
+C'è una sola prova intercorso, svolta in presenza e su carta in circa
+45~minuti: \textbf{dieci domande a risposta multipla più due esercizi}. Si
+tiene di lunedì, 14:00--16:00, in Aula~1, in una data che sarà comunicata; gli
+studenti possono essere divisi in gruppi e la prova svolta a turni. I candidati
+portano un documento di identità e una penna, e devono conoscere il proprio
+indirizzo di posta istituzionale e il numero di matricola.
+
+La prova valuta entrambe le parti, studenti e docenti: serve a sapere dove sta
+andando il corso. Chiude i primi tre blocchi (Tabella~\ref{tab:intro:midterm});
+il quarto, la macchina, si esamina all'orale. Negli esempi della prova
+compaiono istruzioni \riscv: il materiale del primo contatto del
+Capitolo~\ref{ch:firstcontact} si dà per noto, e il codice di \vermone, parti
+da 1 a 3, è una fonte naturale di domande. Ogni capitolo di questo libro
+finisce con domande dello stesso tipo, e la preparazione migliore è rispondere
+settimana per settimana.
+
+\begin{table}[htb]
+\centering\small
+\caption{Che cosa copre la prova intercorso.}\label{tab:intro:midterm}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Blocco} & \textbf{Lezioni} & \textbf{Argomenti}\\
+\midrule
+Informazione & da 3 a 6 & storia della computazione; informazione digitale; rappresentazione dei numeri: interi e reali\\
+Logica & da 8 a 11 & algebra di Boole; elettronica e porte logiche; macchine combinatorie\\
+Stato e memoria & da 13 a 16 & macchine sequenziali: latch, flip-flop, macchine a stati; registri e bus; memoria e memoria permanente\\
+\emph{Non nella prova} & da 18 a 24 & il processore, istruzioni e interruzioni, la scheda video, ingresso e uscita, le prospettive: parte dell'esame orale\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}[Niente tecnologia. Niente GPT.]
+La prova intercorso e l'esame sono \emph{\#nogpt}. Non è ammesso alcun aiuto
+tecnologico o umano di alcun tipo: niente dispositivi, niente ChatGPT o altri
+modelli linguistici, niente IA generativa. Copiare annulla subito la prova;
+comportamenti più gravi hanno conseguenze più gravi.
+\end{prgwarn}
+
+\subsection{Valutazione}
+
+L'esame ha due parti, ed entrambe vanno superate.
+
+\begin{itemize}
+\item \textbf{Teoria (50\%)}: un esame orale con domande estemporanee su tutto
+  il programma; alcune risposte richiedono uno schema o un calcolo alla
+  lavagna. L'orale può anche abbassare il voto ottenuto nella prova
+  intercorso.
+\item \textbf{Pratica (50\%)}: l'esame di laboratorio con la prof.ssa Staffa.
+\end{itemize}
+
+Il voto finale è la media del voto di teoria e del voto di pratica. I risultati
+della prova intercorso e degli esami valgono entro l'anno accademico corrente.
+
+Per verbalizzare l'esame serve un voto positivo sia in teoria sia in pratica, e
+la verbalizzazione avviene solo durante un appello di teoria. L'esame di
+laboratorio si tiene di solito una settimana prima dell'appello di teoria, ed
+entrambi si prenotano su \url{https://uniparthenope.esse3.cineca.it}. Due
+domande vengono poste ogni anno. \emph{Si può sostenere l'esame di teoria prima
+di aver superato quello pratico?} Sì: il risultato vale per un anno accademico,
+ma l'esame viene verbalizzato solo dopo aver superato la parte pratica.
+\emph{Ci si può prenotare all'appello di teoria senza la prova pratica?} Sì, il
+caso è lo stesso.
+
+\subsection{La settimana della prova e l'evento finale}
+
+Durante la settimana della prova intercorso le lezioni sono sostituite da
+seminari sulle architetture di calcolo emergenti. Alla fine del corso, uno
+studente o un gruppo che presenta il proprio gioco alla cerimonia di chiusura,
+una variante di \vermone o un gioco originale, può ottenere punti bonus per
+l'esame. La mattinata conclusiva ha due metà: l'ultima lezione, oltre un solo
+core, da \riscv superscalare ai supercalcolatori (Capitolo~\ref{ch:beyond}), e
+una visita ai sistemi di supercalcolo del Dipartimento di Scienze e Tecnologie.
+I giochi finiti si possono pubblicare sul Cartridge Store di \prg, come mostra
+il Capitolo~\ref{ch:store}.
+
+% ----------------------------------------------------------------------------
+\section{Materiale}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Slide.] Le presentazioni che questo libro segue sono sempre disponibili
+  in una cartella condivisa di Google Drive e vengono pubblicate periodicamente
+  su \url{https://elearning.uniparthenope.it}. Sono generate da sorgente:
+  correzioni e nuovi esercizi sono benvenuti come contributi.
+\item[Piattaforma.] \prg, libero e open source, su
+  \url{https://github.com/riscv-prg32/PRG32}, con il suo libro di testo,
+  \emph{Playing with RISC-V: Assembly, C, and Retro Games on the PRG32
+  Platform} \citep{prg32textbook}.
+\item[Libri di testo.] \citet{patterson2020}, \emph{Computer Organization and
+  Design, RISC-V Edition} (in italiano: \emph{Struttura e progetto dei
+  calcolatori}), e \citet{tanenbaum2013}, \emph{Structured Computer
+  Organization} (in italiano: \emph{Architettura dei calcolatori. Un approccio
+  strutturale}), sono i due riferimenti del corso. Il programma elenca anche
+  \citet{stallings2021} e \citet{bucci2017}.
+\item[Standard.] La documentazione ufficiale di \riscv su
+  \url{https://riscv.org} \citep{riscvisa}.
+\end{description}
+
+Il materiale didattico vive in una cartella condivisa con gli studenti, che
+possono contribuirvi; per ottenere l'accesso lo studente invia al docente
+l'indirizzo di un account collegato al servizio. Ogni altra comunicazione con
+il docente passa per l'indirizzo istituzionale dello studente.
+
+\begin{prgaside}[Cineforum]
+Trenta film e serie sull'informatica accompagnano il corso, per ricordare che
+la materia ha una cultura oltre che una tecnica: \emph{The Social
+Network} (2010), \emph{Steve Jobs} (2015), \emph{Pirates of Silicon Valley}
+(1999), \emph{The Imitation Game} (2014), \emph{Hackers} (1995), \emph{Ex
+Machina} (2014), \emph{Her} (2013), \emph{Tron} (1982), \emph{Tron: Legacy}
+(2010), \emph{The Matrix} (1999), \emph{WarGames} (1983), \emph{Sneakers}
+(1992), \emph{Jobs} (2013), \emph{Antitrust} (2001), \emph{Blackhat} (2015),
+\emph{The Fifth Estate} (2013), \emph{The Circle} (2017), \emph{Silicon
+Valley} (2014--2019), \emph{Source Code} (2011), \emph{Chappie} (2015),
+\emph{Mr.\ Robot} (2015--2019), \emph{Ghost in the Shell} (1995),
+\emph{Minority Report} (2002), \emph{Transcendence} (2014), \emph{Ready Player
+One} (2018), \emph{A.I.\ Artificial Intelligence} (2001), \emph{Revolt}
+(2017), \emph{The Thirteenth Floor} (1999), \emph{Eagle Eye} (2008) e
+\emph{Terminator~2: Judgment Day} (1991). \emph{Ready Player One} è anche il
+riferimento culturale del libro di \prg: la dimestichezza con gli strati
+fondamentali è un'alfabetizzazione che conserva il suo valore.
+\end{prgaside}
+
+% ----------------------------------------------------------------------------
+\section{Primo contatto: chi siete?}
+
+La prima lezione finisce con delle domande rivolte all'aula, e un lettore che
+lavora da solo può rivolgerle a sé stesso. Non servono a selezionare, ma a
+capire da dove cominciare.
+
+\begin{itemize}
+\item \textbf{Hardware.} Avete mai assemblato un calcolatore? Avete giocato
+  con un Arduino o un ESP32?
+\item \textbf{Software.} Quanti linguaggi di programmazione conoscete? Avete
+  mai letto una riga di assembly?
+\item \textbf{Cultura.} Che cosa sono il retrocomputing e il retrogaming?
+  Avete mai visitato un museo dell'informatica?
+\item \textbf{Concetti.} Sapete dire la differenza tra ROM, RAM e memoria di
+  massa? Che cos'è il cloud computing? E l'Internet delle cose?
+\item \textbf{RISC-V.} Avete sentito parlare di \riscv? Quale processore c'è
+  nel vostro telefono, nel vostro portatile, nel vostro router?
+\end{itemize}
+
+In aula le domande sono seguite da un breve questionario anonimo, il
+\emph{Cappello Parlante}, su ciò che attrae di più ciascuno studente nel futuro
+dell'informatica e della scienza; i risultati vengono discussi e usati per
+calibrare esempi e progetti.
+
+\section{Prima del prossimo capitolo}
+
+Il Capitolo~\ref{ch:setup} installa tutto, passo per passo, su Windows, macOS
+e Linux. Si va più in fretta se i download lunghi sono già fatti.
+
+\begin{exercise}[preparazione]
+\begin{enumerate}[nosep]
+\item Procuratevi un portatile su cui vi sia permesso installare programmi.
+\item Scaricate l'installer di \prgqt per il vostro sistema dalla pagina
+  \emph{Releases} di \url{https://github.com/riscv-prg32/PRG32-QT}.
+\item Con una buona connessione, avviate il download lungo: ESP-IDF, seguendo
+  il \fname{README} di \url{https://github.com/riscv-prg32/PRG32} per il vostro
+  sistema.
+\item Se qualcosa fallisce, non combattete da soli: conservate il messaggio di
+  errore.
+\end{enumerate}
+\expected{Cominciate il Capitolo~\ref{ch:setup} con i download fatti. In due
+ore avete \prgqt in funzione e una cartuccia compilata sul vostro portatile.}
+\end{exercise}

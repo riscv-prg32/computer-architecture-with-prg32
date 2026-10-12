@@ -1,0 +1,20 @@
+{
+  "abi": "prg32-metadata-1.0",
+  "id": "it.uniparthenope.arc12.verm1",
+  "title": "Verm1",
+  "version": "1.0.0",
+  "summary": "A hungry worm on a 40 by 24 grid: a tribute to Snake.",
+  "description": "Verm1 (say \"vermone\") is the course-long project of ARC12 Computer Architecture at the University of Naples Parthenope. Steer the worm with the joystick, eat the red food, and do not bite yourself. Written from scratch in RISC-V assembly.",
+  "authors": [
+    {
+      "name": "Your Name"
+    }
+  ],
+  "license": "MIT",
+  "tags": [
+    "arcade",
+    "snake",
+    "assembly",
+    "education"
+  ]
+}

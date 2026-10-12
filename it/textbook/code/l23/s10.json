@@ -1,0 +1,16 @@
+{
+  "abi": "prg32-metadata-1.0",
+  "id": "it.uniparthenope.arc12.verm1",
+  "title": "Verm1",
+  "version": "1.0.0",
+  "summary": "A hungry worm on a 40 by 24 grid: a tribute to Snake.",
+  "description": "Verm1 (say \"vermone\") is the course-long project of ...",
+  "authors": [{"name": "Your Name"}],
+  "license": "MIT",
+  "tags": ["arcade", "snake", "assembly", "education"],
+  "assets": {"icon": "icon.png"},
+  "architectures": [
+    {"id": "esp32c6", "file": "verm1-esp32c6.prg32"},
+    {"id": "qemu", "file": "verm1-qemu.prg32"}
+  ]
+}

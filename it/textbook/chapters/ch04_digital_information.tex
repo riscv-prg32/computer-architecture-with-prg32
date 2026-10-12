@@ -1,0 +1,621 @@
+% ============================================================================
+%  Capitolo 4 -- Rappresentare l'informazione digitale           (Lezione 04)
+% ============================================================================
+\chapter{Rappresentare l'informazione digitale}
+\label{ch:information}
+
+\epigraphline{\texttt{printf("Hello, world!");}}
+  {Brian Kernighan e Dennis Ritchie, \emph{The C Programming Language}, 1978}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item spiegare la differenza tra informazione analogica e digitale;
+\item leggere una configurazione di bit come numero naturale, in binario e in esadecimale;
+\item decodificare un colore di \prg come \hex{07E0} nei suoi campi rosso, verde e blu;
+\item dire come caratteri e stringhe sono memorizzati, in ASCII e in UTF-8;
+\item descrivere come un vettore vive in memoria e come l'assembly ne raggiunge un elemento;
+\item distinguere un algoritmo deterministico da uno probabilistico, e collocare tra essi l'apprendimento automatico.
+\end{itemize}
+\end{chapgoals}
+
+Nel Capitolo~\ref{ch:firstcontact} il lettore ha scritto \hex{07e0} e ha
+ottenuto il verde, ha scritto 255 e ha ottenuto una barra che ricomincia, ha
+scritto \code{.asciz} e ha ottenuto un saluto, ha scritto \code{.word} e ha
+ottenuto un contatore. Questo capitolo dà a quelle cose il loro nome. La sua
+tesi sta in una frase, che il resto del capitolo illustra quattro volte:
+\emph{nella macchina tutto è una configurazione di bit, e il significato di una
+configurazione è una convenzione}. I due capitoli successivi trattano
+formalmente i numeri.
+
+% ----------------------------------------------------------------------------
+\section{L'informazione}
+
+\subsection{Il flusso dei dati}
+
+Ogni uso di un calcolatore ha la stessa forma. Dei \emph{dati} entrano dal
+mondo: un tasto, un sensore, un file. Un \emph{programma}, l'incarnazione di un
+algoritmo, li trasforma. Dei \emph{risultati} escono: un'immagine, un suono, un
+numero. E qualcuno riceve \emph{conoscenza}, cioè informazione in base alla
+quale è possibile agire. Su \prg le quattro fasi sono, nell'ordine, la funzione
+\code{prg32\_input\_read}, la \code{update} del programmatore, la \code{draw}
+del programmatore, e il giocatore che reagisce allo schermo.
+
+L'ultima fase ha richiesto, finora, una persona. L'intelligenza artificiale, a
+cui torna la fine di questo capitolo, è un'intelligenza di un tipo suo proprio:
+un potente riconoscimento di schemi, senza autocoscienza e senza esperienza
+soggettiva.
+
+\subsection{Informazione analogica e digitale}
+
+\begin{definition}{Analogico e digitale}
+Una grandezza \term{analogica} varia con continuità: una tensione, una
+pressione sonora, le lancette di un orologio. Una grandezza \term{digitale} è
+una sequenza di simboli presi da un alfabeto finito: le cifre di un display.
+\end{definition}
+
+\term{Digitalizzare} una grandezza analogica significa farle due cose
+(Figura~\ref{fig:info:sampling}): \term{campionarla} nel tempo, leggendone il
+valore a istanti regolari, e \term{quantizzarla} nel valore, sostituendo ogni
+lettura con il più vicino tra un numero finito di livelli.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=0.75cm,y=0.42cm]
+  \draw[->,prgink] (0,0) -- (12.6,0) node[right,lbl]{tempo};
+  \draw[->,prgink] (0,0) -- (0,8.6) node[above,lbl]{valore};
+  \foreach \l in {1,...,7} \draw[prgrule,thin] (0,\l) -- (12.2,\l) node[right,font=\ttfamily\scriptsize,text=prgcomment]{\l};
+  \draw[prgaccent,very thick,domain=0:12,smooth,samples=80] plot (\x,{4+2.6*sin(\x*38)+0.9*sin(\x*95)});
+  \foreach \x/\y in {0/4,1/6,2/6,3/6,4/6,5/4,6/2,7/1,8/2,9/4,10/4,11/6,12/7}{
+    \draw[prgamber,thick] (\x,0) -- (\x,\y); \fill[prgamber] (\x,\y) circle (2.2pt);
+  }
+  \node[lbl,text=prgaccent] at (3.8,8.4) {segnale analogico};
+  \node[lbl,text=prgamber] at (8.2,-0.9) {campioni, quantizzati a 3 bit: 4, 6, 6, 6, 6, 4, 2, 1, \ldots};
+\end{tikzpicture}
+\caption{Digitalizzare: campionare nel tempo e quantizzare nel valore.}
+\label{fig:info:sampling}
+\end{figure}
+
+In entrambi i passaggi si perde qualcosa, e si guadagna qualcosa di decisivo.
+Un numero finito di livelli può essere \emph{contato}, \emph{copiato
+esattamente} e \emph{controllato per rilevare errori}; una grandezza continua
+si può soltanto misurare, e ogni copia la degrada. Con due livelli il simbolo è
+il \term{bit}, che vale 0 oppure 1. Due livelli sono facili da realizzare in
+modo affidabile con i transistor, che sono spenti o accesi
+(Capitolo~\ref{ch:electronics}), ed è per questo che i calcolatori sono binari.
+L'algebra di Boole (Capitolo~\ref{ch:boole1}) è la matematica dei due livelli.
+
+\subsection{Bit, byte, parola}
+
+I bit si trattano a gruppi di dimensioni standard
+(Tabella~\ref{tab:info:units}). Il fatto fondamentale che li riguarda è un
+conteggio.
+
+\begin{theorem}{Numero di configurazioni}
+Con $n$ bit si possono scrivere esattamente $2^{n}$ configurazioni distinte.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Per induzione su $n$. Un bit ha $2=2^{1}$
+configurazioni. Se $n$ bit hanno $2^{n}$ configurazioni, ciascuna può essere
+seguita da uno 0 o da un 1, il che dà $2\cdot 2^{n}=2^{n+1}$ configurazioni di
+$n+1$ bit. \hfill$\square$
+
+\begin{table}[htb]
+\centering\small
+\caption{Unità di informazione.}\label{tab:info:units}
+\begin{tabularx}{\textwidth}{@{}llrL@{}}
+\toprule
+\textbf{Unità} & \textbf{Dimensione} & \textbf{Configurazioni} & \textbf{Dove la si è incontrata}\\
+\midrule
+bit & 1 cifra binaria & 2 & un pulsante del joystick\\
+nibble & 4 bit & 16 & una cifra esadecimale\\
+byte & 8 bit & 256 & un carattere ASCII; la larghezza della barra (\code{andi 255})\\
+mezza parola & 16 bit & 65\,536 & un colore RGB565\\
+parola & 32 bit & 4\,294\,967\,296 & un registro \riscv; un'istruzione; \code{.word}\\
+KiB, MiB, GiB & $2^{10}$, $2^{20}$, $2^{30}$ byte & -- & dimensioni di memoria: 1 KiB = 1024 byte\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgconcept}
+Il significato di una configurazione è una convenzione, non una proprietà dei
+bit. Che cosa significa una configurazione non c'è scritto dentro: è un accordo
+tra chi la scrive e chi la legge.
+\end{prgconcept}
+
+La dimensione di una parola dipende dall'architettura: su RV32 una parola è di
+32 bit per definizione.
+
+\subsection{Contare in base 2 e in base 16}
+
+La Tabella~\ref{tab:info:hex} elenca le sedici configurazioni di quattro bit
+con i loro valori in decimale e le loro cifre esadecimali. Le quattro colonne
+di un numero binario pesano 8, 4, 2 e~1. Questa tabella va imparata a memoria:
+è la tavola pitagorica di questo libro.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le sedici configurazioni di quattro bit.}\label{tab:info:hex}
+\begin{tabular}{@{}ccc@{\qquad\qquad}ccc@{}}
+\toprule
+\textbf{Dec} & \textbf{Binario} & \textbf{Esa} & \textbf{Dec} & \textbf{Binario} & \textbf{Esa}\\
+\midrule
+0 & \texttt{0000} & \texttt{0} & 8 & \texttt{1000} & \texttt{8}\\
+1 & \texttt{0001} & \texttt{1} & 9 & \texttt{1001} & \texttt{9}\\
+2 & \texttt{0010} & \texttt{2} & 10 & \texttt{1010} & \texttt{A}\\
+3 & \texttt{0011} & \texttt{3} & 11 & \texttt{1011} & \texttt{B}\\
+4 & \texttt{0100} & \texttt{4} & 12 & \texttt{1100} & \texttt{C}\\
+5 & \texttt{0101} & \texttt{5} & 13 & \texttt{1101} & \texttt{D}\\
+6 & \texttt{0110} & \texttt{6} & 14 & \texttt{1110} & \texttt{E}\\
+7 & \texttt{0111} & \texttt{7} & 15 & \texttt{1111} & \texttt{F}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{La notazione posizionale: che cosa significa \texttt{11011001}}
+
+In un sistema \term{posizionale} il valore di una cifra dipende dalla sua
+posizione: ogni posizione pesa una potenza della base. La base dieci usa le
+potenze di dieci, la base due le potenze di due, la base sedici le potenze di
+sedici. La regola è la stessa; cambia solo la base. Il byte \texttt{11011001}
+si legge come segue.
+
+\begin{center}\small
+\begin{tabular}{r|*{8}{>{\centering\arraybackslash}p{9mm}|}}
+\multicolumn{1}{r}{peso} & \multicolumn{1}{c}{$2^7$} & \multicolumn{1}{c}{$2^6$} & \multicolumn{1}{c}{$2^5$} & \multicolumn{1}{c}{$2^4$} & \multicolumn{1}{c}{$2^3$} & \multicolumn{1}{c}{$2^2$} & \multicolumn{1}{c}{$2^1$} & \multicolumn{1}{c}{$2^0$}\\
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize 128} & \multicolumn{1}{c}{\scriptsize 64} & \multicolumn{1}{c}{\scriptsize 32} & \multicolumn{1}{c}{\scriptsize 16} & \multicolumn{1}{c}{\scriptsize 8} & \multicolumn{1}{c}{\scriptsize 4} & \multicolumn{1}{c}{\scriptsize 2} & \multicolumn{1}{c}{\scriptsize 1}\\\cline{2-9}
+bit & \textbf{1} & \textbf{1} & 0 & \textbf{1} & \textbf{1} & 0 & 0 & \textbf{1}\\\cline{2-9}
+\multicolumn{1}{r}{contributo} & \multicolumn{1}{c}{128} & \multicolumn{1}{c}{64} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{16} & \multicolumn{1}{c}{8} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{1}\\
+\end{tabular}
+\[128 + 64 + 16 + 8 + 1 = 217\]
+\end{center}
+
+Il Capitolo~\ref{ch:integers} dà la formula generale e gli algoritmi di
+conversione. Qui lo scopo è soltanto leggere un byte.
+
+\subsection{Perché i programmatori scrivono in esadecimale}
+
+Una cifra esadecimale corrisponde esattamente a quattro bit, perché
+$16 = 2^{4}$. Convertire tra binario ed esadecimale è quindi una consultazione
+di tabella, cifra per cifra, senza aritmetica:
+\[
+\underbrace{\texttt{0000}}_{\texttt{0}}\;\underbrace{\texttt{0111}}_{\texttt{7}}\;
+\underbrace{\texttt{1110}}_{\texttt{E}}\;\underbrace{\texttt{0000}}_{\texttt{0}}
+\qquad\Longrightarrow\qquad \hex{07E0}.
+\]
+Un registro di 32 bit sono otto cifre esadecimali: \hex{00130313} è leggibile,
+trentadue zeri e uni non lo sono. Il prefisso \code{0x} indica l'esadecimale in
+assembly e in C, e il debugger di \prgqt mostra i registri in questo modo.
+
+Il valore decimale di \hex{07E0} è $7\cdot 256+14\cdot 16 = 2016$, e non serve
+assolutamente a nulla: ciò che conta in questo numero è la \emph{configurazione
+di bit}, come mostra la prossima sezione.
+
+\subsection{Un colore è un numero: RGB565}
+
+Su \prg un colore sono sedici bit divisi in tre \term{campi}: cinque bit di
+rosso, sei di verde, cinque di blu (Figura~\ref{fig:info:rgb}). Il formato si
+chiama RGB565. La costante \code{.equ GREEN, 0x07e0} è la configurazione in cui
+il verde è al massimo, 63 su 63, e rosso e blu sono a zero. L'occhio è più
+sensibile al verde, ed è per questo che il verde riceve il bit in più.
+
+\begin{figure}[htb]
+\centering
+\begin{bytefield}[bitwidth=0.05\textwidth,bitheight=8mm]{16}
+\bitheader[endianness=big]{0,4,5,10,11,15}\\
+\bitbox{5}[bgcolor=prgred!35]{\texttt{00000}} & \bitbox{6}[bgcolor=prggreen!35]{\texttt{111111}} & \bitbox{5}[bgcolor=blue!25]{\texttt{00000}}\\
+\bitbox[]{5}{\footnotesize rosso: 5 bit\\0 su 31} & \bitbox[]{6}{\footnotesize verde: 6 bit\\63 su 63} & \bitbox[]{5}{\footnotesize blu: 5 bit\\0 su 31}
+\end{bytefield}
+
+\medskip
+\begin{tikzpicture}[x=1.55cm]
+  \foreach \i/\n/\v/\c in {0/BLACK/0000/{0,0,0}, 1/RED/F800/{248,0,0}, 2/GREEN/07E0/{0,252,0}, 3/BLUE/001F/{0,0,248}, 4/YELLOW/FFE0/{248,252,0}, 5/CYAN/07FF/{0,252,248}, 6/MAGENTA/F81F/{248,0,248}, 7/WHITE/FFFF/{255,255,255}}{
+    \definecolor{sw}{RGB}{\c}
+    \draw[prgsteel,fill=sw] (\i,0) rectangle ++(0.85,0.6);
+    \node[font=\sffamily\scriptsize\bfseries] at (\i+0.42,-0.25) {\n};
+    \node[font=\ttfamily\scriptsize,text=prgcomment] at (\i+0.42,-0.6) {0x\v};
+  }
+\end{tikzpicture}
+\caption{RGB565: \hex{07E0} è il verde. Sotto, le costanti di colore di
+\fname{prg32.h}.}
+\label{fig:info:rgb}
+\end{figure}
+
+Sedici bit, tre campi. Gli stessi sedici bit potrebbero essere un numero, due
+caratteri o mezza istruzione: il significato sta nel modo in cui il programma
+li usa.
+
+\subsection{I numeri: naturali, interi, reali}
+
+Gli stessi numeri sono rappresentati con tre convenzioni diverse, che i due
+capitoli successivi sviluppano.
+
+\begin{itemize}
+\item I \textbf{numeri naturali} sono la configurazione posizionale stessa:
+  $n$ bit coprono l'intervallo da 0 a $2^{n}-1$.
+\item Gli \textbf{interi con segno} si scrivono in \term{complemento a due}: un
+  registro di 32 bit copre da circa $-2$ miliardi a circa $+2$ miliardi
+  (Capitolo~\ref{ch:integers}).
+\item I \textbf{numeri reali} si scrivono in \term{virgola fissa} oppure nella
+  \term{virgola mobile} dello standard IEEE~754, in cui il valore è
+  $(-1)^{s}\times 1,f\times 2^{\,e-\mathit{bias}}$
+  (Capitolo~\ref{ch:reals}). La precisione singola usa 32 bit, dà circa 7 cifre
+  decimali e arriva a circa $3,4\times 10^{38}$; la precisione doppia usa 64
+  bit, dà circa 16 cifre e arriva a circa $1,8\times 10^{308}$.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Il testo}
+
+Anche i caratteri sono numeri.
+
+\subsection{ASCII: un carattere, un byte}
+
+Il codice ASCII (1963) assegna un numero tra 0 e 127, sette bit, a ciascuno di
+128 caratteri: le lettere dell'inglese, le cifre, la punteggiatura e alcuni
+codici di controllo (Tabella~\ref{tab:info:ascii}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Alcuni caratteri ASCII.}\label{tab:info:ascii}
+\begin{tabularx}{\textwidth}{@{}lrllL@{}}
+\toprule
+\textbf{Carattere} & \textbf{Decimale} & \textbf{Esa} & \textbf{Binario} & \textbf{Nota}\\
+\midrule
+\texttt{A} & 65 & \hex{41} & \texttt{0100 0001} & le maiuscole cominciano da 65\\
+\texttt{a} & 97 & \hex{61} & \texttt{0110 0001} & come \texttt{A} con un bit in più: $97-65=32$\\
+\texttt{0} & 48 & \hex{30} & \texttt{0011 0000} & il carattere zero non è il numero zero\\
+spazio & 32 & \hex{20} & \texttt{0010 0000} & un carattere come un altro\\
+a capo & 10 & \hex{0A} & \texttt{0000 1010} & un carattere di controllo\\
+NUL & 0 & \hex{00} & \texttt{0000 0000} & segna la fine di una stringa C\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La tabella è stata progettata con cura. Maiuscole e minuscole differiscono solo
+nel bit~5, così che \code{xori} con \hex{20} scambia maiuscola e minuscola: un
+primo assaggio di algebra di Boole applicata al testo. E i caratteri delle
+cifre sono consecutivi, così che sottraendo 48 dal carattere di una cifra si
+ottiene il valore della cifra.
+
+\subsection{Stringhe: una sequenza di caratteri in memoria}
+
+Una \term{stringa} è una sequenza di caratteri memorizzati in byte consecutivi.
+L'unica questione è come fa chi legge la stringa a sapere dove finisce, e ci
+sono due risposte classiche (Figura~\ref{fig:info:strings}). La \emph{stringa
+C} segna la fine con un byte di valore zero. La \emph{stringa Pascal} mette
+prima la lunghezza.
+
+\begin{figure}[htb]
+\centering\small\ttfamily
+\begin{tabular}{@{}r@{\quad}*{5}{|>{\centering\arraybackslash}p{7mm}}|@{\quad}l@{}}
+\cline{2-6}
+\textsf{Stringa C} & C & I & A & O & \cellcolor{prgred!25}\textbackslash0 & \textsf{\footnotesize la fine è segnata da un byte a zero}\\\cline{2-6}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize 43} & \multicolumn{1}{c}{\scriptsize 49} & \multicolumn{1}{c}{\scriptsize 41} & \multicolumn{1}{c}{\scriptsize 4F} & \multicolumn{1}{c}{\scriptsize 00} & \\[6pt]
+\cline{2-6}
+\textsf{Stringa Pascal} & \cellcolor{prgamber!25}4 & C & I & A & O & \textsf{\footnotesize prima viene la lunghezza}\\\cline{2-6}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize 04} & \multicolumn{1}{c}{\scriptsize 43} & \multicolumn{1}{c}{\scriptsize 49} & \multicolumn{1}{c}{\scriptsize 41} & \multicolumn{1}{c}{\scriptsize 4F} & \\
+\end{tabular}
+
+\bigskip
+\begin{tabular}{@{}*{12}{|>{\centering\arraybackslash}p{5.2mm}}|@{}}
+\hline
+H & E & L & L & O & \textvisiblespace & P & R & G & 3 & 2 & \cellcolor{prgred!25}\textbackslash0\\\hline
+\multicolumn{1}{c}{\scriptsize 48} & \multicolumn{1}{c}{\scriptsize 45} & \multicolumn{1}{c}{\scriptsize 4C} & \multicolumn{1}{c}{\scriptsize 4C} & \multicolumn{1}{c}{\scriptsize 4F} & \multicolumn{1}{c}{\scriptsize 20} & \multicolumn{1}{c}{\scriptsize 50} & \multicolumn{1}{c}{\scriptsize 52} & \multicolumn{1}{c}{\scriptsize 47} & \multicolumn{1}{c}{\scriptsize 33} & \multicolumn{1}{c}{\scriptsize 32} & \multicolumn{1}{c}{\scriptsize 00}\\
+\end{tabular}
+\caption{\normalfont Stringhe in memoria; sotto ogni cella, il codice ASCII in esadecimale.
+Sotto: \texttt{.asciz "HELLO PRG32"}.}
+\label{fig:info:strings}
+\end{figure}
+
+La \code{z} di \code{.asciz} significa \emph{zero-terminated}, terminata da
+zero: per gli undici caratteri della stringa del
+Capitolo~\ref{ch:firstcontact} l'assemblatore memorizza dodici byte. La
+funzione \code{prg32\_gfx\_text8} riceve in \reg{a2} soltanto l'indirizzo del
+primo byte, e legge finché non trova lo zero. Se lo zero mancasse, la funzione
+continuerebbe a leggere ciò che segue in memoria, qualunque cosa sia.
+
+\subsection{Unicode e UTF-8: ogni sistema di scrittura}
+
+Centoventotto caratteri bastano per l'inglese e per nient'altro.
+\term{Unicode} assegna un numero, detto \term{code point}, a ogni carattere di
+ogni scrittura; \term{UTF-8} memorizza quel numero in un numero di byte da uno
+a quattro (Tabella~\ref{tab:info:utf8}). La codifica è compatibile con ASCII:
+un testo ASCII puro è già UTF-8 valido. È la codifica del web e dei file
+sorgente che il lettore sta scrivendo.
+
+\begin{table}[htb]
+\centering\small
+\caption{Code point Unicode e loro codifica UTF-8.}\label{tab:info:utf8}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Carattere} & \textbf{Code point} & \textbf{Byte UTF-8} & \textbf{Lunghezza}\\
+\midrule
+A & U+0041 & \texttt{41} & 1 byte: identico ad ASCII\\
+\`e & U+00E8 & \texttt{C3 A8} & 2 byte\\
+\texteuro & U+20AC & \texttt{E2 82 AC} & 3 byte\\
+l'ideogramma per «sole», «giorno» & U+65E5 & \texttt{E6 97 A5} & 3 byte\\
+l'emoji della «faccina sorridente» & U+1F600 & \texttt{F0 9F 98 80} & 4 byte\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{prgwarn}
+In UTF-8 la lunghezza di una stringa in byte non è la sua lunghezza in
+caratteri.
+\end{prgwarn}
+
+\subsection{L'ordine dei byte: little-endian}
+
+Una parola sono quattro byte, e la memoria è indirizzata byte per byte. In che
+ordine vanno i quattro byte di una parola? La direttiva
+\code{.word 0x12345678} si può memorizzare in due modi
+(Figura~\ref{fig:info:endian}).
+
+\begin{figure}[htb]
+\centering\small
+\begin{tabular}{@{}r@{\quad}*{4}{|>{\centering\arraybackslash\ttfamily}p{13mm}}|@{}}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize indirizzo $A$} & \multicolumn{1}{c}{\scriptsize $A+1$} & \multicolumn{1}{c}{\scriptsize $A+2$} & \multicolumn{1}{c}{\scriptsize $A+3$}\\\cline{2-5}
+\textbf{little-endian} (\riscv, x86, ARM) & \cellcolor{prggreen!25}78 & \cellcolor{prgviolet!20}56 & \cellcolor{prgamber!25}34 & \cellcolor{prgaccent!20}12\\\cline{2-5}
+\multicolumn{5}{c}{}\\[-6pt]\cline{2-5}
+\textbf{big-endian} (protocolli di rete) & \cellcolor{prgaccent!20}12 & \cellcolor{prgamber!25}34 & \cellcolor{prgviolet!20}56 & \cellcolor{prggreen!25}78\\\cline{2-5}
+\end{tabular}
+\caption{I due ordini dei byte della parola \hex{12345678}.}
+\label{fig:info:endian}
+\end{figure}
+
+\begin{definition}{Little-endian e big-endian}
+Nell'ordine \term{little-endian} il byte meno significativo di una parola è
+memorizzato all'indirizzo più basso; nell'ordine \term{big-endian}, il byte più
+significativo.
+\end{definition}
+
+\riscv è little-endian: è ciò che fanno \ins{lw} e \ins{sw}. L'ordine dei byte
+si nota in due circostanze: quando si esamina la memoria in un debugger, e
+quando si scambiano dati con un'altra macchina. I nomi vengono dai \emph{Viaggi
+di Gulliver}, dove due popoli si fanno la guerra per decidere da quale estremità
+vada rotto un uovo.
+
+% ----------------------------------------------------------------------------
+\section{Strutture dati}
+
+Dai singoli valori si passa alle collezioni organizzate. Cinque modi di
+organizzare i dati ricorrono in tutta l'informatica.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Vettore (array).] Elementi dello stesso tipo, uno dopo l'altro, raggiunti
+  tramite un indice: 32, 11, 34, 22.
+\item[Lista.] Elementi collegati ciascuno al successivo: economica per inserire
+  e togliere, lenta da raggiungere per posizione.
+\item[Pila (stack).] L'ultimo a entrare è il primo a uscire: \emph{push}
+  aggiunge in cima, \emph{pop} toglie dalla cima. Il frame che ha salvato
+  \reg{ra} nel Capitolo~\ref{ch:firstcontact} stava su uno stack.
+\item[Dizionario.] Coppie di chiave e valore: \code{NA} dà \code{NAPOLI},
+  \code{PA} dà \code{PALERMO}, \code{MI} dà \code{MILANO}.
+\item[Albero.] Una gerarchia: un animale cammina o nuota, ha polmoni o
+  branchie, due zampe o quattro.
+\end{description}
+
+Nella macchina sono tutti la stessa cosa: byte in memoria, più una regola per
+trovare l'elemento successivo.
+
+\subsection{Un vettore in memoria, un elemento in un registro}
+
+Per il vettore la regola è aritmetica (Listato~\ref{lst:info:array}). Un
+vettore è un indirizzo di base seguito da elementi di uguale dimensione;
+l'elemento $i$ di un vettore di parole sta all'indirizzo $\mathit{base}+4i$,
+perché una parola sono quattro byte.
+
+\asmfile[caption={Leggere \code{scores[2]}.},label=lst:info:array]{code/l04/s19.S}
+
+L'istruzione \ins{slli} fa scorrere a sinistra i bit di un registro; uno
+scorrimento di due posizioni moltiplica per quattro, come in decimale uno
+scorrimento di una posizione moltiplica per dieci. (La proprietà è dimostrata
+nel Capitolo~\ref{ch:integers}.) L'espressione \code{scores[i]} di un
+linguaggio di alto livello è esattamente queste quattro istruzioni.
+
+\begin{prgwarn}
+Che cosa legge \ins{lw} se $i=4$? Ciò che segue il vettore in memoria,
+qualunque cosa sia. La macchina non controlla i limiti: lo fa il programmatore.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Dati e algoritmi}
+
+Il capitolo si chiude allargando lo sguardo, dai bit di un programma ai dati
+del mondo e alle procedure che lavorano su di essi.
+
+\subsection{Dati, big data e data science}
+
+\begin{definition}{Big data}
+I \term{big data} sono dati che superano i limiti degli strumenti tradizionali
+delle basi di dati.
+\end{definition}
+
+Sono strutturati e non strutturati: l'economia, la geolocalizzazione, le serie
+temporali, le reti sociali. La loro dimensione si misura in petabyte e
+zettabyte, cioè in miliardi di terabyte. Vengono da quattro tipi di sorgente: i
+\emph{dati da sensori} (l'ambiente, le posizioni GPS, l'Internet delle cose:
+ogni dispositivo misura qualcosa); le \emph{transazioni} (gli acquisti al
+supermercato, le carte di credito, gli ordini online); i \emph{dati pubblici}
+(atti amministrativi, territorio, consumi: gli open data delle istituzioni); e
+i \emph{social media} (preferenze, politica, opinioni: ciò che le persone
+scrivono e condividono). La \term{data science} è l'analisi di grandi quantità
+di informazione, e le tecnologie che estraggono conoscenza e valore dai dati
+sono il calcolo parallelo e le GPU.
+
+\begin{definition}{Data mining}
+Il \term{data mining} è l'insieme delle tecniche e delle metodologie per
+estrarre informazione o conoscenza da grandi quantità di dati.
+\end{definition}
+
+Tra le sue tecniche ci sono gli alberi di decisione e la classificazione,
+l'apprendimento di regole e i metodi bayesiani, le reti neurali e il
+riconoscimento di schemi.
+
+\subsection{GPGPU: il calcolo generico sui processori grafici}
+
+Un processore grafico (GPU) ha migliaia di core semplici costruiti per fare la
+stessa operazione su molti dati insieme. La somma di $N$ elementi, che richiede
+$N$ passi uno dopo l'altro, ha bisogno di soli $\log_2 N$ passi paralleli
+(Figura~\ref{fig:info:gpgpu}): gli elementi si sommano a coppie, poi le somme
+parziali a coppie, e così via. Lo stesso hardware che disegna i videogiochi
+oggi addestra le reti neurali. Sotto ogni core ci sono sempre registri,
+istruzioni e bit; il Capitolo~\ref{ch:beyond} torna sull'argomento.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.6\textwidth]{gpgpu_sum.png}
+\caption{Una somma parallela sui core di una GPU: $\log_2 N$ passi.}
+\label{fig:info:gpgpu}
+\end{figure}
+
+\subsection{Algoritmi e calcolabilità}
+
+Un problema è \term{calcolabile} se può essere risolto da un algoritmo. La
+\emph{macchina di Turing} è un calcolatore ideale con un programma, espresso
+matematicamente tramite insiemi, relazioni e funzioni. La \emph{macchina di von
+Neumann} è l'architettura di calcolo capace di eseguire un programma che
+realizza un algoritmo per la macchina di Turing. Un problema che nessun
+algoritmo su una macchina di Turing può risolvere non può essere risolto da
+alcun calcolatore: questo enunciato, nella sua versione informale, è la tesi di
+Church--Turing. Non ogni problema ha un algoritmo; l'esempio classico di
+problema non calcolabile è il \emph{problema della fermata}, quello di decidere
+se un programma arbitrario prima o poi si fermerà.
+
+\begin{definition}{Algoritmo}
+Un algoritmo è una procedura con cinque proprietà. È \textbf{atomico}: i suoi
+passi sono elementari e non ulteriormente scomponibili. È \textbf{non
+ambiguo}: ogni passo è interpretato in un solo modo diretto dall'esecutore,
+umano o macchina. È \textbf{finito}: ha un numero finito di passi e una
+quantità finita di dati in ingresso. È \textbf{terminante}: la sua esecuzione
+finisce dopo un tempo finito. È \textbf{effettivo}: la sua esecuzione porta a
+un risultato unico e ben definito.
+\end{definition}
+
+Un'istruzione \riscv è il modello di un passo atomico e non ambiguo: il suo
+significato è fissato dalla specifica, bit per bit.
+
+\subsection{Algoritmi deterministici e non deterministici}
+
+Un algoritmo è \term{deterministico} se per ogni istruzione esiste, a parità di
+ingresso, esattamente un passo successivo: il percorso dell'algoritmo esiste ed
+è unico, $y=f(x)$. Convertire un'unità di misura è deterministico; lo è anche
+\code{first\_update}, che somma sempre uno.
+
+Un algoritmo è \term{non deterministico} se, a parità di ingresso, può
+comportarsi in modo diverso a ogni esecuzione. Gli algoritmi
+\emph{probabilistici} usano un generatore di numeri casuali; gli algoritmi
+\emph{concorrenti} possono dipendere dai tempi (le cosiddette race condition).
+Un gioco che colloca un nemico chiamando \code{prg32\_random\_number} è non
+deterministico.
+
+Il Listato~\ref{lst:info:prob} mostra due algoritmi probabilistici in
+pseudo-codice. Il primo verifica se un numero è primo: la risposta «composto» è
+sempre giusta, la risposta «probabilmente primo» è giusta con probabilità
+schiacciante. Scambiare una minuscola possibilità di errore con un enorme
+guadagno di velocità è il modo in cui la crittografia reale verifica i numeri
+primi. (Il test di Fermat mostrato è il più semplice; le librerie reali usano
+il test di Miller--Rabin, che ne chiude le falle.) Il secondo è una passeggiata
+aleatoria, che dà un risultato diverso a ogni esecuzione: le simulazioni ne
+fanno la media su molte.
+
+\txtfile[caption={Due algoritmi probabilistici.},label=lst:info:prob]{code/l04/s28.txt}
+
+\subsection{L'apprendimento automatico}
+
+L'\term{apprendimento automatico} (machine learning) è un metodo di analisi dei
+dati che automatizza la costruzione di un modello analitico: il calcolatore
+trova schemi nascosti senza essere stato esplicitamente programmato su dove
+cercare. In un programma classico la funzione $y=f(x)$ è scritta da una
+persona; nell'apprendimento automatico $f$ viene appresa dagli esempi. I
+modelli generativi di oggi sono la stessa idea su scala enorme: un grande
+modello linguistico predice il prossimo pezzo di testo a partire da miliardi di
+numeri appresi.
+
+Quei numeri sono bit in memoria, moltiplicati e sommati da processori:
+l'argomento di questo libro. E un modello può sbagliare con grande sicurezza,
+quindi per controllarlo servono i fondamenti. È la ragione della regola
+enunciata nel Capitolo~\ref{ch:intro}: l'esame verifica che i fondamenti stiano
+nella testa dello studente.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quanti valori diversi può rappresentare un byte?}
+\item 8
+\item 16
+\item 255
+\item 256
+\end{quiz}
+
+\begin{quiz}{Il colore \prg \hex{F81F} è:}
+\item rosso
+\item magenta
+\item ciano
+\item giallo
+\end{quiz}
+
+\begin{quiz}{Quanti byte occupa in memoria \code{.asciz "CIAO"}?}
+\item 3
+\item 4
+\item 5
+\item 8
+\end{quiz}
+
+\begin{quiz}{Su \riscv, \code{.word 0x0000ABCD} è memorizzata all'indirizzo $A$. Quale byte si trova all'indirizzo $A$?}
+\item \hex{00}
+\item \hex{AB}
+\item \hex{CD}
+\item \hex{DC}
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[su \prg]
+\begin{enumerate}[nosep]
+\item Cambiate la barra del Capitolo~\ref{ch:firstcontact} in magenta, poi in
+  un grigio scuro a vostra scelta: calcolate prima a mano il valore RGB565.
+\item Scrivete il vostro nome con \code{prg32\_gfx\_text8}. Quanti byte occupa
+  la stringa?
+\item Dichiarate un vettore di quattro colori con \code{.word} e disegnate
+  quattro barre, una per colore, leggendo ogni colore con \ins{lw}.
+\item In \prgqt aprite la vista della memoria sulla vostra stringa e sul vostro
+  vettore: trovate lo zero finale e verificate l'ordine dei byte.
+\end{enumerate}
+\expected{Quattro barre in quattro colori; nella vista della memoria la stringa
+finisce con \texttt{00} e ogni \code{.word} mostra per primo il byte meno
+significativo. Un grigio scuro, per confronto: rosso 8 su 31, verde 16 su 63,
+blu 8 su 31 è \texttt{01000\,010000\,01000}, cioè \hex{4208}.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+bit / byte / word & bit / byte / parola\\
+positional notation & notazione posizionale\\
+hexadecimal & esadecimale\\
+sampling & campionamento\\
+quantisation & quantizzazione\\
+byte order (endianness) & ordinamento dei byte\\
+string & stringa\\
+array & vettore (array)\\
+linked list & lista concatenata\\
+stack & pila\\
+tree & albero\\
+machine learning & apprendimento automatico\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+L'informazione digitale è una configurazione di bit più una convenzione per
+leggerla. Gli stessi sedici bit possono essere un numero, un colore o due
+caratteri: lo decide il programma. L'esadecimale è una scrittura compatta del
+binario, quattro bit per cifra. Il testo è fatto di numeri (ASCII, UTF-8); le
+strutture sono byte più una regola per trovare l'elemento successivo. I dati
+sono la moneta di questo regno, e gli algoritmi trasformano i dati in
+informazione adatta a decidere.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafi 2.4 e~2.9; Charles
+Petzold, \emph{Code}, i capitoli su bit, byte e testo; per l'apprendimento
+automatico, Sebastian Raschka, \emph{Machine Learning with Python}.
