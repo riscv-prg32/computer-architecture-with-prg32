@@ -396,10 +396,10 @@
    {
     "q": "Come si scrive 0,625 in binario?",
     "opts": [
-     "0.101",
-     "0.110",
-     "0.625",
-     "0.011"
+     "0,101",
+     "0,110",
+     "0,625",
+     "0,011"
     ],
     "ans": 0,
     "why": "0,625 x 2 = 1,25 (1); 0,25 x 2 = 0,5 (0); 0,5 x 2 = 1,0 (1): 0,101 = 1/2 + 1/8."
@@ -1811,7 +1811,7 @@
    ],
    [
     "pointing device",
-    "dispositivo di puntamento"
+    "periferica di puntamento"
    ],
    [
     "liquid crystals",

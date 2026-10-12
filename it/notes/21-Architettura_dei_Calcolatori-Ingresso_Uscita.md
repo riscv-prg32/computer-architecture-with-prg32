@@ -112,7 +112,7 @@ Cinque esercizi. Quanti bit servono per il codice di una tastiera con 104 tasti,
 
 ## Slide 28: Glossario: inglese e italiano
 
-Dieci termini. *Cathode-ray tube* è il tubo a raggi catodici; *backlight* è la retroilluminazione. Un *pointing device*, dispositivo di puntamento, è qualunque dispositivo che, come il mouse, indica una posizione. Le stampanti *dot-matrix* e *ink-jet* sono quelle ad aghi e a getto d'inchiostro. *Polling* è l'interrogazione ciclica, anche se la parola in uso è quella inglese.
+Dieci termini. *Cathode-ray tube* è il tubo a raggi catodici; *backlight* è la retroilluminazione. Un *pointing device*, periferica di puntamento, è qualunque dispositivo che, come il mouse, indica una posizione. Le stampanti *dot-matrix* e *ink-jet* sono quelle ad aghi e a getto d'inchiostro. *Polling* è l'interrogazione ciclica, anche se la parola in uso è quella inglese.
 
 ## Slide 29: Conclusioni e letture
 

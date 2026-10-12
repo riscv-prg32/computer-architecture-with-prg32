@@ -284,7 +284,7 @@ Deck({
     Q("Quale numero rappresenta in complemento a due la configurazione di 8 bit 1111 1100?", ["252", "-4", "-3", "-124"], 1, "Si complementa e si somma uno: 0000 0011 + 1 = 0000 0100 = 4, quindi la configurazione vale -4. (252 è la sua lettura senza segno.)"),
     Q("Su 8 bit, quale somma produce un overflow con segno?", ["100 + 27", "100 + 28", "-100 + 28", "-1 + 1"], 1, "L'intervallo è [-128, 127]. 100 + 27 = 127 ci sta; 100 + 28 = 128 no: due positivi danno una configurazione negativa (1000 0000 = -128)."),
     Q("t0 contiene 0xFFFFFFFF e t1 contiene 1. Dopo slt t2, t0, t1 e sltu t3, t0, t1:", ["t2 = 1, t3 = 1", "t2 = 0, t3 = 0", "t2 = 1, t3 = 0", "t2 = 0, t3 = 1"], 2, "Con segno: -1 < 1 è vero, quindi t2 = 1. Senza segno: 4.294.967.295 < 1 è falso, quindi t3 = 0."),
-    Q("Come si scrive 0,625 in binario?", ["0.101", "0.110", "0.625", "0.011"], 0, "0,625 x 2 = 1,25 (1); 0,25 x 2 = 0,5 (0); 0,5 x 2 = 1,0 (1): 0,101 = 1/2 + 1/8."),
+    Q("Come si scrive 0,625 in binario?", ["0,101", "0,110", "0,625", "0,011"], 0, "0,625 x 2 = 1,25 (1); 0,25 x 2 = 0,5 (0); 0,5 x 2 = 1,0 (1): 0,101 = 1/2 + 1/8."),
     X("Esercizi: prima su carta, poi su PRG32", [
       "Convertite 2026 in binario, ottale ed esadecimale; convertite 0,1 in binario fino a otto bit frazionari",
       "Scrivete -100 su 8 bit in segno e modulo e in complemento a due",

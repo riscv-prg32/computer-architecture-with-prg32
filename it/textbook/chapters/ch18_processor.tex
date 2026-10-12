@@ -1,0 +1,573 @@
+% ============================================================================
+%  Capitolo 18 -- Il processore                                  (Lezione 18)
+% ============================================================================
+\chapter{Il processore}
+\label{ch:processor}
+
+\epigraphline{Un Anello per domarli tutti\ldots}
+  {J.\,R.\,R.\ Tolkien, \emph{Il Signore degli Anelli}, 1954--1955}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item nominare i componenti di un processore: unità di controllo, ALU, registri, collegamenti con la memoria e con l'ingresso/uscita;
+\item distinguere i registri interni dai registri di macchina, e i registri generici da quelli speciali;
+\item spiegare come funziona uno stack e come \riscv realizza push e pop;
+\item confrontare i modelli ad accumulatore, a stack e a registri generali sullo stesso calcolo;
+\item descrivere \riscv come un processore load-store a registri generali, e leggere il nome RV32IMAC;
+\item far corrispondere ogni elemento del modello generale al processore del kit \prg.
+\end{itemize}
+\end{chapgoals}
+
+Programmate un processore fin dal Capitolo~\ref{ch:firstcontact}. Questo
+capitolo presenta il modello generale di un processore, di cui ogni processore
+reale è una variante, e usa \riscv come riferimento: ogni elemento astratto ha
+un nome che conoscete già.
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Una riga di un linguaggio ad alto livello: \code{z = x + y}.},label=lst:cpu:sum]{code/l18/s04.S}
+
+Sette righe per una somma (Listato~\ref{lst:cpu:sum}). La memoria è toccata
+solo da \ins{lw} e \ins{sw}, e l'aritmetica avviene solo tra registri: è il
+ciclo «carica, modifica, memorizza» del Capitolo~\ref{ch:firstcontact}, visto
+ora come una scelta di progetto. Altri processori fanno lo stesso lavoro con
+tre istruzioni, o con una. Perché \riscv è fatto così? Per rispondere serve un
+modello del processore.
+
+% ----------------------------------------------------------------------------
+\section{Il processore}
+
+\subsection{Il calcolatore e il suo processore}
+
+Un calcolatore elettronico è un sistema numerico, automatico, a programma
+memorizzato, costruito con circuiti elettronici (Capitolo~\ref{ch:boole1}),
+con tre sottosistemi: processore, memoria centrale e ingresso/uscita,
+collegati da bus. Il processore può eseguire solo un insieme fisso di
+istruzioni, da alcune decine a poche centinaia, più o meno complesse. Il
+\term{linguaggio macchina} è l'insieme delle stringhe di bit che codificano le
+istruzioni che i circuiti di un processore possono eseguire. Le istruzioni
+richiedono trasferimenti di informazione, all'interno del calcolatore e da o
+verso i dispositivi di I/O, e operazioni aritmetiche e logiche. I dati e le
+istruzioni di un programma sono memorizzati nella memoria centrale.
+
+RV32I, la base di \riscv, ha circa quaranta istruzioni; con le estensioni M, A
+e C del kit, circa un centinaio di codifiche. Il Motorola 68000 aveva
+cinquantasei tipi di istruzione, con molte varianti di ciascuno.
+
+\subsection{Un modello di riferimento}
+
+La Figura~\ref{fig:cpu:model} è il modello di riferimento di un processore. I
+suoi elementi sono i seguenti.
+
+\begin{itemize}
+\item La \term{rete di controllo}, o unità di controllo, che produce i comandi
+  per tutto il resto.
+\item Il \term{program counter} PC, che contiene l'indirizzo della prossima
+  istruzione, e il \term{registro di decodifica} D, che contiene l'istruzione
+  in esecuzione.
+\item I \term{registri di macchina} $R_0,\dots,R_{n-1}$.
+\item La \term{ALU}, con i suoi registri di ingresso $O_1$ e $O_2$ e il suo
+  registro di uscita $U$.
+\item Il collegamento con la memoria: il registro indirizzo MA e il registro
+  buffer MB del Capitolo~\ref{ch:memory}.
+\item Il collegamento con l'ingresso/uscita: un registro di ingresso RI e un
+  registro di uscita RU.
+\item Un \term{bus interno} che li unisce tutti.
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[draw=prgsteel,dashed,rounded corners,minimum width=116mm,minimum height=62mm,label={[lbl,anchor=north west]north west:CPU}] (cpu) at (5.3,-2.25) {};
+  \node[blk,fill=prgsteel,text=white,minimum width=20mm,minimum height=17mm] (cn) at (1.0,-0.6) {rete di\\controllo};
+  \node[blkred,minimum width=9mm,minimum height=7mm] (pc) at (0.5,-2.2) {PC};
+  \node[blkred,minimum width=9mm,minimum height=7mm] (d) at (1.5,-2.2) {D};
+  \foreach \i/\r in {0/{$R_0$},1/{$R_1$},2/{$\cdots$},3/{$R_{n-1}$}} \node[blkacc,minimum width=18mm,minimum height=5.5mm] (r\i) at (4.0,-\i*0.65+0.1) {\r};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (o1) at (6.9,0.1) {$O_1$};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (o2) at (8.3,0.1) {$O_2$};
+  \node[blkvio,minimum width=25mm,minimum height=9mm] (alu) at (7.6,-0.85) {\textbf{ALU}};
+  \node[blkvio,minimum width=11mm,minimum height=6mm] (u) at (7.6,-1.9) {$U$};
+  \draw[prgamber,line width=3pt] (-0.2,-2.95) -- (10.8,-2.95) node[pos=0.93,above,lbl,text=prgamber]{bus interno};
+  \node[blkgrn,minimum width=11mm,minimum height=7mm] (ma) at (1.0,-4.1) {MA};
+  \node[blkgrn,minimum width=11mm,minimum height=7mm] (mb) at (2.6,-4.1) {MB};
+  \node[blkamb,minimum width=11mm,minimum height=7mm] (ri) at (7.0,-4.1) {RI};
+  \node[blkamb,minimum width=11mm,minimum height=7mm] (ru) at (8.6,-4.1) {RU};
+  \foreach \n in {pc,d,u} \draw[<->,thick] (\n.south) -- (\n.south|-0,-2.95);
+  \draw[<->,thick] (r3.south) -- (r3.south|-0,-2.95);
+  \foreach \n in {ma,mb,ri,ru} \draw[<->,thick] (\n.north) -- (\n.north|-0,-2.95);
+  \draw[->,thick] (o1) -- (o1|-alu.north); \draw[->,thick] (o2) -- (o2|-alu.north); \draw[->,thick] (alu) -- (u);
+  \draw[<->,bus] (1.8,-4.45) -- (1.8,-6.0) node[below,lbl]{verso la memoria};
+  \draw[<->,bus] (7.8,-4.45) -- (7.8,-6.0) node[below,lbl]{verso l'ingresso/uscita};
+\end{tikzpicture}
+\caption{Il modello di riferimento di un processore.}
+\label{fig:cpu:model}
+\end{figure}
+
+Pur essendo basati sullo stesso schema logico, e quindi fatti di componenti
+piuttosto simili, i processori in commercio possono essere molto diversi l'uno
+dall'altro. La Tabella~\ref{tab:cpu:map} mette fianco a fianco il modello e
+\riscv. Le due righe segnate «assente» sono semplificazioni deliberate di
+\riscv, discusse più avanti e nel Capitolo~\ref{ch:memory}. L'MC68000 delle
+edizioni precedenti di questo corso aveva tutti gli elementi del modello: otto
+registri dati e otto registri indirizzi, un registro di stato con i codici di
+condizione, e una circuiteria separata per le interruzioni.
+
+\begin{table}[htb]
+\centering\small
+\caption{Il modello e \riscv.}\label{tab:cpu:map}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}LL@{}}
+\toprule
+\textbf{Elemento del modello} & \textbf{In \riscv} & \textbf{Visto dal programmatore?}\\
+\midrule
+PC, program counter & \reg{pc}, 32 bit & indirettamente: lo usano i salti e \ins{auipc}\\
+D, registro di decodifica & il registro istruzione & no\\
+$R_0\ldots R_{n-1}$, registri di macchina & \reg{x0}\ldots\reg{x31}, trentadue registri di 32 bit & sì: \reg{zero}, \reg{ra}, \reg{sp}, \reg{t0}, \reg{a0}, \reg{s0}, \ldots\\
+$O_1$, $O_2$, $U$, registri della ALU & gli ingressi e l'uscita della ALU & no\\
+MA, MB, collegamento con la memoria & l'indirizzo e il dato di un load o di uno store & no\\
+RI, RU, collegamento con l'ingresso/uscita & assente: i dispositivi sono mappati in memoria & --\\
+registro di stato con i flag & assente: nessun codice di condizione & --\\
+registri speciali & i registri di controllo e stato (CSR) & solo dal software privilegiato\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Registri interni e registri di macchina}
+
+\begin{definition}{Registri interni e di macchina}
+I \term{registri interni} non sono direttamente visibili al programmatore, e
+sono necessari al funzionamento del processore: PC, MA, MB, D, $O_1$, $O_2$,
+$U$. I \term{registri di macchina} definiscono il modello di programmazione;
+si dividono in registri \term{generici} e registri \term{speciali}.
+\end{definition}
+
+Un processore tratta tre tipi di informazione: istruzioni, indirizzi di
+memoria e dati. La dimensione di MA e del PC dipende dalla dimensione degli
+indirizzi; la dimensione dei registri della ALU dipende dalla dimensione dei
+dati. In RV32 tutte e tre sono larghe 32 bit: una sola dimensione per
+registri, indirizzi e istruzioni. Il «32» del nome è la larghezza dei
+registri: RV64 ha registri e indirizzi di 64 bit, e le stesse istruzioni di 32
+bit.
+
+\subsection{In che cosa i processori reali differiscono dal modello}
+
+In generale, i processori reali possono avere un insieme di registri generici
+diverso e di solito più ricco; i loro registri di macchina possono essere
+specifiche locazioni di memoria; la sezione di I/O può mancare del tutto ed
+essere realizzata da chip dedicati; e unità aritmetiche molto semplici possono
+essere estese da chip dedicati che migliorano la ALU, come facevano i
+coprocessori in virgola mobile 68881 per la famiglia 68000 e 8087 per l'8086.
+
+\riscv sul kit \prg ha trentadue registri generici in un banco dentro il
+processore; nessuna sezione di I/O, dato che i controller delle periferiche
+sono sullo stesso chip e si raggiungono come memoria; \emph{estensioni}
+opzionali al posto di chip aggiuntivi, tra le quali M aggiunge moltiplicazione
+e divisione; e nessuna estensione F, così che la virgola mobile andrebbe fatta
+in software (Capitolo~\ref{ch:reals}).
+
+\subsection{Parole o byte: la lunghezza delle parole di macchina}
+
+In un \emph{processore a parola} tutte le parole di macchina hanno la stessa
+lunghezza, dimensionata sull'informazione più lunga; questo è scomodo con dati
+di natura intrinsecamente variabile. Ogni istruzione \riscv è lunga 32 bit (16
+nella forma compressa). In un processore \emph{a carattere}, o a byte, la
+lunghezza delle parole di macchina è variabile, un multiplo di un byte, il che
+si adatta al trattamento delle stringhe: un'istruzione Intel x86 occupa da 1 a
+15 byte, e un'istruzione MC68000 da una a cinque parole di 16 bit. Un parametro
+caratteristico di un processore è il numero di bit dei suoi registri, il
+parallelismo dei suoi trasferimenti interni: 8, 16, 32 o 64.
+
+\subsection{Stato utente e stato supervisore}
+
+Un processore è in \term{stato supervisore} quando esegue il sistema
+operativo, e può allora eseguire ogni istruzione del suo insieme; è in
+\term{stato utente} quando esegue un programma utente, e può allora eseguire
+tutto tranne le \term{istruzioni privilegiate}.
+
+\riscv definisce tre \term{modi di privilegio}. Il modo macchina (M), il più
+privilegiato e l'unico obbligatorio, esegue il firmware. Il modo supervisore
+(S) esegue il kernel di un sistema operativo come Linux. Il modo utente (U)
+esegue le applicazioni. L'ESP32-C6 realizza M e U. Il passaggio da un modo
+all'altro avviene attraverso le trap, argomento del
+Capitolo~\ref{ch:instructions}.
+
+% ----------------------------------------------------------------------------
+\section{I registri}
+
+\subsection{Tipi di registri}
+
+Un registro può essere specializzato, o può fare più lavori. I registri
+specializzati richiedono codici operativi specializzati per la stessa
+operazione su banchi diversi; concentrare più funzioni negli stessi registri
+dà maggiore complessità interna e maggiore flessibilità d'uso. I registri di
+macchina, diversi in numero e spesso raggruppati in banchi, possono essere
+organizzati come una memoria indirizzabile (un banco $R$, di cui $R_i$ è un
+registro) o come registri autonomi, ciascuno con il proprio nome. Alcuni
+processori collocavano i loro registri generici nelle prime locazioni di
+memoria: la «pagina zero» del 6502.
+
+\riscv ha un solo banco di trentadue registri, indirizzato da 5 bit dentro
+l'istruzione; i nomi \reg{t0}, \reg{a0}, \reg{sp} sono solo convenzioni.
+
+\subsection{Le funzioni dei registri}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Transito dei dati.] Dalla memoria a un registro, da registro a registro,
+  da un registro alla memoria: load, move, store.
+\item[Accumulo dei risultati.] Necessario per l'aritmetica e la logica:
+  $R:=\mathrm{op}\,R$, oppure $R:=R\ \mathrm{op}\ X$.
+\item[Indirizzamento.] Trovare l'indirizzo di un operando: registri indice,
+  registri base.
+\item[Puntatori allo stack.] Gestire uno stack realizzato in memoria.
+\item[Indicatori, o flag.] Informazione binaria su eventi: zero, segno,
+  overflow, riporto, indirizzi o codici illegali. Prodotti durante
+  l'esecuzione di un'istruzione, possono condizionare le successive.
+\end{description}
+
+In \riscv le prime quattro funzioni sono tutte svolte dai registri generici;
+la quinta non esiste come registro.
+
+\subsection{I trentadue registri di RISC-V}
+
+\begin{table}[htb]
+\centering\small
+\caption{I registri di \riscv e i loro ruoli convenzionali.}\label{tab:cpu:regs}
+\begin{tabular}{@{}lll@{\qquad}lll@{}}
+\toprule
+\textbf{Registro} & \textbf{Nome} & \textbf{Funzione} & \textbf{Registro} & \textbf{Nome} & \textbf{Funzione}\\
+\midrule
+\reg{x0} & \reg{zero} & sempre 0 & \reg{x8}--\reg{x9} & \reg{s0}--\reg{s1} & salvati\\
+\reg{x1} & \reg{ra} & indirizzo di ritorno & \reg{x10}--\reg{x11} & \reg{a0}--\reg{a1} & argomenti, risultati\\
+\reg{x2} & \reg{sp} & puntatore allo stack & \reg{x12}--\reg{x17} & \reg{a2}--\reg{a7} & argomenti\\
+\reg{x3} & \reg{gp} & puntatore globale & \reg{x18}--\reg{x27} & \reg{s2}--\reg{s11} & salvati\\
+\reg{x4} & \reg{tp} & puntatore al thread & \reg{x28}--\reg{x31} & \reg{t3}--\reg{t6} & temporanei\\
+\reg{x5}--\reg{x7} & \reg{t0}--\reg{t2} & temporanei & \reg{pc} & -- & program counter\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'hardware tratta in modo identico i registri da \reg{x1} a \reg{x31}, e solo
+\reg{x0} è speciale (Tabella~\ref{tab:cpu:regs}); il program counter non è nel
+banco. I ruoli vengono dalla convenzione di chiamata. L'MC68000, invece,
+separava i registri dati D0--D7 dai registri indirizzi A0--A7, con A7 come
+puntatore allo stack.
+
+\subsection{I flag: il registro di stato, e la sua assenza}
+
+Molti processori hanno un \term{registro di stato}: bit, chiamati flag,
+accessibili dal programma. Quelli usuali sono Z (zero), N (negativo), V
+(overflow) e C (riporto), talvolta con un bit di parità. Un'istruzione li
+imposta, e un successivo salto condizionato li esamina. L'MC68000 ha il suo
+registro dei codici di condizione, e x86 il suo registro dei flag.
+
+\riscv non ha flag. Un salto confronta due registri e salta, in una sola
+istruzione: \ins{beq}, \ins{bne}, \ins{blt}, \ins{bge}, \ins{bltu},
+\ins{bgeu}. Le istruzioni \ins{slt} e \ins{sltu} scrivono il risultato di un
+confronto in un registro generico. Riporto e overflow si calcolano quando
+servono (Capitolo~\ref{ch:integers}). C'è meno stato nascosto, il che rende
+più semplici le pipeline e le interruzioni.
+
+\subsection{I registri speciali di RISC-V: i CSR}
+
+I registri speciali di \riscv sono i \term{registri di controllo e stato}
+(CSR, \emph{control and status registers}): un banco separato di un massimo di
+4\,096 registri, letti e scritti solo con le istruzioni \ins{csrrw},
+\ins{csrrs} e \ins{csrrc}, e solo dal codice privilegiato
+(Tabella~\ref{tab:cpu:csr}). Sono i «registri delle interruzioni» del modello
+generale, e l'argomento del Capitolo~\ref{ch:instructions}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Alcuni CSR del modo macchina.}\label{tab:cpu:csr}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Registro} & \textbf{Nome} & \textbf{Che cosa contiene}\\
+\midrule
+\reg{mstatus} & machine status & l'abilitazione globale delle interruzioni e il modo di privilegio precedente\\
+\reg{mtvec} & trap vector & l'indirizzo della routine che gestisce interruzioni ed eccezioni\\
+\reg{mepc} & exception program counter & l'indirizzo dell'istruzione che è stata interrotta\\
+\reg{mcause} & trap cause & un codice che dice perché è avvenuta la trap\\
+\reg{mie}, \reg{mip} & interrupt enable, interrupt pending & un bit per sorgente di interruzione\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Lo stack}
+
+\subsection{L'ultimo a entrare è il primo a uscire}
+
+\begin{definition}{Stack}
+Uno \term{stack}, o pila, è una struttura dati astratta con due operazioni:
+\emph{push} memorizza un elemento come ultimo della pila, e \emph{pop} toglie
+l'ultimo elemento. L'ultimo valore inserito è il primo estratto (LIFO,
+\emph{last in, first out}).
+\end{definition}
+
+Uno stack lavora sempre e solo sulla sua cima: non c'è bisogno di dire dove
+memorizzare o da dove prelevare. Si usa per mettere da parte il contenuto dei
+registri che vanno liberati per svolgere un compito, e per ripristinarlo dopo:
+accade nei sottoprogrammi e nelle interruzioni. È realizzato con un puntatore,
+in memoria o in un registro dedicato, che indica in ogni istante la posizione
+dell'ultimo elemento. Le operazioni su uno stack dovrebbero controllare
+l'overflow su un push e lo stack vuoto su un pop.
+
+\subsection{Push e pop in RISC-V}
+
+In \riscv lo stack vive in memoria, cresce verso gli indirizzi bassi, e il
+registro \reg{sp} punta alla sua cima (Figura~\ref{fig:cpu:stack}). Non ci sono
+istruzioni chiamate push e pop: ciascuna è fatta di due istruzioni ordinarie.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.42\textwidth}\centering
+\begin{tikzpicture}[x=0.7cm,y=0.62cm,font=\ttfamily\small]
+  \foreach \i/\v/\f in {0/(libero)/prgpanel, 1/(libero)/prgpanel, 2/-28/prgamber!60, 3/-17/prgaccent!18, 4/739/prgaccent!18, 5/43/prgaccent!18}{
+    \draw[prgsteel,fill=\f] (0,-\i) rectangle (2.6,-\i-1);
+    \node at (1.3,-\i-0.5) {\v};
+  }
+  \draw[->,very thick,prgred] (-1.1,-2.5) node[left,font=\ttfamily\bfseries]{sp} -- (-0.05,-2.5);
+  \node[lbl,anchor=west,text=prgcomment] at (2.7,-0.5) {indirizzi bassi};
+  \node[lbl,anchor=west,text=prgcomment] at (2.7,-5.5) {fondo};
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{asm}[numbers=none,xleftmargin=4pt,basicstyle=\ttfamily\footnotesize]
+# push t0
+addi sp, sp, -4      # make room
+sw   t0, 0(sp)       # store on the new top
+
+# pop t0
+lw   t0, 0(sp)       # read the top
+addi sp, sp, 4       # release it
+\end{asm}
+\end{minipage}
+\caption{Uno stack in memoria, e le due operazioni in \riscv.}
+\label{fig:cpu:stack}
+\end{figure}
+
+In pratica un programma \riscv non inserisce ed estrae valori singoli: uno
+\emph{stack frame} è allocato una volta per funzione, sedici byte alla volta,
+ed è riempito con store ordinari, come ha fatto ogni funzione di \vermone che
+fa una chiamata. Altri processori hanno forme dedicate: sul 68000,
+\code{MOVE (SP)+, D0} estrae con un post-incremento.
+
+% ----------------------------------------------------------------------------
+\section{Modelli di processore}
+
+I processori si classificano secondo il luogo in cui vivono gli operandi di
+un'operazione.
+
+\subsection{Quattro architetture}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[A registri generali.] Il processore ha un insieme di registri che
+  possono essere usati in modo intercambiabile.
+\item[Ad accumulatore.] Tutte le istruzioni aritmetiche, logiche e di
+  confronto hanno un operando implicito: un registro speciale, l'accumulatore.
+\item[A stack.] Non ci sono né accumulatori né registri generali, solo il
+  puntatore allo stack; le istruzioni lavorano sui dati in cima allo stack.
+\item[Ortogonale.] Un solo banco di registri generali, alcuni dei quali
+  servono, quando occorre, da puntatore allo stack o da altri registri
+  speciali.
+\end{description}
+
+\subsection{\texttt{z = x + y} in quattro processori}
+
+\begin{table}[htb]
+\centering\small
+\caption{Lo stesso calcolo in quattro modelli.}\label{tab:cpu:models}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}P{0.2\textwidth}Lc@{}}
+\toprule
+\textbf{Modello} & \textbf{Esempio} & \textbf{Programma} & \textbf{Accessi}\\
+\midrule
+accumulatore & Motorola 6809, MOS 6502 & \code{LDA x; ADD y; STA z} & 3\\
+stack & macchina virtuale Java, WebAssembly & \code{PUSH x; PUSH y; ADD; POP z} & 3 + stack\\
+registri generali, operandi in memoria & MC68000, Intel x86 & \code{MOVE x,D0; ADD y,D0; MOVE D0,z} & 3\\
+registri generali, load-store & \riscv & \code{lw t1,x; lw t2,y; add t3,t1,t2; sw t3,z} & 3\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Gli accessi alla memoria sono dappertutto gli stessi tre
+(Tabella~\ref{tab:cpu:models}): ciò che cambia è quante istruzioni ci sono, e
+quanto è complessa ciascuna. Nel modello registro-memoria un'istruzione come
+\code{ADD y, D0} legge la memoria \emph{e} calcola; nel modello load-store
+ogni istruzione fa una cosa sola. Le macchine a stack con lo stack in memoria
+sono generalmente più lente delle macchine a registri generali. (Nella
+tabella, \code{lw t1, x} è un'abbreviazione che l'assemblatore accetta per la
+coppia \ins{la} e \ins{lw} del riscaldamento.)
+
+\subsection{RISC-V: un processore load-store a registri generali}
+
+\begin{prgconcept}[Caricare, calcolare, memorizzare]
+Solo i load e gli store toccano la memoria; ogni altra istruzione lavora da
+registro a registro. È il ritmo di ogni programma \riscv, dal primo contatore
+all'ultimo gioco.
+\end{prgconcept}
+
+Le ragioni sono quattro. Le istruzioni che lavorano sui registri sono più
+veloci di quelle che lavorano su locazioni di memoria, così che i dati più
+usati si tengono nei registri. Un'istruzione ha tre operandi, due sorgenti e
+una destinazione, così che nessun valore viene distrutto a meno che il
+programmatore non lo voglia. Ogni istruzione fa una cosa semplice e ha una
+dimensione fissa: è facile da decodificare, e facile da eseguire in una
+pipeline. È questo il significato di RISC, \emph{reduced instruction set
+computer}: le forme che vanno dalla memoria a un registro e da un registro
+alla memoria, che esistono nei processori CISC, sono esattamente ciò a cui il
+RISC rinuncia.
+
+% ----------------------------------------------------------------------------
+\section{La ALU e il quadro d'insieme}
+
+\subsection{L'unità aritmetico-logica}
+
+La ALU del Capitolo~\ref{ch:combinational}, vista dal processore, sovrintende
+alle operazioni aritmetiche e logiche tra operandi. Nel modello ha due
+registri di ingresso, $O_1$ e $O_2$, e un registro di uscita $U$. È
+fisicamente inclusa nel processore nelle architetture elementari ed è un
+apparato indipendente in quelle più complesse; una soluzione diffusa è
+un'unità aritmetica ridotta dentro il processore con apparati indipendenti per
+le operazioni più sofisticate. In \riscv quell'apparato sono le estensioni: M
+per moltiplicazione e divisione, F e D per la virgola mobile. Le operazioni
+disponibili dipendono dai tipi di dati e dalla loro rappresentazione: valori
+logici, stringhe di caratteri, puntatori, e numeri nelle codifiche dei
+Capitoli \ref{ch:integers} e~\ref{ch:reals}.
+
+\subsection{L'architettura di un processore RV32}
+
+La Figura~\ref{fig:cpu:datapath} riduce ai suoi blocchi il classico datapath
+\riscv a ciclo singolo di \citet{patterson2020}. Il PC dà l'indirizzo
+dell'istruzione; l'istruzione viene prelevata dalla memoria; il decodificatore
+ne separa i campi e l'unità di controllo produce i comandi; il banco dei
+registri fornisce gli operandi; la ALU calcola un risultato o forma un
+indirizzo; la memoria dati viene letta o scritta; e il risultato torna al
+banco dei registri. La memoria istruzioni e la memoria dati sono lo stesso
+spazio degli indirizzi, disegnato due volte per chiarezza.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkred,text width=12mm,minimum height=16mm] (pc) {\textbf{PC}};
+  \node[blkvio,text width=19mm,minimum height=16mm,right=of pc] (im) {\textbf{memoria istruzioni}\\\scriptsize prelievo};
+  \node[blk,fill=prgsteel,text=white,text width=20mm,minimum height=16mm,right=of im] (dec) {\textbf{decodifica e controllo}\\\scriptsize campi, comandi};
+  \node[blkacc,text width=19mm,minimum height=16mm,right=of dec] (rf) {\textbf{banco dei registri}\\\scriptsize \texttt{x0}--\texttt{x31}};
+  \node[blkamb,text width=16mm,minimum height=16mm,right=of rf] (alu) {\textbf{ALU}\\\scriptsize calcola, o forma un indirizzo};
+  \node[blkvio,text width=16mm,minimum height=16mm,right=of alu] (dm) {\textbf{memoria dati}\\\scriptsize load, store};
+  \foreach \a/\b in {pc/im,im/dec,dec/rf,rf/alu,alu/dm} \draw[->,bus] (\a) -- (\b);
+  \draw[->,bus,prgred,rounded corners=2mm] (dm.south) -- ++(0,-8mm) -| (rf.south) node[pos=0.25,below,lbl,text=prgred]{riscrittura del risultato};
+  \draw[->,bus,prgsteel,rounded corners=2mm] (alu.north) -- ++(0,8mm) -| (pc.north) node[pos=0.25,above,lbl]{PC successivo: $PC+4$ o la destinazione di un salto};
+\end{tikzpicture}
+\caption{L'architettura di un processore RV32, ridotta ai suoi blocchi.}
+\label{fig:cpu:datapath}
+\end{figure}
+
+\subsection{Il processore del kit PRG32}
+
+\begin{table}[htb]
+\centering\small
+\caption{L'ESP32-C6 (dal datasheet di Espressif).}\label{tab:cpu:c6}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Caratteristica} & \textbf{ESP32-C6}\\
+\midrule
+Insieme di istruzioni & RV32IMAC: insieme intero di base, moltiplicazione e divisione, operazioni atomiche, istruzioni compresse\\
+Core principale & un core \riscv a 32 bit, fino a 160 MHz, pipeline a quattro stadi\\
+Secondo core & un core \riscv a basso consumo, fino a 20 MHz, per i compiti che girano mentre il core principale dorme\\
+Modi di privilegio & macchina e utente\\
+Virgola mobile & nessuna: né estensione F né D\\
+Memoria & 512 KB di SRAM, 320 KB di ROM, flash esterna\\
+Sullo stesso chip & radio Wi-Fi 6, Bluetooth, Thread e Zigbee; periferiche SPI, I2S, GPIO e timer\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il chip della Tabella~\ref{tab:cpu:c6} è un calcolatore completo su pochi
+millimetri quadrati che costa circa due euro: processore, memoria e
+ingresso/uscita ci sono tutti, come nel modello con cui il capitolo è
+cominciato.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quale registro del modello generale non ha corrispettivo in \riscv?}
+\item il program counter
+\item il registro di stato con i flag
+\item il puntatore allo stack
+\item il registro istruzione
+\end{quiz}
+
+\begin{quiz}{In \riscv, quali istruzioni possono leggere o scrivere la memoria centrale?}
+\item tutte
+\item \ins{add} e \ins{sub}
+\item solo load e store
+\item solo i salti
+\end{quiz}
+
+\begin{quiz}{Dopo \code{addi sp, sp, -4} e \code{sw t0, 0(sp)}, che cosa è successo?}
+\item \reg{t0} è stato estratto dallo stack
+\item \reg{t0} è stato inserito sullo stack
+\item lo stack è stato svuotato
+\item \reg{sp} è stato salvato in \reg{t0}
+\end{quiz}
+
+\begin{quiz}{In una macchina ad accumulatore, l'istruzione \code{ADD y} significa:}
+\item $y := y + \text{accumulatore}$
+\item $\text{accumulatore} := \text{accumulatore} + [y]$
+\item push di $y$, poi somma
+\item $y := \text{accumulatore}$
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Scrivete $z=(a+b)-(c+d)$ per una macchina ad accumulatore, per una
+  macchina a stack e per \riscv; contate le istruzioni e gli accessi alla
+  memoria.
+\item Scrivete il push e il pop di due registri, \reg{t0} e \reg{t1}, tenendo
+  \reg{sp} multiplo di 16 come richiede la convenzione di chiamata.
+\item Per ogni registro usato nel vostro ultimo programma \prg, dite quale
+  funzione svolge: transito, accumulo, indirizzamento, stack.
+\item In \prgqt, eseguite passo-passo una chiamata e il suo ritorno: guardate
+  \reg{pc}, \reg{ra} e \reg{sp}, e la parola salvata sullo stack.
+\item Trovate nel datasheet del processore del vostro telefono o portatile:
+  insieme di istruzioni, numero di core, clock, livelli di privilegio.
+\end{enumerate}
+\expected{Accumulatore: \code{LDA a; ADD b; STA tmp; LDA c; ADD d; STA tmp2;
+LDA tmp; SUB tmp2; STA z}. Stack: \code{PUSH a; PUSH b; ADD; PUSH c; PUSH d;
+ADD; SUB; POP z}. \riscv: quattro load, due \ins{add}, una \ins{sub}, uno
+store. In \prgqt: \reg{sp} scende di 16 al prologo e ritorna all'epilogo;
+\reg{ra} contiene l'indirizzo dopo la chiamata.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+control unit & unità di controllo\\
+program counter & contatore di programma\\
+machine register & registro di macchina\\
+general / special register & registro generico / speciale\\
+instruction set & insieme (set) di istruzioni\\
+accumulator & accumulatore\\
+stack pointer & puntatore allo stack\\
+status register, flags & registro di stato, indicatori\\
+supervisor / user state & stato supervisore / utente\\
+privileged instruction & istruzione privilegiata\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Il processore comanda e controlla, appoggiandosi alla memoria e ai sistemi di
+ingresso/uscita. I registri sono locazioni di memorizzazione che possono
+trovarsi fisicamente dentro o fuori il processore, e i tipi di registri e il
+modo in cui sono usati determinano il modello del processore: accumulatore,
+stack, registri generali. La ALU svolge le operazioni tra operandi. \riscv è
+un processore load-store a registri generali, senza flag e senza istruzioni di
+I/O: pochi elementi, ciascuno semplice.
+
+\paragraph{Letture.} \citet{patterson2020}, capitoli 2 e~4; il manuale
+dell'insieme di istruzioni \riscv, volume~I \citep{riscvisa};
+\citet{stallings2021}, i capitoli sulla struttura e sul funzionamento del
+processore. L'Appendice~\ref{app:riscv} è il riferimento completo.

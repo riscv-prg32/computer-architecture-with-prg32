@@ -1,0 +1,402 @@
+% ============================================================================
+%  Capitolo 21 -- Ingresso e uscita                              (Lezione 21)
+% ============================================================================
+\chapter{Ingresso e uscita}
+\label{ch:io}
+
+\epigraphline{Input! Ho bisogno di input!}{Numero 5, nel film
+\emph{Corto circuito}, John Badham, 1986}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item descrivere come si forma un'immagine su un CRT e su un LCD, e che cosa aggiunge una matrice attiva TFT;
+\item spiegare il percorso della pressione di un tasto: matrice, codificatore, registro a scorrimento, interfaccia seriale;
+\item dire che cosa invia un mouse al calcolatore, e quanto spesso;
+\item descrivere le fasi della stampa laser;
+\item spiegare come il kit \prg legge il suo joystick, e confrontare polling, interruzioni e DMA.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Leggere il mondo, una volta per frame.},label=lst:io:warm]{code/l21/s04.S}
+
+Leggete il joystick fin dai primi capitoli (Listato~\ref{lst:io:warm}). Ogni
+pulsante è un interruttore su un piedino di ingresso del chip: premuto o
+rilasciato, un bit. Il runtime legge i piedini, che sono registri mappati in
+memoria configurati come ingressi, e li impacchetta in una parola: una
+rappresentazione decodificata, nel senso del Capitolo~\ref{ch:combinational}.
+E il gioco chiede una volta per frame: questo si chiama \term{polling}
+(interrogazione ciclica).
+
+Il listato ripete anche una lezione del Capitolo~\ref{ch:instructions}. La
+maschera dei pulsanti è tenuta in \reg{s0}, un registro salvato, e quindi
+sopravvive alla chiamata che suona la nota: il segnalino si muove con
+\key{LEFT} anche mentre suona \key{A}. In \reg{t0} la maschera andrebbe persa
+alla chiamata. (Il programma è stato compilato come cartuccia ed eseguito
+sull'esecutore senza interfaccia di \prgqt.)
+
+Una tastiera ha un centinaio di tasti, un mouse si muove in due dimensioni, un
+display ha migliaia di pixel: come parlano con un processore?
+
+% ----------------------------------------------------------------------------
+\section{I display}
+
+\subsection{Il video: un'introduzione}
+
+I primi display mostravano soprattutto caratteri, in bianco e nero; oggi sono
+grafici e a colori. Un display grafico è una matrice di punti, i \term{pixel},
+ciascuno acceso con un'intensità diversa, e un'immagine si compone accendendo
+e spegnendo i pixel. Una diversa densità di pixel dà una diversa risoluzione; i
+colori vanno da 256 (8 bit) a 16 milioni (24 bit) e oltre. La dimensione si
+misura in pollici lungo la diagonale. Il display del kit \prg ha una diagonale
+di 2,8 pollici, 320 per 240 pixel e 65\,536 colori.
+
+\subsection{Il tubo a raggi catodici}
+
+\begin{table}[htb]
+\centering\small
+\caption{Breve storia del tubo a raggi catodici.}\label{tab:io:crt}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Anno} & \textbf{Chi} & \textbf{Che cosa}\\
+\midrule
+primi anni 1870 & William Crookes & il tubo di Crookes: il primo tubo a raggi catodici, uno strumento di laboratorio\\
+1897 & Karl Ferdinand Braun & il tubo di Braun e il primo oscilloscopio a raggi catodici: la prima applicazione pratica\\
+1907 & Boris Rosing & un CRT mostra semplici forme geometriche da un segnale video ricevuto: la radice della televisione\\
+1934 & Telefunken & il primo televisore con un CRT sul mercato, in Germania\\
+anni 1970--1990 & l'industria dei calcolatori & il monitor CRT: il display di ogni terminale e personal computer\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+In un \term{tubo a raggi catodici} (CRT; Tabella~\ref{tab:io:crt},
+Figura~\ref{fig:io:crt}) il catodo è un piccolo elemento metallico riscaldato
+fino all'incandescenza, che emette elettroni per effetto termoionico. Dentro
+il tubo gli elettroni sono diretti in un fascio da un'alta differenza di
+potenziale tra catodo e anodo, e altri campi elettromagnetici mettono a fuoco
+il fascio. Il fascio, il «pennello elettronico», è deflesso da campi magnetici
+(la forza di Lorentz) o da campi elettrici, e colpisce un punto sulla
+superficie interna dello schermo, che è rivestita di fosforo e si illumina.
+Far scorrere il fascio riga per riga, molte volte al secondo, dipinge
+l'immagine.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{mac_classic.jpg}\caption{Un Macintosh compatto: un CRT da 9 pollici}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.36\textwidth}\centering
+\begin{tikzpicture}[x=0.42cm,y=0.42cm,font=\sffamily\tiny]
+  \draw[prgsteel,thick,fill=prgpanel] (0,-0.9) -- (4.2,-0.9) -- (8,-2.9) -- (8.5,-2.9) arc (-35:35:5.05) -- (8,2.9) -- (4.2,0.9) -- (0,0.9) -- cycle;
+  \draw[prgred,thick] (0.5,-0.25) rectangle (1.3,0.25);
+  \fill[prgsteel] (2.0,1.1) rectangle (3.4,1.6) (2.0,-1.6) rectangle (3.4,-1.1);
+  \fill[prgamber] (4.4,1.5) rectangle (5.6,2.0) (4.4,-2.0) rectangle (5.6,-1.5);
+  \draw[prggreen,very thick,dashed] (1.3,0) -- (4.6,0) .. controls (6,0.2) .. (9.35,1.6);
+  \fill[prggreen] (9.35,1.6) circle (2.5pt);
+  \node[anchor=north] at (0.9,-1.0) {catodo};
+  \node[anchor=south] at (2.7,1.6) {fuoco};
+  \node[anchor=south] at (5.0,2.0) {deflessione};
+  \node[anchor=west] at (9.6,1.6) {fosforo};
+  \node[anchor=north] at (5.2,-3.0) {fascio di elettroni, anodo ad alta tensione};
+\end{tikzpicture}
+\caption{Lo schema di un CRT}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{crt_scope.jpg}\caption{Un oscilloscopio usato come display}\end{subfigure}
+\caption{Il tubo a raggi catodici.}
+\label{fig:io:crt}
+\end{figure}
+
+\subsection{Display a cristalli liquidi}
+
+I monitor LCD hanno sostituito quasi del tutto il tubo a raggi catodici: danno
+un'immagine migliore, con meno ingombro, peso e potenza, e affaticano meno gli
+occhi. I \term{cristalli liquidi} sono molecole organiche viscose che scorrono
+come un liquido ma hanno una struttura spaziale. Un campo elettrico cambia
+l'orientamento delle molecole, e con esso una proprietà ottica del cristallo:
+l'angolo di polarizzazione della luce che lo attraversa. Un cristallo è una
+valvola per la luce, aperta e chiusa da una tensione.
+
+\subsection{Dentro un pannello LCD}
+
+Lo schermo è fatto di molte celle, spesso una per pixel, in cui sono
+intrappolati i cristalli liquidi (Figura~\ref{fig:io:lcd}). Ogni cella ha
+contatti elettrici, così che si può applicare un campo al liquido che
+contiene. Le celle stanno tra due filtri polarizzatori i cui assi sono
+perpendicolari tra loro, con una luce, la \term{retroilluminazione}, dietro
+quello posteriore. La polarizzazione decide se la luce passa: quando i
+cristalli non sono pilotati la luce viene ruotata e attraversa il polarizzatore
+anteriore; quando sono pilotati viene completamente bloccata. In uno schermo a
+colori ogni cella è divisa in tre sezioni con un filtro rosso, uno verde e uno
+blu: i tre campi del colore RGB565 del Capitolo~\ref{ch:information} finiscono
+qui, come tre tensioni.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.46\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{lcd_layers.jpg}\caption{Gli strati di un LCD}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.46\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{lcd_pixels.jpg}\caption{Sottopixel rossi, verdi e blu}\end{subfigure}
+\caption{Display a cristalli liquidi.}
+\label{fig:io:lcd}
+\end{figure}
+
+\subsection{Pilotare le celle: dai segmenti alla matrice attiva}
+
+Nelle calcolatrici e negli orologi digitali c'è un contatto elettrico per
+segmento, il che diventa impossibile al crescere del numero di elementi. Una
+\emph{matrice passiva} ha un gruppo di contatti per riga e uno per colonna,
+non per pixel; viene pilotato un solo pixel alla volta, e gli altri devono
+ricordare il proprio stato. Le conseguenze sono la \emph{persistenza}, le scie
+dietro gli oggetti in movimento, e la diafonia tra celle vicine.
+
+Gli schermi ad alta risoluzione usano una \term{matrice attiva}. Il pannello
+contiene una pellicola sottile di transistor (TFT, \emph{thin-film
+transistor}) su uno strato semiconduttore trasparente; il campo è applicato
+esattamente dove serve da un transistor in ogni cella, e il transistor
+memorizza lo stato elettrico del suo pixel mentre gli altri vengono
+aggiornati. Ogni pixel è, in effetti, una cella di memoria analogica. Il
+display del kit è un pannello TFT con un controller ILI9341. Nei più recenti
+display OLED ogni pixel emette la propria luce, e non serve alcuna
+retroilluminazione.
+
+% ----------------------------------------------------------------------------
+\section{Tastiera e mouse}
+
+\subsection{La tastiera}
+
+La tastiera deriva da quella delle macchine da scrivere, ed è il principale
+dispositivo per l'ingresso di caratteri. I suoi tasti sono raggruppati: tasti
+alfanumerici; tasti speciali come invio e backspace; tasti freccia e tasti
+funzione. Tastiera e video non sono collegati direttamente tra loro: è il
+processore che riproduce sul video l'informazione battuta sulla tastiera.
+L'eco di un tasto sullo schermo è un programma: leggere un codice, disegnare
+un carattere. Le tastiere di oggi si collegano attraverso USB, o senza fili.
+
+\subsection{Il percorso della pressione di un tasto}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \k/\x/\y in {Q/0/0,W/1/0,E/2/0,R/3/0,A/0.3/1,S/1.3/1,D/2.3/1,F/3.3/1,Z/0.6/2,X/1.6/2,C/2.6/2,V/3.6/2}{
+    \def\kd{D}\ifx\k\kd \def\c{prgamber}\else\def\c{prgsteel}\fi
+    \node[draw=white,fill=\c,text=white,rounded corners=1pt,minimum size=5.5mm,font=\ttfamily\bfseries\small] at (\x*0.62,-\y*0.62) {\k};
+  }
+  \node[lbl,text=prgcomment] at (1.2,-1.9) {\emph{righe e colonne di interruttori}};
+  \node[blkacc,text width=27mm,minimum height=14mm] (e) at (5.2,-0.6) {\textbf{codificatore}\\\footnotesize da riga e colonna a un codice di $n$ bit};
+  \node[blkvio,text width=27mm,minimum height=14mm] (s) at (8.6,-0.6) {\textbf{registro a scorrimento}\\\footnotesize $n$ bit da parallelo a serie};
+  \node[blkgrn,text width=27mm,minimum height=14mm] (u) at (12.0,-0.6) {\textbf{interfaccia seriale}\\\footnotesize p.es.\ un controller USB};
+  \draw[->,thick] (2.9,-0.6) -- (e); \draw[->,thick] (e) -- (s); \draw[->,thick] (s) -- (u);
+\end{tikzpicture}
+\caption{Il percorso della pressione di un tasto.}
+\label{fig:io:key}
+\end{figure}
+
+I tasti di una tastiera sono interruttori disposti in righe e colonne
+(Figura~\ref{fig:io:key}). Un tasto premuto unisce una riga a una colonna; un
+\emph{codificatore} trasforma quella combinazione di riga e colonna in un
+codice di tasto di $n$ bit; un \emph{registro a scorrimento} porta gli $n$ bit
+da parallelo a seriale; e un'\emph{interfaccia seriale}, per esempio un
+controller USB, li invia al calcolatore.
+
+\begin{prgconcept}
+Ogni blocco della Figura~\ref{fig:io:key} è una macchina che avete già
+progettato. È il frutto dei Capitoli da \ref{ch:combinational}
+a~\ref{ch:registers}.
+\end{prgconcept}
+
+\subsection{Il mouse}
+
+Il mouse fu inventato negli anni Sessanta da Douglas Engelbart (il primo
+prototipo è del 1964, il brevetto fu depositato nel 1967 e la celebre
+dimostrazione pubblica è del 1968): fu il primo dispositivo di puntamento
+della storia. Era una scatola di legno con due ruote sotto e un filo che
+usciva dal retro, come la coda di un topo. Le due ruote rilevavano i movimenti
+lungo l'asse orizzontale e quello verticale, e l'elettronica li trasformava in
+segnali elettrici. In un mouse \emph{meccanico} una pallina fa girare due
+rulli, ciascuno dei quali aziona un contatore; in un mouse \emph{ottico} una
+sorgente di luce e una minuscola telecamera misurano il movimento della
+superficie sottostante.
+
+\subsection{Che cosa invia un mouse}
+
+Ogni volta che si è spostato di una distanza minima, circa un centesimo di
+pollice, chiamata \emph{mickey}, il mouse invia tre byte: di quante unità si è
+spostato lungo $x$ dall'ultimo rapporto; lo spostamento lungo $y$; e lo stato
+dei pulsanti. I due spostamenti sono numeri con segno in complemento a due
+(Capitolo~\ref{ch:integers}). I mouse moderni riferiscono fino a mille volte
+al secondo. Dentro, il mouse è fatto di due contatori, un registro a
+scorrimento che mette in serie i tre byte, e un'interfaccia seriale; dal lato
+del calcolatore il software di controllo, il \term{driver di periferica},
+sovrintende alla comunicazione con il processore.
+
+% ----------------------------------------------------------------------------
+\section{Le stampanti}
+
+\subsection{La stampante}
+
+Una stampante è un dispositivo di uscita che stampa informazione su carta. La
+sua velocità si misura in righe al minuto, caratteri al secondo o pagine al
+minuto; la sua risoluzione, cioè la qualità della stampa, in punti per
+pollice. Le stampanti a margherita e a catena sono ormai in disuso; una
+stampante \emph{ad aghi} colpisce con degli aghi un nastro inchiostrato; una
+stampante \emph{a getto d'inchiostro} lancia minuscole gocce di inchiostro; e
+poi c'è la stampante laser. Una stampante è anche un piccolo calcolatore: ha
+processore, memoria e firmware propri.
+
+\subsection{La stampante laser}
+
+La stampante laser deriva dalla fotocopiatrice
+(Figura~\ref{fig:io:laser}). Funziona in sei fasi.
+
+\begin{enumerate}
+\item Un tamburo viene caricato elettricamente, a circa 1\,000 volt.
+\item Un raggio laser, riflesso da uno specchio rotante, scandisce la
+  lunghezza del tamburo; il raggio è modulato in modo da produrre una
+  configurazione di punti chiari e scuri.
+\item I punti colpiti dal raggio perdono la carica. Dopo ogni riga il tamburo
+  ruota di una frazione di grado.
+\item Il toner è attratto dai punti ancora carichi: si forma un'immagine della
+  riga.
+\item Il tamburo viene premuto contro la carta e vi trasferisce il toner;
+  rulli riscaldati lo fissano in modo permanente.
+\item Il tamburo viene scaricato e pulito.
+\end{enumerate}
+
+La pagina viene prima costruita come bitmap nella memoria della stampante: un
+frame buffer per la carta.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{laser_printer.jpg}
+\caption{Il percorso della carta in una stampante laser.}
+\label{fig:io:laser}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{I dispositivi del kit PRG32}
+
+\begin{table}[htb]
+\centering\small
+\caption{I dispositivi del kit \prg.}\label{tab:io:kit}
+\begin{tabularx}{\textwidth}{@{}P{0.2\textwidth}lLL@{}}
+\toprule
+\textbf{Dispositivo} & \textbf{Direzione} & \textbf{Come è collegato} & \textbf{Come lo usa una cartuccia}\\
+\midrule
+joystick e pulsanti & ingresso & un interruttore per piedino di ingresso (GPIO) & \code{prg32\_input\_read}: un bit per pulsante\\
+display, TFT $320\times 240$ & uscita & bus seriale SPI, con DMA & le chiamate \code{prg32\_gfx\_*} disegnano nel frame buffer\\
+amplificatore e altoparlante & uscita & bus seriale I2S & le chiamate \code{prg32\_audio\_*}: note, campioni, musica\\
+radio Wi-Fi & ingresso e uscita & dentro il chip & caricamento delle cartucce, lo Store, multigiocatore\\
+porta seriale USB & ingresso e uscita & USB & programmazione del firmware, messaggi di debug\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Un dettaglio della Tabella~\ref{tab:io:kit} era stato promesso nel
+Capitolo~\ref{ch:electronics}: un interruttore rimbalza per qualche
+millisecondo quando viene premuto, e campionarlo una volta per frame, ogni
+poche decine di millisecondi, nasconde il rimbalzo.
+
+\subsection{Tre modi di trattare un dispositivo}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Polling (I/O programmato).] Il programma chiede al dispositivo, ancora e
+  ancora, se ha qualcosa. È semplice, ed è ciò che fa un gioco una volta per
+  frame; è uno spreco quando non succede niente.
+\item[Interruzioni.] Il dispositivo chiede attenzione quando gli serve; il
+  processore sospende ciò che sta facendo, serve il dispositivo e riprende
+  (Capitolo~\ref{ch:instructions}).
+\item[Accesso diretto alla memoria.] Il dispositivo scambia da solo interi
+  blocchi di dati con la memoria; il processore avvia soltanto il
+  trasferimento e viene avvisato quando termina (Capitolo~\ref{ch:memory}).
+\end{description}
+
+\begin{prgmachine}
+Sul kit tutti e tre sono al lavoro nello stesso momento: il gioco interroga il
+joystick, il timer che scandisce i frame interrompe, e il display e il suono
+sono alimentati dal DMA.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Che cosa fa il codificatore di un controller di tastiera?}
+\item Illumina il tasto premuto
+\item Trasforma una combinazione di riga e colonna in un codice di tasto
+\item Invia il codice al monitor
+\item Conta per quanto tempo un tasto resta premuto
+\end{quiz}
+
+\begin{quiz}{In un LCD a colori, un pixel è fatto di:}
+\item una cella che cambia colore
+\item tre celle con filtri rosso, verde e blu
+\item un punto di fosforo colpito da elettroni
+\item un transistor che emette luce
+\end{quiz}
+
+\begin{quiz}{Perché un LCD a matrice passiva mostra scie dietro gli oggetti in movimento?}
+\item La retroilluminazione è troppo debole
+\item I pixel sono pilotati uno alla volta e nel frattempo devono mantenere il proprio stato
+\item Ha troppo pochi colori
+\item La scheda video è lenta
+\end{quiz}
+
+\begin{quiz}{Un gioco \prg legge il joystick una volta per frame. Questa tecnica si chiama:}
+\item accesso diretto alla memoria
+\item ingresso a interruzioni
+\item polling
+\item mappatura in memoria
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Una tastiera ha 104 tasti: quanti bit richiede il codice di tasto?
+  Quante righe e colonne potrebbe avere la matrice?
+\item Una pagina di 8 per 11 pollici a 600 punti per pollice, un bit per
+  punto: quanta memoria serve alla stampante per la bitmap?
+\item Muovete un puntatore sullo schermo di \prg con il joystick, come farebbe
+  un mouse: tenete $x$ e $y$, e limitateli allo schermo.
+\item Fate agire il pulsante \key{A} una sola volta per pressione (rilevamento
+  del fronte, Capitolo~\ref{ch:sequential}).
+\item Disegnate un punteggio a sette segmenti con dei rettangoli, usando la
+  tabella del transcodificatore del Capitolo~\ref{ch:combinational}.
+\end{enumerate}
+\expected{Su carta: 7 bit e, per esempio, 8 righe per 13 colonne;
+$4\,800\times 6\,600$ punti, cioè 31\,680\,000 bit, circa 4~MB. Su \prg: un
+puntatore che resta sullo schermo, e un pulsante che scatta una volta per
+pressione.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+cathode-ray tube & tubo a raggi catodici\\
+liquid crystals & cristalli liquidi\\
+backlight & retroilluminazione\\
+active matrix & matrice attiva\\
+keyboard / key & tastiera / tasto\\
+pointing device & periferica di puntamento\\
+dot-matrix / ink-jet printer & stampante ad aghi / a getto d'inchiostro\\
+drum / toner & tamburo / toner\\
+polling & interrogazione ciclica\\
+device driver & driver di periferica\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+I dispositivi di ingresso/uscita sono un componente fondamentale dei
+calcolatori. La tecnologia dei display ha fatto progressi enormi, dal fascio
+di elettroni a un transistor dietro ogni pixel. Tastiera, mouse e stampante
+sono cambiati poco nella forma, e dentro sono costruiti con codificatori,
+contatori e registri a scorrimento. Un dispositivo raggiunge il processore
+attraverso un controller e un bus, ed è trattato con il polling, con le
+interruzioni o con il DMA. Sul kit \prg l'intera catena, da un interruttore a
+un pixel, può essere seguita istruzione per istruzione.
+
+\paragraph{Letture.} \citet{tanenbaum2013}, paragrafo~2.4 (ingresso/uscita);
+\citet{stallings2021}, il capitolo sull'ingresso/uscita; \emph{Playing with
+RISC-V}, capitolo~6, «State and Input» \citep{prg32textbook}.
+
+Il quarto blocco è completo. Il prossimo capitolo conclude \vermone, e quello
+successivo pubblica il gioco.

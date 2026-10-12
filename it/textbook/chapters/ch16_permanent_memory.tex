@@ -1,0 +1,528 @@
+% ============================================================================
+%  Capitolo 16 -- La memoria permanente                          (Lezione 16)
+% ============================================================================
+\chapter{La memoria permanente}
+\label{ch:storage}
+
+\epigraphline{\ldots un dato non esiste se non è stato salvato\ldots}
+  {Prof.\ Almerico Murli, anni Novanta}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item nominare le unità funzionali di un calcolatore e riconoscerle su una scheda madre e sul kit \prg;
+\item distinguere ROM, PROM, EPROM, EEPROM e flash, e dire che cos'è il firmware;
+\item spiegare perché una cache rende più veloce un calcolatore, e che cos'è un cache miss;
+\item descrivere tracce, settori e blocchi di un disco magnetico e le componenti del suo tempo di accesso;
+\item spiegare come un disco ottico memorizza i bit, e confrontare CD e DVD;
+\item collocare flash, dischi a stato solido, dischi rigidi e nastri in un sistema di memorizzazione a più livelli.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Spegnere e riaccendere il kit.},label=lst:st:warm]{code/l16/s04.S}
+
+Un gioco tiene il punteggio migliore in una variabile
+(Listato~\ref{lst:st:warm}). Dopo che il kit è stato spento e riacceso il
+titolo è ancora lì, ma il punteggio migliore è 0. La ragione sta nelle due
+direttive di sezione. La stringa è in \code{.rodata}, che fa parte del file
+della cartuccia, e la cartuccia è un file nella memoria \emph{flash}, che è
+non volatile. La variabile è in \code{.data}, che viene copiata in RAM
+all'avvio e vive nella SRAM, che è volatile.
+
+Per conservare un punteggio per sempre, bisogna scriverlo in una memoria
+permanente. Quali esistono? (Su \prg, i punteggi persistenti sono un servizio
+del Cartridge Store; qui il punto è dove vive ciascuna sezione di un
+programma.)
+
+% ----------------------------------------------------------------------------
+\section{I componenti di un calcolatore}
+
+\subsection{Unità funzionali}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Processore.] Esegue le istruzioni. Sul kit: il core \riscv
+  dell'ESP32-C6.
+\item[Memoria centrale.] Contiene i programmi in esecuzione e i loro dati. Sul
+  kit: 512~KB di SRAM dentro il chip.
+\item[Memoria secondaria.] Conserva programmi e dati quando l'alimentazione è
+  spenta. Sul kit: il chip flash che contiene il firmware e le cartucce.
+\item[Dispositivi di ingresso/uscita.] Scheda video e monitor, tastiera, mouse,
+  stampante, memoria di massa. Sul kit: display, joystick, amplificatore.
+\item[Linee di comunicazione.] I bus: linee di dati e di indirizzi condivise da
+  tutte le unità.
+\end{description}
+
+Un personal computer distribuisce queste unità su una scheda madre; un
+microcontrollore le mette quasi tutte in un solo contenitore.
+
+\subsection{La scheda madre}
+
+Una \term{scheda madre} (Figura~\ref{fig:st:board}) porta gli zoccoli per uno
+o più processori e, vicino a essi, gli alloggiamenti per i moduli di memoria;
+un \emph{chipset} che collega processore, memoria e periferiche; bus di
+espansione, oggi alloggiamenti PCI Express per schede video e altre schede;
+connessioni per la memoria di massa (Serial ATA, M.2) e per il mondo esterno
+(USB, Ethernet, audio); e un chip flash con il firmware che avvia la macchina.
+Dal punto di vista architetturale una scheda del 2002 e una di oggi hanno
+molto in comune.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.7\textwidth]{workstation_board.jpg}
+\caption{La scheda madre di una workstation biprocessore.}
+\label{fig:st:board}
+\end{figure}
+
+\subsection{Il firmware: il BIOS e i suoi eredi}
+
+\begin{definition}{Firmware}
+Il \term{firmware} è il software di base di una macchina, conservato in una
+memoria non volatile e usato dal processore dal momento in cui viene acceso.
+\end{definition}
+
+In un personal computer si chiamava BIOS: un programma in un chip non volatile,
+specifico di una data scheda madre. Le sue istruzioni e i suoi dati sono divisi
+in quattro parti: il \emph{POST} (power-on self test), che controlla che i
+dispositivi funzionino; il \emph{SETUP}, la configurazione dei dispositivi; il
+\emph{BOOT}, che avvia il sistema operativo; e i \emph{DRIVER}, funzioni di
+base a basso livello per la tastiera, i dischi e altri dispositivi. I PC di
+oggi usano il firmware UEFI, che svolge gli stessi compiti.
+
+\begin{prgmachine}
+Sull'ESP32-C6 un programma di avvio in ROM avvia un bootloader in flash, che
+avvia il firmware \prg, che carica la cartuccia scelta dal suo menu
+\emph{Setup}. Ogni stadio trova, controlla e avvia il successivo: una catena
+che va dalla prima istruzione dopo il reset, attraverso strati di memoria
+permanente, alla prima istruzione della vostra \code{init}.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Memorie non volatili}
+
+\subsection{Dalla ROM alla flash}
+
+Le memorie a semiconduttore che conservano il loro contenuto senza
+alimentazione si sono evolute verso un modo sempre più facile di scriverle
+(Tabella~\ref{tab:st:rom}). Leggerle richiede un tempo dell'ordine dei
+nanosecondi.
+
+\begin{table}[htb]
+\centering\small
+\caption{Dalla ROM alla flash.}\label{tab:st:rom}
+\begin{tabularx}{\textwidth}{@{}lP{0.24\textwidth}LL@{}}
+\toprule
+\textbf{Memoria} & \textbf{Scritta da} & \textbf{Cancellata} & \textbf{Uso tipico}\\
+\midrule
+ROM & il costruttore, una volta per tutte & mai & codice di avvio, vecchie cartucce di gioco\\
+PROM & l'utente, una volta & mai & piccole serie di produzione\\
+EPROM & l'utente, molte volte & tutta insieme, con luce ultravioletta attraverso una finestra di quarzo (circa 15 minuti) & sviluppo, BIOS dei primi PC\\
+EEPROM & l'utente, sul posto & elettricamente, un byte alla volta & dati di configurazione\\
+Flash & l'utente, sul posto & elettricamente, a blocchi & firmware, chiavette USB, schede di memoria, dischi a stato solido\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Le sigle stanno per \emph{read-only memory} (memoria di sola lettura), ROM
+\emph{programmabile}, PROM \emph{cancellabile} e PROM \emph{cancellabile
+elettricamente}. Una ROM è, dal punto di vista logico, una macchina
+combinatoria: una tabella che associa una parola fissa a ogni indirizzo, come
+fanno le tabelle \code{dx} e \code{dy} di \vermone.
+
+\subsection{La memoria flash}
+
+La flash è il tipo più recente di EEPROM: può essere riprogrammata sul posto,
+senza essere rimossa dalla scheda, ed è oggi la memoria a semiconduttore meno
+costosa. Ha tre peculiarità.
+
+\begin{itemize}
+\item Si cancella a \emph{blocchi} di byte, non un byte alla volta. La
+  cancellazione pone a 1 tutti i bit di un blocco, e la scrittura può solo
+  trasformare degli 1 in 0.
+\item Ogni blocco sopravvive a un numero limitato di cicli di cancellazione,
+  così che il controller distribuisce le scritture in modo uniforme sui
+  blocchi.
+\item La lettura è veloce; la scrittura e, soprattutto, la cancellazione sono
+  lente.
+\end{itemize}
+
+La flash del kit contiene il firmware e le cartucce: caricare una cartuccia
+cancella e riscrive alcuni dei suoi blocchi. Ed è per questo che il punteggio
+migliore del riscaldamento non viene semplicemente riscritto nella cartuccia a
+ogni frame: la flash non è un posto per le variabili.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{eprom.jpg}\caption{Una EPROM con la sua finestra di quarzo}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{hard_disk.jpg}\caption{Un disco rigido da 6 TB}\label{fig:st:hdd}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{ssd.jpg}\caption{Un disco a stato solido}\end{subfigure}
+\caption{Tre memorie permanenti.}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{La cache}
+
+\subsection{Perché una cache?}
+
+Durante i cicli di clock necessari per leggere o scrivere la memoria il
+processore aspetta; più lenta è la memoria, più cicli si perdono. Perché non
+costruire memorie veloci quanto i registri del processore? Perché dovrebbero
+stare sullo stesso chip, dato che un collegamento attraverso un bus è più
+lento; e allora non potrebbero essere molto grandi, o il chip crescerebbe in
+dimensioni e in costo. Il compromesso è una memoria piccola e veloce sul chip
+del processore, e una o più memorie più grandi e più lente raggiunte
+attraverso il bus.
+
+\subsection{Come funziona una cache}
+
+\begin{definition}{Cache}
+Una \term{cache} (dal francese \emph{cacher}, nascondere) è una memoria di
+piccola capacità ma veloce, posta tra il processore e la memoria centrale, che
+tiene una copia di parte del contenuto di quest'ultima.
+\end{definition}
+
+Il processore cerca prima nella cache (Figura~\ref{fig:st:cache}). C'è un
+\term{successo} \eng{hit} se il contenuto dell'indirizzo richiesto è lì, e
+arriva subito. C'è un \term{fallimento} \eng{miss} se non c'è, e allora deve
+essere copiato dalla RAM nella cache; con esso viene copiato un numero fisso
+di locazioni vicine. Il programma non si ferma e non se ne accorge: l'accesso
+è semplicemente più lento.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=36mm,minimum height=9mm] (p) at (0,0) {processore};
+  \node[blkamb,minimum width=36mm,minimum height=11mm] (c) at (0,-1.8) {\textbf{cache}\\piccola, veloce};
+  \node[blkvio,minimum width=36mm,minimum height=13mm] (m) at (0,-3.9) {\textbf{memoria centrale}\\grande, lenta};
+  \draw[<->,bus] (p) -- (c) node[midway,right,lbl]{ogni accesso};
+  \draw[<->,bus] (c) -- (m) node[midway,right,lbl]{solo su un miss: un blocco};
+\end{tikzpicture}
+\caption{Una cache tra il processore e la memoria centrale.}
+\label{fig:st:cache}
+\end{figure}
+
+Perché copiare i vicini? Per una proprietà empirica dei programmi.
+
+\begin{prgconcept}[Il principio di località]
+Un programma che ha appena usato un indirizzo probabilmente lo userà di nuovo
+presto (\emph{località temporale}) e probabilmente userà i suoi vicini
+(\emph{località spaziale}). I cicli e gli array ne sono la ragione.
+\end{prgconcept}
+
+Più successi ci sono, più breve è il tempo medio di accesso. Se una frazione
+$h$ degli accessi sono successi, la cache risponde in un tempo $t_c$ e un
+fallimento costa in più il tempo $t_m$ della memoria, la media è
+\[ t = h\,t_c+(1-h)\,(t_c+t_m). \]
+Con $t_c=1$~ns, $t_m=50$~ns e il 95\% di successi,
+$t=0,95\times 1+0,05\times 51=3,5$~ns: il sistema si comporta quasi come se
+l'intera memoria fosse veloce quanto la cache.
+
+\subsection{Livelli di cache e macchine tipiche}
+
+I processori reali hanno più livelli di cache, tutti costruiti con SRAM
+(Tabella~\ref{tab:st:levels}). Il primo livello, interno, mantiene un flusso
+continuo dentro il processore; il secondo limita il rallentamento dovuto alla
+memoria centrale; il terzo, da 8 a 32~MB e oltre, è condiviso dai core dello
+stesso processore.
+
+\begin{table}[htb]
+\centering\small
+\caption{I livelli di cache su tre macchine.}\label{tab:st:levels}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+ & \textbf{PC del 2002} & \textbf{PC del 2020} & \textbf{ESP32-C6 (il kit)}\\
+\midrule
+Processore & 1 core & 4 core & 1 core \riscv, 160 MHz\\
+Cache L1 & 64 KB & 64 KB per core & nessuna per la SRAM\\
+Cache L2 & 512 KB & 512 KB per core & nessuna\\
+Cache L3 & nessuna & 8 MB, condivisa dai core & nessuna\\
+Memoria centrale & 256 MB & 16 GB & 512 KB di SRAM\\
+Memoria di massa & disco rigido da 40 GB & 1 TB + 1 TB, in mirror & pochi MB di flash, letta attraverso una piccola cache\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Sull'ESP32-C6 la SRAM è già veloce quanto serve al core; solo la flash esterna
+sta dietro una cache.
+
+% ----------------------------------------------------------------------------
+\section{La memoria secondaria}
+
+\subsection{Caratteristiche}
+
+La \term{memoria secondaria}, o \term{memoria di massa}, conserva tutti i
+programmi e i dati di un calcolatore, mentre la memoria centrale contiene i
+programmi in esecuzione e i dati di cui hanno bisogno. Rispetto alla memoria
+centrale è
+
+\begin{itemize}
+\item non volatile: i dati non si perdono quando il calcolatore viene spento;
+\item di grande capacità: più ordini di grandezza in più;
+\item di basso costo per bit: più ordini di grandezza in meno;
+\item più lenta: di alcuni ordini di grandezza.
+\end{itemize}
+
+La sua informazione è organizzata in \term{blocchi}, di solito di un kilobyte
+o più, non in singoli byte. Alcuni supporti permettono l'accesso
+\emph{diretto} a qualsiasi blocco; altri solo l'accesso \emph{sequenziale}.
+
+\subsection{Dischi magnetici: tracce, settori, blocchi}
+
+Un disco magnetico (Figura~\ref{fig:st:hdd}) è fatto di piatti rivestiti di un
+materiale magnetizzabile e tenuti in rotazione a velocità costante, e di
+testine che leggono e scrivono l'informazione. La superficie è divisa in
+\term{tracce} concentriche e in \term{settori}, spicchi del disco
+(Figura~\ref{fig:st:disk}). Un settore taglia ogni traccia in blocchi: il
+blocco è la più piccola unità indirizzabile, identificata dal numero della sua
+traccia e del suo settore. \term{Formattare} un disco significa dividerne la
+superficie in tracce e settori. L'accesso è diretto: la testina può essere
+posizionata su qualsiasi blocco senza passare su tutti i precedenti. Più
+settori formano un \emph{cluster}; le tracce allo stesso raggio su tutti i
+piatti formano un \emph{cilindro}.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \fill[prgpanel] (0,0) circle (2.6);
+  \fill[prgamber!45] (0,0) -- (30:2.6) arc (30:60:2.6) -- cycle;
+  \begin{scope}
+    \clip (0,0) -- (30:2.7) arc (30:60:2.7) -- cycle;
+    \fill[prgred!70,even odd rule] (0,0) circle (1.9) (0,0) circle (1.5);
+  \end{scope}
+  \draw[prgaccent,line width=2pt] (0,0) circle (1.7);
+  \foreach \r in {0.7,1.1,1.5,1.9,2.3,2.6} \draw[prgsteel,thin] (0,0) circle (\r);
+  \foreach \a in {0,30,...,330} \draw[prgsteel,thin] (\a:0.7) -- (\a:2.6);
+  \fill[white] (0,0) circle (0.7); \draw[prgsteel] (0,0) circle (0.7); \fill[prgsteel] (0,0) circle (0.12);
+  \draw[<-,thick] (150:1.7) -- (-3.6,1.6) node[left,lbl,text=prgaccent]{una traccia};
+  \draw[<-,thick] (45:2.4) -- (3.4,2.2) node[right,lbl,text=prgamber]{un settore};
+  \draw[<-,thick] (45:1.7) -- (3.4,0.6) node[right,lbl,text=prgred]{un blocco};
+  \draw[line width=3pt,prgink] (3.3,-2.4) -- (-10:1.75);
+  \fill[prgink] (-10:1.75) circle (0.1);
+  \node[lbl,anchor=west] at (3.4,-2.4) {braccio e testina};
+\end{tikzpicture}
+\caption{La superficie di un disco magnetico.}
+\label{fig:st:disk}
+\end{figure}
+
+\subsection{Tempo di accesso di un disco magnetico}
+
+Per leggere o scrivere un blocco la testina deve essere portata all'indirizzo
+giusto; durante il trasferimento la testina è ferma e il disco si muove. Il
+tempo di accesso è la somma di tre componenti.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Tempo di posizionamento.] Il tempo per spostare la testina in senso
+  radiale fino al cilindro giusto, e quindi alla traccia giusta.
+\item[Tempo di latenza.] Il tempo di attesa perché il settore desiderato passi
+  sotto la testina; in media, mezzo giro.
+\item[Tempo di trasferimento.] Il tempo perché il blocco passi sotto la
+  testina.
+\end{description}
+
+Un disco che gira a 7\,200 giri al minuto impiega $60/7200 = 8,33$~ms per
+giro, e la sua latenza media è di circa 4,2~ms. I dischi rigidi sono sigillati
+contro la polvere, hanno capacità di terabyte e tempi di accesso di
+millisecondi. Un millisecondo è un milione di nanosecondi: durante un solo
+accesso a un disco un processore a 160~MHz potrebbe eseguire più di centomila
+istruzioni.
+
+\subsection{Dischi rigidi e dischi a stato solido}
+
+Un \term{disco rigido} (HDD, \emph{hard disk drive}) ha piatti magnetici e
+testine mobili; il suo tempo di accesso, di millisecondi, è dominato dalla
+meccanica; ha il costo più basso per terabyte ed è ancora la scelta per i
+grandi archivi e per i backup. Un \term{disco a stato solido} (SSD) è memoria
+flash con un controller, e non ha parti mobili; il suo tempo di accesso è di
+decine di microsecondi; si collega attraverso SATA o, più velocemente,
+attraverso NVMe su PCI Express. È la memoria di massa standard di portatili e
+telefoni, ed è la stessa tecnologia del chip flash del kit.
+
+% ----------------------------------------------------------------------------
+\section{Dischi ottici}
+
+\subsection{Bit letti con la luce}
+
+Un disco ottico è un disco rigido sul quale viene proiettato un raggio laser
+di pochi milliwatt; la riflessione cambia tra i \term{pit} (le fossette) e la
+superficie, il \term{land} (Figura~\ref{fig:st:pits}).
+
+\begin{prgwarn}
+0 e 1 \emph{non} sono pit e land. Un 1 è un \emph{cambiamento}, da pit a land o
+da land a pit; uno 0 è nessun cambiamento.
+\end{prgwarn}
+
+Codificare un 1 come una transizione è un'idea usata anche in molti
+collegamenti seriali, perché permette al ricevitore di recuperare il ritmo dei
+bit dal segnale stesso. I dischi ottici di solito si scrivono una volta sola,
+perché i cambiamenti fisici sono irreversibili: sono usati per distribuire
+programmi e come archivi che non devono essere modificati. In un
+CD-Recordable, due strati di policarbonato racchiudono un sottile foglio
+riflettente coperto da un colorante traslucido, e la registrazione brucia dei
+punti nel colorante; i dischi riscrivibili usano un materiale che può tornare
+indietro.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{pit_land.jpg}\caption{Pit e land}\label{fig:st:pits}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{cdrom_drive.jpg}\caption{Dentro un lettore di CD-ROM}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=34mm,keepaspectratio]{dvd_drive.jpg}\caption{Dentro un lettore di DVD}\end{subfigure}
+\caption{Memorie ottiche.}
+\end{figure}
+
+\subsection{Il compact disc}
+
+Su un compact disc l'informazione è memorizzata su un'unica traccia a spirale,
+con densità di registrazione costante; la distanza tra due giri successivi
+della spirale, il \emph{passo della traccia}, è di 1,6 micrometri. Sono
+possibili due modi di far girare il disco. Con la \emph{velocità lineare
+costante} (CLV) il disco gira più in fretta quando la testina legge vicino al
+centro, da 200 a 500 giri al minuto, così che la traccia passa sotto la testina
+sempre alla stessa velocità (1,2~m/s alla velocità di base, fissata dalla
+velocità di bit necessaria per riprodurre la musica). Con la \emph{velocità
+angolare costante} (CAV) i giri sono costanti e così il numero di bit per
+settore, con il risultato che la superficie esterna è sottoutilizzata.
+
+\subsection{DVD e CD a confronto}
+
+Il DVD (\emph{digital versatile disk}) ha pit più piccoli e una spirale più
+fitta, e fino a due strati e due facce (Tabella~\ref{tab:st:dvd}).
+
+\begin{table}[htb]
+\centering\small
+\caption{DVD e CD.}\label{tab:st:dvd}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{DVD} & \textbf{CD}\\
+\midrule
+Diametro del disco & 120 mm & 120 mm\\
+Spessore del disco & 1,2 mm ($0,6$ mm $\times$ 2) & 1,2 mm\\
+Facce / strati & 1 o 2 / 1 o 2 & 1 / 1\\
+Dimensione minima dei pit & 0,4 $\mu$m & 0,83 $\mu$m\\
+Passo della traccia & 0,74 $\mu$m & 1,6 $\mu$m\\
+Velocità media di trasferimento & 4,7 MB/s & 0,15 MB/s\\
+Capacità, 1 strato, 1 faccia & circa 5 GB & circa 0,68 GB\\
+Capacità, 2 strati, 2 facce & 17 GB & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{La memorizzazione su più livelli}
+
+Un moderno sistema di calcolo ha più livelli di memoria permanente
+(Figura~\ref{fig:st:levels}), spesso gestiti automaticamente: i dati usati
+spesso migrano verso i livelli veloci, e il resto scende verso quelli
+economici. È l'idea della cache, applicata alla memoria di massa; e da un chip
+di pochi megabyte sul kit a sale di petabyte (Figura~\ref{fig:st:racks}) la
+gerarchia è la stessa a ogni scala.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkred,text width=21mm,minimum height=17mm] (a) {\textbf{Disco RAM}\\[1pt]\footnotesize il più veloce, volatile};
+  \node[blkamb,text width=21mm,minimum height=17mm,right=of a] (b) {\textbf{Disco a stato solido}\\[1pt]\footnotesize di lavoro};
+  \node[blkacc,text width=21mm,minimum height=17mm,right=of b] (c) {\textbf{Disco rigido}\\[1pt]\footnotesize capiente, economico};
+  \node[blk,text width=21mm,minimum height=17mm,right=of c] (d) {\textbf{Libreria di dischi}\\[1pt]\footnotesize accesi al bisogno};
+  \node[blkvio,text width=21mm,minimum height=17mm,right=of d] (e) {\textbf{Libreria a nastri}\\[1pt]\footnotesize archivi};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[<->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Una memoria permanente a più livelli.}
+\label{fig:st:levels}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.6\textwidth]{storage_racks.jpg}
+\caption{Librerie di dischi e di nastri in un centro di calcolo.}
+\label{fig:st:racks}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quale memoria si può cancellare elettricamente, a blocchi, senza rimuoverla dalla scheda?}
+\item ROM
+\item PROM
+\item EPROM
+\item Flash
+\end{quiz}
+
+\begin{quiz}{Che cosa accade su un cache miss?}
+\item Il programma si ferma con un errore
+\item Il dato viene prelevato dalla memoria centrale e copiato nella cache, con i suoi vicini
+\item La cache viene cancellata
+\item Il processore salta l'istruzione
+\end{quiz}
+
+\begin{quiz}{Quale componente del tempo di accesso di un disco rigido dipende dalla velocità di rotazione?}
+\item Il tempo di posizionamento
+\item La latenza
+\item Il tempo di formattazione
+\item Il tempo di avvio
+\end{quiz}
+
+\begin{quiz}{Su un disco ottico, un 1 è codificato come:}
+\item un pit
+\item un land
+\item una transizione tra pit e land
+\item un doppio pit
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[su carta e su \prg]
+\begin{enumerate}[nosep]
+\item Un disco gira a 5\,400 giri al minuto: qual è la sua latenza media?
+\item Una cache risponde in 2~ns e la memoria in 80~ns: qual è il tempo medio
+  di accesso con il 90\% di successi? E con il 99\%?
+\item Dite dove vive sul kit \prg ciascuna di queste cose: il codice di avvio,
+  il firmware, una cartuccia, la variabile \code{counter}, il registro
+  \reg{t0}.
+\item Trovate le specifiche della memoria di massa del vostro portatile o del
+  vostro telefono: tecnologia, capacità, interfaccia.
+\item Su \prg, cronometrate due cicli che sommano un array grande: uno in
+  ordine, uno che salta con un passo grande. C'è una differenza, e perché su
+  questo chip potrebbe non esserci?
+\end{enumerate}
+\expected{Latenza: metà di $60/5400=11,1$~ms, cioè circa 5,6~ms. Tempo di
+accesso: $0,9\times 2+0,1\times 82=10$~ns, e
+$0,99\times 2+0,01\times 82=2,8$~ns. Le cinque cose vivono in ROM, in flash,
+in flash (o in RAM una volta caricata), in SRAM, e in un registro di flip-flop
+dentro il processore. Nell'ultimo compito la SRAM dell'ESP32-C6 non ha una
+cache davanti, così che lo schema di accesso conta poco; su un portatile la
+differenza è grande.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+motherboard & scheda madre\\
+firmware & firmware\\
+non-volatile & non volatile\\
+cache hit / miss & successo / fallimento di cache\\
+mass storage & memoria di massa\\
+track / sector / block & traccia / settore / blocco\\
+seek time & tempo di posizionamento\\
+latency & tempo di latenza\\
+solid-state disk & disco a stato solido\\
+tape library & libreria a nastri\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Le memorie non volatili contengono di solito il software di base di una
+macchina, il firmware. La cache migliora le prestazioni tenendo vicino al
+processore una copia di parte della memoria centrale, e la stessa idea, un
+livello piccolo e veloce davanti a uno grande e lento, è usata di nuovo nei
+sistemi di memorizzazione. Le memorie permanenti possono essere a
+semiconduttore (flash), magnetiche o ottiche, e un sistema moderno ne ha più
+livelli, spesso gestiti automaticamente.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafi 5.1--5.4;
+\citet{stallings2021}, i capitoli sulla cache e sulla memoria esterna;
+\citet{tanenbaum2013}, capitolo~2.
+
+Il terzo blocco è completo. Il prossimo capitolo lo usa nella terza parte di
+\vermone: un corpo, regole e stati.

@@ -1,0 +1,731 @@
+% ============================================================================
+%  Capitolo 11 -- Macchine combinatorie                          (Lezione 11)
+% ============================================================================
+\chapter{Macchine combinatorie}
+\label{ch:combinational}
+
+\epigraphline{\ldots non è colpa mia, le carote hanno toccato i piselli\ldots}
+  {Alan Turing da ragazzo, nel film \emph{The Imitation Game}, 2014}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item distinguere una macchina combinatoria da una sequenziale;
+\item calcolare quanti bit richiede un codice a lunghezza fissa, e riconoscere i codici incompleti e ridondanti;
+\item progettare un decodificatore e un codificatore, e comporre decodificatori piccoli in decodificatori più grandi;
+\item spiegare che cosa fanno un multiplexer e un demultiplexer, e costruirli con le porte;
+\item costruire un comparatore e una rete di parità, e dire che cosa un controllo di parità può e non può rilevare;
+\item indicare ciascuna di queste macchine dentro un processore \riscv.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Scegliere uno di quattro colori.},label=lst:cm:palette]{code/l11/s04.S}
+
+Il Listato~\ref{lst:cm:palette} è l'accesso a un array del
+Capitolo~\ref{ch:information}, usato come selezione. Lo stesso selettore dà
+sempre lo stesso colore: il risultato dipende solo dagli ingressi presenti, e
+nulla viene ricordato da un uso al successivo. In hardware questo è un
+\term{multiplexer}: quattro ingressi dati, due bit di selezione, un'uscita. Un
+processore ne contiene decine, e fa la selezione con le porte in molto meno di
+un nanosecondo, dove il programma impiega quattro istruzioni. Come sono
+costruiti?
+
+% ----------------------------------------------------------------------------
+\section{Macchine combinatorie}
+
+\subsection{Una tassonomia dei circuiti digitali}
+
+\begin{definition}{Circuiti combinatori e sequenziali}
+In un circuito \term{combinatorio} il valore delle uscite in un dato istante
+dipende solo dal valore degli ingressi in quello stesso istante. In un circuito
+\term{sequenziale} le uscite dipendono dagli ingressi presenti e dalla storia
+passata degli ingressi.
+\end{definition}
+
+Un circuito combinatorio non ha memoria né anelli di retroazione, ed è
+completamente descritto da una tabella di verità: sommatori, decodificatori,
+multiplexer e la ALU sono combinatori. Un circuito sequenziale richiede i
+concetti di \emph{tempo} e di \emph{stato}, ed è descritto da una tabella degli
+stati o da un diagramma degli stati: latch, flip-flop, registri, contatori e il
+processore nel suo insieme sono sequenziali. Sono l'argomento del
+Capitolo~\ref{ch:sequential}.
+
+\subsection{Progettare una macchina combinatoria}
+
+Il progetto segue il metodo del Capitolo~\ref{ch:boole2}
+(Figura~\ref{fig:cm:design}): da una specifica a parole a una tabella di
+verità, con una riga per combinazione degli ingressi e con le condizioni di
+indifferenza; dalla tabella a espressioni minime, un'uscita alla volta; dalle
+espressioni a una rete di porte, o di blocchi standard. L'analisi va nell'altro
+verso, dallo schema alla tabella di verità. Per più di quattro o cinque
+ingressi nessuno disegna mappe: i progettisti compongono blocchi standard, ed è
+per questo che il capitolo ne è un catalogo.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=5mm]
+  \node[blkacc,text width=27mm,minimum height=16mm] (a) {\textbf{Specifica}\\[1pt]\footnotesize a parole};
+  \node[blkamb,text width=27mm,minimum height=16mm,right=of a] (b) {\textbf{Tabella di verità}\\[1pt]\footnotesize con indifferenze};
+  \node[blkvio,text width=27mm,minimum height=16mm,right=of b] (c) {\textbf{Minimizzazione}\\[1pt]\footnotesize mappe o algebra};
+  \node[blkgrn,text width=27mm,minimum height=16mm,right=of c] (d) {\textbf{Rete}\\[1pt]\footnotesize porte o blocchi};
+  \foreach \x/\y in {a/b,b/c,c/d} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{La sintesi di una macchina combinatoria.}
+\label{fig:cm:design}
+\end{figure}
+
+\subsection{Le porte reali impiegano tempo}
+
+Una porta non risponde all'istante: la sua uscita si assesta dopo un ritardo di
+propagazione (Capitolo~\ref{ch:electronics}). Il ritardo di una rete è quello
+del suo percorso più lento da un ingresso a un'uscita, il \term{cammino
+critico}. Mentre i segnali viaggiano, le uscite possono essere temporaneamente
+sbagliate.
+
+\begin{prgconcept}
+Una macchina combinatoria è corretta solo dopo che si è assestata. Qualcosa
+deve dire quando guardare le sue uscite: quel qualcosa è il clock, ed è lì che
+cominciano le macchine sequenziali.
+\end{prgconcept}
+
+Nel sommatore a propagazione del riporto del Capitolo~\ref{ch:boole2} il
+cammino critico attraversa tutti i trentadue sommatori completi, perché
+l'ultimo riporto dipende dal primo. I sommatori più veloci, come il sommatore
+\emph{carry look-ahead}, calcolano i riporti con porte aggiuntive disposte su
+pochi livelli: spendono area per accorciare il cammino critico. La funzione
+calcolata è la stessa. Il periodo di clock di un processore deve essere più
+lungo del suo cammino critico più lungo.
+
+% ----------------------------------------------------------------------------
+\section{Codici}
+
+Prima di costruire macchine che trattano codici, deve essere chiaro che cos'è
+un codice.
+
+\subsection{Il concetto di informazione}
+
+Un'informazione ha tre aspetti. L'\term{attributo} è il significato che le è
+associato: per esempio, il voto dell'esame di Architettura dei Calcolatori. Il
+\term{tipo} è l'insieme degli elementi tra i quali il valore è scelto: i voti
+da 18 a 30, e 30 e lode. Il \term{valore} è l'elemento effettivamente assunto:
+30. Dare un'informazione è scegliere un elemento in un insieme definito.
+
+La \term{cardinalità} $N$ del tipo è il numero dei suoi elementi, qui $N=14$;
+un tipo con più elementi porta più informazione. Lo stesso valore si può
+scrivere in molti modi: 3, III, tre; e A, B, C, D possono stare per 30 e lode,
+30, 29, 28. «30 e lode» non è un numero: è un quattordicesimo elemento del
+tipo, e come scriverlo è un problema di codifica. Infine, i tipi sono
+\emph{semplici} quando sono atomici, come gli interi e i caratteri, e
+\emph{strutturati} quando combinano tipi semplici: una posizione è una
+latitudine e una longitudine.
+
+\subsection{Alfabeti e stringhe}
+
+\begin{definition}{Alfabeto e stringa}
+Un \term{alfabeto} è un insieme finito e non vuoto di simboli. Una
+\term{stringa}, o parola, su un alfabeto è una sequenza finita di suoi simboli.
+La \term{lunghezza} $|x|$ di una stringa $x$ è il numero dei suoi simboli; la
+stringa di lunghezza 0 è la stringa vuota. L'insieme di tutte le stringhe su un
+alfabeto $S$, quella vuota compresa, si scrive $S^{*}$.
+\end{definition}
+
+L'alfabeto binario è $\{0,1\}$, quello decimale $\{0,\dots,9\}$;
+\texttt{01000010} è una stringa binaria di lunghezza 8. Una sequenza infinita
+$010101\ldots$ non è una stringa, e non appartiene a $\{0,1\}^{*}$.
+
+\subsection{Codici a lunghezza fissa}
+
+\begin{definition}{Codice}
+Un \term{codice} associa a ogni elemento di un tipo sorgente $T$, di
+cardinalità $N$, una stringa di simboli di un alfabeto di codice $E$ con $k$
+simboli, la \term{parola codice}. In un codice a \term{lunghezza fissa} ogni
+parola codice ha la stessa lunghezza $m$.
+\end{definition}
+
+\begin{theorem}{Lunghezza minima}
+Con un alfabeto di $k$ simboli ci sono $k^{m}$ parole di lunghezza $m$. Un
+codice a lunghezza fissa per $N$ elementi esiste se e solo se $k^{m}\ge N$,
+così che la lunghezza minima è
+\[ m=\lceil \log_k N\rceil,\qquad\text{e in binario}\qquad m=\lceil\log_2 N\rceil . \]
+\end{theorem}
+
+I quattordici voti dell'esame richiedono 4 bit; i 32 registri di \riscv ne
+richiedono esattamente 5, e quei cinque bit sono i campi \code{rd}, \code{rs1}
+e \code{rs2} di un'istruzione. Un codice è \term{incompleto} quando $N$ non è
+una potenza di $k$: allora $k^{m}-N$ parole restano non assegnate. I
+quattordici voti lasciano non assegnate $16-14=2$ parole.
+
+\subsection{Un codice incompleto: il decimale codificato in binario}
+
+Le dieci cifre decimali richiedono $\lceil\log_2 10\rceil=4$ bit, e sei delle
+sedici parole non sono mai usate (Tabella~\ref{tab:cm:bcd}). Nel codice
+BCD~8421, in cui ogni cifra è scritta come il suo valore in binario, le parole
+non usate vanno da 1010 a 1111. Le parole non usate diventano condizioni di
+indifferenza quando si progetta un circuito.
+
+\begin{table}[htb]
+\centering\small
+\caption{Due codici per le cifre decimali.}\label{tab:cm:bcd}
+\begin{tabular}{@{}ccc@{\qquad\qquad}ccc@{}}
+\toprule
+\textbf{Cifra} & \textbf{BCD 8421} & \textbf{Eccesso-3} & \textbf{Cifra} & \textbf{BCD 8421} & \textbf{Eccesso-3}\\
+\midrule
+0 & \texttt{0000} & \texttt{0011} & 5 & \texttt{0101} & \texttt{1000}\\
+1 & \texttt{0001} & \texttt{0100} & 6 & \texttt{0110} & \texttt{1001}\\
+2 & \texttt{0010} & \texttt{0101} & 7 & \texttt{0111} & \texttt{1010}\\
+3 & \texttt{0011} & \texttt{0110} & 8 & \texttt{1000} & \texttt{1011}\\
+4 & \texttt{0100} & \texttt{0111} & 9 & \texttt{1001} & \texttt{1100}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Codici ridondanti}
+
+\begin{definition}{Codice ridondante}
+Un codice è \term{ridondante} quando usa più simboli dello stretto necessario:
+la sua lunghezza è maggiore del minimo $m$.
+\end{definition}
+
+In un codice ridondante solo alcune delle parole possibili sono lecite; le
+altre non possono essere prodotte dal codificatore. Se arriva una parola che
+non è lecita, qualcosa l'ha alterata lungo il percorso: l'errore è
+\emph{rilevato}. La ridondanza è il prezzo pagato per rilevare, e talvolta
+correggere, gli errori.
+
+\begin{center}\small
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Elemento} & \textbf{Codice 1} & \textbf{Codice 2}\\
+\midrule
+A & \texttt{00} & \texttt{000}\\
+B & \texttt{01} & \texttt{011}\\
+C & \texttt{10} & \texttt{101}\\
+D & \texttt{11} & \texttt{110}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Il Codice~1 non è ridondante: ogni parola di due bit è lecita, così che un bit
+alterato trasforma un elemento in un altro senza che nessuno se ne accorga. Il
+Codice~2 aggiunge un terzo bit che rende pari il numero degli 1. Le parole 001,
+010, 100 e 111 non sono lecite, e un singolo bit alterato è sempre rilevato. Il
+Codice~2 è il Codice~1 più un bit di \emph{parità pari}; le macchine che lo
+calcolano vengono più avanti nel capitolo.
+
+\subsection{Codici a lunghezza variabile}
+
+In un codice a \term{lunghezza variabile} la lunghezza della parola codice
+dipende dall'elemento: gli elementi frequenti ricevono parole corte. Un tale
+codice deve avere la \term{proprietà del prefisso}: nessuna parola codice è
+l'inizio di una più lunga, così che chi legge sa sempre dove finisce una
+parola. Conviene quando gli elementi non hanno tutti la stessa probabilità:
+meno spazio in memoria, meno tempo in trasmissione. Il codice Morse e la
+codifica di Huffman sono gli esempi classici, e ne avete già incontrati altri
+due.
+
+\begin{itemize}
+\item \textbf{UTF-8}: da uno a quattro byte per carattere
+  (Capitolo~\ref{ch:information}).
+\item \textbf{Le istruzioni RISC-V sul kit}: con l'estensione C ogni istruzione
+  è lunga 16 o 32 bit. Un'istruzione i cui due bit meno significativi sono
+  \texttt{11} è lunga 32 bit; ogni altra configurazione segnala un'istruzione
+  di 16 bit. La lunghezza è scritta nella parola codice stessa.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Decodificatori e codificatori}
+
+\subsection{La rappresentazione decodificata}
+
+All'estremo opposto del codice compatto c'è la rappresentazione
+\term{decodificata}, detta anche \emph{one-hot}: un codice in cui la lunghezza
+della parola è uguale alla cardinalità dell'insieme, $m=N$, e ogni parola
+codice ha esattamente un bit a 1. C'è una linea per elemento: \texttt{0010}
+significa che il terzo di quattro elementi è quello scelto. La rappresentazione
+è semplice da usare, perché la linea attiva seleziona direttamente qualcosa, ma
+costosa in fili. La regola d'uso è: un codice compatto dentro una parola, una
+rappresentazione decodificata dove su una scelta bisogna agire. Le sette
+lampade del Capitolo~\ref{ch:boole1} sono una rappresentazione decodificata di
+un numero di bit.
+
+\subsection{Il decodificatore}
+
+\begin{definition}{Decodificatore}
+Un \term{decodificatore} riceve una parola codice di $m$ bit e attiva la sola
+linea di uscita, tra $N=2^{m}$, che le corrisponde.
+\end{definition}
+
+Ogni uscita è un mintermine degli ingressi: un decodificatore li genera tutti
+(Figura~\ref{fig:cm:decoder}). Con un ingresso di \term{abilitazione} EN,
+nessuna uscita è attiva quando $\mathrm{EN}=0$.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.4\textwidth}\centering\small\ttfamily
+\begin{tabular}{cc|cccc}
+\textrm{$B$}&\textrm{$A$}&\textrm{$U_0$}&\textrm{$U_1$}&\textrm{$U_2$}&\textrm{$U_3$}\\\hline
+0&0&\textbf{1}&0&0&0\\0&1&0&\textbf{1}&0&0\\1&0&0&0&\textbf{1}&0\\1&1&0&0&0&\textbf{1}
+\end{tabular}
+\[\begin{aligned}U_0&=\nott{B}\,\nott{A} & U_1&=\nott{B}\,A\\ U_2&=B\,\nott{A} & U_3&=B\,A\end{aligned}\]
+\end{minipage}\hfill
+\begin{minipage}{0.56\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,4.6) node[above]{$B$} -- (0,-0.4);
+  \draw (1.6,4.6) node[above]{$A$} -- (1.6,-0.4);
+  \draw (0,4.2) node[circ]{} -- (0.35,4.2) node[not port,anchor=in,scale=0.6](nb){};
+  \draw (nb.out) -| (0.95,-0.4);
+  \draw (1.6,4.2) node[circ]{} -- (1.95,4.2) node[not port,anchor=in,scale=0.6](na){};
+  \draw (na.out) -| (2.55,-0.4);
+  \foreach \k/\y/\xb/\xa in {0/3.2/0.95/2.55, 1/2.2/0.95/1.6, 2/1.2/0/2.55, 3/0.2/0/1.6}{
+    \node[and port] (g\k) at (5,\y) {};
+    \draw (\xb,0|-g\k.in 1) node[circ]{} -- (g\k.in 1);
+    \draw (\xa,0|-g\k.in 2) node[circ]{} -- (g\k.in 2);
+    \draw (g\k.out) -- ++(0.3,0) node[right]{$U_\k$};
+  }
+\end{circuitikz}
+\end{minipage}
+\caption{Il decodificatore da 2 a 4 ($A$ è il bit meno significativo).}
+\label{fig:cm:decoder}
+\end{figure}
+
+\subsection{Comporre i decodificatori}
+
+I decodificatori grandi si costruiscono con quelli piccoli. La
+Figura~\ref{fig:cm:dec16} costruisce un decodificatore da 4 a 16 con cinque
+decodificatori da 2 a 4 con abilitazione: il primo decodifica i due bit alti e
+abilita uno degli altri quattro; quello abilitato decodifica i due bit bassi,
+che vanno a tutti e quattro, e attiva una delle sue quattro linee. Cinque
+decodificatori piccoli selezionano una linea su sedici. Per questo esistevano
+componenti standard: l'SN74139 contiene due decodificatori da 2 a 4 con
+abilitazione in un solo contenitore. (Nel componente reale l'abilitazione e le
+uscite sono attive basse, un dettaglio qui omesso.)
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[d/.style={blkacc,minimum width=30mm,minimum height=8mm}]
+  \node[blkamb,minimum width=30mm,minimum height=12mm] (h) at (0,-1.65) {decodificatore 2-4\\\footnotesize bit alti $D\,C$};
+  \draw[<-] (h.west) -- ++(-0.8,0) node[left,font=\ttfamily]{D C};
+  \foreach \i/\a/\b in {0/0/3, 1/4/7, 2/8/11, 3/12/15}{
+    \node[d] (d\i) at (5.2,-\i*1.1) {decodif. 2-4\quad{\footnotesize EN}};
+    \draw[->,prgamber,thick] ([yshift=4.5mm-\i*3mm]h.east) -- ++(0.5,0) |- (d\i.west);
+    \draw[->] (d\i.east) -- ++(0.8,0) node[right,font=\ttfamily\small]{U\a\ ... U\b};
+  }
+  \node[lbl,text=prgcomment] at (5.2,-4.0) {\emph{i bit bassi $B\,A$ vanno a tutti e quattro}};
+\end{tikzpicture}
+\caption{Composizione modulare: un decodificatore da 4 a 16 con cinque
+decodificatori da 2 a 4.}
+\label{fig:cm:dec16}
+\end{figure}
+
+\subsection{Nel processore: quale registro viene scritto?}
+
+\begin{prgmachine}
+L'istruzione \code{addi t1, t1, 1}, il numero \hex{00130313} del
+Capitolo~\ref{ch:firstcontact}, contiene il campo
+$\code{rd}=\texttt{00110}$: una parola codice di cinque bit, perché i registri
+sono trentadue e $\lceil\log_2 32\rceil=5$. Un decodificatore da 5 a 32 la
+trasforma in trentadue linee di \emph{abilitazione alla scrittura}, delle quali
+è attiva solo quella di \reg{x6}, cioè \reg{t1}: solo quel registro riceve il
+risultato. L'abilitazione alla scrittura di \reg{x0} semplicemente non è
+collegata, e \reg{x0} si legge sempre zero. Altre due selezioni, su \code{rs1}
+e \code{rs2}, scelgono quali registri vengono letti: le fanno dei multiplexer.
+\end{prgmachine}
+
+\subsection{Il codificatore}
+
+Il \term{codificatore} è la macchina inversa: riceve una rappresentazione
+decodificata, $N$ linee di cui una attiva, e dà in uscita la corrispondente
+parola codice di $m=\lceil\log_2 N\rceil$ bit. Ogni bit di uscita è l'OR delle
+linee di ingresso il cui numero ha un 1 in quella posizione; per $N=4$,
+$C_0=U_1+U_3$ e $C_1=U_2+U_3$. Se più linee possono essere attive insieme,
+serve un \term{codificatore di priorità}, che dà in uscita il numero della
+linea attiva con la priorità più alta. Una tastiera con un filo per tasto
+diventa, in questo modo, un numero di tasto compatto; e i codificatori di
+priorità ricompariranno con le interruzioni
+(Capitolo~\ref{ch:instructions}), dove più dispositivi chiedono attenzione e un
+solo numero raggiunge il processore.
+
+\subsection{Transcodificatori: il display a sette segmenti}
+
+Un \term{transcodificatore} trasforma ogni parola di un codice $C_1$ nella
+corrispondente parola di un codice $C_2$ definito sullo stesso insieme.
+L'esempio classico passa dal BCD alle sette linee che accendono i segmenti da
+$a$ a $g$ di un display numerico (Figura~\ref{fig:cm:seg}); ogni segmento è un
+LED comandato da un segnale digitale. Il transcodificatore ha sette uscite:
+sette funzioni di quattro variabili da sintetizzare, tutte con le stesse sei
+condizioni di indifferenza.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.22\textwidth}\centering
+\begin{tikzpicture}[x=6mm,y=6mm,seg/.style={line width=3.2pt,line cap=round}]
+  \draw[seg,prgred] (0.3,6) -- (2.7,6) node[midway,above,lbl]{a};
+  \draw[seg,prgred] (3,5.7) -- (3,3.3) node[midway,right,lbl]{b};
+  \draw[seg,prgrule] (3,2.7) -- (3,0.3) node[midway,right,lbl]{c};
+  \draw[seg,prgred] (0.3,0) -- (2.7,0) node[midway,below,lbl]{d};
+  \draw[seg,prgred] (0,2.7) -- (0,0.3) node[midway,left,lbl]{e};
+  \draw[seg,prgrule] (0,5.7) -- (0,3.3) node[midway,left,lbl]{f};
+  \draw[seg,prgred] (0.3,3) -- (2.7,3) node[midway,above,lbl]{g};
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.38\textwidth}\centering\scriptsize\ttfamily\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{cc|ccccccc}
+\textrm{cifra}&\textrm{BCD}&a&b&c&d&e&f&g\\\hline
+0&0000&1&1&1&1&1&1&0\\1&0001&0&1&1&0&0&0&0\\\rowcolor{prgred!12}2&0010&1&1&0&1&1&0&1\\3&0011&1&1&1&1&0&0&1\\4&0100&0&1&1&0&0&1&1\\
+5&0101&1&0&1&1&0&1&1\\6&0110&1&0&1&1&1&1&1\\7&0111&1&1&1&0&0&0&0\\8&1000&1&1&1&1&1&1&1\\9&1001&1&1&1&1&0&1&1
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.36\textwidth}\centering
+\resizebox{\textwidth}{!}{\begin{karnaugh-map}[4][4][1][$CD$][$AB$]
+  \minterms{0,2,3,5,6,7,8,9}\indeterminants{10,11,12,13,14,15}\autoterms[0]
+  \implicant{12}{10}\implicant{3}{10}\implicant{5}{15}\implicantcorner
+\end{karnaugh-map}}
+\end{minipage}
+\caption{Il transcodificatore da BCD a sette segmenti: la cifra 2 accende $a$,
+$b$, $g$, $e$ e $d$. A destra: la mappa del segmento $a$, con la cifra BCD su
+$A\,B\,C\,D$ e $A$ più significativo.}
+\label{fig:cm:seg}
+\end{figure}
+
+\begin{example}{Sintesi del segmento $a$}
+Il segmento $a$ è spento solo per le cifre 1 e 4. Le parole da 1010 a 1111 non
+si presentano mai, e sono segnate come condizioni di indifferenza nella mappa
+della Figura~\ref{fig:cm:seg}. Usando quelle celle come 1 i gruppi diventano
+grandi: le due righe inferiori danno $A$; le due colonne di destra danno $C$;
+il quadrato centrale dà $BD$; i quattro angoli danno $\nott{B}\,\nott{D}$:
+\[ a = A + C + B\,D + \nott{B}\,\nott{D}. \]
+Senza le condizioni di indifferenza i gruppi sarebbero più piccoli e
+l'espressione più lunga. Come verifica, la cifra 0 (\texttt{0000}) è coperta
+dagli angoli e la cifra 9 (\texttt{1001}) da $A$. Altre sei mappe danno i
+segmenti da $b$ a $g$, e un transcodificatore completo.
+\end{example}
+
+% ----------------------------------------------------------------------------
+\section{Multiplexer e demultiplexer}
+
+\subsection{Il multiplexer}
+
+\begin{definition}{Multiplexer}
+Un \term{multiplexer} è un circuito combinatorio con $2^{n}$ ingressi dati, $n$
+linee di selezione e un'uscita. Seleziona uno dei $2^{n}$ segnali di ingresso e
+lo trasferisce all'uscita.
+\end{definition}
+
+Ogni ingresso dati è moltiplicato per un mintermine delle linee di selezione, e
+un OR raccoglie i risultati (Figura~\ref{fig:cm:mux}):
+\begin{align*}
+\text{2 ingressi:}\quad & Y=\nott{S}\,I_0+S\,I_1,\\
+\text{4 ingressi:}\quad & Y=\nott{S_1}\,\nott{S_0}\,I_0+\nott{S_1}\,S_0\,I_1+S_1\,\nott{S_0}\,I_2+S_1\,S_0\,I_3 .
+\end{align*}
+In altre parole, un decodificatore sulle linee di selezione abilita una porta
+AND: il dato è scelto da un \emph{indirizzo}, non da una linea decodificata. Un
+multiplexer può anche realizzare qualsiasi funzione delle sue variabili di
+selezione: basta mettere la tabella di verità sugli ingressi dati.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \node[and port] (a0) at (3,2) {};
+  \node[and port] (a1) at (3,0) {};
+  \node[or port] (o) at (5.2,1) {};
+  \draw (a0.in 1) -- ++(-2.2,0) node[left]{$I_0$};
+  \draw (a1.in 2) -- ++(-2.2,0) node[left]{$I_1$};
+  \draw (a1.in 1) -- ++(-1.6,0) coordinate (s) -- ++(0,-1.2) node[below]{$S$};
+  \draw (s) node[circ]{} |- ++(0.2,1.2) node[not port,anchor=in,scale=0.6](n){};
+  \draw (n.out) |- (a0.in 2);
+  \draw (a0.out) -| (o.in 1); \draw (a1.out) -| (o.in 2);
+  \draw (o.out) -- ++(0.3,0) node[right]{$Y$};
+\end{circuitikz}
+\caption{Un multiplexer a due ingressi}\label{fig:cm:mux}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \node[xnor port] (x0) at (2.5,2) {};
+  \node[xnor port] (x1) at (2.5,0) {};
+  \node[and port] (a) at (5,1) {};
+  \draw (x0.in 1) node[left]{$A_0$} (x0.in 2) node[left]{$B_0$};
+  \draw (x1.in 1) node[left]{$A_1$} (x1.in 2) node[left]{$B_1$};
+  \draw (x0.out) -| (a.in 1); \draw (x1.out) -| (a.in 2);
+  \draw (a.out) -- ++(0.3,0) node[right]{EQ};
+\end{circuitikz}
+\caption{Un comparatore per parole di due bit}\label{fig:cm:cmp}
+\end{subfigure}
+\caption{Due macchine costruite con le porte.}
+\end{figure}
+
+\subsection{Il demultiplexer}
+
+Il \term{demultiplexer} è la macchina inversa: un ingresso dati $D$, $n$ linee
+di selezione, $2^{n}$ uscite. Instrada l'ingresso verso l'uscita scelta dalle
+linee di selezione, e le altre uscite restano a 0:
+\[ F_i = D\cdot U_i , \]
+dove $U_i$ sono le uscite di un decodificatore sulle linee di selezione. Con
+$D$ fisso a 1 un demultiplexer è esattamente un decodificatore, in cui $D$ fa
+la parte dell'abilitazione. Un multiplexer seguito da un demultiplexer porta
+molti segnali su un solo filo, uno alla volta: l'idea che sta dietro ogni linea
+condivisa.
+
+\subsection{Nel processore: registro o costante?}
+
+\begin{prgmachine}
+Il secondo operando della ALU è o il valore del registro \code{rs2} o la
+costante scritta nell'istruzione, estesa in segno
+(Figura~\ref{fig:cm:alusrc}). Un multiplexer a due ingressi, largo trentadue
+bit, sceglie: la sua linea di selezione vale 0 per \ins{add} e 1 per
+\ins{addi}. Nel datapath di \citet{patterson2020} il segnale si chiama
+\code{ALUSrc}. Una porta applicata a ogni bit di una parola sotto un controllo
+comune si chiama \emph{porta di parola} \eng{word gate}.
+\end{prgmachine}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm] (r1) at (0,2.2) {banco dei registri: \texttt{rs1}};
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm] (r2) at (0,0.9) {banco dei registri: \texttt{rs2}};
+  \node[blkamb,minimum width=34mm] (im) at (0,-0.3) {immediato, esteso in segno};
+  \node[blkacc,minimum width=10mm,minimum height=20mm] (m) at (3.6,0.3) {MUX};
+  \node[blkvio,minimum width=18mm,minimum height=30mm] (alu) at (6.4,1.2) {\textbf{ALU}};
+  \draw[->,bus] (r1.east) -- (r1.east-|alu.west) node[pos=0.9,above,lbl]{A};
+  \draw[->,bus] (r2.east) -- (r2.east-|m.west) node[pos=0.85,above,lbl]{0};
+  \draw[->,bus] (im.east) -- (im.east-|m.west) node[pos=0.85,above,lbl]{1};
+  \draw[->,bus] (m.east) -- (m.east-|alu.west) node[pos=0.8,above,lbl]{B};
+  \draw[->,bus] (alu.east) -- ++(1,0) node[right,lbl]{risultato};
+  \draw[->,thick,prgred] (3.6,-1.5) node[below,lbl,text=prgred]{selezione: 0 per \texttt{add}, 1 per \texttt{addi}} -- (m.south);
+\end{tikzpicture}
+\caption{Un multiplexer sceglie il secondo operando della ALU.}
+\label{fig:cm:alusrc}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Confrontare e controllare}
+
+\subsection{Il comparatore}
+
+Un \term{comparatore} ha due dati $A$ e $B$ in ingresso e un'uscita booleana EQ
+che vale 1 quando $A=B$. Due bit sono uguali quando il loro XNOR vale 1; due
+parole sono uguali quando tutte le loro coppie di bit sono uguali, un AND di
+XNOR (Figura~\ref{fig:cm:cmp}):
+\[ \mathrm{EQ}=\nott{(A_0\oplus B_0)}\cdot\nott{(A_1\oplus B_1)}\cdots \]
+Nel processore queste sono \ins{beq} e \ins{bne}: i due registri sono
+confrontati bit per bit, e il salto viene preso o no secondo EQ. Molti datapath
+riusano invece la ALU: sottraggono e verificano se il risultato è zero. I
+confronti d'ordine (\ins{blt}, \ins{slt}) richiedono la sottrazione e le regole
+di segno del Capitolo~\ref{ch:integers}.
+
+\subsection{Parità}
+
+Quando i dati viaggiano da una sorgente a una destinazione, i codici ridondanti
+permettono di controllare gli errori. Il controllo più semplice è un solo
+\term{bit di parità}: le parole codice lecite hanno, per esempio, un numero
+pari di bit a 1.
+
+\begin{definition}{Rete di parità}
+Una \term{rete di parità} calcola la parità degli $n$ bit al suo ingresso,
+\[ p=x_0\oplus x_1\oplus\dots\oplus x_{n-1}, \]
+che vale 1 quando il numero degli 1 è dispari.
+\end{definition}
+
+XOR è la somma modulo 2, ed è per questo che una catena di XOR conta gli 1
+modulo 2. La rete serve due volte (Figura~\ref{fig:cm:parity}): alla sorgente,
+per calcolare il bit da aggiungere a un codice non ridondante, e alla
+destinazione, per verificare all'arrivo la parità complessiva del codice
+ridondante.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=16mm] (a) {\textbf{Sorgente}\\[1pt]\footnotesize codice $C$};
+  \node[blkamb,text width=21mm,minimum height=16mm,right=of a] (b) {\textbf{CALC}\\[1pt]\footnotesize aggiunge il bit di parità};
+  \node[blkvio,text width=21mm,minimum height=16mm,right=of b] (c) {\textbf{Canale}\\[1pt]\footnotesize può alterare bit};
+  \node[blkgrn,text width=21mm,minimum height=16mm,right=of c] (d) {\textbf{VER}\\[1pt]\footnotesize verifica la parità};
+  \node[blkred,text width=21mm,minimum height=16mm,right=of d] (e) {\textbf{Destinazione}\\[1pt]\footnotesize codice $C'$};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \draw[->,thick,prgred] (d.south) -- ++(0,-5mm) node[below,lbl,text=prgred]{segnale di errore};
+\end{tikzpicture}
+\caption{Trasmissione con un controllo di parità.}
+\label{fig:cm:parity}
+\end{figure}
+
+\begin{theorem}{Potere di un bit di parità}
+Un solo bit di parità rileva ogni alterazione di un numero dispari di bit. Non
+rileva l'alterazione di un numero pari di bit, e non può correggere alcun
+errore.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Ogni bit alterato cambia di uno il numero degli
+1, e quindi inverte la parità: un numero dispari di inversioni la cambia, un
+numero pari la lascia com'era. E il controllo dà un solo bit di informazione,
+giusto o sbagliato, che non basta a dire \emph{quale} bit è stato alterato.
+\hfill$\square$
+
+\smallskip
+Il codice $C'$ che raggiunge la destinazione è dunque \emph{probabilmente}
+uguale a $C$ se non è stato segnalato alcun errore. Codici più forti aggiungono
+più bit di controllo: i codici di \citet{hamming1950}, con più bit di parità su
+gruppi di bit che si sovrappongono, localizzano e correggono un errore singolo.
+
+\subsection{Una rete di parità in sette istruzioni}
+
+\asmfile[caption={La parità di un byte.},label=lst:cm:parity]{code/l11/s32.S}
+
+Ogni \ins{xor} del Listato~\ref{lst:cm:parity} combina la metà superiore dei
+bit con la metà inferiore: tre livelli per otto bit, la versione software di un
+albero di sette porte XOR. Il valore calcolato, aggiunto al byte, ne rende pari
+la parità totale. Tracciatelo con $\hex{53}=0101\,0011_2$, che ha quattro 1 e
+dà 0, e con $\hex{13}=0001\,0011_2$, che ne ha tre e dà 1.
+
+% ----------------------------------------------------------------------------
+\section{L'unità aritmetico-logica}
+
+Tutti i blocchi di questo capitolo lavorano insieme in una sola macchina.
+
+\begin{definition}{Unità aritmetico-logica}
+L'\term{unità aritmetico-logica} (ALU) è una macchina combinatoria che riceve
+due operandi e un codice di operazione, e produce il risultato dell'operazione
+selezionata.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[u/.style={blk,minimum width=40mm,minimum height=7mm}]
+  \foreach \i/\t/\c in {0/{sommatore / sottrattore}/prgviolet!12, 1/{AND, una porta per bit}/prgpanel, 2/{OR, una porta per bit}/prgpanel, 3/{XOR, una porta per bit}/prgpanel, 4/{shifter}/prgpanel}{
+    \node[u,fill=\c] (u\i) at (0,-\i*0.95) {\t};
+    \draw[->,prgaccent,thick] (-3.6,-\i*0.95+0.12) -- ([yshift=1.2mm]u\i.west);
+    \draw[->,prgamber,thick] (-3.0,-\i*0.95-0.12) -- ([yshift=-1.2mm]u\i.west);
+    \draw[->] (u\i.east) -- (3.4,-\i*0.95);
+  }
+  \draw[prgaccent,very thick] (-3.6,0.6) node[above,font=\ttfamily\bfseries]{A} -- (-3.6,-3.68);
+  \draw[prgamber,very thick] (-3.0,0.6) node[above,font=\ttfamily\bfseries]{B} -- (-3.0,-3.92);
+  \node[blkacc,minimum width=11mm,minimum height=46mm] (m) at (3.95,-1.9) {MUX};
+  \draw[->,bus] (m.east) -- ++(1.1,0) node[right,lbl]{risultato};
+  \draw[->,thick,prgred] (3.95,-5.0) node[below,lbl,text=prgred]{operazione, da \texttt{funct3}} -- (m.south);
+\end{tikzpicture}
+\caption{La ALU è un insieme di macchine, tutte al lavoro sugli stessi due
+operandi di 32 bit, e un multiplexer che sceglie un risultato.}
+\label{fig:cm:alu}
+\end{figure}
+
+La struttura della Figura~\ref{fig:cm:alu} è di una semplicità disarmante:
+\emph{ogni} unità calcola il suo risultato a ogni istruzione, e un multiplexer
+ne lascia passare uno. Il sommatore è il sommatore a propagazione del riporto
+del Capitolo~\ref{ch:boole2}, con il trucco del complemento e del riporto
+entrante del Capitolo~\ref{ch:integers} per la sottrazione; i confronti
+(\ins{slt}) riusano il sottrattore.
+
+La selezione è scritta nell'istruzione (Tabella~\ref{tab:cm:funct3}): il campo
+\code{funct3}, bit da 14 a 12, è un codice compatto di tre bit, otto parole
+codice, che un piccolo decodificatore trasforma nelle linee di selezione del
+multiplexer della ALU.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le istruzioni \riscv e la ALU.}\label{tab:cm:funct3}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+\textbf{Istruzione} & \textbf{funct3} & \textbf{Operazione della ALU} & \textbf{Unità che produce il risultato}\\
+\midrule
+\ins{add}, \ins{sub} & \texttt{000} & somma o differenza & sommatore / sottrattore (sceglie un altro bit, in \code{funct7})\\
+\ins{sll} & \texttt{001} & scorrimento a sinistra & shifter\\
+\ins{slt}, \ins{sltu} & \texttt{010}, \texttt{011} & pone a 1 se minore & sottrattore, poi le regole di segno\\
+\ins{xor} & \texttt{100} & XOR bit a bit & porte XOR\\
+\ins{srl}, \ins{sra} & \texttt{101} & scorrimento a destra & shifter (\code{funct7} sceglie logico o aritmetico)\\
+\ins{or} & \texttt{110} & OR bit a bit & porte OR\\
+\ins{and} & \texttt{111} & AND bit a bit & porte AND\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quanti bit richiede un codice binario a lunghezza fissa per le 26 lettere dell'alfabeto?}
+\item 4
+\item 5
+\item 6
+\item 26
+\end{quiz}
+
+\begin{quiz}{Un decodificatore ha 3 linee di ingresso e nessuna abilitazione. Quante uscite ha, e quante valgono 1 in ogni istante?}
+\item 3 uscite, una a 1
+\item 6 uscite, due a 1
+\item 8 uscite, una a 1
+\item 8 uscite, tre a 1
+\end{quiz}
+
+\begin{quiz}{Di quante linee di selezione ha bisogno un multiplexer con 8 ingressi dati?}
+\item 2
+\item 3
+\item 4
+\item 8
+\end{quiz}
+
+\begin{quiz}{Una parola con un bit di parità pari viene ricevuta con due bit alterati. Il controllo di parità:}
+\item rileva l'errore e lo corregge
+\item rileva l'errore ma non può correggerlo
+\item non rileva l'errore
+\item segnala un errore solo se entrambi i bit valevano 1
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Sintetizzate il segmento $g$ del transcodificatore a sette segmenti con
+  una mappa di Karnaugh, usando le condizioni di indifferenza.
+\item Costruite un decodificatore da 3 a 8 con due decodificatori da 2 a 4 con
+  abilitazione e un invertitore.
+\item Realizzate $F=\sum m(1,2,4,7)$ con un multiplexer a 8 ingressi. Quale
+  funzione è?
+\item Scrivete un comparatore in assembly: $\reg{a0}=1$ se \reg{a0} e \reg{a1}
+  sono uguali, usando solo \ins{xor} e \ins{sltiu}.
+\item Disegnate una cifra a sette segmenti su \prg: una tabella di dieci byte,
+  uno per cifra, e sette rettangoli accesi esaminandone i bit.
+\end{enumerate}
+\expected{Il terzo compito mette 0, 1, 1, 0, 1, 0, 0, 1 sugli ingressi dati: è
+lo XOR di tre ingressi, il bit di somma del sommatore completo. Il quarto è
+\code{xor a0, a0, a1} seguita da \code{sltiu a0, a0, 1} (la pseudoistruzione
+\ins{seqz}). Su \prg: una grande cifra che conta da 0 a 9, un passo al secondo,
+disegnata con sette rettangoli; è un transcodificatore software seguito da
+sette test di bit, e la sua tabella è la tabella di verità della
+Figura~\ref{fig:cm:seg}, una riga per byte.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+combinational network & rete combinatoria\\
+propagation delay & ritardo di propagazione\\
+cardinality & cardinalità\\
+code word & parola codice\\
+fixed / variable length & lunghezza fissa / variabile\\
+redundant code & codice ridondante\\
+decoder / encoder & decodificatore / codificatore\\
+transcoder & transcodificatore\\
+multiplexer / demultiplexer & multiplexer / demultiplexer\\
+enable & abilitazione\\
+comparator & comparatore\\
+parity bit & bit di parità\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+L'informazione è un attributo, un tipo e un valore; un codice scrive il valore
+come una stringa su un alfabeto. I codici a lunghezza fissa richiedono
+$\lceil\log_2 N\rceil$ bit; i codici ridondanti spendono di più per rilevare
+gli errori. Codifica, decodifica e transcodifica sono svolte da macchine
+combinatorie. I multiplexer selezionano una sorgente, i demultiplexer una
+destinazione; comparatori e reti di parità controllano. Un processore \riscv
+le usa tutte: decodificatori sui campi dell'istruzione, multiplexer sugli
+operandi, e una ALU che è essa stessa costruita con questi blocchi.
+
+Ciò che qui manca è la memoria. Prima delle macchine sequenziali del
+Capitolo~\ref{ch:sequential}, il prossimo capitolo mette al lavoro la logica di
+questa parte nella seconda parte di \vermone.
+
+\paragraph{Letture.} \citet{patterson2020}, appendice~A e paragrafo~4.1;
+\citet{bucci2017}, i capitoli sulle reti combinatorie;
+\citet{stallings2021}, il capitolo sulla logica digitale.

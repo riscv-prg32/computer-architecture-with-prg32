@@ -1,0 +1,757 @@
+% ============================================================================
+%  Capitolo 13 -- Macchine sequenziali                           (Lezione 13)
+% ============================================================================
+\chapter{Macchine sequenziali}
+\label{ch:sequential}
+
+\epigraphline{Steve, ogni automobile ha un volante, ma nessuno prova a
+sostenere che il volante sia una sua invenzione.}{Bill Gates, nel film
+\emph{I pirati di Silicon Valley}, 1999}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item spiegare perché un circuito sequenziale ha bisogno dei concetti di tempo e di stato;
+\item definire una macchina a stati finiti e distinguere le macchine di Mealy dalle macchine di Moore;
+\item descrivere una macchina con una tabella degli stati e con un diagramma degli stati, e passare dall'una all'altro;
+\item spiegare come un latch SR ricorda un bit, e perché $S=R=1$ non è ammesso;
+\item distinguere i latch dai flip-flop, la sensibilità al livello da quella al fronte;
+\item riconoscere i registri, i contatori e il program counter di \riscv come macchine sequenziali.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+Un gioco ha una schermata del titolo, una schermata su cui si gioca, e una
+schermata che dice «game over». Il Listato~\ref{lst:seq:fsm} è la parte della
+sua \code{update} che passa dall'una all'altra.
+
+\asmfile[caption={Un gioco è una macchina a stati.},label=lst:seq:fsm]{code/l13/s04.S}
+
+Premere \key{A} avvia il gioco dalla schermata del titolo e riporta al titolo
+dalla schermata di fine partita: \emph{lo stesso pulsante ha effetti diversi},
+e l'effetto dipende dallo stato. Lo stato è una parola in memoria che
+sopravvive da un frame all'altro. \code{update} calcola lo stato prossimo dallo
+stato presente e dall'ingresso; \code{draw} mostra una schermata diversa per
+ogni stato, l'uscita.
+
+Il programma ha un difetto di cui vale la pena discutere: tenere premuto
+\key{A} sulla schermata di fine partita porta al titolo e, un frame dopo, al
+gioco. Per correggerlo il programma deve ricordare il valore precedente del
+pulsante: un bit di stato in più. Il capitolo ci tornerà.
+
+% ----------------------------------------------------------------------------
+\section{Tempo e stato}
+
+\subsection{Circuiti sequenziali}
+
+In un circuito combinatorio le uscite in un dato istante dipendono solo dagli
+ingressi in quello stesso istante. In un circuito sequenziale dipendono dagli
+ingressi in quell'istante e dalla storia passata degli ingressi. La definizione
+implica due concetti che una macchina combinatoria non ha: il \emph{tempo}
+(quando si guardano i segnali, e quando le cose cambiano?) e lo \emph{stato}
+(che cosa ricorda il circuito del passato?). Un circuito sequenziale è un
+circuito combinatorio più qualcosa che ricorda. Analisi e sintesi valgono
+ancora: dalla struttura al comportamento, e da una specifica funzionale a una
+struttura.
+
+\subsection{Il tempo: dal continuo al discreto}
+
+In un intervallo qualsiasi un segnale fisico passa per infiniti istanti, e una
+tensione per infiniti valori. Un segnale binario viene letto, o
+\emph{campionato}, in un numero finito di istanti scelti: 0 se la tensione è
+sotto una soglia, 1 se è sopra (il Capitolo~\ref{ch:electronics} ha precisato
+la soglia). Tra due campioni il segnale può fare qualunque cosa: contano solo i
+campioni. È il campionamento e la quantizzazione del
+Capitolo~\ref{ch:information}, applicato ai fili del circuito stesso. In un
+sistema digitale il tempo è quindi una sequenza di istanti discreti $t_0$,
+$t_1$, $t_2$, \ldots\ Chi decide quando sono gli istanti? Un segnale periodico
+dedicato: il clock.
+
+\subsection{Il clock}
+
+\begin{definition}{Clock}
+Il \term{clock} è un segnale binario periodico che scandisce gli istanti
+discreti di un sistema digitale. Il suo \term{periodo} $T$ è la durata di un
+ciclo; la sua \term{frequenza} è il numero di periodi al secondo, $f=1/T$; il
+suo \term{duty cycle} è il rapporto tra il tempo in cui è alto e il periodo. Il
+\term{fronte di salita} è il passaggio da 0 a 1, il \term{fronte di discesa} il
+passaggio da 1 a 0.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.03,timing/xunit=11mm,timing/yunit=6mm]
+  CK & 1L 2H 2L 2H 2L 2H 1L\\
+\extracode
+  \draw[<->,prgred] (1,1.35) -- (5,1.35) node[midway,above,lbl,text=prgred]{periodo $T$};
+  \draw[<->,prgaccent] (1,-0.3) -- (3,-0.3) node[midway,below,lbl,text=prgaccent]{tempo alto};
+  \draw[<->,prgamber] (3,-0.3) -- (5,-0.3) node[midway,below,lbl,text=prgamber]{tempo basso};
+  \draw[->,prgink] (5.9,1.6) node[right,lbl]{fronte di salita} -- (5.05,0.6);
+  \draw[->,prgink] (7.9,-0.6) node[right,lbl]{fronte di discesa} -- (7.05,0.4);
+\end{tikztimingtable}
+\caption{Il clock.}\label{fig:seq:clock}
+\end{figure}
+
+I circuiti sincroni cambiano stato su uno dei due fronti. L'ESP32-C6 lavora a
+160~MHz: un periodo dura 6,25 nanosecondi, e ogni rete combinatoria dentro il
+chip deve assestarsi entro quel tempo, perché il periodo deve superare il
+cammino critico (Capitolo~\ref{ch:combinational}). In un gioco \prg il frame fa
+la parte di un clock molto più lento.
+
+\subsection{Il concetto di stato}
+
+\begin{definition}{Stato}
+Lo \term{stato} di un circuito sequenziale è un riassunto dell'intera storia
+precedente dei suoi ingressi, sufficiente a determinare, insieme agli ingressi
+presenti, le uscite e lo stato prossimo. È tenuto da un insieme di
+\term{variabili di stato}.
+\end{definition}
+
+Una \term{funzione di transizione} calcola lo stato prossimo dallo stato
+presente e dagli ingressi presenti, e lo stato viene aggiornato a ogni istante
+del tempo discreto, cioè a ogni ciclo di clock:
+\[ S(k)=f\bigl(S(k-1),\,I(k)\bigr). \]
+Per memorizzare lo stato si usano elementi di memoria chiamati
+\term{bistabili}: latch e flip-flop. Nel riscaldamento c'è una sola variabile
+di stato, la parola \code{state}; la funzione di transizione è
+\code{game\_update}; il clock è il frame.
+
+% ----------------------------------------------------------------------------
+\section{Macchine a stati finiti}
+
+\subsection{L'automa a stati finiti}
+
+Il numero di stati di una rete sequenziale che si possa costruire fisicamente è
+necessariamente finito: con $k$ variabili di stato ci sono al più $2^{k}$
+stati. Il modello che ne descrive il comportamento è l'automa a stati finiti.
+
+\begin{definition}{Macchina sequenziale}
+Una \term{macchina sequenziale}, o macchina a stati finiti, è una quintupla
+$(I,U,S,\Omega,w)$ dove
+\begin{itemize}[nosep]
+\item $I$ è l'alfabeto di ingresso e $U$ l'alfabeto di uscita, insiemi finiti
+  di simboli;
+\item $S$ è l'insieme finito e non vuoto degli stati;
+\item $\Omega: S\times I\to S$ è la \term{funzione stato prossimo}: a ogni
+  coppia di stato e ingresso corrisponde, se specificato, uno e un solo stato
+  prossimo;
+\item $w$ è la \term{funzione di uscita}, che genera il simbolo di uscita.
+\end{itemize}
+\end{definition}
+
+\subsection{Macchine di Mealy e macchine di Moore}
+
+I due modelli classici differiscono nella funzione di uscita
+\citep{mealy1955,moore1956}.
+
+\begin{definition}{Mealy e Moore}
+In una \term{macchina di Mealy} l'uscita dipende dallo stato e dall'ingresso,
+$w:S\times I\to U$. In una \term{macchina di Moore} l'uscita è associata al
+solo stato, $w:S\to U$.
+\end{definition}
+
+Nel diagramma di una macchina di Mealy l'uscita è scritta sulle transizioni; la
+macchina può reagire a un ingresso nello stesso ciclo, e spesso richiede meno
+stati. Nel diagramma di una macchina di Moore l'uscita è scritta dentro gli
+stati; cambia solo quando cambia lo stato, così che nessun disturbo degli
+ingressi la raggiunge. Ogni macchina di Mealy ha una macchina di Moore
+equivalente e viceversa, eventualmente con un diverso numero di stati. Il gioco
+del riscaldamento è una macchina di Moore: ogni stato ha la sua schermata.
+
+\subsection{Architettura generale di una macchina sequenziale}
+
+Ogni macchina sequenziale ha la struttura della Figura~\ref{fig:seq:arch}: una
+rete combinatoria calcola lo stato prossimo e le uscite dagli ingressi e dallo
+stato presente; un \term{registro di stato} di $k$ flip-flop tiene lo stato
+presente e, a ogni fronte del clock, lo sostituisce con il prossimo. Il
+riscaldamento ha esattamente questa forma: \code{game\_update} è il riquadro in
+alto, la parola \code{state} è il registro, il frame è il clock.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=52mm,minimum height=20mm] (c) at (0,0) {\textbf{rete combinatoria}\\funzione stato prossimo $\Omega$\\funzione di uscita $w$};
+  \node[blkamb,minimum width=52mm,minimum height=10mm] (r) at (0,-2.8) {\textbf{registro di stato}: $k$ flip-flop};
+  \draw[->,thick] (-5.0,0.3) node[left,lbl,align=right]{ingressi\\$x_1\ldots x_n$} -- ([yshift=3mm]c.west);
+  \draw[->,thick] ([yshift=3mm]c.east) -- ++(1.6,0) node[right,lbl,align=left]{uscite\\$z_1\ldots z_m$};
+  \draw[->,very thick,prgred] ([xshift=15mm]c.south) -- ([xshift=15mm]r.north) node[midway,right,lbl,text=prgred,align=left]{stato prossimo\\$Y_1\ldots Y_k$};
+  \draw[->,very thick,prgviolet] ([xshift=-15mm]r.north) -- ([xshift=-15mm]c.south) node[midway,left,lbl,text=prgviolet,align=right]{stato presente\\$y_1\ldots y_k$};
+  \draw[->,thick,prgsteel] (-5.0,-2.8) node[left,lbl]{clock} -- (r.west);
+\end{tikzpicture}
+\caption{L'architettura generale di una macchina sequenziale.}
+\label{fig:seq:arch}
+\end{figure}
+
+\subsection{Sintesi di una rete sequenziale}
+
+\begin{enumerate}
+\item Definire gli insiemi $I$, $U$ e $S$: ingressi, uscite e stati.
+\item Definire la funzione stato prossimo $\Omega$ e la funzione di uscita
+  $w$, con una tabella degli stati o un diagramma degli stati.
+\item Assegnare un codice binario a ogni stato: $k$ variabili di stato per un
+  massimo di $2^{k}$ stati.
+\item Sintetizzare le due reti combinatorie che realizzano $\Omega$ e $w$, con
+  i metodi dei Capitoli \ref{ch:boole2} e~\ref{ch:combinational}.
+\item Scegliere gli elementi di memoria: la rete dello stato prossimo dipende
+  dal tipo di bistabile, la rete di uscita no.
+\end{enumerate}
+
+Con i flip-flop D la rete dello stato prossimo calcola semplicemente il codice
+dello stato prossimo, ed è per questo che oggi sono la scelta abituale.
+
+\subsection{Tabelle degli stati e diagrammi degli stati}
+
+Una macchina si descrive in due modi equivalenti. La \term{tabella degli stati}
+ha una riga per stato presente e una colonna per simbolo di ingresso; ogni
+cella contiene lo stato prossimo e, per una macchina di Mealy, l'uscita. Il
+\term{diagramma degli stati} è un grafo orientato con un nodo per stato e un
+arco per transizione, etichettato con l'ingresso e, per una macchina di Mealy,
+l'uscita. La Figura~\ref{fig:seq:mealy} mostra le stesse transizioni come
+macchina di Mealy e come macchina di Moore in cui a ogni stato è associata
+un'uscita di due bit, qui semplicemente il codice binario dello stato.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{tikzpicture}[->,shorten >=1pt,node distance=30mm,every edge/.append style={font=\ttfamily\scriptsize}]
+  \node[st] (s0) at (0,0) {$s_0$};
+  \node[st] (s1) at (3.6,0) {$s_1$};
+  \node[st] (s2) at (0,-3) {$s_2$};
+  \node[st] (s3) at (3.6,-3) {$s_3$};
+  \path (s0) edge node[above]{0/1} (s1)
+        (s0) edge node[left]{1/1} (s2)
+        (s1) edge node[right]{0/0} (s3)
+        (s1) edge[bend left=14] node[pos=0.25,below right=-2pt]{1/1} (s2)
+        (s2) edge[bend left=14] node[pos=0.25,above left=-2pt]{0/1} (s1)
+        (s2) edge node[below]{1/0} (s3)
+        (s3) edge[loop right] node{0/0} (s3)
+        (s3) edge[bend right=75,looseness=1.9] node[pos=0.5,above right]{1/0} (s0);
+\end{tikzpicture}
+
+\medskip\small\ttfamily
+\begin{tabular}{c|cc}
+\textrm{stato}&\textrm{ingresso 0}&\textrm{ingresso 1}\\\hline
+$s_0$&$s_1$/1&$s_2$/1\\$s_1$&$s_3$/0&$s_2$/1\\$s_2$&$s_1$/1&$s_3$/0\\$s_3$&$s_3$/0&$s_0$/0
+\end{tabular}
+\caption{Una macchina di Mealy: gli archi portano ingresso/uscita}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\ttfamily\scriptsize}]
+  \node[st,align=center] (s0) at (0,0) {$s_0$\\[-2pt]\tiny 00};
+  \node[st,align=center] (s1) at (3.6,0) {$s_1$\\[-2pt]\tiny 01};
+  \node[st,align=center] (s2) at (0,-3) {$s_2$\\[-2pt]\tiny 10};
+  \node[st,align=center] (s3) at (3.6,-3) {$s_3$\\[-2pt]\tiny 11};
+  \path (s0) edge node[above]{0} (s1)
+        (s0) edge node[left]{1} (s2)
+        (s1) edge node[right]{0} (s3)
+        (s1) edge[bend left=14] node[pos=0.25,below right=-2pt]{1} (s2)
+        (s2) edge[bend left=14] node[pos=0.25,above left=-2pt]{0} (s1)
+        (s2) edge node[below]{1} (s3)
+        (s3) edge[loop right] node{0} (s3)
+        (s3) edge[bend right=75,looseness=1.9] node[pos=0.5,above right]{1} (s0);
+\end{tikzpicture}
+
+\medskip\small\ttfamily
+\begin{tabular}{c|cc|c}
+\textrm{stato}&\textrm{ingresso 0}&\textrm{ingresso 1}&\textrm{uscita}\\\hline
+$s_0$&$s_1$&$s_2$&00\\$s_1$&$s_3$&$s_2$&01\\$s_2$&$s_1$&$s_3$&10\\$s_3$&$s_3$&$s_0$&11
+\end{tabular}
+\caption{Una macchina di Moore: l'uscita è nello stato}
+\end{subfigure}
+\caption{Diagrammi degli stati e tabelle degli stati.}
+\label{fig:seq:mealy}
+\end{figure}
+
+\subsection{Il riscaldamento come diagramma degli stati}
+
+Il gioco del riscaldamento è la macchina di Moore della
+Figura~\ref{fig:seq:game}. Ha tre stati: due bit di stato basterebbero, e il
+programma usa un'intera parola.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\sffamily\footnotesize}]
+  \node[st,fill=prgsteel,text=white,minimum size=15mm] (t) at (0,0) {TITLE};
+  \node[st,fill=prgaccent,text=white,minimum size=15mm] (p) at (4.2,0) {PLAY};
+  \node[st,fill=prgred,text=white,minimum size=15mm] (o) at (8.4,0) {OVER};
+  \path (t) edge node[above]{A} (p)
+        (p) edge node[above]{vite = 0} (o)
+        (o) edge[bend left=35] node[below]{A} (t)
+        (t) edge[loop above] node{non A} (t)
+        (p) edge[loop above] node{vite $>$ 0} (p)
+        (o) edge[loop above] node{non A} (o);
+\end{tikzpicture}
+
+\medskip\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Stato presente} & \textbf{Ingresso che lo cambia} & \textbf{Stato prossimo} & \textbf{Uscita (\code{draw})}\\
+\midrule
+\texttt{TITLE} & \key{A} premuto & \texttt{PLAY} & la schermata del titolo\\
+\texttt{PLAY} & vite = 0 & \texttt{OVER} & il campo di gioco\\
+\texttt{OVER} & \key{A} premuto & \texttt{TITLE} & il punteggio finale\\
+\bottomrule
+\end{tabular}
+\caption{Il gioco del riscaldamento come macchina di Moore.}
+\label{fig:seq:game}
+\end{figure}
+
+\begin{prgconcept}
+Disegnare il diagramma degli stati \emph{prima} di scrivere il codice è
+l'abitudine di progetto più utile in assoluto per un gioco. Il
+Capitolo~\ref{ch:verm1p3} la applica a \vermone.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Latch}
+
+\subsection{Elementi di memoria}
+
+I circuiti elettronici capaci di memorizzare un singolo bit sono
+essenzialmente di due tipi: latch e flip-flop. Entrambi sono \term{bistabili}:
+hanno due stati stabili, 0 e 1, che mantengono finché niente li cambia; ed
+entrambi hanno due uscite, $Q$ e $\nott{Q}$, che sono sempre l'una il
+complemento dell'altra.
+
+\begin{prgaside}
+Nel 1918 Eccles e Jordan costruirono il primo flip-flop elettronico, con due
+valvole termoioniche. Nel 1943 lo stesso circuito era al cuore di Colossus. Poi
+vennero i relè, i transistor, e oggi le porte logiche su un chip. Il nome
+«flip-flop» viene dal suono delle versioni elettromeccaniche.
+\end{prgaside}
+
+\subsection{Il latch SR}
+
+Il \term{latch SR} è fatto di due porte NOR, ciascuna con l'uscita collegata a
+un ingresso dell'altra (Figura~\ref{fig:seq:sr}): una \term{retroazione}.
+L'ingresso $S$ (\emph{set}) porta $Q$ nello stato stabile 1; l'ingresso $R$
+(\emph{reset}) porta $Q$ nello stato stabile 0. Con $S=R=0$ il latch conserva
+l'ultimo valore: ricorda quale dei due ingressi è stato a 1 più di recente.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.5\textwidth}\centering
+\begin{circuitikz}[scale=0.9,transform shape]
+  \node[nor port] (n1) at (0,1.8) {};
+  \node[nor port] (n2) at (0,0) {};
+  \draw (n1.in 1) -- ++(-0.8,0) node[left]{$R$};
+  \draw (n2.in 2) -- ++(-0.8,0) node[left]{$S$};
+  \draw (n1.out) -- ++(1.0,0) node[right]{$Q$};
+  \draw (n2.out) -- ++(1.0,0) node[right]{$\nott{Q}$};
+  \draw (n1.out) ++(0.4,0) node[circ]{} -- ++(0,-0.6) -- ($(n2.in 1)+(-0.3,0.55)$) -- ++(0,-0.55) -- (n2.in 1);
+  \draw (n2.out) ++(0.4,0) node[circ]{} -- ++(0,0.6) -- ($(n1.in 2)+(-0.3,-0.55)$) -- ++(0,0.55) -- (n1.in 2);
+\end{circuitikz}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}\centering\small
+\begin{tabular}{cc|l}
+$S$ & $R$ & $Q$ prossimo\\\hline
+0&0&$Q$: mantiene\\0&1&0: reset\\1&0&1: set\\\rowcolor{prgred!12}1&1&non ammesso
+\end{tabular}
+\end{minipage}
+\caption{Il latch SR costruito con porte NOR.}
+\label{fig:seq:sr}
+\end{figure}
+
+Dal circuito, $Q=\nott{R+\nott{Q}}$ e $\nott{Q}=\nott{S+Q}$, da cui
+\[ Q = \nott{R}\cdot(S+Q), \]
+dove la $Q$ a destra è il valore di un ritardo di propagazione prima. A causa
+della retroazione $Q$ dipende da sé stessa: in una rete con anelli ogni
+variabile è una forma d'onda nel tempo, non un singolo valore. Interrompere il
+filo di retroazione trasforma il latch in una semplice rete combinatoria di due
+NOR, ed è così che lo si analizza, caso per caso. Lo stesso latch si può
+costruire con due porte NAND e ingressi attivi bassi.
+
+\subsection{Il latch SR nel tempo}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.08,timing/xunit=8mm,timing/yunit=5mm]
+  $S$ & 3L 2H 9L\\
+  $R$ & 8L 2H 4L\\
+  $Q$ & 3.3L 5H 5.7L\\
+\extracode
+  \foreach \x/\l in {3/set,5/{$S$ torna a 0},8/reset,10/{$R$ torna a 0}}
+    {\draw[prgrule,dashed] (\x,1.3) -- (\x,-4.2); \node[lbl,anchor=south west,rotate=25] at (\x,1.3) {\l};}
+\end{tikztimingtable}
+\caption{Un diagramma temporale del latch SR.}\label{fig:seq:srtime}
+\end{figure}
+
+La Figura~\ref{fig:seq:srtime} segue il latch nel tempo. Al \emph{set}, $S$ va
+a 1 e, dopo il ritardo di due porte, $Q$ diventa 1. Poi $S$ torna a 0 e non
+cambia niente: la retroazione tiene $Q$ a 1. \emph{Il latch ricorda.} Al
+\emph{reset}, $R$ va a 1 e, dopo il ritardo, $Q$ diventa 0; quando $R$ torna a
+0, $Q$ resta lì. Il latch è un automa di Moore la cui uscita è il suo stato.
+
+\subsection{Perché $S=R=1$ non è ammesso}
+
+Con entrambi gli ingressi a 1 entrambe le porte NOR danno 0: $Q$ e $\nott{Q}$
+non sono più complementari. Peggio, se poi $S$ e $R$ tornano a 0 insieme le due
+porte gareggiano, e lo stato finale dipende da quale è più veloce: l'uscita è
+imprevedibile, e il latch può perfino oscillare. $S$ e $R$ si chiamano
+\term{ingressi di eccitazione}, e il progettista deve garantire che
+\[ S\cdot R=0 . \]
+Gli elementi JK e D esistono per eliminare questo problema.
+
+\subsection{Latch sincroni: aggiungere un clock}
+
+In un sistema \emph{asincrono} le uscite possono cambiare ogni volta che cambia
+un ingresso. In un sistema \emph{sincrono} l'istante in cui le uscite possono
+cambiare è deciso dal clock. In un latch SR con clock
+(Figura~\ref{fig:seq:clocked}) $S$ e $R$ passano attraverso due porte AND
+controllate dal clock: con $CK=0$ entrambe le porte AND danno 0 e il latch non
+può cambiare stato; con $CK=1$ il latch è sensibile a $S$ e $R$ esattamente
+come quello asincrono. Il clock decide \emph{quando gli ingressi vengono
+ascoltati}.
+
+\begin{figure}[htb]
+\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \node[and port] (a1) at (0,2.1) {};
+  \node[and port] (a2) at (0,-0.3) {};
+  \node[nor port] (n1) at (3.0,1.8) {};
+  \node[nor port] (n2) at (3.0,0) {};
+  \draw (a1.in 1) -- ++(-0.8,0) node[left]{$R$};
+  \draw (a2.in 2) -- ++(-0.8,0) node[left]{$S$};
+  \draw (a1.in 2) -- ++(-0.4,0) coordinate (c1) |- (a2.in 1);
+  \draw (c1) ++(0,-0.9) node[circ]{} -- ++(-0.9,0) node[left]{$CK$};
+  \draw (a1.out) -- (n1.in 1);
+  \draw (a2.out) -- (n2.in 2);
+  \draw (n1.out) -- ++(1.0,0) node[right]{$Q$};
+  \draw (n2.out) -- ++(1.0,0) node[right]{$\nott{Q}$};
+  \draw (n1.out) ++(0.4,0) node[circ]{} -- ++(0,-0.6) -- ($(n2.in 1)+(-0.3,0.55)$) -- ++(0,-0.55) -- (n2.in 1);
+  \draw (n2.out) ++(0.4,0) node[circ]{} -- ++(0,0.6) -- ($(n1.in 2)+(-0.3,-0.55)$) -- ++(0,0.55) -- (n1.in 2);
+\end{circuitikz}
+\caption{Un latch SR con clock.}\label{fig:seq:clocked}
+\end{figure}
+
+\subsection{I latch JK e D}
+
+Due varianti eliminano la combinazione proibita (Tabella~\ref{tab:seq:jkd}).
+Nel \term{latch JK} le uscite sono riportate alle porte di ingresso,
+$S=J\cdot\nott{Q}$ e $R=K\cdot Q$; poiché $Q$ e $\nott{Q}$ sono complementari,
+$S$ e $R$ non possono mai valere entrambi 1, e la quarta combinazione degli
+ingressi acquista un significato: \emph{inverti} (toggle). Nel \term{latch D}
+(D per \emph{delay}, ritardo, o \emph{data}, dato) un solo ingresso va a $S$ e,
+attraverso un invertitore, a $R$, così che sono possibili solo i casi $S=0$,
+$R=1$ e $S=1$, $R=0$: l'uscita semplicemente ripete l'ingresso mentre il clock
+è attivo.
+
+\begin{table}[htb]
+\centering\small
+\caption{I latch JK e D.}\label{tab:seq:jkd}
+\begin{tabular}{@{}ll@{\qquad\qquad}ll@{}}
+\toprule
+\textbf{Ingressi} & \textbf{Latch JK} & \textbf{Ingresso} & \textbf{Latch D}\\
+\midrule
+$J=0$, $K=0$ & mantiene: $Q$ invariato & $D=0$ & $Q$ diventa 0\\
+$J=0$, $K=1$ & reset: $Q$ diventa 0 & $D=1$ & $Q$ diventa 1\\
+$J=1$, $K=0$ & set: $Q$ diventa 1 & &\\
+$J=1$, $K=1$ & toggle: $Q$ viene invertito & &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{La sensibilità al livello e il suo problema}
+
+Un latch è \term{sensibile al livello}: è sensibile per tutto il tempo in cui
+il clock è al suo livello attivo. Mentre il clock è alto un latch è
+\term{trasparente}: ogni cambiamento degli ingressi raggiunge le uscite, così
+che durante un ciclo di clock sono possibili più cambiamenti di stato. In una
+macchina con retroazione, come quella della Figura~\ref{fig:seq:arch}, questo è
+fatale: il nuovo stato percorre l'anello e cambia di nuovo lo stato, nello
+stesso ciclo. Un latch JK con $J=K=1$ continua a invertirsi finché il clock
+resta alto.
+
+\begin{prgconcept}
+Un registro di stato deve cambiare \emph{al più una volta per ciclo}, e non
+deve lasciar passare lo stato prossimo mentre viene ancora calcolato. Un latch
+trasparente non può garantirlo.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Flip-flop}
+
+\subsection{Il flip-flop master-slave}
+
+La soluzione è mettere due latch in fila e farli ascoltare in fasi opposte del
+clock (Figura~\ref{fig:seq:ms}). Il primo, il \emph{master}, è attivo quando
+$CK=0$: segue l'ingresso $D$, ma il secondo, lo \emph{slave}, è chiuso e
+l'uscita non si muove. Quando il clock sale il master si chiude, congelando il
+valore che $D$ aveva in quell'istante, e lo slave si apre e lo mostra. In
+nessun momento i due latch sono entrambi trasparenti: l'uscita cambia una volta
+per ciclo, sul fronte di salita.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=30mm,minimum height=18mm] (m) at (0,0) {\textbf{MASTER}\\latch D\\\footnotesize attivo quando $CK=0$};
+  \node[blkamb,minimum width=30mm,minimum height=18mm] (s) at (4.6,0) {\textbf{SLAVE}\\latch D\\\footnotesize attivo quando $CK=1$};
+  \draw[->,thick] (-2.8,0.4) node[left,font=\ttfamily]{D} -- ([yshift=4mm]m.west);
+  \draw[->,thick] ([yshift=4mm]m.east) -- ([yshift=4mm]s.west) node[midway,above,font=\ttfamily\small]{Qm};
+  \draw[->,thick] ([yshift=4mm]s.east) -- ++(1.1,0) node[right,font=\ttfamily]{Q};
+  \draw[thick,prgred] (-2.8,-1.9) node[left,font=\ttfamily]{CK} -- (4.6,-1.9);
+  \draw[->,thick,prgred] (4.6,-1.9) -- (s.south);
+  \draw[->,thick,prgred] (0,-1.9) -- (m.south) node[midway,right,lbl,text=prgred]{invertito};
+  \fill[prgred] (0,-1.9) circle (1.5pt);
+\end{tikzpicture}
+\caption{Un flip-flop D master-slave.}
+\label{fig:seq:ms}
+\end{figure}
+
+\begin{definition}{Flip-flop}
+Un \term{flip-flop} è un bistabile \term{sensibile al fronte}: campiona i suoi
+ingressi solo su un fronte del clock, e le sue uscite cambiano solo allora.
+\end{definition}
+
+\subsection{Latch o flip-flop? Guardate l'uscita}
+
+\begin{figure}[htb]
+\centering
+\begin{tikztimingtable}[timing/slope=0.12,timing/xunit=4.6mm,timing/yunit=5mm]
+  CK & [prgsteel] 2L 2H 2L 2H 2L 2H 2L 2H 2L 2H 2L 2H\\
+  D & [prgamber] 3L 2H 2L 2H 4L 6H 5L\\
+  latch $Q$ & [prgviolet] 3L 3H 1L 3H 4L 5H 5L\\
+  flip-flop $Q$ & [prgaccent] 14L 8H 2L\\
+\extracode
+  \foreach \x in {2,6,10,14,18,22} \draw[prgrule,dashed] (\x,1.2) -- (\x,-6.2);
+\end{tikztimingtable}
+\caption{Lo stesso clock e lo stesso ingresso $D$, visti da un latch D e da un
+flip-flop D. Le linee tratteggiate sono i fronti di salita.}
+\label{fig:seq:lff}
+\end{figure}
+
+Nella Figura~\ref{fig:seq:lff} il latch D segue $D$ per tutto il tempo in cui
+il clock è alto, e mantiene l'ultimo valore quando il clock scende: la sua
+uscita cambia nel mezzo di una fase alta. Il flip-flop D guarda $D$ solo sul
+fronte di salita: gli impulsi brevi tra due fronti sono ignorati. L'uscita del
+flip-flop è ferma per un intero periodo, ed è ciò che serve a un registro di
+stato.
+
+\subsection{Elementi di memoria: un riepilogo}
+
+La Tabella~\ref{tab:seq:summary} dà, per ogni elemento, l'\term{equazione
+caratteristica} che esprime lo stato prossimo $Q^{+}$. Un flip-flop T è un JK
+con $J=K=T$. Il flip-flop D è l'elemento di memoria standard dei processori di
+oggi.
+
+\begin{table}[htb]
+\centering\small
+\caption{Elementi di memoria.}\label{tab:seq:summary}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Elemento} & \textbf{Ingressi} & \textbf{Stato prossimo} & \textbf{Cambia quando}\\
+\midrule
+latch SR ($S\,R=0$) & $S$, $R$ & $Q^{+}=S+\nott{R}\,Q$ & ogni volta che cambia un ingresso\\
+latch SR con clock & $S$, $R$, $CK$ & come sopra & mentre il clock è al livello attivo\\
+latch D & $D$, $CK$ & $Q^{+}=D$ & mentre il clock è al livello attivo\\
+flip-flop JK & $J$, $K$, $CK$ & $Q^{+}=J\,\nott{Q}+\nott{K}\,Q$ & sul fronte del clock\\
+flip-flop D & $D$, $CK$ & $Q^{+}=D$ & sul fronte del clock\\
+flip-flop T & $T$, $CK$ & $Q^{+}=T\oplus Q$ & sul fronte del clock\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{Un registro è una fila di flip-flop}
+
+\begin{definition}{Registro}
+Un \term{registro} è un dispositivo capace di memorizzare un gruppo di bit: un
+flip-flop per bit, e un clock comune.
+\end{definition}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\b in {0/3,1/2,2/1,3/0}{
+    \node[blkacc,minimum width=20mm,minimum height=11mm] (f\i) at (\i*2.7,0) {flip-flop D};
+    \draw[<-,thick] (f\i.north) -- ++(0,6mm) node[above,font=\ttfamily]{D\b};
+    \draw[->,thick] (f\i.south) -- ++(0,-6mm) node[below,font=\ttfamily]{Q\b};
+    \draw[->,thick,prgred] (\i*2.7-0.75,-1.7) -- (\i*2.7-0.75,-0.55);
+  }
+  \draw[thick,prgred] (-2.0,-1.7) node[left,font=\ttfamily]{CK} -- (3*2.7-0.75,-1.7);
+\end{tikzpicture}
+\caption{Un registro di quattro bit.}
+\label{fig:seq:reg}
+\end{figure}
+
+Con un segnale di \emph{abilitazione al caricamento} il registro prende il
+nuovo valore solo quando il segnale è attivo, e altrimenti conserva il vecchio.
+I trentadue registri di \riscv sono trentadue file di trentadue flip-flop, e le
+linee di abilitazione alla scrittura del decodificatore del
+Capitolo~\ref{ch:combinational} sono le loro abilitazioni al caricamento. Il
+componente classico della serie 74 è il 74273: otto flip-flop D, un clock e un
+azzeramento. Registri, registri a scorrimento, bus e buffer a tre stati sono
+l'argomento del prossimo capitolo.
+
+\subsection{Il program counter: un registro in un anello}
+
+Il \term{program counter} (PC), o contatore di programma, è il registro che
+contiene l'indirizzo dell'istruzione in esecuzione. Il suo valore successivo è
+calcolato da una piccola rete combinatoria (Figura~\ref{fig:seq:pc}): un
+sommatore calcola $PC+4$, perché le istruzioni distano 4 byte (con l'estensione
+compressa il sommatore aggiunge 2 dopo un'istruzione di 16 bit); un multiplexer
+sceglie tra quel valore e la destinazione di un salto; il comparatore del
+Capitolo~\ref{ch:combinational} produce, per \ins{beq} e \ins{bne}, il segnale
+che pilota il multiplexer. A ogni fronte del clock il registro prende il valore
+scelto. È l'architettura generale della Figura~\ref{fig:seq:arch} nel suo più
+piccolo esemplare utile.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkamb,minimum width=24mm,minimum height=13mm] (pc) at (0,0) {\textbf{PC}\\registro, 32 bit};
+  \node[blkvio,minimum width=17mm,minimum height=10mm] (add) at (3.6,1.1) {sommatore\\$+4$};
+  \node[blk,minimum width=24mm,minimum height=10mm] (bt) at (3.6,-1.1) {destinazione del salto\\dalla ALU};
+  \node[blkacc,minimum width=11mm,minimum height=24mm] (mux) at (6.8,0) {MUX};
+  \draw[->,bus] (pc.east) -- ++(0.5,0) |- (add.west);
+  \draw[->,bus] (add.east) -- ++(0.6,0) |- ([yshift=6mm]mux.west);
+  \draw[->,bus] (bt.east) -- ++(0.6,0) |- ([yshift=-6mm]mux.west);
+  \draw[->,bus,prgred] (mux.east) -- ++(0.7,0) -- ++(0,-2.6) -| (pc.south) node[pos=0.25,below,lbl,text=prgred]{PC successivo};
+  \draw[->,thick,prgsteel] (0,1.6) node[above,lbl]{clock} -- (pc.north);
+  \draw[->,thick] (6.8,-2.0) node[below,lbl]{salto preso?} -- (mux.south);
+\end{tikzpicture}
+\caption{Il program counter e la rete che calcola il suo valore successivo.}
+\label{fig:seq:pc}
+\end{figure}
+
+\subsection{Esempio di sintesi: un contatore a due bit}
+
+\begin{example}{Un contatore modulo 4}
+\emph{Stati}: quattro, uno per valore del conteggio; non c'è ingresso, e
+l'uscita è lo stato stesso (una macchina di Moore). \emph{Codice degli stati}:
+due variabili di stato $Q_1Q_0$, il conteggio in binario. \emph{Tabella degli
+stati}: accanto a ogni stato presente, il prossimo. Con i flip-flop D
+l'eccitazione è lo stato prossimo, $D_1D_0=Q_1^{+}Q_0^{+}$.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{c|c|cc}
+\textrm{$Q_1Q_0$ presente}&\textrm{$Q_1Q_0$ prossimo}&\textrm{$D_1$}&\textrm{$D_0$}\\\hline
+0 0&0 1&0&1\\0 1&1 0&1&0\\1 0&1 1&1&1\\1 1&0 0&0&0
+\end{tabular}
+\end{center}
+
+$D_0$ vale 1 nelle righe 00 e 10, quindi $D_0=\nott{Q_0}$. $D_1$ vale 1 nelle
+righe 01 e 10, quindi $D_1=\nott{Q_1}Q_0+Q_1\nott{Q_0}=Q_1\oplus Q_0$. Due
+flip-flop D, un invertitore e una porta XOR: una macchina che conta 0, 1, 2, 3,
+0, \ldots, un passo per fronte del clock.
+\end{example}
+
+Gli stessi cinque passi, con più stati e più ingressi, progettano qualsiasi
+macchina sequenziale. E il risultato merita un confronto con il sommatore
+completo: un contatore è un sommatore che somma 1 al proprio registro.
+
+\subsection{Il processore è una macchina sequenziale}
+
+\begin{prgmachine}
+Lo \emph{stato} di un processore è il program counter, i trentadue registri e
+la memoria. Il suo \emph{ingresso} è l'istruzione all'indirizzo contenuto nel
+PC, con i dati che essa legge. La sua \emph{rete dello stato prossimo} è fatta
+di decodificatori, multiplexer e della ALU, che calcolano i nuovi valori. A
+ogni \emph{fronte del clock} i registri nominati dall'istruzione prendono i
+loro nuovi valori.
+
+Eseguire un programma non è altro che una lunga passeggiata tra gli stati di
+una macchina a stati finiti molto grande, un fronte del clock alla volta.
+L'esecuzione passo-passo in \prgqt mostra quella passeggiata, uno stato dopo
+l'altro.
+\end{prgmachine}
+
+Questo è il ponte verso la Parte~V: il datapath (la parte combinatoria e i
+registri) e il controllo, che è esso stesso una macchina a stati finiti.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{In una macchina di Moore l'uscita dipende:}
+\item dal solo ingresso presente
+\item dal solo stato presente
+\item dallo stato presente e dall'ingresso presente
+\item dallo stato prossimo e dall'ingresso
+\end{quiz}
+
+\begin{quiz}{Un latch SR fatto di porte NOR ha $Q=1$. $S$ e $R$ valgono entrambi 0. Che cosa accade?}
+\item $Q$ diventa 0
+\item $Q$ oscilla
+\item $Q$ resta a 1
+\item lo stato è indefinito
+\end{quiz}
+
+\begin{quiz}{Che cosa distingue un flip-flop D da un latch D?}
+\item Il flip-flop ha due ingressi
+\item Il flip-flop memorizza due bit
+\item Il flip-flop cambia solo su un fronte del clock
+\item Al flip-flop non serve un clock
+\end{quiz}
+
+\begin{quiz}{Quanti flip-flop servono per una macchina a stati finiti con 10 stati?}
+\item 3
+\item 4
+\item 5
+\item 10
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Disegnate il diagramma degli stati di una macchina che dà in uscita 1
+  quando gli ultimi due ingressi valevano entrambi 1; scrivetela come macchina
+  di Moore e come macchina di Mealy.
+\item Completate il diagramma temporale di un latch SR per una sequenza di $S$
+  e $R$ a vostra scelta, segnando dove mantiene.
+\item Sintetizzate un contatore modulo 3 (0, 1, 2, 0, \ldots) con due
+  flip-flop D; che cosa accade nello stato non usato?
+\item Aggiungete al gioco del riscaldamento uno stato \texttt{PAUSE}, in cui si
+  entra e da cui si esce con il pulsante \key{SELECT}, e disegnate prima il
+  nuovo diagramma.
+\item Correggete il riscaldamento in modo che \key{A} debba essere rilasciato e
+  premuto di nuovo: memorizzate lo stato precedente dei pulsanti e reagite solo
+  a un cambiamento da 0 a 1.
+\end{enumerate}
+\expected{La macchina di Moore del primo compito richiede tre stati (nessun 1
+visto, un 1 visto, due o più), la macchina di Mealy due. Per il contatore:
+$D_1=Q_0$ e $D_0=\nott{Q_1}\,\nott{Q_0}$, con lo stato 11 come condizione di
+indifferenza o progettato per tornare a 00. Su \prg: quattro schermate, e un
+pulsante tenuto premuto che causa esattamente una transizione. L'ultimo compito
+è il \emph{rilevamento del fronte} in software: tenete \code{prev} in memoria,
+calcolate
+$\mathit{pressed\_now}=\mathit{buttons}\cdot\nott{\mathit{prev}}$, poi
+memorizzate i pulsanti in \code{prev}. Il programma si comporta allora come un
+flip-flop invece che come un latch.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+sequential network & rete sequenziale\\
+finite-state machine & automa a stati finiti\\
+state table / diagram & tabella / diagramma degli stati\\
+next-state function & funzione stato prossimo\\
+present / next state & stato presente / prossimo\\
+clock period & periodo di clock\\
+latch / flip-flop & latch / flip-flop (bistabile)\\
+feedback & retroazione\\
+rising / falling edge & fronte di salita / di discesa\\
+level- / edge-triggered & sensibile al livello / al fronte\\
+register & registro\\
+program counter & contatore di programma\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+I circuiti digitali sono combinatori o sequenziali; per quelli sequenziali
+contano il tempo e lo stato. Una macchina sequenziale realizza un automa a
+stati finiti, descritto come macchina di Mealy o di Moore. Latch e flip-flop
+sono le memorie elementari: la retroazione fa sì che un circuito ricordi. Il
+clock decide quando: i latch ascoltano durante un livello, i flip-flop solo su
+un fronte. I registri, i contatori, il program counter e il processore stesso
+sono macchine sequenziali costruite attorno a reti combinatorie.
+
+\paragraph{Letture.} \citet{patterson2020}, appendice~A (clock, elementi di
+memoria, macchine a stati finiti); \citet{bucci2017}, i capitoli sulle reti
+sequenziali; \emph{Playing with RISC-V}, capitolo~8, il gioco conclusivo in
+assembly \citep{prg32textbook}.

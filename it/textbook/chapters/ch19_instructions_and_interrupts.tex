@@ -1,0 +1,645 @@
+% ============================================================================
+%  Capitolo 19 -- Istruzioni e interruzioni                      (Lezione 19)
+% ============================================================================
+\chapter{Istruzioni e interruzioni}
+\label{ch:instructions}
+
+\epigraphline{Perché la CPU non riesce mai a combinare niente? Perché viene
+interrotta continuamente.}{Battuta anonima sull'architettura dei calcolatori}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item descrivere un'istruzione come un codice operativo e i suoi operandi, e nominare i tipi di operando;
+\item decodificare a mano un'istruzione \riscv, riconoscendone il formato e i campi;
+\item seguire un'istruzione attraverso il ciclo del processore: prelievo, decodifica, esecuzione, memoria, scrittura del risultato;
+\item spiegare che cos'è una pipeline e perché rende più veloce un processore;
+\item definire interruzioni, eccezioni e trap, ed elencarne le cause;
+\item descrivere che cosa fa \riscv quando avviene una trap e come riprende il programma interrotto.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\txtfile[caption={Quattro parole in memoria.},label=lst:ins:words]{code/l19/s04.txt}
+
+Il Listato~\ref{lst:ins:words} è la funzione \code{first\_update} del
+Capitolo~\ref{ch:firstcontact} così come sta in memoria: quattro numeri, a
+quattro indirizzi di distanza. (La \ins{la} che li precede è omessa, e le
+codifiche sono quelle non compresse di 32 bit: con l'estensione C
+l'assemblatore può scegliere per alcune di esse forme di 16 bit.) Seguono tre
+domande. Come fa il processore a sapere che il primo numero è un load e il
+secondo un'addizione? Quali passi compie per ciascuno di essi? E mentre li
+esegue, come si accorge che è stato premuto un pulsante o che è scaduto un
+timer?
+
+% ----------------------------------------------------------------------------
+\section{Le istruzioni}
+
+\subsection{Di che cosa è fatta un'istruzione}
+
+Le istruzioni tipiche di un processore sono trasferimenti di dati tra memoria
+e registri, operazioni aritmetiche e logiche, istruzioni per il controllo del
+flusso, e trasferimenti di dati da e verso l'ingresso/uscita. (In \riscv la
+quarta famiglia non esiste in quanto tale, perché i dispositivi sono memoria.)
+
+\begin{definition}{Istruzione}
+Un'\term{istruzione} è composta da un \term{codice operativo}, l'opcode, e da
+zero o più \term{operandi}. Un operando può essere una costante (un
+\emph{immediato}), una locazione di memoria, o un registro; può essere
+esplicito o implicito.
+\end{definition}
+
+Le istruzioni possono avere zero, uno, due o tre operandi: \ins{add} ne ha
+tre, tutti registri; \ins{ret} non ne ha di visibili.
+
+\subsection{I formati delle istruzioni RISC-V}
+
+Ogni istruzione \riscv dell'insieme di base è lunga 32 bit, ed è disposta
+secondo uno di sei \term{formati} (Figura~\ref{fig:ins:formats}). I formati
+sono stati progettati in modo che lo stesso campo sia sempre nello stesso
+posto: l'opcode nei bit da 6 a 0, il registro destinazione \code{rd} nei bit
+da 11 a 7, i registri sorgente \code{rs1} e \code{rs2} nei bit da 19 a 15 e da
+24 a 20, il campo \code{funct3} nei bit da 14 a 12. I formati B e J
+differiscono da S e U solo nel modo in cui sono disposti i bit dell'immediato.
+
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{bytefield}[bitwidth=0.0275\textwidth,bitheight=6.5mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,24,25,31}\\
+\begin{rightwordgroup}{R}\bitbox{7}[bgcolor=prgviolet!20]{funct7} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{I}\bitbox{12}[bgcolor=prgamber!30]{imm[11:0]} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{S}\bitbox{7}[bgcolor=prgamber!30]{imm[11:5]} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prgamber!30]{imm[4:0]} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{B}\bitbox{7}[bgcolor=prgamber!30]{imm[12$|$10:5]} & \bitbox{5}[bgcolor=prgaccent!20]{rs2} & \bitbox{5}[bgcolor=prgaccent!20]{rs1} & \bitbox{3}[bgcolor=prgviolet!20]{funct3} & \bitbox{5}[bgcolor=prgamber!30]{imm[4:1$|$11]} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{U}\bitbox{20}[bgcolor=prgamber!30]{imm[31:12]} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{J}\bitbox{20}[bgcolor=prgamber!30]{imm[20$|$10:1$|$11$|$19:12]} & \bitbox{5}[bgcolor=prggreen!20]{rd} & \bitbox{7}[bgcolor=prgsteel!20]{opcode}\end{rightwordgroup}
+\end{bytefield}
+\caption{I sei formati di \riscv. R: da registro a registro (\ins{add},
+\ins{sub}, \ins{and}, \ins{sll}, \ldots). I: immediati e load (\ins{addi},
+\ins{andi}, \ins{lw}, \ins{jalr}, \ldots). S: store. B: salti condizionati.
+U: immediati superiori (\ins{lui}, \ins{auipc}). J: salti (\ins{jal}).}
+\label{fig:ins:formats}
+\end{figure}
+
+Questa regolarità è il cuore dell'idea RISC. Il processore sa sempre dove
+guardare per prima cosa, e può leggere i registri nominati da un'istruzione
+mentre sta ancora scoprendo di quale istruzione si tratta.
+
+\subsection{Decodificare a mano}
+
+\begin{prgconcept}[Il metodo]
+Scrivete in binario le otto cifre esadecimali; staccate gli ultimi sette bit,
+l'opcode; cercate il formato; poi tagliate i campi.
+\end{prgconcept}
+
+\begin{example}{\hex{006283B3}}
+$\hex{006283B3}=0000\,0000\,0110\,0010\,1000\,0011\,1011\,0011_2$. Gli ultimi
+sette bit, \texttt{0110011}, sono l'opcode delle operazioni da registro a
+registro: il formato è R.
+\begin{center}\small\ttfamily
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+0000000&00110&00101&000&00111&0110011\\\hline
+\multicolumn{1}{c}{\textrm{\scriptsize funct7}}&\multicolumn{1}{c}{\textrm{\scriptsize rs2 = x6 = t1}}&\multicolumn{1}{c}{\textrm{\scriptsize rs1 = x5 = t0}}&\multicolumn{1}{c}{\textrm{\scriptsize funct3}}&\multicolumn{1}{c}{\textrm{\scriptsize rd = x7 = t2}}&\multicolumn{1}{c}{\textrm{\scriptsize opcode}}
+\end{tabular}
+\end{center}
+Con $\code{funct3}=000$ e $\code{funct7}=0000000$ l'operazione è un'addizione
+(con $\code{funct7}=0100000$ sarebbe una sottrazione): l'istruzione è
+\code{add t2, t0, t1}.
+\end{example}
+
+\begin{example}{\hex{0002A303}}
+$\hex{0002A303}=0000\,0000\,0000\,0010\,1010\,0011\,0000\,0011_2$. L'opcode
+\texttt{0000011} è quello dei load: il formato è I.
+\begin{center}\small\ttfamily
+\begin{tabular}{|c|c|c|c|c|}\hline
+000000000000&00101&010&00110&0000011\\\hline
+\multicolumn{1}{c}{\textrm{\scriptsize immediato = 0}}&\multicolumn{1}{c}{\textrm{\scriptsize rs1 = x5 = t0}}&\multicolumn{1}{c}{\textrm{\scriptsize funct3 = parola}}&\multicolumn{1}{c}{\textrm{\scriptsize rd = x6 = t1}}&\multicolumn{1}{c}{\textrm{\scriptsize opcode}}
+\end{tabular}
+\end{center}
+L'istruzione è \code{lw t1, 0(t0)}, la prima del riscaldamento.
+\end{example}
+
+I decodificatori del Capitolo~\ref{ch:combinational} fanno la stessa cosa in
+una frazione di nanosecondo. Le tabelle necessarie per decodificare qualsiasi
+istruzione sono nell'Appendice~\ref{app:riscv}.
+
+\subsection{Istruzioni a lunghezza fissa o variabile}
+
+In una macchina con istruzioni a \emph{lunghezza fissa} tutte le istruzioni
+hanno lo stesso numero di bit, l'istruzione successiva è sempre al PC più una
+costante, e prelievo e decodifica sono semplici. I processori RISC sono di
+questo tipo: \riscv usa 32 bit e, con l'estensione compressa, 16 o 32,
+distinti dai due bit più bassi (Capitolo~\ref{ch:combinational}). In una
+macchina con istruzioni a \emph{lunghezza variabile} la lunghezza è nota solo
+dopo che la prima parte è stata decodificata: i programmi sono compatti, e la
+decodifica è complessa. I processori CISC sono di questo tipo: l'MC68000 usa
+da una a cinque parole di 16 bit, e Intel x86 da uno a quindici byte. In
+entrambi i casi la lunghezza dell'istruzione decide di quanto avanza il PC.
+
+\subsection{Modi di indirizzamento: dove si trova un operando}
+
+\begin{table}[htb]
+\centering\small
+\caption{Modi di indirizzamento.}\label{tab:ins:modes}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{Modo} & \textbf{L'operando è} & \textbf{Esempio \riscv}\\
+\midrule
+immediato & una costante dentro l'istruzione & \code{addi t1, t1, 1}\\
+a registro & il contenuto di un registro & \code{add t2, t0, t1}\\
+base più scostamento & la parola di memoria a registro + costante & \code{lw t1, 8(sp)}\\
+relativo al PC & un indirizzo a una certa distanza dall'istruzione stessa & \code{beq t0, t1, loop}\\
+indiretto in memoria & la parola di memoria il cui indirizzo è in memoria & non disponibile: due load\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\riscv ha solo i primi quattro modi della Tabella~\ref{tab:ins:modes}. Un
+processore CISC come l'MC68000 ne ha una dozzina, compresi i modi indiretti in
+memoria e con autoincremento. L'operazione $R:=M[M[A]]$ diventa in \riscv
+\code{lw t0, 0(t1)} seguita da \code{lw t0, 0(t0)}. Il prezzo di modi di
+indirizzamento ricchi è un'ulteriore fase nel ciclo del processore, in cui si
+assemblano gli operandi.
+
+\subsection{Chiamate, ritorni e la convenzione di chiamata}
+
+Le istruzioni per il controllo del flusso meritano una parola in più, perché
+ogni funzione di \vermone dipende da esse. \ins{jal} (\emph{jump and link},
+formato J) salta a un indirizzo relativo al PC e scrive nel suo registro
+destinazione l'indirizzo dell'istruzione seguente; \ins{jalr} (formato I) fa
+lo stesso con una destinazione presa da un registro. La pseudoistruzione
+\ins{call} è una \ins{jal} (o una \ins{auipc} con una \ins{jalr}, per
+destinazioni lontane) la cui destinazione è \reg{ra}; \ins{ret} è
+\code{jalr zero, 0(ra)}.
+
+La \term{convenzione di chiamata} è l'accordo che permette a funzioni scritte
+separatamente di chiamarsi l'una con l'altra \citep{riscvabi}. Dice che gli
+argomenti viaggiano in \reg{a0}--\reg{a7} e i risultati in \reg{a0} e
+\reg{a1}; che una funzione può distruggere i registri \reg{t0}--\reg{t6} e
+\reg{a0}--\reg{a7}, che sono quindi \emph{salvati dal chiamante}; che deve
+restituire i registri \reg{s0}--\reg{s11} e \reg{sp} come li ha trovati, che
+sono quindi \emph{salvati dal chiamato}; e che \reg{sp} è sempre multiplo di
+16. È per questo che, fin dal Capitolo~\ref{ch:verm1p2}, un valore che deve
+sopravvivere a una chiamata è stato tenuto in un registro \reg{s} e salvato
+nel frame. La convenzione è enunciata per intero
+nell'Appendice~\ref{app:riscv}.
+
+% ----------------------------------------------------------------------------
+\section{Il ciclo del processore}
+
+\subsection{Le fasi del ciclo}
+
+Dopo una fase di avvio, il \emph{bootstrap}, un processore ripete per sempre
+la stessa sequenza: il suo algoritmo fondamentale. Nella formulazione RISC
+classica la sequenza ha cinque fasi (Figura~\ref{fig:ins:cycle}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=19mm] (a) {\textbf{Prelievo}\\[1pt]\footnotesize legge l'istruzione; il PC avanza};
+  \node[blkamb,text width=21mm,minimum height=19mm,right=of a] (b) {\textbf{Decodifica}\\[1pt]\footnotesize la riconosce; legge i registri};
+  \node[blkvio,text width=21mm,minimum height=19mm,right=of b] (c) {\textbf{Esecuzione}\\[1pt]\footnotesize la ALU calcola};
+  \node[blkgrn,text width=21mm,minimum height=19mm,right=of c] (d) {\textbf{Memoria}\\[1pt]\footnotesize i load leggono, gli store scrivono};
+  \node[blkred,text width=21mm,minimum height=19mm,right=of d] (e) {\textbf{Scrittura}\\[1pt]\footnotesize il risultato va in \texttt{rd}};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+  \draw[->,thick,rounded corners=3mm] (e.south) -- ++(0,-6mm) -| (a.south);
+\end{tikzpicture}
+\caption{Il ciclo del processore.}
+\label{fig:ins:cycle}
+\end{figure}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Prelievo (fetch).] L'istruzione all'indirizzo contenuto nel PC viene
+  letta dalla memoria; il PC avanza.
+\item[Decodifica (decode).] L'opcode viene riconosciuto; i registri nominati
+  dall'istruzione vengono letti.
+\item[Esecuzione (execute).] La ALU calcola: un risultato, un indirizzo o un
+  confronto.
+\item[Memoria.] I load leggono la memoria e gli store la scrivono; le altre
+  istruzioni saltano questa fase.
+\item[Scrittura del risultato (write back).] Il risultato viene scritto nel
+  registro destinazione.
+\end{description}
+
+\subsection{La fase di prelievo, trasferimento per trasferimento}
+
+Nei termini del modello di riferimento del Capitolo~\ref{ch:processor}, il
+prelievo è fatto di quattro \term{trasferimenti tra registri} sul bus interno
+(Tabella~\ref{tab:ins:fetch}). In RV32 una parola è di quattro byte e gli
+indirizzi contano i byte, così che il PC avanza di 4 (di 2 dopo un'istruzione
+compressa).
+
+\begin{table}[htb]
+\centering\small
+\caption{La fase di prelievo.}\label{tab:ins:fetch}
+\begin{tabularx}{\textwidth}{@{}clL@{}}
+\toprule
+\textbf{Passo} & \textbf{Trasferimento tra registri} & \textbf{Significato}\\
+\midrule
+1 & $MA := PC$ & l'indirizzo dell'istruzione va al registro indirizzo di memoria\\
+2 & abil.\ lettura; $MB := M[MA]$ & la memoria mette l'istruzione sul bus dati; viene catturata nel buffer\\
+3 & $D := MB$ & l'istruzione è copiata nel registro di decodifica\\
+4 & $PC := PC+4$ & il PC punta ora all'istruzione successiva\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Il resto del ciclo per due istruzioni}
+
+\begin{table}[htb]
+\centering\small
+\caption{Le fasi restanti per un'addizione e per un load.}\label{tab:ins:rest}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Fase} & \textbf{\code{add t2, t0, t1}} & \textbf{\code{lw t1, 0(t0)}}\\
+\midrule
+decodifica & $O_1:=R[\reg{t0}]$;\quad $O_2:=R[\reg{t1}]$ & $O_1:=R[\reg{t0}]$;\quad $O_2:=0$ (l'immediato)\\
+esecuzione & $U:=O_1+O_2$ & $U:=O_1+O_2$ (un indirizzo)\\
+memoria & -- & $MA:=U$; abil.\ lettura; $MB:=M[MA]$\\
+scrittura & $R[\reg{t2}]:=U$ & $R[\reg{t1}]:=MB$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La stessa ALU somma due registri per \ins{add} e forma un indirizzo per
+\ins{lw} (Tabella~\ref{tab:ins:rest}): differiscono solo i segnali di
+controllo. L'unità di controllo, decodificando l'opcode, decide quali
+trasferimenti avvengono. Uno store termina alla fase di memoria; un salto
+condizionato termina alla fase di esecuzione, scegliendo il PC successivo.
+
+\subsection{La pipeline}
+
+Cinque fasi sono cinque pezzi di hardware. Mentre un'istruzione viene
+eseguita, la successiva può essere decodificata e una terza prelevata: è una
+\term{pipeline} (Tabella~\ref{tab:ins:pipe}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Una pipeline lineare a cinque stadi: IF prelievo dell'istruzione, ID
+decodifica, EX esecuzione, MEM memoria, WB scrittura del risultato.}\label{tab:ins:pipe}
+\begin{tabular}{@{}l*{8}{>{\centering\arraybackslash}p{8mm}}@{}}
+\toprule
+\textbf{ciclo di clock} & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8\\
+\midrule
+istruzione 1 & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&&\\
+istruzione 2 && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+istruzione 3 &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+istruzione 4 &&&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ogni istruzione impiega ancora cinque cicli, ma a ogni ciclo di clock si
+completa un'istruzione: la produttività è cinque volte maggiore. In generale,
+$n$ istruzioni su una pipeline di $k$ stadi si completano in $k+n-1$ cicli. I
+processori \term{superscalari} mettono due o più pipeline fianco a fianco, e
+completano più di un'istruzione per ciclo (Capitolo~\ref{ch:beyond}). Il core
+principale dell'ESP32-C6 ha una pipeline a quattro stadi. I salti, e le
+dipendenze tra istruzioni vicine, complicano il quadro: si chiamano
+\emph{hazard} (criticità), e sono l'argomento di un corso avanzato.
+
+% ----------------------------------------------------------------------------
+\section{Le interruzioni}
+
+\subsection{Il problema del ciclo semplice}
+
+Se il processore facesse sempre e solo prelievo, decodifica ed esecuzione,
+nascerebbero tre problemi. L'interazione con il mondo esterno attraverso le
+unità di I/O sarebbe inefficiente, perché il programma dovrebbe continuare a
+chiedere. Non ci sarebbe modo di rimuovere forzatamente un'applicazione che,
+per errore, entra in un ciclo infinito: chi toglie il processore a un
+programma bloccato in \code{j loop}? E il sistema operativo avrebbe un
+controllo limitato sul sistema.
+
+\subsection{Interruzioni, eccezioni, trap}
+
+\begin{definition}{Interruzione}
+Le \term{interruzioni} sono eventi eccezionali, di solito asincroni rispetto
+all'esecuzione del programma in corso, che richiedono l'attenzione del
+processore.
+\end{definition}
+
+La specifica \riscv usa tre parole in modo preciso \citep{riscvpriv}.
+Un'\term{interruzione} \eng{interrupt} viene dall'esterno del programma, in un
+momento qualsiasi: un timer, un dispositivo. Un'\term{eccezione} è causata
+dall'istruzione in esecuzione: un opcode illegale, un indirizzo proibito. Una
+\term{trap} è il trasferimento del controllo a un gestore che segue l'una o
+l'altra. (I processori più vecchi chiamano «trap» gli eventi sincroni e usano
+«interruzione» per tutto.)
+
+\subsection{Il vero ciclo del processore}
+
+Il ciclo reale ha quindi un passo in più (Figura~\ref{fig:ins:real}): dopo
+ogni istruzione il processore controlla se c'è un'interruzione in attesa e, in
+tal caso, passa al gestore invece di prelevare l'istruzione successiva.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgsteel,text=white,minimum width=22mm,minimum height=9mm] (b) at (0,0) {bootstrap};
+  \node[blkacc,minimum width=22mm,minimum height=9mm] (f) at (3.4,0) {prelievo};
+  \node[blkamb,minimum width=22mm,minimum height=9mm] (x) at (6.8,0) {decodifica ed\\esecuzione};
+  \node[blkred,minimum width=22mm,minimum height=10mm] (q) at (6.8,-1.9) {interruzione\\in attesa?};
+  \node[blkvio,minimum width=22mm,minimum height=10mm] (t) at (6.8,-3.8) {trap: si va\\al gestore};
+  \draw[->,thick] (b) -- (f); \draw[->,thick] (f) -- (x); \draw[->,thick] (x) -- (q);
+  \draw[->,thick] (q.west) -| (f.south) node[pos=0.25,above,lbl]{no};
+  \draw[->,thick,prgred] (q) -- (t) node[midway,right,lbl,text=prgred]{sì};
+  \draw[->,thick,prgviolet] (t.west) -| (f.south);
+  \node[lbl,text=prgviolet] at (4.4,-4.1) {il prossimo prelievo è all'indirizzo in \texttt{mtvec}};
+\end{tikzpicture}
+\caption{Il vero ciclo del processore.}
+\label{fig:ins:real}
+\end{figure}
+
+\subsection{Possibili cause di interruzione}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Interruzione periodica.] Un timer, per esempio ogni 10~ms: per
+  condividere il processore tra i programmi e per misurare il tempo che
+  ciascuno usa.
+\item[Interruzione di I/O.] Una periferica comunica il proprio stato, per
+  esempio che è pronta a ricevere dati, per sincronizzarsi con il processore.
+\item[Errori nel programma.] Un'istruzione che non esiste o è privilegiata, un
+  indirizzo proibito: eventi sincroni, le eccezioni. (In \riscv un overflow
+  intero \emph{non} solleva un'eccezione.)
+\item[Guasti.] Malfunzionamenti del sistema rilevati da sonde dedicate:
+  alimentazione, temperatura, errori di memoria.
+\item[Reset.] Riporta l'intero sistema a uno stato noto.
+\item[Interruzione software.] Generata da un programma che ha bisogno di una
+  risorsa condivisa e chiede al sistema operativo di fare da mediatore: in
+  \riscv, l'istruzione \ins{ecall}, \emph{environment call}, che è sincrona
+  con il programma che la esegue.
+\end{description}
+
+\subsection{Gestire un'interruzione}
+
+\begin{enumerate}
+\item Salvare il contesto, parte hardware: almeno l'indirizzo da cui
+  riprendere.
+\item Identificare la causa dell'interruzione.
+\item Saltare al punto di ingresso della \term{routine di servizio
+  dell'interruzione} (ISR).
+\item Salvare il contesto, parte software: i registri che la routine sta per
+  usare.
+\item Servire l'interruzione.
+\item Se l'interruzione lo consente, ripristinare il contesto e riprendere il
+  programma sospeso dall'istruzione che segue l'ultima eseguita.
+\end{enumerate}
+
+Il \term{contesto} da salvare e ripristinare è il PC, lo stato e i registri.
+Il salvataggio può essere fatto in parte o del tutto in hardware o in
+software; \riscv fa il minimo in hardware.
+
+\subsection{Chi ha interrotto? Due soluzioni}
+
+Con più dispositivi il processore deve identificare chi ha interrotto. Con
+\emph{registri di stato e polling}, ogni dispositivo ha un registro di stato:
+un dispositivo che richiede un'interruzione vi pone a 1 un bit e alza una
+linea di richiesta comune; la routine di servizio interroga i dispositivi in
+ordine di priorità e serve il primo che trova con il bit alto. Lo schema è
+semplice da costruire ma richiede tempo, perché interroga anche dispositivi
+che non hanno chiesto niente. Con le \term{interruzioni vettorizzate}
+l'identità della sorgente è fornita al processore al momento della richiesta,
+e il processore salta direttamente alla routine che le corrisponde: un
+meccanismo molto efficiente, in cui il numero di bit del vettore limita il
+numero di sorgenti diverse.
+
+La \term{latenza di interruzione} è il ritardo tra l'istante in cui la linea
+di richiesta sale e l'istante in cui la routine di servizio comincia a fare
+lavoro utile; comprende la fine dell'istruzione corrente, il controllo e la
+commutazione.
+
+% ----------------------------------------------------------------------------
+\section{La soluzione di RISC-V}
+
+\riscv risolve l'intero problema con pochi registri e un'istruzione.
+
+\subsection{I registri del meccanismo delle trap}
+
+\begin{table}[htb]
+\centering\small
+\caption{I CSR del modo macchina per il meccanismo delle trap.}\label{tab:ins:csr}
+\begin{tabularx}{\textwidth}{@{}lP{0.3\textwidth}L@{}}
+\toprule
+\textbf{CSR} & \textbf{Scritto da} & \textbf{Contenuto}\\
+\midrule
+\reg{mtvec} & il firmware, una volta, all'avvio & l'indirizzo del gestore delle trap, e se si usa il modo vettorizzato\\
+\reg{mstatus} & hardware e firmware & MIE, l'abilitazione globale delle interruzioni, e MPIE, il suo valore precedente\\
+\reg{mie} & il firmware & un bit di abilitazione per ogni sorgente: software, timer, esterna\\
+\reg{mip} & l'hardware & un bit di richiesta in attesa per ogni sorgente\\
+\reg{mepc} & l'hardware, a ogni trap & l'indirizzo dell'istruzione interrotta\\
+\reg{mcause} & l'hardware, a ogni trap & un bit che dice interruzione o eccezione, e un codice per la causa\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Un'interruzione viene accolta solo se il suo bit è a 1 sia in \reg{mip} sia in
+\reg{mie}, e MIE vale 1 (Tabella~\ref{tab:ins:csr}).
+
+\subsection{Che cosa fa l'hardware su una trap}
+
+\begin{enumerate}
+\item $\reg{mepc} :=$ l'indirizzo dell'istruzione interrotta.
+\item $\reg{mcause} :=$ la causa: il bit più alto vale 1 per un'interruzione e
+  0 per un'eccezione, e gli altri bit contengono un codice.
+\item In \reg{mstatus}: $\mathrm{MPIE}:=\mathrm{MIE}$, poi
+  $\mathrm{MIE}:=0$, così che ulteriori interruzioni sono disabilitate.
+\item Il processore passa al modo macchina.
+\item $PC :=$ l'indirizzo contenuto in \reg{mtvec}; oppure, nel modo
+  vettorizzato e per le interruzioni, quell'indirizzo più 4 volte la causa.
+\end{enumerate}
+
+Alla fine del gestore l'istruzione \ins{mret} disfa tutto:
+$\mathrm{MIE}:=\mathrm{MPIE}$ e $PC:=\reg{mepc}$.
+
+L'hardware non inserisce niente su uno stack: il salvataggio dei registri
+generici è lasciato al gestore. Il «salvataggio hardware del contesto» dello
+schema generale è ridotto a due registri e un bit.
+
+\subsection{La causa di una trap}
+
+\begin{table}[htb]
+\centering\small
+\caption{Alcuni valori standard di \reg{mcause}; i chip ne aggiungono di propri.}\label{tab:ins:cause}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Tipo} & \textbf{Codice} & \textbf{Causa}\\
+\midrule
+interruzione & 3 & interruzione software di macchina\\
+interruzione & 7 & interruzione del timer di macchina\\
+interruzione & 11 & interruzione esterna di macchina: un dispositivo, attraverso il controller delle interruzioni\\
+eccezione & 2 & istruzione illegale\\
+eccezione & 3 & breakpoint (\ins{ebreak}): il modo in cui un debugger ferma un programma\\
+eccezione & 5, 7 & errore di accesso in load o in store: un indirizzo proibito\\
+eccezione & 8, 11 & environment call (\ins{ecall}) dal modo utente, dal modo macchina\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Lo stesso codice 3 significa cose diverse per le interruzioni e per le
+eccezioni (Tabella~\ref{tab:ins:cause}): le distingue il bit più alto di
+\reg{mcause}. Con \reg{mtvec} nel modo vettorizzato, un'interruzione del timer
+entra a $\mathit{base}+4\times 7$.
+
+\subsection{Un gestore delle trap, in schema}
+
+\asmfile[caption={Lo schema di un gestore delle trap.},label=lst:ins:handler]{code/l19/s27.S}
+
+Il programma interrotto non deve accorgersi di niente: ogni registro che il
+gestore tocca viene salvato e ripristinato (Listato~\ref{lst:ins:handler}).
+Letto come numero con segno, \reg{mcause} è negativo per le interruzioni, così
+che \ins{bgez} separa le due famiglie. \ins{mret} è l'unica via di ritorno:
+riabilita le interruzioni e ricarica il PC in un solo passo. L'istruzione
+\code{csrr t0, mcause} è la pseudoistruzione per
+\code{csrrs t0, mcause, zero}.
+
+Il listato è uno schema, non il sorgente di \prg: un gestore reale salva tutti
+i registri salvati dal chiamante, di solito su uno stack separato raggiunto
+attraverso il registro \reg{mscratch}. Il firmware del kit contiene esattamente
+una routine di questo tipo, e una cartuccia viene interrotta molte volte per
+frame.
+
+\subsection{Priorità e annidamento}
+
+Per gestire le interruzioni \term{annidate} si stabilisce una priorità: mentre
+una routine di servizio è in esecuzione, si accettano solo richieste da
+dispositivi di priorità più alta, e una richiesta da un dispositivo ad alta
+priorità, come il clock, deve essere accettata anche mentre se ne sta servendo
+una di priorità più bassa. La Tabella~\ref{tab:ins:prio} confronta la soluzione
+classica dell'MC68000 con quella di \riscv, dove le priorità appartengono a un
+controller delle interruzioni esterno al core (sui chip Espressif vanno da 1 a
+15).
+
+\begin{table}[htb]
+\centering\small
+\caption{Priorità e annidamento in due processori.}\label{tab:ins:prio}
+\begin{tabularx}{\textwidth}{@{}P{0.22\textwidth}LL@{}}
+\toprule
+ & \textbf{Motorola MC68000} & \textbf{\riscv}\\
+\midrule
+priorità di una richiesta & tre linee codificano un livello di priorità dell'interruzione, da 1 a 7 & il controller delle interruzioni dà a ogni sorgente una priorità\\
+priorità del processore & tre bit nel registro di stato: la maschera & un registro di soglia nel controller delle interruzioni\\
+una richiesta è accettata se & il suo livello è più alto della maschera & la sua priorità è più alta della soglia, ed è abilitata\\
+mentre la si serve & la maschera è alzata a quel livello & le interruzioni sono disabilitate ($\mathrm{MIE}=0$) a meno che il gestore non le riabiliti\\
+non mascherabile & il livello 7 & un'interruzione non mascherabile, definita da ogni chip\\
+identità della sorgente & un numero di vettore di 8 bit dal dispositivo: 256 vettori & \reg{mcause}, poi il controller dice quale dispositivo\\
+ritorno & \code{RTE}, che estrae PC e stato dallo stack & \ins{mret}, che usa \reg{mepc} e \reg{mstatus}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}
+A volte si dice che «un'interruzione è un segnale che non può essere
+mascherato». È vero il contrario: la maggior parte delle interruzioni può
+essere mascherata, e solo poche non lo possono.
+\end{prgwarn}
+
+\subsection{Le interruzioni sul kit PRG32}
+
+I tre problemi del ciclo semplice, e la loro soluzione, sono tutti visibili
+sul kit.
+
+\begin{itemize}
+\item Un timer interrompe il processore cento volte al secondo: il firmware lo
+  usa per tenere il tempo e per scandire i frame.
+\item Le periferiche del display e del suono interrompono quando un blocco di
+  dati è stato inviato e serve il successivo.
+\item La radio Wi-Fi interrompe quando arriva un pacchetto: una cartuccia può
+  essere caricata mentre un gioco è in esecuzione.
+\item Le funzioni \code{init}, \code{update} e \code{draw} di una cartuccia
+  sono funzioni ordinarie chiamate dal firmware tra un'interruzione e la
+  successiva.
+\item Una cartuccia bloccata in un ciclo non ferma le interruzioni. \prgqt
+  termina il frame con un errore («instruction budget exhausted»); sulla
+  scheda un watchdog segnala lo stallo, e l'utente preme reset.
+\end{itemize}
+
+In \prgqt un breakpoint è l'eccezione con codice 3.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{In quali bit di un'istruzione \riscv sta l'opcode?}
+\item i sette più significativi
+\item i sette meno significativi
+\item i bit da 14 a 12
+\item dipende dal formato
+\end{quiz}
+
+\begin{quiz}{Durante il prelievo di un'istruzione RV32 non compressa, il PC viene incrementato di:}
+\item 1
+\item 2
+\item 4
+\item 32
+\end{quiz}
+
+\begin{quiz}{Quale registro contiene l'indirizzo da cui riprenderà un programma \riscv interrotto?}
+\item \reg{ra}
+\item \reg{mtvec}
+\item \reg{mepc}
+\item \reg{mcause}
+\end{quiz}
+
+\begin{quiz}{Quale di questi è un'eccezione e non un'interruzione, nei termini di \riscv?}
+\item scade un timer
+\item viene premuto un tasto
+\item viene prelevata un'istruzione illegale
+\item arriva un pacchetto dalla rete
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Decodificate a mano \hex{00A28293} e \hex{40628333}: formato, campi,
+  assembly.
+\item Codificate \code{sub t0, t1, t2} e \code{sw a0, 8(sp)}.
+\item Scrivete i trasferimenti tra registri dell'intero ciclo per
+  \code{sw t1, 0(t0)} e per \code{beq t0, t1, target}.
+\item Disegnate il diagramma della pipeline per sei istruzioni su una pipeline
+  a quattro stadi: quando si completa la sesta?
+\item In \prgqt mettete un breakpoint in \code{first\_update}, procedete
+  passo-passo, e confrontate il codice macchina mostrato con la vostra
+  decodifica del riscaldamento.
+\end{enumerate}
+\expected{Su carta: \code{addi t0, t0, 10} (immediato 10, \code{rs1} =
+\reg{x5}, \code{funct3} = 000, \code{rd} = \reg{x5}, opcode 0010011) e
+\code{sub t1, t0, t1} (\code{funct7} = 0100000, \code{rs2} = \reg{x6},
+\code{rs1} = \reg{x5}, \code{rd} = \reg{x6}); \hex{407302B3} e
+\hex{00A12423}; la sesta istruzione si completa al ciclo 9. In \prgqt: le
+quattro parole del riscaldamento, o i loro equivalenti compressi.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+operation code (opcode) & codice operativo\\
+operand & operando\\
+addressing mode & modo di indirizzamento\\
+fetch / decode / execute & prelievo / decodifica / esecuzione\\
+pipeline stage & stadio della pipeline\\
+context & contesto\\
+interrupt & interruzione\\
+exception / trap & eccezione / trap\\
+interrupt service routine & routine di servizio dell'interruzione\\
+interrupt latency & latenza di interruzione\\
+to mask an interrupt & mascherare un'interruzione\\
+nesting & annidamento\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Un'istruzione è un codice operativo e zero, uno o più operandi; in \riscv è
+sempre di 32 bit, in sei formati regolari. La lunghezza delle istruzioni,
+fissa o variabile, determina come si comporta il PC. Il processore ha un
+ciclo: preleva un'istruzione, la decodifica, la esegue e scrive il risultato.
+Gli eventi eccezionali rompono il ciclo: il processore salva dov'era, serve
+l'evento e riprende. Le interruzioni possono essere abilitate, mascherate e
+ordinate per priorità; \riscv lo fa con una manciata di registri e
+l'istruzione \ins{mret}.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafi 2.5, 4.1--4.6 e 4.10;
+il manuale dell'insieme di istruzioni \riscv, volume~II, «Privileged
+Architecture» \citep{riscvpriv}; \emph{Playing with RISC-V}, capitolo~4, su
+\prgqt e il suo debugger \citep{prg32textbook}.

@@ -1,0 +1,638 @@
+% ============================================================================
+%  Appendice B -- Riferimento di PRG32
+% ============================================================================
+\chapter{Riferimento di PRG32}
+\label{app:prg32}
+
+Questa appendice è un riferimento della piattaforma \prg così come è usata nel
+libro: il contratto tra una cartuccia e il runtime, l'interfaccia di
+programmazione, il file della cartuccia, gli strumenti a riga di comando, i tre
+host e il Cartridge Store. È stata compilata dai sorgenti e dalla
+documentazione dei repository nell'ottobre 2026
+\citep{prg32repo,prg32qt,prg32store}; la piattaforma evolve, e i repository
+prevalgono su questo testo. Il manuale di laboratorio della piattaforma è il
+volume di accompagnamento \citep{prg32textbook}.
+
+% ----------------------------------------------------------------------------
+\section{La piattaforma in breve}
+
+\begin{table}[htb]
+\centering\small
+\caption{La piattaforma \prg in numeri.}\label{tab:prg:glance}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}L@{}}
+\toprule
+Processore & Espressif ESP32-C6: un core \riscv, RV32IMAC, fino a 160 MHz, modo macchina e modo utente, nessuna virgola mobile\\
+Memoria & 512 KB di SRAM, 320 KB di ROM, flash esterna\\
+Display & TFT ILI9341, $320\times 240$ pixel, su SPI\\
+Viewport di gioco & $320\times 200$ pixel; due bande di stato di 20 pixel sopra e sotto\\
+Frame buffer & 8 bit per pixel (indici di palette), con una palette di 256 colori RGB565\\
+Griglia di testo & $40\times 25$ caratteri di $8\times 8$ pixel\\
+Tile & $8\times 8$ pixel; un playfield di $64\times 32$ tile su 2 livelli\\
+Ingresso & joystick (4 direzioni) e pulsanti A, B, START/SELECT, per uno o due giocatori\\
+Suono & amplificatore I2S (MAX98357A); note, campioni, tracce\\
+Rete & Wi-Fi: access point \code{PRG32} o stazione su una rete esistente\\
+Cartuccia & un file \fname{.prg32}, caricato a \hex{40800000}; 4 slot di 131\,072 byte in flash\\
+RAM della cartuccia & 64 KiB per impostazione predefinita (esistono profili da 32 e da 128 KiB)\\
+Host & la scheda ESP32-C6; QEMU di Espressif (ESP32-C3 emulato); \prgqt\\
+Licenza & MIT\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htb]
+\centering\small
+\caption{I repository dell'organizzazione \code{riscv-prg32} su GitHub.}\label{tab:prg:repos}
+\begin{tabularx}{\textwidth}{@{}P{0.42\textwidth}L@{}}
+\toprule
+\textbf{Repository} & \textbf{Contenuto}\\
+\midrule
+\code{PRG32} & il firmware residente, gli strumenti per le cartucce (\code{python3 -m prg32}), gli esempi, la documentazione\\
+\code{PRG32-QT} & l'host per desktop e dispositivi mobili, con l'interprete RV32IMAC e il debugger\\
+\code{PRG32-Construction-Kit} & uno studio per costruire giochi con blocchi e sprite\\
+\code{Playing-with-RISC-V\_PRG32\_textbook} & il manuale di laboratorio, con i suoi laboratori verificati\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Il contratto}
+
+Una cartuccia fornisce tre funzioni, i cui nomi sono un prefisso scelto dal
+programmatore seguito da \code{\_init}, \code{\_update} e \code{\_draw}; il
+prefisso si passa al compilatore di cartucce con \code{-{}-entry-prefix}.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[\code{prefix\_init}] è chiamata una volta, all'avvio della cartuccia.
+  Prepara lo stato.
+\item[\code{prefix\_update}] è chiamata una volta per frame. Legge l'ingresso
+  e cambia lo stato.
+\item[\code{prefix\_draw}] è chiamata una volta per frame, dopo \code{update}.
+  Trasforma lo stato in un'immagine.
+\end{description}
+
+Le tre funzioni seguono la convenzione di chiamata standard di \riscv
+(Appendice~\ref{app:riscv}), devono ritornare, e non devono disabilitare le
+interruzioni né toccare i registri di controllo e stato. I registri non
+conservano i loro valori tra una chiamata e la successiva: tutto ciò che deve
+durare vive nelle sezioni \code{.data} o \code{.bss} della cartuccia. Una
+funzione che non ritorna mai blocca il frame: \prgqt segnala «instruction
+budget exhausted», e sulla scheda un watchdog segnala lo stallo.
+
+\paragraph{La tabella ABI.} Una cartuccia \emph{portabile} non contiene gli
+indirizzi delle funzioni del runtime. Quando il runtime entra in \code{init},
+\code{update} o \code{draw} passa in \reg{a0} un puntatore a una tabella di
+puntatori a funzione, la tabella ABI; piccoli stub aggiunti dal compilatore di
+cartucce memorizzano quel puntatore e permettono al sorgente di mantenere la
+forma familiare \code{call prg32\_gfx\_clear}. La tabella ha un numero magico
+(\code{PABI}), una versione, un hash e un insieme di bit di funzionalità
+(audio, Wi-Fi, multigiocatore, metriche, tastiera, mappa di tile, platform,
+sprite); una cartuccia dichiara nella sua intestazione l'hash e le
+funzionalità che richiede, e un host la accetta se può onorarli. Le nuove
+funzioni vengono sempre e solo accodate alla tabella, così che una vecchia
+cartuccia continua a funzionare su un nuovo host.
+
+\begin{asm}[caption={Lo scheletro di una cartuccia \prg in assembly.},label=lst:prg:skel]
+# mygame.S
+.option norelax
+
+.equ BLACK, 0x0000
+
+.section .text
+.global mygame_init
+.global mygame_update
+.global mygame_draw
+
+mygame_init:                # once: set up the state
+    ret
+
+mygame_update:              # every frame: input, state
+    ret
+
+mygame_draw:                # every frame: state to picture
+    addi sp, sp, -16
+    sw   ra, 12(sp)
+    li   a0, BLACK
+    call prg32_gfx_clear
+    lw   ra, 12(sp)
+    addi sp, sp, 16
+    ret
+
+.section .rodata            # constants: strings, tables
+.section .data              # variables
+\end{asm}
+
+% ----------------------------------------------------------------------------
+\section{Schermo, colori e ingresso}
+
+\paragraph{Coordinate.} L'origine è l'angolo in alto a sinistra della viewport
+di gioco; $x$ cresce verso destra da 0 a 319 e $y$ cresce verso il basso da 0
+a 199. Ciò che si disegna fuori dalla viewport viene tagliato.
+
+\paragraph{Colori.} Un colore è un valore di 16 bit in RGB565: 5 bit di rosso
+(bit 15--11), 6 di verde (bit 10--5), 5 di blu (bit 4--0). Le costanti
+predefinite sono nella Tabella~\ref{tab:prg:colors}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le costanti di colore (\code{PRG32\_COLOR\_*}).}\label{tab:prg:colors}
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+BLACK & WHITE & RED & GREEN & BLUE & YELLOW & CYAN & MAGENTA\\
+\midrule
+\hex{0000} & \hex{ffff} & \hex{f800} & \hex{07e0} & \hex{001f} & \hex{ffe0} & \hex{07ff} & \hex{f81f}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Pulsanti.} \code{prg32\_input\_read} restituisce una parola con un
+bit per pulsante, 1 quando è premuto (Tabella~\ref{tab:prg:buttons}). START e
+SELECT sono due nomi dello stesso ingresso.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le maschere dei pulsanti (\code{PRG32\_BTN\_*} e \code{PRG32\_P2\_BTN\_*}).}\label{tab:prg:buttons}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+ & LEFT & RIGHT & UP & DOWN & A & B & START\\
+\midrule
+Giocatore 1: bit & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+Giocatore 1: maschera & \hex{0001} & \hex{0002} & \hex{0004} & \hex{0008} & \hex{0010} & \hex{0020} & \hex{0040}\\
+Giocatore 2: bit & 8 & 9 & 10 & 11 & 12 & 13 & 14\\
+Giocatore 2: maschera & \hex{0100} & \hex{0200} & \hex{0400} & \hex{0800} & \hex{1000} & \hex{2000} & \hex{4000}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{L'interfaccia di programmazione}
+
+Le funzioni che una cartuccia portabile può chiamare sono gli elementi della
+tabella ABI: 139 nella versione 1.6. Le tabelle che seguono ne danno i
+prototipi C, come dichiarati in \fname{components/prg32/include/prg32.h}. In
+assembly gli argomenti vanno, in ordine, in \reg{a0}, \reg{a1}, \ldots, e il
+risultato torna in \reg{a0}; una chiamata può distruggere ogni registro
+\reg{t} e \reg{a} e \reg{ra}.
+
+\newcommand{\apirow}[2]{\code{#1} & #2\\}
+
+\subsection{Tempo, ingresso, numeri casuali}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.52\textwidth}>{\raggedright\arraybackslash}p{0.41\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{uint32\_t prg32\_ticks\_ms(void)}{millisecondi dall'avvio}
+\apirow{uint32\_t prg32\_input\_read(void)}{i pulsanti di entrambi i giocatori, un bit ciascuno}
+\apirow{uint32\_t prg32\_input\_read\_player(uint8\_t player)}{i pulsanti di un giocatore}
+\apirow{uint32\_t prg32\_input\_read\_menu(void)}{i pulsanti come li leggono i menu}
+\apirow{void prg32\_input\_wait\_released(uint32\_t mask)}{aspetta finché i pulsanti della maschera sono rilasciati}
+\apirow{uint32\_t prg32\_controller\_read(void)}{lo stato grezzo dei controller}
+\apirow{uint32\_t prg32\_random\_number(uint32\_t min, uint32\_t max)}{un numero casuale uniforme in $[min, max]$, estremi inclusi; restituisce $min$ se $max\le min$}
+\end{longtable}}
+
+\subsection{Grafica}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{void prg32\_gfx\_clear(uint16\_t color)}{riempie la viewport con un colore}
+\apirow{void prg32\_gfx\_pixel(int x, int y, uint16\_t color)}{disegna un pixel}
+\apirow{void prg32\_gfx\_rect(int x, int y, int w, int h, uint16\_t color)}{disegna un rettangolo pieno}
+\apirow{void prg32\_gfx\_text8(int x, int y, const char *s, uint16\_t fg, uint16\_t bg)}{scrive una stringa terminata da zero con il font $8\times 8$, sul suo colore di sfondo}
+\apirow{void prg32\_gfx\_present(void)}{invia il frame al display (il runtime lo fa dopo \code{draw})}
+\apirow{void prg32\_gfx\_set\_fullscreen(int enabled)}{usa l'intero display $320\times 240$}
+\apirow{int prg32\_gfx\_fullscreen\_enabled(void)}{se lo schermo intero è attivo}
+\apirow{int prg32\_gfx\_snapshot\_row\_rgb565(int y, uint16\_t *out, size\_t pixels)}{copia una riga del frame come RGB565}
+\apirow{void prg32\_palette\_set(uint8\_t index, uint16\_t rgb565)}{cambia un elemento della palette: ogni pixel con quell'indice cambia al frame successivo}
+\apirow{uint16\_t prg32\_palette\_get(uint8\_t index)}{legge un elemento della palette}
+\apirow{void prg32\_gfx\_clear\_indexed(uint8\_t index)}{come \code{clear}, con un indice di palette}
+\apirow{void prg32\_gfx\_pixel\_indexed(int x, int y, uint8\_t index)}{come \code{pixel}, con un indice di palette}
+\apirow{void prg32\_gfx\_rect\_indexed(int x, int y, int w, int h, uint8\_t index)}{come \code{rect}, con un indice di palette}
+\end{longtable}}
+
+\subsection{Console, bande di stato, schermate di apertura}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{void prg32\_console\_clear(void)}{cancella la console di testo}
+\apirow{void prg32\_console\_putc(int ch)}{scrive un carattere}
+\apirow{void prg32\_console\_write(const char *s)}{scrive una stringa}
+\apirow{void prg32\_console\_hex32(uint32\_t value)}{scrive una parola come otto cifre esadecimali}
+\apirow{void prg32\_band\_set\_mode(uint8\_t band, prg32\_band\_mode\_t mode)}{sceglie che cosa mostra una banda di stato (banda 0 in alto, 1 in basso)}
+\apirow{void prg32\_band\_set\_text(uint8\_t band, const char *text)}{scrive un testo in una banda}
+\apirow{void prg32\_band\_set\_game\_info(const char *text)}{scrive la riga di informazioni del gioco}
+\apirow{void prg32\_band\_log(const char *message)}{accoda un messaggio al log della banda}
+\apirow{void prg32\_band\_set\_colors(uint8\_t band, uint16\_t fg, uint16\_t bg)}{imposta i colori di una banda}
+\apirow{void prg32\_splash\_show\_game(const char *title, const char *subtitle, uint32\_t duration\_ms, uint16\_t bg, uint16\_t fg, uint16\_t accent)}{mostra una schermata del titolo per un certo tempo}
+\apirow{void prg32\_debug\_overlay\_draw(int enabled, int x, int y, uint32\_t input\_mask, uint32\_t frame)}{disegna la maschera di ingresso e il numero di frame}
+\end{longtable}}
+
+\begin{sloppypar}
+Sulla scheda e in QEMU la console è disegnata sullo schermo; \prgqt la
+raccoglie nel suo log. Le altre funzioni dei gruppi \code{prg32\_band\_*} e
+\code{prg32\_splash\_*} della tabella (\code{band\_mode},
+\code{band\_mode\_name}, \code{band\_use\_default\_colors},
+\code{band\_load\_config}, \code{band\_save\_config}, \code{splash\_draw},
+\code{splash\_show}, \code{splash\_draw\_game}, \code{splash\_show\_default})
+sono varianti di queste.
+\end{sloppypar}
+
+\subsection{Suono}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{void prg32\_audio\_note(uint8\_t channel, uint8\_t instrument, uint8\_t note, uint8\_t volume, uint32\_t duration\_ms)}{suona una nota MIDI (0--127; 69 è il La4, 440 Hz; 72 è il Do5) per una durata}
+\apirow{void prg32\_audio\_note\_off(uint8\_t channel)}{silenzia un canale}
+\apirow{void prg32\_audio\_notes(uint8\_t channel, uint8\_t instrument, uint8\_t volume, const prg32\_midi\_note\_t *notes, size\_t count)}{suona una sequenza di note}
+\apirow{void prg32\_buzzer\_tone(uint32\_t hz, uint32\_t ms, uint16\_t duty)}{un tono di una data frequenza sul buzzer}
+\apirow{void prg32\_buzzer\_play\_notes(const prg32\_note\_t *notes, size\_t count)}{una sequenza di toni}
+\apirow{void prg32\_buzzer\_sample\_u8(const uint8\_t *samples, size\_t count, uint32\_t sample\_rate)}{riproduce campioni PCM a 8 bit senza segno centrati su 128}
+\end{longtable}}
+
+\begin{sloppypar}
+Le chiamate audio sono sicure quando non c'è un'uscita disponibile: non fanno
+niente. Il runtime possiede l'inizializzazione dell'audio e il volume
+principale. La tabella contiene anche l'interfaccia polifonica
+(\code{prg32\_audio\_note\_on}, \code{note\_on\_pan}, \code{play\_sample},
+\code{play\_sample\_pan}, \code{play\_track}, \code{stop\_track},
+\code{stop\_channel}, \code{stop\_all}, \code{set\_tempo},
+\code{set\_master\_volume}, \code{set\_channel\_volume},
+\code{set\_channel\_pan}), descritta in
+\fname{docs/software/audio\_polyphony.md}.
+\end{sloppypar}
+
+\subsection{Tile, playfield e piattaforme}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{void prg32\_tile\_clear(uint16\_t color)}{cancella lo schermo dei tile}
+\apirow{void prg32\_tile\_define(uint8\_t id, const uint8\_t *bitmap8x8, uint16\_t fg, uint16\_t bg)}{definisce un tile da 8 byte, uno per riga}
+\apirow{void prg32\_tile\_put(uint8\_t tx, uint8\_t ty, uint8\_t id)}{mette un tile in una cella della griglia $40\times 25$}
+\apirow{void prg32\_tile\_present(void)}{disegna lo schermo dei tile}
+\apirow{void prg32\_playfield\_clear(uint8\_t layer, uint8\_t tile\_id)}{riempie un livello del playfield $64\times 32$}
+\apirow{void prg32\_playfield\_put(uint8\_t layer, uint8\_t tx, uint8\_t ty, uint8\_t id)}{mette un tile nel playfield}
+\apirow{uint8\_t prg32\_playfield\_get(uint8\_t layer, uint8\_t tx, uint8\_t ty)}{legge un tile del playfield}
+\apirow{void prg32\_playfield\_scroll(uint8\_t layer, int x, int y)}{imposta la posizione di scorrimento di un livello}
+\apirow{void prg32\_playfield\_scroll\_by(uint8\_t layer, int dx, int dy)}{sposta la posizione di scorrimento}
+\apirow{void prg32\_playfield\_parallax(uint8\_t layer, int x\_q8, int y\_q8)}{imposta la velocità di un livello rispetto alla camera, in virgola fissa Q8 (256 = 1)}
+\apirow{void prg32\_playfield\_camera(int x, int y)}{sposta la camera}
+\apirow{void prg32\_playfield\_draw(uint8\_t layer, int transparent\_zero)}{disegna un livello}
+\apirow{void prg32\_playfield\_draw\_dual(void)}{disegna entrambi i livelli}
+\apirow{void prg32\_platform\_tile\_flags(uint8\_t tile\_id, uint8\_t flags)}{segna un tile come solido, piattaforma, pericolo o oggetto da raccogliere}
+\apirow{int prg32\_platform\_solid\_at(uint8\_t layer, int pixel\_x, int pixel\_y)}{se un pixel è dentro un tile solido}
+\apirow{void prg32\_platform\_actor\_init(prg32\_platform\_actor\_t *actor, uint8\_t layer, int x, int y, int w, int h)}{prepara un attore di un gioco a piattaforme}
+\apirow{uint16\_t prg32\_platform\_actor\_step(prg32\_platform\_actor\_t *actor, uint32\_t input\_mask, int move\_speed, int jump\_speed, int gravity, int max\_fall)}{un passo di movimento con gravità e collisioni; restituisce indicatori di contatto}
+\apirow{void prg32\_platform\_camera\_follow(const prg32\_platform\_actor\_t *actor, int deadzone\_x, int deadzone\_y)}{fa sì che la camera segua un attore}
+\end{longtable}}
+
+\subsection{Sprite}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{void prg32\_sprite\_draw\_8x8(int x, int y, const uint8\_t *bits, uint16\_t fg, uint16\_t bg)}{disegna uno sprite a un bit di $8\times 8$}
+\apirow{void prg32\_sprite\_draw\_16x16(int x, int y, const uint16\_t *rgb565)}{disegna uno sprite RGB565 di $16\times 16$}
+\apirow{void prg32\_sprite\_draw\_24x24(int x, int y, const uint16\_t *rgb565)}{disegna uno sprite RGB565 di $24\times 24$}
+\apirow{void prg32\_sprite\_draw\_frame(int x, int y, int w, int h, const uint16\_t *frames, uint32\_t frame, uint16\_t transparent)}{disegna un frame di un'animazione, con un colore trasparente}
+\apirow{uint32\_t prg32\_sprite\_anim\_frame(uint32\_t now\_ms, uint32\_t frame\_count, uint32\_t frame\_ms)}{quale frame di un'animazione tocca ora}
+\apirow{void prg32\_sprite\_draw\_indexed(int x, int y, const prg32\_indexed\_sprite\_t *sprite, uint32\_t frame)}{disegna uno sprite a 1, 2, 4 o 8 bit per pixel con la propria palette}
+\apirow{void prg32\_sprite\_draw\_bitplanes(int x, int y, const prg32\_indexed\_sprite\_t *sprite, uint32\_t frame)}{lo stesso, da piani di bit}
+\apirow{int prg32\_sprite\_hitbox(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh)}{se due rettangoli si sovrappongono}
+\end{longtable}}
+
+\subsection{Punteggi, ingresso di testo e altri servizi}
+
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.55\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}@{}}
+\toprule
+\textbf{Prototipo} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\apirow{int prg32\_score\_submit(const char *game, const char *player, uint32\_t score)}{registra un punteggio nella tabella locale}
+\apirow{int prg32\_score\_submit\_current\_player(const char *game, uint32\_t score)}{lo stesso, per il giocatore corrente}
+\apirow{int prg32\_score\_count(const char *game)}{quanti punteggi sono registrati}
+\apirow{int prg32\_score\_get(const char *game, int index, prg32\_score\_t *out\_score)}{legge un punteggio registrato}
+\apirow{int prg32\_scoreboard\_show(const char *game, const char *title)}{mostra la tabella dei punteggi migliori}
+\apirow{int prg32\_score\_sync\_remote(void)}{sincronizza i punteggi con lo Store}
+\apirow{int prg32\_text\_input(char *buffer, size\_t capacity, const char *title)}{chiede al giocatore un testo con una tastiera sullo schermo}
+\end{longtable}}
+
+Gli elementi restanti della tabella servono la tastiera sullo schermo
+(\code{prg32\_keyboard\_*}), il nome del giocatore
+(\code{prg32\_score\_player\_*}), gli slot delle cartucce
+(\code{prg32\_cart\_*}), lo stato del Wi-Fi (\code{prg32\_wifi\_*}), i giochi
+multigiocatore (\code{prg32\_multiplayer\_*}) e la misura delle prestazioni
+(\code{prg32\_perf\_*}); sono documentati in \fname{docs/software} e
+\fname{docs/measurement} del repository.
+
+% ----------------------------------------------------------------------------
+\section{Il file della cartuccia}
+
+Un file \fname{.prg32} è un'intestazione seguita dal codice e dai dati del
+programma, opzionalmente seguiti da un trailer di metadati. I campi di più
+byte sono little-endian.
+
+\begin{table}[htb]
+\centering\small
+\caption{L'intestazione di una cartuccia (\code{prg32\_cart\_header\_v2\_t}).}\label{tab:prg:header}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}lL@{}}
+\toprule
+\textbf{Campo} & \textbf{Dimensione} & \textbf{Contenuto}\\
+\midrule
+\code{magic} & 4 byte & i caratteri \code{PRG2}\\
+\code{abi\_major}, \code{abi\_minor} & 2 + 2 & la versione del formato della cartuccia\\
+\code{header\_size} & 2 & la lunghezza dell'intestazione: distingue le due versioni\\
+\code{flags} & 2 & blocco audio (bit 0), multigiocatore (1), tabella ABI (2), rilocabile (3)\\
+\code{load\_addr} & 4 & \hex{40800000}\\
+\code{code\_size} & 4 & i byte di codice e dati inizializzati nel file\\
+\code{mem\_size} & 4 & la memoria necessaria in esecuzione: codice, dati e \code{.bss}\\
+\code{init\_offset}, \code{update\_offset}, \code{draw\_offset} & 4 + 4 + 4 & le posizioni dei tre punti di ingresso\\
+\code{payload\_crc32} & 4 & una somma di controllo del contenuto\\
+\code{name} & 32 & il nome della cartuccia\\
+\midrule
+\code{abi\_hash} & 4 & l'hash della tabella ABI per cui è stata compilata\\
+\code{required\_features}, \code{optional\_features} & 4 + 4 & i bit di funzionalità necessari, e quelli usati se presenti\\
+\code{isa\_flags} & 4 & le estensioni dell'insieme di istruzioni usate\\
+\code{relocation\_offset}, \code{relocation\_count} & 4 + 4 & riservati alla rilocazione\\
+\code{import\_model} & 4 & 1 = \code{abi-table} (portabile); 0 = importazioni assolute del vecchio tipo\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il primo gruppo di campi della Tabella~\ref{tab:prg:header} è l'intestazione
+originale, che i vecchi strumenti sanno ancora leggere; il secondo gruppo la
+estende per le cartucce portabili. Il comando \code{cartridge summary} li
+stampa tutti.
+
+\paragraph{Limiti.} La memoria necessaria (\code{mem\_size}) deve stare nella
+RAM per le cartucce dell'host: 64~KiB nel profilo predefinito, 32~KiB nel
+profilo «classroom», 128~KiB in un profilo opzionale della scheda. L'opzione
+\code{-{}-cart-ram-kib} del compilatore di cartucce imposta il limite rispetto
+al quale controllare.
+
+\paragraph{Scrivere cartucce portabili.} Una cartuccia portabile può essere
+caricata a indirizzi diversi su host diversi. Il codice deve quindi essere
+relativo alla posizione, cosa che l'assemblatore garantisce per \ins{la},
+\ins{call} e i salti; una cartuccia non dovrebbe memorizzare indirizzi di
+codice o di stringhe in tabelle inizializzate di puntatori in \code{.data}.
+
+\paragraph{Il trailer dei metadati.} Il comando \code{store attach-metadata}
+accoda dopo il programma un trailer, marcato \code{PRG32META}, fatto di
+blocchi: \code{META} (i metadati, formato \code{prg32-metadata-1.0}),
+\code{ICON} (l'icona), \code{COLO} (il colophon, formato
+\code{prg32-colophon-1.0}) e, opzionalmente, \code{SCRN} (una schermata) e
+\code{SIGN} (una firma). Il programma non viene modificato.
+
+% ----------------------------------------------------------------------------
+\section{Gli strumenti a riga di comando}
+
+Tutti gli strumenti sono sottocomandi di un solo modulo Python, eseguito dalla
+cartella del repository di \prg con ESP-IDF attivo
+(Capitolo~\ref{ch:setup}):
+\begin{center}\code{python3 -m prg32 <command> [subcommand] [options]}\end{center}
+Ogni comando accetta \code{-{}-help}. Su Windows l'interprete si chiama
+\code{python}. Comandi e sottocomandi possono essere abbreviati a qualsiasi
+prefisso non ambiguo: \code{python3 -m prg32 c b} è \code{cartridge build}. I
+comandi dello Store leggono \code{-{}-store-url} e \code{-{}-token} dalla riga
+di comando oppure, quando mancano, dal file
+\fname{\textasciitilde/.prg32/config.json}; un indirizzo senza schema è inteso
+come \code{https://}.
+
+{\small
+\begin{longtable}{@{}p{0.34\textwidth}p{0.6\textwidth}@{}}
+\caption{I comandi di \code{python3 -m prg32}.}\label{tab:prg:cli}\\
+\toprule
+\textbf{Comando} & \textbf{Effetto}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Comando} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{doctor} & controlla la toolchain: \code{idf.py}, il compilatore, le partizioni\\
+\code{runtime -{}-url URL} & stampa lo stato di un host in esecuzione\\
+\midrule
+\code{cartridge build SRC} & compila una cartuccia portabile da un file \fname{.S} o \fname{.c}. Opzioni: \code{-{}-out}, \code{-{}-name}, \code{-{}-entry-prefix}, \code{-{}-portable}, \code{-{}-architecture \{esp32c6,qemu\}}, \code{-{}-cart-ram-kib}, \code{-{}-multiplayer}, \code{-{}-audio-block}, \code{-{}-required-feature}, \code{-{}-optional-feature}, \code{-{}-build-dir}\\
+\code{cartridge summary FILE} & stampa l'intestazione di una cartuccia\\
+\midrule
+\code{esp32c6 upload FILE} & carica una cartuccia su un host via HTTP (\code{-{}-url}, \code{-{}-slot cart0}\ldots\code{cart3})\\
+\code{esp32c6 run} & avvia una cartuccia memorizzata\\
+\code{esp32c6 upload-and-run FILE} & entrambe le cose\\
+\code{esp32c6 build}, \code{flash}, \code{build-and-flash} & compilano il firmware della scheda e lo scrivono attraverso USB\\
+\code{esp32c6 erase-flash}, \code{reset} & cancellano la flash; cancellano e riscrivono\\
+\code{esp32c6 screenshot}, \code{memory}, \code{performance} & una schermata, un'analisi della memoria, i risultati del test di prestazioni\\
+\midrule
+\code{qemu build}, \code{run}, \code{build-and-run} & compilano il firmware per QEMU e avviano l'emulatore\\
+\code{qemu upload FILE} & mette una cartuccia nell'immagine flash di QEMU (con QEMU chiuso)\\
+\midrule
+\code{store attach-metadata FILE} & accoda o sostituisce il trailer dei metadati (\code{-{}-metadata}, \code{-{}-icon}, \code{-{}-colophon}, \code{-{}-architecture}, \code{-{}-out})\\
+\code{store inspect-metadata FILE} & stampa il trailer di una cartuccia\\
+\code{store pack-bundle} & impacchetta il bundle ZIP nominato da un manifesto (\code{-{}-manifest}, \code{-{}-out})\\
+\code{store publish-bundle ZIP} & sottopone un bundle (\code{-{}-store-url}, \code{-{}-token})\\
+\code{store list}, \code{download}, \code{discover} & elencano e scaricano cartucce; trovano gli Store sulla rete locale\\
+\code{store set-url}, \code{clear-url} & impostano lo Store usato dalle compilazioni locali\\
+\midrule
+\code{wifi set}, \code{wifi clear} & le credenziali e il modo Wi-Fi della prossima compilazione del firmware (\code{-{}-ssid}, \code{-{}-password}, \code{-{}-mode})\\
+\code{abi gen}, \code{abi check} & generano e verificano gli header della tabella ABI\\
+\code{debug -{}-url URL ACTION} & controlla il debugger di \prgqt: \code{state}, \code{enable}, \code{disable}, \code{pause}, \code{step}, \code{resume}, \code{speed}\\
+\code{test} & esegue i test degli strumenti\\
+\end{longtable}}
+
+\begin{shell}[caption={Il ciclo di ogni capitolo.},label=lst:prg:loop]
+# build
+python3 -m prg32 cartridge build mygame.S --portable \
+    --entry-prefix mygame --name mygame --out mygame.prg32
+
+# run on PRG32-QT, on this computer
+python3 -m prg32 esp32c6 upload-and-run mygame.prg32 \
+    --url http://localhost:8080 --slot cart0
+
+# run on the board, joined to its Wi-Fi network
+python3 -m prg32 esp32c6 upload-and-run mygame.prg32 \
+    --url http://192.168.4.1 --slot cart0
+
+# run on QEMU
+python3 -m prg32 qemu upload mygame.prg32
+python3 -m prg32 qemu run
+\end{shell}
+
+% ----------------------------------------------------------------------------
+\section{Gli host}
+
+\subsection{La scheda}
+
+\begin{table}[htb]
+\centering\small
+\caption{Il cablaggio di riferimento del kit: i piedini predefiniti del firmware (\fname{components/prg32/Kconfig}, ottobre 2026).}\label{tab:prg:pins}
+\begin{tabular}{@{}ll@{\qquad\qquad}ll@{}}
+\toprule
+\multicolumn{2}{c}{\textbf{Display (SPI)}} & \multicolumn{2}{c}{\textbf{Giocatore 1 (interruttori verso massa)}}\\
+\cmidrule(r){1-2}\cmidrule(l){3-4}
+GPIO7 & MOSI & GPIO18 & LEFT\\
+GPIO2 & MISO & GPIO19 & RIGHT\\
+GPIO6 & SCLK & GPIO3 & UP\\
+GPIO10 & CS (selezione del chip) & GPIO13 & DOWN\\
+GPIO8 & DC (dato/comando) & GPIO21 & A\\
+GPIO9 & RST (reset) & GPIO22 & B\\
+GPIO5 & BL (retroilluminazione) & GPIO20 & START / SELECT\\
+\midrule
+\multicolumn{2}{c}{\textbf{Audio (I2S)}} & \multicolumn{2}{c}{\textbf{Altro}}\\
+\cmidrule(r){1-2}\cmidrule(l){3-4}
+GPIO4 & BCLK (clock di bit) & --- & LED RGB sulla scheda (disabilitato)\\
+GPIO11 & LRC / WS (selezione di parola) & USB & firmware, console\\
+GPIO23 & DIN (dati) & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+I piedini sono opzioni del firmware (\code{idf.py menuconfig}), e sono cambiati
+nell'ottobre 2026 con il nuovo prototipo del circuito stampato: DC e RST del
+display sono passati da GPIO1 e GPIO0 a GPIO8 e GPIO9, e il LED RGB sulla
+scheda, che è collegato a GPIO8, è stato disabilitato. Al momento in cui
+scriviamo le tabelle di \fname{docs/hardware/hardware.md} mostrano ancora il
+cablaggio precedente: quando un display resta nero, confrontate i fili con le
+opzioni del firmware che è stato caricato.
+
+Ogni pulsante unisce il suo piedino a massa, e il firmware abilita il pull-up
+interno del piedino e inverte il livello (Capitolo~\ref{ch:electronics}).
+All'avvio, la scheda crea la rete Wi-Fi \code{PRG32} (password
+\code{prg32game}) e risponde a \code{http://192.168.4.1}; con
+\code{wifi set -{}-mode sta} si unisce invece a una rete esistente. Per
+impostazione predefinita il firmware parte dal menu \emph{Setup}, dal quale si
+esegue una cartuccia memorizzata (\emph{Run Cartridge}, poi lo slot); un
+firmware compilato con \code{PRG32\_BOOT\_SETUP\_MODE=0} avvia direttamente la
+cartuccia memorizzata.
+
+\subsection{QEMU}
+
+L'emulatore di Espressif esegue il firmware reale su un ESP32-C3 emulato, con
+una finestra per il display. La tastiera è letta dal terminale che lo ha
+lanciato. Una cartuccia viene messa nell'immagine flash mentre l'emulatore è
+chiuso; come la scheda, l'emulatore parte dal menu \emph{Setup}.
+
+\subsection{PRG32-QT}
+
+\prgqt è un'applicazione scritta con Qt~6 che interpreta RV32IMAC e offre a
+una cartuccia la stessa tabella ABI del firmware. Ascolta sulla porta 8080 come
+una scheda, importa file \fname{.prg32}, e sfoglia lo Store.
+
+\begin{table}[htb]
+\centering\small
+\caption{\prgqt: tasti, profili e debugger.}\label{tab:prg:qt}
+\begin{tabularx}{\textwidth}{@{}P{0.26\textwidth}L@{}}
+\toprule
+Tasti & frecce o \key{W A S D}: joystick; \key{Z} o \key{J}: A; \key{X} o \key{K}: B; \key{Enter} o \key{Space}: Start/Select; \key{Escape}: ritorno a Setup. I controller di gioco sono riconosciuti\\
+Profili di prestazioni & \emph{Accurate} (temporizzato come l'ESP32-C6, il predefinito), \emph{Optimal} (30 frame al secondo), \emph{Unlimited}\\
+Modalità debug & \emph{Settings}, \emph{Run cartridges in RISC-V debug mode}\\
+Esecuzione & \key{Pause}, \key{Resume}, \key{Step} (un'istruzione): tre pulsanti di trasporto disegnati come su un lettore video; velocità da 0.01x a 4x. Il pulsante con l'insetto accende e spegne il debug a livello di istruzione\\
+Viste & \key{Init}, \key{Update}, \key{Draw}, \key{PC}: il listato di ciascuna funzione, o al program counter\\
+Breakpoint & un clic sul margine del listato; \key{Resume} ignora una volta il breakpoint corrente\\
+Stato & i 32 registri; 128 byte di memoria a un indirizzo scritto nel campo \emph{Memory}\\
+Telemetria & frame, istruzioni completate, frame al secondo, frame in ritardo, la maschera di ingresso\\
+Errori & «instruction budget exhausted» (un frame che non finisce); «unsupported CSR» (un accesso a un registro di controllo)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Il Cartridge Store}
+
+Lo Store è un servizio che cataloga, rivede e distribuisce cartucce; l'istanza
+pubblica è a \url{https://store.prg32.uniparthenope.it}. Una proposta è un
+\emph{bundle}: un file ZIP che contiene un manifesto, un'icona e una cartuccia
+per architettura (Capitolo~\ref{ch:store}).
+
+\begin{table}[htb]
+\centering\small
+\caption{I campi di \fname{manifest.json} (formato \code{prg32-metadata-1.0}).}\label{tab:prg:manifest}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Campo} & \textbf{Contenuto}\\
+\midrule
+\code{abi} & il formato dei metadati: \code{prg32-metadata-1.0}\\
+\code{id} & un identificatore unico e permanente, per consuetudine un nome di dominio rovesciato\\
+\code{title} & il nome che il giocatore legge\\
+\code{version} & \emph{major.minor.patch}; una versione pubblicata non viene mai sostituita\\
+\code{summary}, \code{description} & una riga per lo scaffale; un paragrafo\\
+\code{authors} & un elenco di oggetti con un \code{name}\\
+\code{license} & la licenza, per esempio \code{MIT}\\
+\code{tags} & parole con cui la cartuccia viene trovata\\
+\code{assets} & i file del bundle che non sono cartucce: \code{icon}\\
+\code{architectures} & un elenco di coppie \code{id} (\code{esp32c6}, \code{qemu}) e \code{file}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il file \fname{metadata.json} allegato a ogni cartuccia è il manifesto senza
+\code{assets} e \code{architectures}. Il \emph{colophon}
+(\fname{colophon.json}, formato \code{prg32-colophon-1.0}) contiene i crediti:
+\code{title}, \code{subtitle}, \code{version}, \code{release\_date},
+\code{developer}, \code{authors} con il loro \code{role}, \code{license},
+\code{copyright}, \code{acknowledgements}, \code{controls} (coppie
+\code{input} e \code{action}) e \code{start\_prompt}.
+
+\paragraph{Il percorso di una proposta.} Un bundle sottoposto con un token
+personale è \emph{in attesa} finché un redattore non lo ha rivisto; quando è
+approvato è \emph{pubblicato} per le architetture dichiarate. Lo Store
+conserva anche le tabelle dei punteggi, che una cartuccia raggiunge attraverso
+le funzioni \code{prg32\_score\_*}.
+
+\begin{prgwarn}
+Il token dello Store è una credenziale personale. Si tiene in una variabile
+d'ambiente della shell (\code{PRG32\_STORE\_TOKEN}), mai in un file, in un
+repository o in una schermata.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Quando qualcosa non funziona}
+
+I sintomi incontrati più spesso durante l'installazione sono nella
+Tabella~\ref{tab:setup:trouble}. Altri tre riguardano i programmi.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Il compilatore di cartucce dice che manca un punto di ingresso.] Il
+  prefisso passato a \code{-{}-entry-prefix} non è quello del sorgente, o
+  manca una riga \code{.global}.
+\item[Il gioco si blocca, o torna al menu.] Una funzione non ritorna: un ciclo
+  che non finisce mai, o un \reg{ra} che non è stato salvato prima di una
+  chiamata e ripristinato dopo.
+\item[Un valore cambia «da solo».] È stato tenuto in un registro \reg{t} o
+  \reg{a} attraverso una chiamata, o \reg{sp} non è stato ripristinato:
+  controllate il prologo e l'epilogo, istruzione per istruzione, nel debugger.
+\end{description}

@@ -1,0 +1,632 @@
+% ============================================================================
+%  Capitolo 10 -- Introduzione all'elettronica e all'elettronica digitale (Lezione 10)
+% ============================================================================
+\chapter{Elettronica: di che cosa è fatto un bit}
+\label{ch:electronics}
+
+\epigraphline{Qualunque tecnologia sufficientemente avanzata è indistinguibile
+dalla magia.}{Arthur C. Clarke, \emph{Profiles of the Future}, 1973}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item usare tensione, corrente, resistenza e potenza, e applicare la legge di Ohm a un circuito semplice;
+\item dimensionare la resistenza di un LED e calcolare un partitore di tensione;
+\item spiegare che cos'è un transistor e come un transistor MOS funziona da interruttore;
+\item dire come le tensioni diventano valori logici, e che cos'è un margine di rumore;
+\item disegnare l'invertitore, il NAND e il NOR in CMOS, e contarne i transistor;
+\item spiegare le resistenze di pull-up, gli ingressi flottanti e perché una porta impiega tempo ed energia per commutare.
+\end{itemize}
+\end{chapgoals}
+
+Le porte degli ultimi due capitoli erano simboli sulla carta. Questo capitolo
+dà loro un corpo fisico, prima che il prossimo le componga in macchine. Non si
+presuppone alcuna conoscenza di fisica. I numeri citati per il kit vengono dal
+datasheet dell'ESP32-C6 \citep{esp32c6trm} e dalla documentazione hardware di
+\prg.
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Un pulsante, un bit.},label=lst:el:button]{code/l10/s04.S}
+
+Fin dai primi capitoli un pulsante premuto è un 1 in un registro
+(Listato~\ref{lst:el:button}). Sulla scheda il pulsante è un pezzo di metallo
+che unisce un piedino del chip a massa. Premuto significa 0~volt sul piedino,
+eppure il programma legge 1. Che cos'è un volt? Perché il piedino rilasciato è
+a 3,3~V? E chi decide che 0~V è un bit? Il capitolo segue il pulsante dal dito
+al bit, e il suo ultimo paragrafo risponde alle tre domande.
+
+% ----------------------------------------------------------------------------
+\section{L'elettricità in quattro grandezze}
+
+\subsection{Tensione, corrente, resistenza, potenza}
+
+La carica elettrica è portata dagli elettroni, e quattro grandezze descrivono
+ciò che essa fa in un circuito (Tabella~\ref{tab:el:four}). Un paragone con
+l'acqua nei tubi aiuta l'intuizione.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro grandezze.}\label{tab:el:four}
+\begin{tabularx}{\textwidth}{@{}llLL@{}}
+\toprule
+\textbf{Grandezza} & \textbf{Simbolo, unità} & \textbf{Analogia con l'acqua} & \textbf{Sul kit}\\
+\midrule
+tensione & $V$, volt (V) & la pressione che spinge l'acqua & 3,3 V tra la linea di alimentazione e la massa\\
+corrente & $I$, ampere (A) & la portata: litri al secondo & circa 10 mA attraverso un LED acceso\\
+resistenza & $R$, ohm ($\Omega$) & un tubo stretto che ostacola il flusso & 45 k$\Omega$: il pull-up dentro ogni piedino di ingresso\\
+potenza & $P$, watt (W) & il lavoro che il flusso può compiere ogni secondo & al più 2,5 W da una porta USB 2.0 (5 V, 0,5 A)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Una tensione si misura sempre \emph{tra due punti}. Quando si dice che «il
+piedino è a 3,3~V» si intende rispetto alla \term{massa} (GND), il riferimento
+comune dell'intero circuito, che è a 0~V per definizione. I prefissi usuali
+sono milli (m, $10^{-3}$), micro ($\mu$, $10^{-6}$), nano (n, $10^{-9}$), pico
+(p, $10^{-12}$), kilo (k, $10^{3}$) e mega (M, $10^{6}$).
+
+\subsection{La legge di Ohm, e la resistenza di un LED}
+
+\begin{theorem}{Legge di Ohm, 1827}
+La corrente attraverso un resistore è proporzionale alla tensione ai suoi capi:
+\[ V = R\cdot I . \]
+\end{theorem}
+
+Un circuito è un anello chiuso: la corrente esce dalla sorgente, attraversa i
+componenti e ritorna. Un LED (Figura~\ref{fig:el:led}) si accende quando è
+attraversato da corrente, e quando lo è ai suoi capi c'è una caduta di circa
+2~V; senza una resistenza in serie la corrente sarebbe di gran lunga troppo
+grande. La resistenza prende ciò che resta, $3,3-2=1,3$~V. Per una corrente di
+10~mA,
+\[ R=\frac{1,3\ \mathrm{V}}{0,010\ \mathrm{A}}=130\ \Omega, \]
+e il valore commerciale più vicino è 150~$\Omega$, che dà
+$1,3/150 = 8,7$~mA. La tensione diretta di un LED dipende dal suo colore:
+circa 1,8--2,2~V per il rosso, circa 3~V per il blu e il bianco.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,0) node[ground]{} to[battery1,l=3.3<\volt>,invert] (0,3) -- (2.2,3)
+    to[R,l=150<\ohm>] (2.2,1.6) to[leDo,l=LED] (2.2,0) -- (0,0);
+\end{circuitikz}
+\caption{Un LED e la sua resistenza}\label{fig:el:led}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,3.2) node[vcc]{$V_{dd}$} to[R,l=$R_1$] (0,1.6) to[R,l=$R_2$] (0,0) node[ground]{};
+  \draw (0,1.6) node[circ]{} -- (1.2,1.6) node[right]{$V_{out}$};
+\end{circuitikz}
+\caption{Un partitore di tensione}\label{fig:el:div}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \draw (0,0.2) node[nmos](n){} (n.G) node[left]{G} (n.D) node[above]{D} (n.S) node[below]{S};
+  \draw (2.4,0.2) node[pmos](p){} (p.G) node[left]{G} (p.S) node[above]{S} (p.D) node[below]{D};
+  \node[lbl] at (0,-1.3) {nMOS};
+  \node[lbl] at (2.4,-1.3) {pMOS};
+\end{circuitikz}
+\caption{I due transistor MOS}\label{fig:el:mos}
+\end{subfigure}
+\caption{Tre circuiti elementari.}
+\end{figure}
+
+\subsection{Serie, parallelo e il partitore di tensione}
+
+Due resistori sono in \term{serie} quando la stessa corrente li attraversa
+entrambi: le resistenze si sommano, $R=R_1+R_2$. Sono in \term{parallelo}
+quando ai capi di entrambi c'è la stessa tensione: la corrente si divide, e la
+resistenza totale, $1/R=1/R_1+1/R_2$, è minore di ciascuna delle due.
+
+Due resistori in serie dividono la tensione (Figura~\ref{fig:el:div}):
+\begin{equation}\label{eq:el:div}
+V_{out} = V_{dd}\,\frac{R_2}{R_1+R_2}.
+\end{equation}
+Resistori uguali danno metà dell'alimentazione; una $R_2$ molto più piccola
+porta $V_{out}$ vicino alla massa. La formula segue dalla legge di Ohm, poiché
+la corrente $I=V_{dd}/(R_1+R_2)$ attraversa $R_2$, e dalle leggi di Kirchhoff:
+le correnti che entrano in un nodo sommate danno quelle che ne escono, e le
+tensioni lungo una maglia sommate danno zero. Il partitore è la chiave del
+circuito del pulsante, dove $R_2$ è un interruttore: una resistenza che è o
+infinita o quasi nulla.
+
+\subsection{Potenza ed energia}
+
+La \term{potenza} è tensione per corrente, $P=V\cdot I$, in watt; in un
+resistore diventa calore, $P=R\cdot I^{2}$. L'\term{energia} è potenza per
+tempo, in joule; una batteria immagazzina energia. Il LED di prima consuma
+$3,3\ \mathrm{V}\times 8,7\ \mathrm{mA} = 29$~mW, di cui 11~mW scaldano la
+resistenza. Ogni transistor che commuta dentro un processore dissipa un po' di
+energia, e con miliardi di transistor il calore è il limite dei chip moderni:
+il processore di un portatile dissipa decine di watt in pochi centimetri
+quadrati.
+
+\subsection{Il condensatore: perché i segnali impiegano tempo}
+
+Un \term{condensatore} immagazzina carica elettrica come un serbatoio
+immagazzina acqua; la sua capacità si misura in farad (F). La sua tensione non
+può saltare: il condensatore va riempito, o svuotato, attraverso una
+resistenza, e il tempo che ciò richiede è dell'ordine del prodotto
+\[ \tau = R\cdot C, \]
+la \term{costante di tempo}, trascorsa la quale la tensione ha percorso circa
+il 63\% della strada. Un piedino di ingresso del kit ha una capacità di circa
+2~pF e sale attraverso il suo pull-up di 45~k$\Omega$ in circa
+$45\ \mathrm{k}\Omega\times 2\ \mathrm{pF}=90$~ns (i collegamenti e il pulsante
+ne aggiungono altra, quindi il valore reale è maggiore).
+
+Ogni filo e ogni ingresso di un transistor è un piccolo condensatore. È da qui
+che viene il ritardo di propagazione di una porta: resistenza per capacità è un
+tempo, ed è la ragione per cui in un circuito niente è istantaneo. Un
+condensatore carico o scarico è anche un modo di memorizzare un bit: la cella
+DRAM del Capitolo~\ref{ch:memory}.
+
+% ----------------------------------------------------------------------------
+\section{Semiconduttori}
+
+\subsection{Conduttori, isolanti, semiconduttori}
+
+I conduttori, come il rame, lasciano scorrere liberamente la carica; gli
+isolanti, come il vetro, no. I \term{semiconduttori}, il silicio sopra tutti,
+stanno in mezzo, e la loro conduzione può essere controllata. Il controllo si
+ottiene con il \term{drogaggio}: l'aggiunta di pochi atomi di un altro
+elemento. Il silicio di tipo~n ha elettroni in più, che sono portatori di
+carica negativi; il silicio di tipo~p ha elettroni mancanti, chiamati
+\emph{lacune}, che si comportano come portatori positivi. Dove una regione p
+incontra una regione n c'è una \term{giunzione}, il mattone di ogni
+dispositivo. Un chip è una fetta di silicio con miliardi di regioni drogate,
+collegate da strati di metallo. Il silicio è il secondo elemento più abbondante
+nella crosta terrestre, l'elemento della sabbia, e un'intera industria poggia
+sul purificarlo e drogarlo con estrema precisione.
+
+\subsection{Il diodo e il LED}
+
+Una sola giunzione fa un \term{diodo}, una valvola a senso unico per la
+corrente. In senso diretto, da p a n, conduce una volta che la tensione supera
+una soglia, circa 0,7~V per il silicio; in senso inverso blocca. Un diodo a
+emissione di luce emette luce quando conduce; il suo colore dipende dal
+materiale, e così la sua soglia. I diodi trasformano la corrente alternata in
+continua in ogni alimentatore. I LED sono dappertutto in un calcolatore:
+indicatori, la retroilluminazione del display del Capitolo~\ref{ch:video},
+collegamenti ottici; e anche il laser dei dischi ottici del
+Capitolo~\ref{ch:storage} è un diodo.
+
+\subsection{Il transistor: un interruttore senza parti mobili}
+
+Un \term{transistor} è un dispositivo con tre terminali in cui un piccolo
+segnale su uno controlla la corrente tra gli altri due. Usato come
+amplificatore ha reso portatile la radio; usato come interruttore ha fatto il
+calcolatore (Tabella~\ref{tab:el:history}). Valvole termoioniche e relè
+facevano lo stesso lavoro nei primi calcolatori del Capitolo~\ref{ch:history},
+un milione di volte più grandi e più lenti.
+
+\begin{table}[htb]
+\centering\small
+\caption{Il transistor in sei date.}\label{tab:el:history}
+\begin{tabularx}{\textwidth}{@{}lP{0.34\textwidth}L@{}}
+\toprule
+\textbf{Anno} & \textbf{Chi} & \textbf{Che cosa}\\
+\midrule
+1947 & Bardeen, Brattain e Shockley, Bell Labs & il primo transistor: sostituisce la valvola termoionica\\
+1958--59 & Jack Kilby; Robert Noyce & il circuito integrato: più transistor su un solo pezzo di semiconduttore\\
+1959--60 & Atalla e Kahng, Bell Labs & il transistor MOS: piccolo, semplice da costruire, quasi nessuna corrente di controllo\\
+1963 & Wanlass e Sah, Fairchild & il CMOS: coppie di transistor MOS complementari che assorbono potenza solo quando commutano\\
+1971 & Intel 4004 & 2\,300 transistor MOS: un processore su un chip\\
+oggi & l'intera industria & decine di miliardi di transistor CMOS su un chip\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Il transistor MOS come interruttore}
+
+Il nome MOS elenca i tre strati del dispositivo: metallo, ossido,
+semiconduttore. I suoi tre terminali sono il \term{gate}, che controlla se la
+corrente può passare, e il \term{source} e il \term{drain}, tra i quali essa
+passa (Figura~\ref{fig:el:mos}). Il gate è isolato: non assorbe praticamente
+corrente (al più 50~nA su un piedino dell'ESP32-C6), solo la minuscola carica
+della sua capacità.
+
+\begin{definition}{nMOS e pMOS}
+Un transistor \term{nMOS} conduce (l'interruttore è chiuso) quando il suo gate
+è alto, e blocca quando è basso. Un transistor \term{pMOS} conduce quando il
+suo gate è basso, e blocca quando è alto.
+\end{definition}
+
+I due tipi sono complementari: ciò che chiude l'uno apre l'altro. Il cerchietto
+sul gate del pMOS significa, come sui simboli logici, «attivo quando basso».
+Un altro fatto decide come vengono usati: un nMOS lascia passare un buon 0, ed
+è quindi usato per collegare a massa; un pMOS lascia passare un buon 1, ed è
+usato per collegare all'alimentazione.
+
+% ----------------------------------------------------------------------------
+\section{Dai volt ai bit}
+
+\subsection{Livelli logici: quando una tensione è un 1?}
+
+Un circuito digitale usa due \emph{intervalli} di tensione: basso è 0, alto è 1
+(Figura~\ref{fig:el:levels}). Un'uscita garantisce livelli puliti: sul kit,
+sopra 2,64~V per un 1 e sotto 0,33~V per uno 0. Un ingresso accetta intervalli
+più ampi: sopra 2,475~V legge 1, sotto 0,825~V legge 0. (Con $V_{DD}=3,3$~V il
+datasheet dà $V_{OH}\ge 0,8\,V_{DD}$, $V_{OL}\le 0,1\,V_{DD}$,
+$V_{IH}\ge 0,75\,V_{DD}$, $V_{IL}\le 0,25\,V_{DD}$.)
+
+\begin{definition}{Margine di rumore}
+Il \term{margine di rumore} è la differenza tra il livello che un'uscita
+garantisce e il livello che un ingresso richiede. Un disturbo più piccolo del
+margine di rumore non può cambiare il bit.
+\end{definition}
+
+Sul kit i margini sono $2,64-2,475=0,165$~V per il livello alto e
+$0,825-0,33=0,495$~V per il livello basso. Tra le due soglie di ingresso il
+valore è indefinito: i segnali devono attraversare quella fascia in fretta e
+non restarci mai.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=1cm,y=1.5cm]
+  % output column
+  \fill[prgaccent!30] (0,2.64) rectangle (2.2,3.3);
+  \fill[prgaccent!30] (0,0) rectangle (2.2,0.33);
+  \draw[prgsteel] (0,0) rectangle (2.2,3.3);
+  \node[lbl] at (1.1,3.55) {\textbf{uscita}};
+  \node[lbl] at (1.1,2.97) {1};
+  \node[lbl] at (1.1,0.16) {0};
+  % input column
+  \fill[prgamber!30] (5,2.475) rectangle (7.2,3.3);
+  \fill[prgamber!30] (5,0) rectangle (7.2,0.825);
+  \fill[prgred!12] (5,0.825) rectangle (7.2,2.475);
+  \draw[prgsteel] (5,0) rectangle (7.2,3.3);
+  \node[lbl] at (6.1,3.55) {\textbf{ingresso}};
+  \node[lbl] at (6.1,2.9) {legge 1};
+  \node[lbl] at (6.1,0.41) {legge 0};
+  \node[lbl,text=prgred] at (6.1,1.65) {indefinito};
+  \foreach \y/\l in {3.3/{3,3 V},2.64/{2,64 V},0.33/{0,33 V},0/{0 V}} \node[lbl,anchor=east] at (-0.1,\y) {\l};
+  \foreach \y/\l in {2.475/{2,475 V},0.825/{0,825 V}} \node[lbl,anchor=west] at (7.3,\y) {\l};
+  \draw[dashed,prgink] (2.2,2.64) -- (5,2.64); \draw[dashed,prgink] (2.2,2.475) -- (5,2.475);
+  \draw[dashed,prgink] (2.2,0.33) -- (5,0.33); \draw[dashed,prgink] (2.2,0.825) -- (5,0.825);
+  \draw[<->,prgviolet,thick] (3.6,2.475) -- (3.6,2.64) node[midway,right,lbl,text=prgviolet]{margine 0,165 V};
+  \draw[<->,prgviolet,thick] (3.6,0.33) -- (3.6,0.825) node[midway,right,lbl,text=prgviolet]{margine 0,495 V};
+\end{tikzpicture}
+\caption{Livelli logici dell'ESP32-C6 con un'alimentazione di 3,3 V.}
+\label{fig:el:levels}
+\end{figure}
+
+\subsection{Perché digitale?}
+
+In un circuito \emph{analogico} il valore esatto della tensione è
+l'informazione. Ogni stadio aggiunge un po' di rumore e di distorsione, che si
+accumulano, e le copie peggiorano a ogni generazione. I circuiti analogici
+restano indispensabili ai bordi di un sistema: sensori, radio, suono. In un
+circuito \emph{digitale} conta solo l'intervallo, alto o basso. Ogni porta
+ripristina i livelli, così che il rumore non si accumula; le copie sono
+perfette, e gli errori possono essere rilevati e corretti
+(Capitolo~\ref{ch:combinational}). E due livelli sono facili da distinguere con
+transistor veloci, minuscoli ed economici. È la storia del
+Capitolo~\ref{ch:information}, vista dal filo.
+
+\subsection{L'invertitore CMOS: una porta NOT con due transistor}
+
+La porta più semplice è fatta di un pMOS verso l'alimentazione e di un nMOS
+verso massa, pilotati dallo stesso ingresso (Figura~\ref{fig:el:inv}).
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.28\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,2.0) node[pmos](p){} (0,0) node[nmos](n){};
+  \draw (p.S) -- ++(0,0.3) node[vcc]{3,3 V};
+  \draw (n.S) node[ground]{};
+  \draw (p.D) -- (n.D);
+  \draw (p.G) -- ++(-0.4,0) coordinate (g1) |- (n.G);
+  \draw (g1) ++(0,-1.0) node[circ]{} -- ++(-0.6,0) node[left]{$A$};
+  \draw (0,1.0) node[circ]{} -- ++(0.9,0) node[right]{$Y$};
+\end{circuitikz}
+\caption{NOT: $Y=\nott{A}$}\label{fig:el:inv}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (0,3.6) node[pmos](p1){} (2,3.6) node[pmos](p2){};
+  \draw (1,1.6) node[nmos](n1){} (1,0) node[nmos](n2){};
+  \draw (p1.S) -- ++(0,0.25) coordinate (v1) (p2.S) -- ++(0,0.25) coordinate (v2);
+  \draw (v1) -- (v2); \draw (1,0|-v1) node[vcc]{3,3 V};
+  \draw (p1.D) -- ++(0,-0.25) coordinate (o1) (p2.D) -- ++(0,-0.25) coordinate (o2);
+  \draw (o1) -- (o2);
+  \draw (n1.D) -- (n1.D|-o1) node[circ]{};
+  \draw (o2) -- ++(0.7,0) node[right]{$Y$};
+  \draw (n1.S) -- (n2.D); \draw (n2.S) node[ground]{};
+  \node[left] at (p1.G) {$A$}; \node[left] at (p2.G) {$B$};
+  \node[left] at (n1.G) {$A$}; \node[left] at (n2.G) {$B$};
+\end{circuitikz}
+\caption{NAND: $Y=\nott{A\cdot B}$}\label{fig:el:nand}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering
+\begin{circuitikz}[scale=0.8,transform shape]
+  \draw (1,5.2) node[pmos](p1){} (1,3.6) node[pmos](p2){};
+  \draw (0,1.4) node[nmos](n1){} (2,1.4) node[nmos](n2){};
+  \draw (p1.S) -- ++(0,0.25) node[vcc]{3,3 V};
+  \draw (p1.D) -- (p2.S);
+  \draw (n1.D) -- ++(0,0.25) coordinate (o1) (n2.D) -- ++(0,0.25) coordinate (o2);
+  \draw (o1) -- (o2);
+  \draw (p2.D) -- (p2.D|-o1) node[circ]{};
+  \draw (o2) -- ++(0.7,0) node[right]{$Y$};
+  \draw (n1.S) -- ++(0,-0.2) coordinate (g1) (n2.S) -- ++(0,-0.2) coordinate (g2);
+  \draw (g1) -- (g2); \draw (1,0|-g1) node[ground]{};
+  \node[left] at (p1.G) {$A$}; \node[left] at (p2.G) {$B$};
+  \node[left] at (n1.G) {$A$}; \node[left] at (n2.G) {$B$};
+\end{circuitikz}
+\caption{NOR: $Y=\nott{A+B}$}\label{fig:el:nor}
+\end{subfigure}
+\caption{Tre porte CMOS. Nel NAND e nel NOR i gate dei transistor segnati con
+la stessa lettera sono collegati insieme.}
+\label{fig:el:cmos}
+\end{figure}
+
+\begin{center}\small
+\begin{tabular}{@{}cccl@{}}
+\toprule
+$A$ & \textbf{pMOS} & \textbf{nMOS} & $Y$\\
+\midrule
+0 & conduce & interdetto & 1: unita a 3,3 V\\
+1 & interdetto & conduce & 0: unita a massa\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Esattamente uno dei due transistor conduce: l'uscita è sempre collegata a una
+linea, mai a entrambe. Con l'ingresso fermo, nessuna corrente scorre
+dall'alimentazione a massa, così che il CMOS (MOS \emph{complementare}) non
+consuma quasi niente a riposo. E l'uscita è un livello nuovo e pulito
+qualunque sia la qualità dell'ingresso: la porta \emph{rigenera} il segnale.
+
+\subsection{NAND e NOR in CMOS}
+
+\begin{prgconcept}[Serie è AND, parallelo è OR]
+Due interruttori in serie conducono quando il primo \emph{e} il secondo sono
+chiusi; due interruttori in parallelo conducono quando il primo \emph{o} il
+secondo è chiuso. È l'idea di Nakajima e Shannon.
+\end{prgconcept}
+
+Nel NAND (Figura~\ref{fig:el:nand}) due nMOS in serie raggiungono la massa
+solo se $A$ e $B$ valgono entrambi 1, e due pMOS in parallelo raggiungono
+l'alimentazione se uno dei due vale 0. Il NOR (Figura~\ref{fig:el:nor}) è il
+duale: il parallelo diventa serie e la serie diventa parallelo, esattamente
+come le leggi di De Morgan scambiano AND e OR. In ogni porta CMOS la rete di
+pMOS che porta l'uscita in alto e la rete di nMOS che la porta in basso sono
+l'una la duale dell'altra, nel senso del principio di dualità del
+Capitolo~\ref{ch:boole1}. Ciascuna delle due porte ha quattro transistor;
+verificate sui disegni le quattro combinazioni degli ingressi.
+
+\subsection{Quanto costano le porte, in transistor}
+
+\begin{table}[htb]
+\centering\small
+\caption{Il costo di alcuni circuiti in CMOS statico convenzionale; i conteggi
+variano con lo stile di progetto.}\label{tab:el:cost}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Circuito} & \textbf{Transistor} & \textbf{Nota}\\
+\midrule
+NOT & 2 & l'invertitore CMOS\\
+NAND, NOR (2 ingressi) & 4 & le porte naturali del CMOS\\
+AND, OR (2 ingressi) & 6 & un NAND o un NOR seguito da un invertitore\\
+XOR (2 ingressi) & da 8 a 12 circa & secondo il progetto\\
+sommatore completo & circa 28 & il classico sommatore CMOS statico\\
+cella SRAM, un bit & 6 & due invertitori ad anello e due transistor di accesso\\
+flip-flop D & circa 20 & due latch, master e slave\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Un AND costa più di un NAND (Tabella~\ref{tab:el:cost}): in CMOS le porte
+invertenti vengono per prime. È per questo che il NAND è la porta universale
+del Capitolo~\ref{ch:boole2} in pratica oltre che in teoria. Minimizzare una
+funzione significa risparmiare transistor, e quindi area, energia e tempo. Il
+sommatore che sta dietro l'istruzione \ins{add}, trentadue sommatori completi,
+è fatto di circa 900 transistor.
+
+\subsection{Commutare costa tempo ed energia}
+
+L'uscita di una porta pilota gli ingressi delle porte successive, che sono
+piccoli condensatori. Per cambiare livello l'uscita deve caricarli o
+scaricarli attraverso la resistenza dei suoi transistor: è il \term{ritardo di
+propagazione} della porta. E ogni cambio di livello costa energia: la potenza
+spesa nella commutazione è circa
+\[ P_{dyn} \approx C\cdot V^{2}\cdot f, \]
+dove $C$ è la capacità commutata, $V$ la tensione di alimentazione e $f$ la
+frequenza di commutazione. Abbassare la tensione di alimentazione è ciò che fa
+risparmiare di più, perché compare al quadrato: è la ragione per cui i chip
+sono passati da 5~V a 3,3~V e a circa 1~V all'interno. Alzare la frequenza del
+clock alza il consumo in proporzione: la velocità si paga in calore. Il ritardo
+di propagazione ritorna nel Capitolo~\ref{ch:combinational} come cammino
+critico, e nel Capitolo~\ref{ch:sequential} come la ragione del clock.
+
+\subsection{Scale di integrazione}
+
+\begin{table}[htb]
+\centering\small
+\caption{Scale di integrazione.}\label{tab:el:scales}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Scala} & \textbf{Transistor per chip} & \textbf{Esempi}\\
+\midrule
+SSI, piccola & fino a circa 100 & poche porte: la serie 74, come quattro NAND in un contenitore\\
+MSI, media & centinaia & decodificatori, multiplexer, contatori, registri: le macchine dei Capitoli da \ref{ch:combinational} a \ref{ch:registers}\\
+LSI, grande & migliaia & i primi microprocessori e le prime memorie: Intel 4004\\
+VLSI, molto grande & centinaia di migliaia e oltre & i processori degli anni Ottanta e Novanta\\
+oggi & decine di miliardi & sistemi su un chip: processore, memoria, radio e periferiche insieme\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+L'ESP32-C6 del kit è un sistema su un chip in un contenitore di pochi
+millimetri (Tabella~\ref{tab:el:scales}). I chip della serie 74 ricompaiono nei
+prossimi capitoli come la forma storica di ogni blocco costruttivo.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{Pull-up: un ingresso che non resta mai flottante}
+
+Un ingresso collegato a niente è \term{flottante}: raccoglie rumore e legge 0 o
+1 a caso. Una \term{resistenza di pull-up} lega il piedino a 3,3~V
+(Figura~\ref{fig:el:pullup}). Con il pulsante rilasciato non scorre corrente, e
+il piedino legge un 1 pulito. Con il pulsante premuto l'interruttore unisce il
+piedino a massa: 0~V, uno 0 pulito, mentre attraverso la resistenza scorre una
+corrente di $3,3\ \mathrm{V}/45\ \mathrm{k}\Omega = 73\ \mu\mathrm{A}$, troppo
+piccola per contare. Il circuito è il partitore di tensione della
+(\ref{eq:el:div}) con un resistore inferiore che è o infinito o nullo.
+
+\begin{figure}[htb]
+\centering
+\begin{circuitikz}[scale=0.85,transform shape]
+  \foreach \x/\sw/\v/\cap in {0/nos/{3,3 V: legge 1}/rilasciato, 6.5/ncs/{0 V: legge 0}/premuto}{
+    \draw (\x,3.6) node[vcc]{3,3 V} to[R,l_=45<\kilo\ohm>] (\x,2) coordinate (p\sw);
+    \draw (p\sw) to[\sw] (\x,0.2) node[ground]{};
+    \draw (p\sw) node[circ]{} -- ++(1.2,0) node[buffer,anchor=in](b\sw){};
+    \draw (b\sw.out) node[right]{\small \v};
+    \node[lbl] at (\x+0.6,-0.9) {pulsante \cap};
+    \node[lbl,anchor=east] at (\x-0.1,2) {piedino};
+  }
+\end{circuitikz}
+\caption{Il pulsante del kit con la sua resistenza di pull-up. Il triangolo è
+il buffer di ingresso del piedino.}
+\label{fig:el:pullup}
+\end{figure}
+
+Il firmware abilita il pull-up interno di ogni piedino dei pulsanti, legge i
+piedini e inverte i bit, così che nel programma premuto è 1. Di un segnale il
+cui stato attivo è il livello basso si dice che usa una logica \term{attiva
+bassa} \eng{active-low}.
+
+\subsection{Dal dito al bit}
+
+Le domande del riscaldamento hanno ora una risposta, e la
+Tabella~\ref{tab:el:finger} le mette in ordine. Alcuni dei suoi passi
+appartengono a capitoli che devono ancora venire.
+
+\begin{table}[htb]
+\centering\small
+\caption{Dal dito al bit.}\label{tab:el:finger}
+\begin{tabularx}{\textwidth}{@{}cLP{0.34\textwidth}@{}}
+\toprule
+\textbf{Passo} & \textbf{Che cosa succede} & \textbf{Dove è spiegato}\\
+\midrule
+1 & il dito chiude l'interruttore tra GPIO18 e massa & questo capitolo: il circuito\\
+2 & il piedino scende da 3,3 V a 0 V, in molto meno di un microsecondo & questo capitolo: $R\cdot C$\\
+3 & il buffer di ingresso vede una tensione sotto 0,825 V: uno 0 logico & questo capitolo: i livelli logici\\
+4 & il livello è campionato in un flip-flop del registro di ingresso & Capitolo \ref{ch:sequential}\\
+5 & il firmware legge quel registro con un'istruzione di load & Capitolo \ref{ch:memory}: I/O mappato in memoria\\
+6 & inverte il bit e lo impacchetta con gli altri in \reg{a0} & Capitoli \ref{ch:boole1} e \ref{ch:io}\\
+7 & il programma lo esamina: \code{andi t3, a0, 0x01} & Capitolo \ref{ch:firstcontact}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+I contatti di un interruttore reale \emph{rimbalzano} per qualche millisecondo
+quando si chiudono. Leggere i pulsanti una volta per frame, ogni poche decine
+di millisecondi, nasconde il rimbalzo (Capitolo~\ref{ch:io}).
+
+\subsection{Il kit come circuito}
+
+Il kit della Figura~\ref{fig:setup:kit} può ora essere letto come un circuito.
+Una \term{basetta sperimentale} \eng{breadboard} ha fori uniti a file nella
+parte inferiore, così che i componenti si collegano senza saldature. Due lunghi
+bus portano l'alimentazione, 3,3~V e massa; un bus separato porta 5~V per gli
+amplificatori audio. Ogni parte condivide la stessa massa: senza un riferimento
+comune le tensioni di due parti non significano niente l'una per l'altra. I
+pulsanti vanno da un piedino a massa; il display e gli amplificatori ricevono
+segnali digitali da altri piedini. Un piedino di uscita può accendere un LED
+attraverso una resistenza; un piedino di ingresso ascolta soltanto.
+
+\begin{prgwarn}
+Un piedino dell'ESP32-C6 può fornire alcune decine di milliampere: a un LED
+serve la sua resistenza in serie. Non unite mai direttamente a massa un piedino
+pilotato alto.
+\end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Un LED fa cadere 2 V e deve portare 5 mA da un piedino a 3,3 V. Quale resistenza serve?}
+\item 26 $\Omega$
+\item 260 $\Omega$
+\item 400 $\Omega$
+\item 660 $\Omega$
+\end{quiz}
+
+\begin{quiz}{In un invertitore CMOS con l'ingresso a 0:}
+\item entrambi i transistor conducono
+\item il pMOS conduce e l'uscita vale 1
+\item l'nMOS conduce e l'uscita vale 0
+\item nessuno conduce e l'uscita è flottante
+\end{quiz}
+
+\begin{quiz}{Quanti transistor richiede un AND a due ingressi in CMOS statico?}
+\item 2
+\item 4
+\item 6
+\item 8
+\end{quiz}
+
+\begin{quiz}{Perché l'ingresso del pulsante del kit ha bisogno di una resistenza di pull-up?}
+\item Per limitare la corrente del LED
+\item Perché il piedino legga un 1 definito quando il pulsante è rilasciato
+\item Per rendere il pulsante più veloce
+\item Per proteggere il chip dai 5 V
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi sul kit]
+\begin{enumerate}[nosep]
+\item Un LED blu fa cadere 3,0 V: quale resistenza dà 2 mA da 3,3 V? Quale
+  potenza dissipa la resistenza?
+\item Un partitore con $R_1=10$ k$\Omega$ e $R_2=20$ k$\Omega$ su 3,3 V:
+  calcolate $V_{out}$. Un ingresso del kit lo legge come 0, come 1, o è
+  indefinito?
+\item Disegnate un NAND a tre ingressi in CMOS e contatene i transistor.
+\item Verificate il disegno del NOR per le quattro combinazioni degli ingressi,
+  segnando quali transistor conducono.
+\item Su \prg, eseguite la cartuccia delle lampade e collegate con un filo un
+  piedino dei pulsanti a massa: spiegate ciò che vedete, e che cosa
+  succederebbe con il pull-up disabilitato.
+\end{enumerate}
+\expected{Su carta: 150 $\Omega$ e 0,6 mW; $V_{out}=2,2$ V, nella fascia
+indefinita; sei transistor, tre pMOS in parallelo e tre nMOS in serie. Sul kit:
+la lampada si accende esattamente come se il pulsante fosse premuto.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+voltage & tensione\\
+current & corrente\\
+resistor / resistance & resistore / resistenza\\
+capacitor & condensatore\\
+ground & massa\\
+semiconductor, doping & semiconduttore, drogaggio\\
+gate, source, drain & gate, source, drain\\
+logic level & livello logico\\
+noise margin & margine di rumore\\
+pull-up resistor & resistenza di pull-up\\
+floating input & ingresso flottante\\
+propagation delay & ritardo di propagazione\\
+integrated circuit & circuito integrato\\
+breadboard & basetta sperimentale (breadboard)\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+La tensione spinge, la corrente scorre, la resistenza ostacola: $V=R\cdot I$
+descrive la maggior parte di ciò che serve a un progettista digitale. Un
+transistor MOS è un interruttore controllato da una tensione, e nMOS e pMOS
+sono complementari. Un bit è un intervallo di tensioni; i margini di rumore e
+la rigenerazione sono ciò che rende affidabili i circuiti digitali. Le porte
+CMOS sono coppie di reti di interruttori, e le porte invertenti NAND e NOR sono
+le meno costose. Commutare costa tempo ($R\cdot C$) ed energia
+($C\cdot V^{2}\cdot f$): i limiti fisici dietro ogni clock.
+
+\paragraph{Letture.} Charles Petzold, \emph{Code}, i capitoli dalla torcia
+elettrica alle porte logiche; \citet{patterson2020}, paragrafi 1.5 e 1.7 e
+appendice~A; \fname{docs/hardware/hardware.md} nel repository di \prg.

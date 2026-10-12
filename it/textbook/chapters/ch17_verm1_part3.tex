@@ -1,0 +1,545 @@
+% ============================================================================
+%  Capitolo 17 -- Verm1, parte 3: un corpo, regole e stati       (Lezione 17)
+% ============================================================================
+\chapter{Verm1, parte 3: un corpo, regole e stati}
+\label{ch:verm1p3}
+
+\epigraphline{Mostratemi le vostre tabelle, e di solito non avrò bisogno dei
+vostri diagrammi di flusso: saranno ovvi.}{Fred Brooks, \emph{The Mythical
+Man-Month}}
+
+\begin{chapgoals}
+Alla fine di questo capitolo avrete
+\begin{itemize}
+\item un verme con un corpo che segue la testa e cresce di una cella a ogni pasto;
+\item un gioco che si può perdere: il verme non deve mordersi;
+\item tre schermate, un titolo, il gioco e una fine partita, collegate dal pulsante \key{A};
+\item il cibo che non compare mai sul verme;
+\item un punteggio migliore, conservato finché la cartuccia resta in memoria.
+\end{itemize}
+\end{chapgoals}
+
+In questo terzo tutorial la memoria entra nel gioco: un anello di byte, una
+mappa del mondo, una macchina con tre stati. Con «strutture dati» al posto di
+«tabelle», la frase di Brooks citata sopra è il motto del capitolo: una volta
+progettati bene i dati, il codice è una trascrizione. La
+Tabella~\ref{tab:v3:from} elenca ciò che si prende dai Capitoli da
+\ref{ch:sequential} a~\ref{ch:storage}. Il frame è il clock della macchina:
+\code{update} calcola lo stato prossimo dallo stato presente e dagli ingressi.
+Il file di riferimento è \fname{verm1\_part3.S} (Appendice~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Che cosa la parte 3 prende dai capitoli su stato e memoria.}\label{tab:v3:from}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{Da} & \textbf{Idea} & \textbf{Dove compare}\\
+\midrule
+Capitolo \ref{ch:sequential} & una macchina a stati finiti: stati, ingressi, transizioni & \texttt{TITLE}, \texttt{PLAY}, \texttt{OVER}\\
+Capitolo \ref{ch:sequential} & un fronte è un cambiamento, non un livello & \key{A} premuto ora e non un frame fa\\
+Capitolo \ref{ch:registers} & un registro conserva un valore per il clock successivo & \code{prev\_btn}: i pulsanti dell'ultimo frame\\
+Capitolo \ref{ch:memory} & la memoria è un array di byte: indirizzo = base + indice & il corpo, la mappa del mondo\\
+Capitolo \ref{ch:storage} & che cosa resta nel file e che cosa vive in RAM & \code{.rodata} e \code{.data}; il punteggio migliore\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_title.png}\caption{\texttt{TITLE}}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_play.png}\caption{\texttt{PLAY}: sette celle dopo quattro pasti}\label{fig:v3:play}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.32\textwidth}\includegraphics[width=\textwidth]{verm1_p3_over.png}\caption{\texttt{OVER}}\label{fig:v3:over}\end{subfigure}
+\caption{Dove va questo capitolo: tre schermate, un solo programma.}
+\label{fig:v3:screens}
+\end{figure}
+
+Partite da una parte~2 che funziona; se la vostra non funziona, copiate
+\fname{verm1\_part2.S}. Il ciclo di lavoro è quello del
+Listato~\ref{lst:v1:build}. In questa parte il file cambia molto: compilate
+dopo ogni \emph{Eseguite}, non solo alla fine.
+
+% ----------------------------------------------------------------------------
+\section{Il progetto, prima del codice}
+
+Per prime si progettano due strutture dati e un diagramma.
+
+\subsection{Il corpo è un anello di 256 elementi}
+
+Il corpo è tenuto in due array di byte, \code{body\_x} e \code{body\_y}:
+l'elemento $k$ contiene la cella di un segmento. Niente viene mai fatto
+scorrere: un passo scrive un nuovo elemento e sposta un indice
+(Figura~\ref{fig:v3:ring}). Due numeri descrivono il verme: \code{head\_i},
+l'elemento della testa, e \code{length}, il numero di elementi in uso. La coda
+è l'elemento
+\[ \code{head\_i}-\code{length}+1 . \]
+Dopo l'elemento 255 viene l'elemento 0, e il rientro è una sola istruzione:
+l'indice AND 255. La struttura è un \term{anello}, o buffer circolare: la
+struttura che sta dietro ogni coda first-in, first-out.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[x=7mm,y=7mm]
+  \foreach \row/\h/\len/\cap in {0/2/3/{Una nuova partita: tre celle, la testa nell'elemento 2},
+                                 1/3/3/{Un passo: si scrive la nuova testa nell'elemento 3; la coda è ora l'elemento 1},
+                                 2/4/4/{Un passo con un pasto: la testa avanza, la coda resta}}{
+    \begin{scope}[yshift=-\row*19mm]
+      \foreach \k in {0,...,15}{
+        \pgfmathtruncatemacro{\tail}{\h-\len+1}
+        \ifnum\k=\h \def\col{green!75!black}\else\ifnum\k<\tail \def\col{prgpanel}\else\ifnum\k>\h \def\col{prgpanel}\else\def\col{prggreen!55}\fi\fi\fi
+        \draw[prgsteel,fill=\col] (\k,0) rectangle ++(1,1);
+        \node[font=\ttfamily\scriptsize,text=prgcomment] at (\k+0.5,1.3) {\k};
+      }
+      \node[font=\ttfamily\scriptsize] at (16.6,0.5) {\ldots 255};
+      \node[lbl,anchor=west] at (0,-0.45) {\cap};
+      \draw[->,thick,prgred] (\h+0.5,2.1) node[above,font=\ttfamily\scriptsize,text=prgred]{head\_i} -- (\h+0.5,1.55);
+    \end{scope}
+  }
+\end{tikzpicture}
+\caption{I primi sedici elementi dell'anello in tre momenti successivi.}
+\label{fig:v3:ring}
+\end{figure}
+
+Muovere un verme di 200 celle costa quindi quanto muoverne uno di 3. La
+dimensione 256 è scelta perché è una potenza di due, così che il rientro è una
+maschera.
+
+\subsection{Il mondo è una mappa di 960 byte}
+
+La nuova testa tocca il corpo? Guardare ogni segmento costerebbe fino a 255
+confronti. Il programma tiene invece una \emph{mappa}: un byte per cella, 1 se
+c'è un segmento e 0 se no. La cella in colonna $c$ della riga $r$ è il byte
+numero
+\[ r\times 40+c,\qquad\text{da 0 a 959}, \]
+e il suo indirizzo è $\code{grid}+r\times 40+c$: un mondo a due dimensioni in
+una memoria a una dimensione, il calcolo dell'indirizzo del
+Capitolo~\ref{ch:memory}. Un passo pone a 1 un byte, quello della nuova testa,
+e ne azzera uno, quello della vecchia coda. Il test di collisione è un solo
+load, qualunque sia la lunghezza del verme.
+
+È il classico scambio di memoria in cambio di tempo. La mappa e l'anello dicono
+la stessa cosa in due modi, e il programma deve tenerli coerenti: ogni
+scrittura nell'una è accoppiata a una scrittura nell'altro.
+
+\subsection{Il gioco è una macchina con tre stati}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[->,shorten >=1pt,every edge/.append style={font=\sffamily\footnotesize}]
+  \node[st,fill=prgsteel,text=white,minimum size=15mm] (t) at (0,0) {TITLE};
+  \node[st,fill=prgaccent,text=white,minimum size=15mm] (p) at (4.6,0) {PLAY};
+  \node[st,fill=prgred,text=white,minimum size=15mm] (o) at (9.2,0) {OVER};
+  \path (t) edge node[above]{\textbf{A} premuto} node[below]{\scriptsize\texttt{new\_game}} (p)
+        (p) edge node[above]{testa sul corpo} node[below]{\scriptsize aggiorna \texttt{best}} (o)
+        (o) edge[bend left=32] node[below]{\textbf{A} premuto} (t);
+\end{tikzpicture}
+\caption{Il diagramma degli stati di \vermone. In ogni altro caso lo stato non cambia.}
+\label{fig:v3:fsm}
+\end{figure}
+
+Lo stato è una parola in memoria (Figura~\ref{fig:v3:fsm}). \code{update}
+guarda prima lo stato e poi gli ingressi. E «\key{A} premuto» significa:
+abbassato ora, e alzato un frame fa. Tenere premuto \key{A} non deve far
+saltare il titolo: ciò che serve è un fronte, non un livello.
+
+% ----------------------------------------------------------------------------
+\section{Passo 1: la memoria del gioco}
+
+Sostituite le costanti, la \code{.rodata} e la \code{.data} della parte~2 con i
+Listati \ref{lst:v3:const}, \ref{lst:v3:ro} e~\ref{lst:v3:data}.
+
+\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v3:const]{code/l17/s11.S}
+
+C'è un verde più scuro, \hex{03e0}, per il corpo; \code{BTN\_A} è il bit~4
+della parola dei pulsanti; gli stati sono numeri, 0, 1 e 2.
+
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.rodata}, ciò che resta nel file.},label=lst:v3:ro]{code/l17/s12.S}
+
+Tre stringhe e le due tabelle della parte~2: dati di sola lettura, nei quali il
+programma non scrive mai, e che sulla scheda potrebbero restare in flash.
+
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.data}, ciò che vive in RAM.},label=lst:v3:data]{code/l17/s13.S}
+
+\code{head\_x} e \code{head\_y} sono sparite: la testa è nell'anello. La
+direttiva \code{.space} riserva dei byte senza nominarli uno per uno:
+$256+256+960$ byte, il verme e il suo mondo. Tutto ciò che è qui si perde
+quando la cartuccia viene scaricata (Capitolo~\ref{ch:storage}): \code{best}
+sopravvive a una partita, non a uno spegnimento. Un punteggio migliore che
+sopravviva richiederebbe una memoria permanente, che una cartuccia portabile
+non ha: un limite onesto.
+
+% ----------------------------------------------------------------------------
+\section{Passo 2: tre stati}
+
+Per prima si costruisce la macchina, con funzioni che non fanno ancora niente.
+
+\subsection{\texttt{init}: partire dal titolo}
+
+Sostituite \code{verm1\_init} con il Listato~\ref{lst:v3:init}, e cancellate
+dal file \code{verm1\_update}, \code{step} e \code{verm1\_draw} della parte~2:
+i prossimi listati le sostituiscono. Tenete \code{place\_food},
+\code{eat\_sound} e \code{draw\_cell}.
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/s15.S}
+
+\code{init} sceglie soltanto il primo stato; la partita vera e propria è
+preparata da \code{new\_game}.
+
+\subsection{\texttt{update}: i pulsanti, e i loro fronti}
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, prima metà.},label=lst:v3:edge]{code/l17/s16.S}
+
+Nel Listato~\ref{lst:v3:edge} \reg{s0} contiene i pulsanti di ora e
+\code{prev\_btn} i pulsanti di un frame fa. La variabile \code{prev\_btn} è un
+registro nel senso del Capitolo~\ref{ch:registers}: ritarda il suo ingresso di
+un clock, e qui il clock è il frame. L'espressione «ora AND NOT prima» vale 1
+solo dove è cominciata una pressione:
+\[ \reg{s1}=\reg{s0}\cdot\nott{\code{prev\_btn}} . \]
+È il rilevatore di fronte del Capitolo~\ref{ch:sequential}: un flip-flop e una
+porta AND con un ingresso invertito. \reg{s0} e \reg{s1} devono sopravvivere
+alle chiamate, e sono salvati nel frame.
+
+\subsection{\texttt{update}: un ramo per stato}
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, seconda metà.},label=lst:v3:states]{code/l17/s17.S}
+
+Il Listato~\ref{lst:v3:states} è la tabella delle transizioni, riga per riga.
+Lo stato viene letto per primo: decide chi guarda gli ingressi. \texttt{TITLE}
+e \texttt{OVER} reagiscono solo a una nuova pressione di \key{A}; \texttt{PLAY}
+passa a \code{play\_update} i pulsanti tenuti premuti. La transizione da
+\texttt{OVER} a \texttt{TITLE} memorizza soltanto il nuovo stato; quella da
+\texttt{TITLE} a \texttt{PLAY} chiama \code{new\_game}, che memorizza essa
+stessa \texttt{PLAY}.
+
+\subsection{\texttt{draw}: che cosa mostrare in ogni stato}
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_draw}, prima metà.},label=lst:v3:draw1]{code/l17/s18.S}
+
+La riga del titolo è sempre disegnata (Listato~\ref{lst:v3:draw1}). In
+\texttt{TITLE} si aggiunge solo l'invito \texttt{PRESS A}, a $x=132$, che
+centra 7 caratteri di 8 pixel; in \texttt{PLAY} e \texttt{OVER} il punteggio,
+il verme e il cibo. L'uscita dipende solo dallo stato e dalla memoria:
+\code{draw} non cambia niente. È una macchina di Moore.
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: la fine di \code{verm1\_draw}, e \code{draw\_text}.},label=lst:v3:draw2]{code/l17/s19.S}
+
+\texttt{OVER} aggiunge due parole sopra la scena
+(Listato~\ref{lst:v3:draw2}). La funzione di servizio \code{draw\_text} scrive
+bianco su nero: riempie \reg{a3} e \reg{a4} e lascia passare da \reg{a0} ad
+\reg{a2}, togliendo due righe a ogni chiamata che scrive testo.
+
+\subsection{Quattro funzioni che non fanno niente}
+
+\asmfile[caption={Passo 2: stub provvisori.},label=lst:v3:stubs]{code/l17/s20.S}
+
+Gli stub del Listato~\ref{lst:v3:stubs} fanno esistere i nomi, così che il
+programma si compili; \code{new\_game} cambia soltanto lo stato. I passi 3 e 4
+li sostituiscono uno alla volta. È il metodo del
+Capitolo~\ref{ch:firstcontact}: cominciare con ritorni che non fanno niente,
+poi aggiungere una cosa alla volta.
+
+\begin{prgcheck}[Eseguite: una macchina con niente dentro]
+\begin{enumerate}[nosep]
+\item Compilate ed eseguite: la riga del titolo, e \texttt{PRESS A} al centro
+  dello schermo.
+\item Premete \key{A}: l'invito scompare. Una cella rossa è nell'angolo in alto
+  a sinistra: il cibo, alla colonna 0 della riga 0, perché \code{food\_x} e
+  \code{food\_y} partono da zero e lo stub di \code{new\_game} non chiama
+  \code{place\_food}.
+\item Niente si muove e la partita non può finire: \texttt{PLAY} non ha ancora
+  regole.
+\item Nel debugger, trovate la variabile \code{state} e guardatela cambiare da
+  0 a 1 quando premete \key{A}.
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Passo 3: un verme in memoria}
+
+\subsection{\texttt{new\_game}: svuotare la mappa, posare il verme}
+
+Sostituite lo stub di \code{new\_game} con i Listati \ref{lst:v3:new1}
+e~\ref{lst:v3:new2}.
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, prima metà.},label=lst:v3:new1]{code/l17/s23.S}
+
+I 960 byte della mappa vengono posti a zero, una \ins{sb} alla volta. Poi tre
+segmenti vengono posati nelle colonne 3, 4 e 5 della riga 12, e ciascuno è
+scritto due volte: nell'anello e nella mappa. L'espressione
+\code{grid+12*COLS} è calcolata dall'assemblatore: è l'indirizzo del primo byte
+della riga 12. \ins{sb} memorizza un byte; l'indice è sommato all'indirizzo di
+base senza scorrimento, perché ogni elemento è un byte.
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, seconda metà.},label=lst:v3:new2]{code/l17/s24.S}
+
+$\code{head\_i}=2$ e $\code{length}=3$ descrivono il verme; direzione, timer e
+punteggio partono da zero. Lo stato è memorizzato per ultimo: la transizione da
+\texttt{TITLE} a \texttt{PLAY} è completa solo quando tutto è pronto.
+
+\subsection{\texttt{draw\_worm}: percorrere l'anello all'indietro}
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/s25.S}
+
+Il segmento $i$ è l'elemento $(\code{head\_i}-i)$ AND 255
+(Listato~\ref{lst:v3:worm}). \ins{lbu} carica un byte come numero senza segno,
+e non \ins{lb}: una colonna è un numero da 0 a 39, mai negativo. Qui
+funzionerebbero entrambe, dato che con \ins{lb} solo un byte di 128 o più
+diventerebbe negativo (Capitolo~\ref{ch:integers}); ma \ins{lbu} dice ciò che
+si intende. Il segmento 0 è la testa, in un verde più brillante.
+
+\subsection{\texttt{draw\_score}}
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/s26.S}
+
+È il ciclo che stava dentro \code{verm1\_draw} nella parte~2, ora una funzione
+(Listato~\ref{lst:v3:score}). Usa \reg{s0}, quindi lo salva e lo ripristina.
+Resta uno stub (Listato~\ref{lst:v3:stub2}): il verme esiste, e sta fermo.
+
+\asmfile[caption={Passo 3: l'ultimo stub.},label=lst:v3:stub2]{code/l17/s27.S}
+
+\begin{prgcheck}[Eseguite: un verme che sta fermo]
+\begin{enumerate}[nosep]
+\item Compilate ed eseguite, premete \key{A}: un verme di tre celle nella riga
+  12, colonne da 3 a 5, con la testa, più brillante, a destra.
+\item Il cibo è ora in una cella casuale: \code{new\_game} chiama
+  \code{place\_food}.
+\item Nel debugger, fermatevi all'inizio di \code{draw\_worm} e procedete
+  passo-passo finché è stata eseguita \code{la t0, body\_x}: \reg{t0} contiene
+  l'indirizzo di \code{body\_x}. Scrivetelo nel campo \emph{Memory}: i primi
+  byte sono \texttt{03 04 05}.
+\item Trovate $\code{grid}+12\times 40+3$: tre byte a \texttt{01} in un mare di
+  zeri. (\code{grid} è 512 byte dopo \code{body\_x}, e la riga 12 comincia 480
+  byte dopo \code{grid}.)
+\end{enumerate}
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Passo 4: le regole}
+
+Un passo del verme ha tre movimenti: decidere, guardare, scrivere.
+
+\subsection{\texttt{play\_update}: la update della parte 2}
+
+Sostituite l'ultimo stub con i Listati \ref{lst:v3:play1}
+e~\ref{lst:v3:play2}. Sono il corpo della vecchia \code{verm1\_update} sotto un
+nuovo nome; i pulsanti arrivano in \reg{a0}, così che non c'è alcuna chiamata
+per leggerli.
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, la guida.},label=lst:v3:play1]{code/l17/s30.S}
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, il timer.},label=lst:v3:play2]{code/l17/s31.S}
+
+\subsection{\texttt{step}: tre registri da conservare}
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, l'inizio.},label=lst:v3:s1]{code/l17/s32.S}
+
+A \code{step} servono tre valori che devono sopravvivere a una chiamata a
+\code{place\_food}: la cella della nuova testa, in \reg{s0} e \reg{s1}, e un
+indicatore in \reg{s2} che vale zero quando il verme mangia. Sono tenuti in
+registri \reg{s}, e il frame ha spazio per quattro parole: \reg{ra} e i tre
+registri salvati (Listato~\ref{lst:v3:s1}). La ricerca nella tabella è quella
+della parte~2.
+
+\subsection{\texttt{step}: dove sarà la testa?}
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la nuova cella.},label=lst:v3:s2]{code/l17/s33.S}
+
+La testa attuale è l'elemento \code{head\_i} dell'anello: un byte ciascuno per
+colonna e riga, caricati con \ins{lbu}. Si sommano \code{dx} e \code{dy} e il
+risultato viene fatto rientrare come nella parte~2
+(Listato~\ref{lst:v3:s2}). Non viene ancora scritto niente: prima il programma
+deve guardare.
+
+\subsection{\texttt{step}: mangiare, o spostare la coda}
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la coda.},label=lst:v3:s3]{code/l17/s34.S}
+
+Il comparatore della parte~2 lascia il suo risultato in \reg{s2}
+(Listato~\ref{lst:v3:s3}). Se il verme mangia, la lunghezza cresce di uno e la
+coda resta dov'è. Se non mangia, la coda si trova all'elemento
+$\code{head\_i}-\code{length}+1$, e la sua colonna e la sua riga vengono messe
+in \reg{t3} e \reg{t4}. A 255 celle il verme smette di crescere.
+
+\begin{prgconcept}
+Crescere e non spostare la coda sono la stessa cosa. È tutto il trucco di
+Snake.
+\end{prgconcept}
+
+\subsection{\texttt{step}: liberare la coda, esaminare la testa}
+
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{step}, la collisione.},label=lst:v3:s4]{code/l17/s35.S}
+
+Il numero di un byte della mappa è
+$\mathit{riga}\times 40+\mathit{colonna}$: una \ins{mul} e una \ins{add}
+(Listato~\ref{lst:v3:s4}); \ins{mul} appartiene all'estensione M di \riscv, che
+l'ESP32-C6 ha. Il byte della coda viene azzerato \emph{per primo}, e poi si
+esamina il byte della testa. L'ordine conta: in questo modo la testa può
+entrare nella cella che la coda ha appena lasciato, e il verme può inseguire la
+propria coda, come nel gioco originale. Se la cella è occupata lo stato diventa
+\texttt{OVER}, e \code{best} viene aggiornato.
+
+\subsection{\texttt{step}: scrivere la nuova testa}
+
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: la fine di \code{step}.},label=lst:v3:s5]{code/l17/s36.S}
+
+La cella è segnata nella mappa, mentre \reg{t0} punta ancora a essa; l'indice
+\code{head\_i} diventa $(\code{head\_i}+1)$ AND 255, e l'anello si chiude;
+colonna e riga sono scritte nel nuovo elemento (Listato~\ref{lst:v3:s5}). Se
+\reg{s2} vale zero ci sono un punto, nuovo cibo e un suono. Dopo una collisione
+la funzione salta direttamente alla sua ultima etichetta: non viene scritto
+niente, e lo schermo mostra il verme com'era prima del passo fatale.
+
+\subsection{\texttt{place\_food}: non sul verme}
+
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{place\_food}.},label=lst:v3:food]{code/l17/s37.S}
+
+Si estrae a caso una cella, e poi si consulta la mappa: se la cella è occupata
+se ne estrae un'altra, finché ne arriva una libera
+(Listato~\ref{lst:v3:food}). La colonna aspetta in \reg{s0} durante la seconda
+chiamata. Il ciclo termina in fretta: anche con 255 celle occupate su 960, la
+media è inferiore a due tentativi.
+
+\begin{prgcheck}[Eseguite: Verm1, parte 3]
+Il verme segue la testa e cresce (Figura~\ref{fig:v3:play}); svoltare dentro
+il corpo fa finire la partita (Figura~\ref{fig:v3:over}); \key{A} riporta al
+titolo, e \key{A} di nuovo avvia una nuova partita.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Passo 5: guardare la memoria che si muove}
+
+\begin{prgtry}[Guardate l'anello girare]
+\begin{enumerate}[nosep]
+\item Eseguite in modalità debug, premete \key{A} per avviare una partita, poi
+  mettete in pausa.
+\item Premete \key{Update} e mettete un breakpoint sulla prima istruzione di
+  \code{step}.
+\item \key{Resume}: il programma si ferma una volta per passo del verme, non
+  una volta per frame.
+\item Scrivete l'indirizzo di \code{body\_x} nel campo \emph{Memory}: i byte
+  \texttt{03 04 05} della partenza, poi \texttt{06}, \texttt{07}, \ldots, un
+  nuovo byte per passo.
+\item Scendete per qualche passo: \code{body\_x} ripete la stessa colonna, e
+  \code{body\_y}, 256 byte più avanti, conta le righe.
+\item Mangiate, e confrontate \code{head\_i} e \code{length} prima e dopo:
+  entrambi crescono di uno.
+\end{enumerate}
+\end{prgtry}
+
+I byte delle vecchie posizioni non vengono mai cancellati: l'anello conserva
+l'intera storia degli ultimi 256 passi, e \code{length} dice quanta di essa è
+ancora verme. Dopo 256 passi la scrittura ricomincia dal primo byte.
+
+\subsection{Cogliere il fronte del pulsante A}
+
+Mettete un breakpoint su \code{and s1, s0, t1} in \code{verm1\_update}, tenete
+premuto \key{A} e premete \key{Resume} tre volte. La
+Tabella~\ref{tab:v3:edge} mostra ciò che si legge: \reg{s1} vale \hex{10} in un
+solo frame, il frame in cui il pulsante si abbassa. (Il test del file di
+riferimento tiene premuto \key{A} per 28 frame e verifica che avvenga
+esattamente una transizione.)
+
+\begin{table}[htb]
+\centering\small
+\caption{Il fronte del pulsante \key{A}.}\label{tab:v3:edge}
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+\textbf{Frame} & \textbf{A è} & \textbf{\reg{s0} (ora)} & \textbf{\code{prev\_btn}} & \textbf{\reg{s1} = \reg{s0} AND NOT prev} & \textbf{Effetto}\\
+\midrule
+$n$ & alzato & \hex{00} & \hex{00} & \hex{00} & --\\
+$n+1$ & abbassato & \hex{10} & \hex{00} & \hex{10} & transizione\\
+$n+2$ & abbassato & \hex{10} & \hex{10} & \hex{00} & --\\
+$n+3$ & alzato & \hex{00} & \hex{10} & \hex{00} & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Tre domande per il debugger}
+
+\begin{itemize}
+\item \emph{Dov'è \code{state}?} Dopo \code{la t0, state} in
+  \code{verm1\_update}, \reg{t0} ne contiene l'indirizzo. Guardate
+  \texttt{00}, \texttt{01}, \texttt{02} mentre giocate e perdete.
+\item \emph{La mappa è coerente con l'anello?} Mettete in pausa, leggete la
+  testa da \code{body\_x} e \code{body\_y}, calcolate
+  $\mathit{riga}\times 40+\mathit{colonna}$, e guardate quel byte di
+  \code{grid}.
+\item \emph{Che cosa ha visto il passo fatale?} Fermatevi sulla \ins{lbu} che
+  segue la seconda \ins{mul} in \code{step}: \reg{t1} vale 1 esattamente una
+  volta, al morso. In quel momento \reg{s0} e \reg{s1} contengono la cella in
+  cui la testa voleva entrare, e lo schermo mostra che fa parte del corpo.
+\end{itemize}
+
+\begin{prgconcept}
+Un programma è giusto quando la sua memoria è giusta. Imparate a leggerla.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{$\code{head\_i}=1$ e $\code{length}=4$. Quali elementi dell'anello contengono il verme?}
+\item 1, 2, 3, 4
+\item 0, 1, 2, 3
+\item 254, 255, 0, 1
+\item 253, 254, 255, 0
+\end{quiz}
+
+\begin{quiz}{Quale byte di \code{grid} descrive la cella in colonna 7 della riga 3?}
+\item il byte 37
+\item il byte 127
+\item il byte 283
+\item il byte 307
+\end{quiz}
+
+\begin{quiz}{Il giocatore tiene premuto \key{A} per due secondi sulla schermata del titolo. Che cosa accade?}
+\item la partita comincia e finisce subito
+\item la partita comincia una volta
+\item nulla, finché \key{A} non viene rilasciato
+\item gli stati si alternano a ogni frame
+\end{quiz}
+
+\begin{quiz}{Perché il byte della coda viene azzerato prima di esaminare quello della testa?}
+\item per risparmiare un'istruzione
+\item perché la testa possa entrare nella cella lasciata dalla coda
+\item perché \ins{sb} è più veloce di \ins{lbu}
+\item l'ordine non conta
+\end{quiz}
+
+\section{Fatelo vostro}
+
+\begin{exercise}[su \prg]
+\begin{enumerate}[nosep]
+\item Muri: il verme muore quando esce dallo schermo invece di rientrare.
+\item Partite con un verme di cinque celle; poi fate dipendere la lunghezza
+  iniziale dal punteggio migliore.
+\item Veleno: una seconda cella, blu, che accorcia il verme di una cella.
+\item Nella schermata di fine partita mostrate il punteggio migliore come
+  tacche sulla seconda riga.
+\end{enumerate}
+\expected{Ogni modifica tocca una o due funzioni. Tenete una copia della
+parte~3 funzionante: la parte~4 parte da lì. (Suggerimenti: per i muri,
+sostituite ogni rientro in \code{step} con un salto al codice che memorizza
+\texttt{OVER}. Per il veleno, spostate la coda due volte in un passo, azzerando
+entrambi i byte della mappa, e non scendete mai sotto la lunghezza 1.)}
+\end{exercise}
+
+\section{Due funzioni che non sono cambiate}
+
+\code{eat\_sound} e \code{draw\_cell} sono quelle della parte~2 e restano come
+sono. Sono ristampate qui perché questo capitolo contenga l'intero programma:
+il file completo è la somma dei listati segnati nuovo e modificato, più questi
+due.
+
+\asmfile[caption={\textbf{Invariato}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/s49.S}
+
+\asmfile[caption={\textbf{Invariato}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/s50.S}
+
+\section{Dove siamo, e che cosa viene dopo}
+
+\vermone è ora un gioco: ha uno scopo, un rischio, un inizio e una fine. Una
+macchina con tre stati, un anello di byte, una mappa: logica sequenziale e
+memoria scritte come programma, in circa 450 righe di assembly che avete
+scritto e sapete spiegare. Mancano tre cose: il programma ridisegna l'intero
+schermo a ogni frame, il punteggio è una fila di tacche, e la velocità non
+cambia mai. I prossimi quattro capitoli aprono la macchina che esegue quelle
+righe: come il processore esegue, le chiamate e la divisione, come funzionano
+video e suono. La parte~4 è il gioco finito.

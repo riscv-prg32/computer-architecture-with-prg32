@@ -1,0 +1,545 @@
+% ============================================================================
+%  Capitolo 9 -- Elementi di algebra di Boole, parte 2           (Lezione 09)
+% ============================================================================
+\chapter{Algebra di Boole: funzioni, forme canoniche e minimizzazione}
+\label{ch:boole2}
+
+\epigraphline{Povero me! Povero me! Arriverò troppo tardi!}
+  {Lewis Carroll, \emph{Alice nel Paese delle Meraviglie}, 1865}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item definire letterale, clausola, fattore, mintermine e maxtermine;
+\item dire quante funzioni booleane di $n$ variabili esistono, e nominare quelle di due variabili;
+\item scrivere una funzione in forma canonica somma di prodotti e prodotto di somme a partire dalla sua tabella di verità;
+\item minimizzare una funzione fino a quattro variabili con una mappa di Karnaugh;
+\item ricavare il semisommatore e il sommatore completo, e spiegare come trentadue di essi eseguono \ins{add}.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+Due registri contengono un bit ciascuno, 0 o 1. La loro somma può essere 0, 1
+o 2, e richiede quindi due bit. Il Listato~\ref{lst:b2:warm} la calcola senza
+alcuna istruzione aritmetica.
+
+\asmfile[caption={Somma di un bit senza \ins{add}.},label=lst:b2:warm]{code/l09/s04.S}
+
+Due istruzioni logiche sommano due bit. Il commento del listato è una tabella
+di verità con due uscite, e la coppia di porte che essa descrive si chiama
+\term{semisommatore}. Il Capitolo~\ref{ch:integers} affermava che a un
+processore, per l'aritmetica, basta un sommatore: questo è il suo primo bit. Ma
+come si trovano le porte quando è data solo la tabella? È il metodo di questo
+capitolo: tabella di verità, forma canonica, minimizzazione.
+
+% ----------------------------------------------------------------------------
+\section{Funzioni booleane}
+
+\subsection{Il vocabolario delle espressioni}
+
+\begin{definition}{Letterale, clausola, fattore}
+Un \term{letterale} è una variabile booleana, o il suo complemento, così come
+compare in un'espressione: $a$, $\nott{b}$, $x$. Una \term{clausola}, o
+\term{termine prodotto}, è il prodotto logico di due o più letterali:
+$a\,\nott{b}\,x$. Un \term{fattore}, o \term{termine somma}, è la somma logica
+di due o più letterali: $(a+\nott{x})$, $(b+c)$.
+\end{definition}
+
+Clausole e fattori con più di un letterale sono funzioni di livello~1: uno
+strato di porte. Ogni occorrenza di una variabile conta come un letterale, e il
+numero dei letterali misura il costo di un'espressione.
+
+\subsection{Quante funzioni di $n$ variabili?}
+
+\begin{definition}{Funzione booleana}
+Una \term{funzione booleana} di $n$ variabili è un'applicazione
+$f:B^{n}\to B$, con $B=\{0,1\}$: associa un'uscita binaria a ogni combinazione
+di $n$ ingressi binari.
+\end{definition}
+
+\begin{theorem}{Numero delle funzioni booleane}
+Esistono esattamente $2^{2^{n}}$ funzioni booleane distinte di $n$ variabili.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Le combinazioni degli ingressi sono $2^{n}$, e
+una funzione è determinata dalla scelta di un'uscita, 0 o 1, per ciascuna di
+esse: è una stringa di $2^{n}$ bit, e di tali stringhe ce ne sono $2^{2^{n}}$.
+\hfill$\square$
+
+\smallskip
+Il numero è finito, e cresce in fretta: 4 funzioni di una variabile, 16 di due,
+256 di tre, 65\,536 di quattro, e più di quattro miliardi di cinque. Le
+funzioni booleane sono isomorfe ai circuiti digitali: ogni circuito si può
+scrivere come espressione, e ogni espressione si può costruire come circuito.
+
+\subsection{Le sedici funzioni di due variabili}
+
+La Tabella~\ref{tab:b2:sixteen} elenca tutte le funzioni di due variabili.
+L'indice di ogni funzione è la sua colonna di uscite letta come numero binario.
+Con una variabile le quattro funzioni sono la costante 0, $x$, $\nott{x}$ e la
+costante 1.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le sedici funzioni di due variabili. Le colonne 00, 01, 10, 11 danno
+l'uscita per ogni coppia di ingressi $x\,y$.}\label{tab:b2:sixteen}
+\begin{tabular}{@{}lccccl@{\qquad}lccccl@{}}
+\toprule
+$f$ & 00 & 01 & 10 & 11 & \textbf{nome} & $f$ & 00 & 01 & 10 & 11 & \textbf{nome}\\
+\midrule
+$f_0$ & 0&0&0&0 & costante 0 & $f_8$ & 1&0&0&0 & \textbf{NOR}\\
+$f_1$ & 0&0&0&1 & \textbf{AND}: $x\,y$ & $f_9$ & 1&0&0&1 & \textbf{XNOR} (equivalenza)\\
+$f_2$ & 0&0&1&0 & $x\,\nott{y}$ (inibizione) & $f_{10}$ & 1&0&1&0 & NOT $y$\\
+$f_3$ & 0&0&1&1 & $x$ (identità) & $f_{11}$ & 1&0&1&1 & $x+\nott{y}$ (implicazione $y\to x$)\\
+$f_4$ & 0&1&0&0 & $\nott{x}\,y$ (inibizione) & $f_{12}$ & 1&1&0&0 & NOT $x$\\
+$f_5$ & 0&1&0&1 & $y$ (identità) & $f_{13}$ & 1&1&0&1 & $\nott{x}+y$ (implicazione $x\to y$)\\
+$f_6$ & 0&1&1&0 & \textbf{XOR} & $f_{14}$ & 1&1&1&0 & \textbf{NAND}\\
+$f_7$ & 0&1&1&1 & \textbf{OR}: $x+y$ & $f_{15}$ & 1&1&1&1 & costante 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Insiemi funzionalmente completi}
+
+Qualsiasi funzione booleana si può realizzare usando solo AND, OR e NOT; per
+esempio $x\oplus y=\nott{x}\,y+x\,\nott{y}$. (Il
+Paragrafo~\ref{sec:b2:canonical} dimostra l'enunciato generale per
+costruzione.) L'insieme $\{\text{AND},\text{OR},\text{NOT}\}$ si dice perciò
+\term{funzionalmente completo}.
+
+Per De Morgan, AND si può costruire con OR e NOT, e OR con AND e NOT: anche gli
+insiemi $\{\text{AND},\text{NOT}\}$ e $\{\text{OR},\text{NOT}\}$ sono
+completi. E basta una sola porta.
+
+\begin{theorem}{Porte universali}
+Il NAND da solo è funzionalmente completo, e così il NOR da solo.
+\end{theorem}
+
+\noindent\emph{Dimostrazione} per il NAND, scrivendo $x\uparrow y=\nott{xy}$:
+\[
+\nott{x}=x\uparrow x,\qquad
+x\,y=(x\uparrow y)\uparrow(x\uparrow y),\qquad
+x+y=(x\uparrow x)\uparrow(y\uparrow y),
+\]
+l'ultima per De Morgan. La dimostrazione per il NOR è duale. \hfill$\square$
+
+\smallskip
+Un solo tipo di porta basta a costruire qualsiasi circuito digitale, un intero
+processore compreso. I chip reali sono costruiti in gran parte con NAND e NOR
+perché sono le porte che richiedono meno transistor
+(Capitolo~\ref{ch:electronics}).
+
+\subsection{Tabelle di verità}
+
+Una funzione booleana può essere definita dalla sua tabella di verità, che dà
+il valore della variabile dipendente per ogni combinazione delle variabili
+indipendenti. Una funzione di $n$ variabili è definita su $2^{n}$ punti, e la
+sua tabella ha $2^{n}$ righe, elencate nell'ordine del conteggio: 000, 001,
+010, \ldots\ La funzione $F$ della Tabella~\ref{tab:b2:F}, che vale 1 sulle
+righe 3, 4, 5, 6 e 7, sarà seguita per tutto il capitolo.
+
+\begin{table}[htb]
+\centering\small
+\caption{La funzione $F$, con il mintermine o il maxtermine di ogni
+riga.}\label{tab:b2:F}
+\begin{tabular}{@{}cccc|cll@{}}
+\toprule
+riga & $A$ & $B$ & $C$ & $F$ & \textbf{mintermine ($F=1$)} & \textbf{maxtermine ($F=0$)}\\
+\midrule
+0 & 0&0&0 & 0 & & $M_0=A+B+C$\\
+1 & 0&0&1 & 0 & & $M_1=A+B+\nott{C}$\\
+2 & 0&1&0 & 0 & & $M_2=A+\nott{B}+C$\\
+3 & 0&1&1 & 1 & $m_3=\nott{A}\,B\,C$ & \\
+4 & 1&0&0 & 1 & $m_4=A\,\nott{B}\,\nott{C}$ & \\
+5 & 1&0&1 & 1 & $m_5=A\,\nott{B}\,C$ & \\
+6 & 1&1&0 & 1 & $m_6=A\,B\,\nott{C}$ & \\
+7 & 1&1&1 & 1 & $m_7=A\,B\,C$ & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Il semisommatore}
+
+Il \term{semisommatore} \eng{half adder} somma due bit $A$ e $B$ e produce un
+bit di somma $S$ e un riporto $C$. In binario $1+1$ dà somma 0 e riporto 1;
+dalla tabella, $S$ vale 1 quando gli ingressi sono diversi e $C$ vale 1 quando
+entrambi valgono 1 (Figura~\ref{fig:b2:ha}):
+\[ S = A\oplus B,\qquad C=A\cdot B. \]
+Il circuito è esattamente la coppia di istruzioni del riscaldamento. È «mezzo»
+sommatore perché non ha un riporto in ingresso: può sommare soltanto i bit meno
+significativi di due numeri.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.3\textwidth}\centering\small\ttfamily
+\begin{tabular}{cc|cc}\textrm{$A$}&\textrm{$B$}&\textrm{$S$}&\textrm{$C$}\\\hline 0&0&0&0\\0&1&1&0\\1&0&1&0\\1&1&0&1\end{tabular}
+\end{minipage}
+\begin{minipage}{0.55\textwidth}\centering
+\begin{circuitikz}
+  \node[xor port] (x) at (3,1.2) {};
+  \node[and port] (a) at (3,-0.6) {};
+  \draw (x.in 1) -- ++(-1.6,0) node[left]{$A$} coordinate (A);
+  \draw (x.in 2) -- ++(-1.6,0) node[left]{$B$} coordinate (B);
+  \draw (x.in 1) ++(-1.0,0) node[circ]{} |- (a.in 1);
+  \draw (x.in 2) ++(-0.5,0) node[circ]{} |- (a.in 2);
+  \draw (x.out) -- ++(0.5,0) node[right]{$S$};
+  \draw (a.out) -- ++(0.5,0) node[right]{$C$};
+\end{circuitikz}
+\end{minipage}
+\caption{Il semisommatore.}\label{fig:b2:ha}
+\end{figure}
+
+\subsection{Il sommatore completo}
+
+Il \term{sommatore completo} \eng{full adder} somma due bit e un riporto
+entrante, $C_{in}$, e produce un bit di somma e un riporto uscente, $C_{out}$
+(Figura~\ref{fig:b2:fa}). $S$ vale 1 quando un numero dispari di ingressi vale
+1; $C_{out}$ vale 1 quando almeno due ingressi valgono 1:
+\[ S=A\oplus B\oplus C_{in},\qquad C_{out}=A\,B+C_{in}\,(A\oplus B). \]
+Il circuito è fatto di due semisommatori e un OR.
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{0.32\textwidth}\centering\small\ttfamily
+\begin{tabular}{ccc|cc}\textrm{$A$}&\textrm{$B$}&\textrm{$C_{in}$}&\textrm{$S$}&\textrm{$C_{out}$}\\\hline
+0&0&0&0&0\\0&0&1&1&0\\0&1&0&1&0\\0&1&1&0&1\\1&0&0&1&0\\1&0&1&0&1\\1&1&0&0&1\\1&1&1&1&1\end{tabular}
+\end{minipage}
+\begin{minipage}{0.64\textwidth}\centering
+\begin{circuitikz}[scale=0.9,transform shape]
+  \node[xor port] (x1) at (2.4,2.0) {};
+  \node[xor port] (x2) at (5.6,1.72) {};
+  \node[and port] (a1) at (5.6,0.1) {};
+  \node[and port] (a2) at (5.6,-1.5) {};
+  \node[or port]  (o)  at (8.0,-0.7) {};
+  \draw (x1.in 1) -- ++(-1.3,0) node[left]{$A$};
+  \draw (x1.in 2) -- ++(-1.3,0) node[left]{$B$};
+  \draw (x1.out) -- (x2.in 1);
+  \draw (x2.in 2) -- ++(-0.6,0) coordinate (c) |- (-0.05,-2.6) node[left]{$C_{in}$};
+  \draw (x1.out) ++(0.35,0) node[circ]{} |- (a1.in 1);
+  \draw (c) ++(0,-1.0) node[circ]{} -- ++(0.0,0) |- (a1.in 2);
+  \draw (x1.in 1) ++(-0.9,0) node[circ]{} |- (a2.in 1);
+  \draw (x1.in 2) ++(-0.45,0) node[circ]{} |- (a2.in 2);
+  \draw (a1.out) -| (o.in 1);
+  \draw (a2.out) -| (o.in 2);
+  \draw (x2.out) -- ++(2.6,0) node[right]{$S$};
+  \draw (o.out) -- ++(0.3,0) node[right]{$C_{out}$};
+\end{circuitikz}
+\end{minipage}
+\caption{Il sommatore completo: due semisommatori e un OR. I fili che si
+incrociano senza un punto non sono collegati.}\label{fig:b2:fa}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Forme canoniche}\label{sec:b2:canonical}
+
+Le forme canoniche sono una via sistematica dalla tabella a un'espressione.
+
+\subsection{Forme elementari: funzioni di livello 2}
+
+\begin{definition}{Somma di prodotti e prodotto di somme}
+Un'espressione di \term{tipo P}, o \term{somma di prodotti} (SOP), è una somma
+logica di clausole, come $y=a\,\nott{b}+\nott{a}\,d+b\,\nott{d}\,x$. Si
+costruisce come uno strato di porte AND che alimenta una porta OR.
+Un'espressione di \term{tipo S}, o \term{prodotto di somme} (POS), è un
+prodotto logico di fattori, come $y=(a+\nott{b})(\nott{a}+d)(b+\nott{d}+x)$.
+Si costruisce come uno strato di porte OR che alimenta una porta AND.
+\end{definition}
+
+\subsection{Mintermini e maxtermini}
+
+\begin{definition}{Mintermine e maxtermine}
+Un \term{mintermine} di $n$ variabili è un prodotto che contiene un letterale
+di ogni variabile. Un \term{maxtermine} è una somma che contiene un letterale
+di ogni variabile.
+\end{definition}
+
+Un mintermine vale 1 per una sola riga della tabella di verità, e un
+maxtermine vale 0 per una sola riga. Il mintermine $m_i$ della riga $i$
+contiene una variabile complementata dove la riga ha uno 0; il maxtermine
+$M_i$ contiene una variabile complementata dove la riga ha un 1
+(Tabella~\ref{tab:b2:F}). Per De Morgan, $M_i=\nott{m_i}$.
+
+\subsection{Dalla tabella di verità alle forme canoniche}
+
+\begin{theorem}{Forme canoniche}
+Ogni funzione booleana è uguale
+\begin{enumerate}[nosep]
+\item alla somma dei mintermini delle righe in cui vale 1 (\term{forma canonica P});
+\item al prodotto dei maxtermini delle righe in cui vale 0 (\term{forma canonica S}).
+\end{enumerate}
+Ciascuna delle due forme è unica, a meno dell'ordine dei termini.
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Su una riga in cui $f=1$, il mintermine di
+quella riga vale 1 e così la somma; su una riga in cui $f=0$, tutti i
+mintermini della somma valgono 0. Il secondo enunciato è il duale.
+\hfill$\square$
+
+\smallskip
+Per la funzione $F$:
+\begin{align*}
+F &= \nott{A}BC+A\nott{B}\,\nott{C}+A\nott{B}C+AB\nott{C}+ABC \;=\; \sum m(3,4,5,6,7),\\
+F &= (A+B+C)\,(A+B+\nott{C})\,(A+\nott{B}+C) \;=\; \prod M(0,1,2).
+\end{align*}
+
+Il teorema dimostra anche che AND, OR e NOT sono funzionalmente completi. È una
+sintesi per ricetta: sempre possibile, raramente economica.
+
+\subsection{Minimizzazione algebrica di $F$}
+
+La forma canonica P di $F$ ha 5 clausole e 15 letterali. L'algebra del
+Capitolo~\ref{ch:boole1} la riduce:
+\begin{align*}
+F &= \nott{A}BC+A\nott{B}\,\nott{C}+A\nott{B}C+AB\nott{C}+ABC\\
+ &= \nott{A}BC+A\,(\nott{B}\,\nott{C}+\nott{B}C+B\nott{C}+BC) && \text{distributiva: si raccoglie $A$}\\
+ &= \nott{A}BC+A\,\bigl(\nott{B}\,(\nott{C}+C)+B\,(\nott{C}+C)\bigr) && \text{distributiva, due volte}\\
+ &= \nott{A}BC+A\,(\nott{B}+B) && \text{complemento: $\nott{C}+C=1$}\\
+ &= \nott{A}BC+A && \text{complemento: $\nott{B}+B=1$}\\
+ &= A+BC && \text{semplificazione: $x+\nott{x}\,y=x+y$.}
+\end{align*}
+Quindici letterali sono diventati tre: da cinque porte AND a tre ingressi e un
+OR a cinque, a un AND e un OR. Funziona, ma ogni passo richiede un'idea. Ciò
+che serve è un metodo.
+
+\subsection{Lo scopo della minimizzazione}
+
+Lo scopo è trovare, tra tutte le possibili forme a due livelli di tipo P, una
+forma elementare \emph{minima}. Porte meno numerose e più piccole significano
+costo inferiore, meno potenza e un circuito più veloce. Tre metodi sono
+classici.
+
+\begin{itemize}
+\item \textbf{Mappe di Karnaugh}: grafico, per gruppi di celle adiacenti di
+  area massima; pratico fino a quattro o cinque variabili
+  \citep{karnaugh1953}.
+\item \textbf{Metodo di Quine}: algebrico, per confronto sistematico dei termini.
+\item \textbf{Metodo di McCluskey}: tabellare, adatto a un programma, e base
+  degli odierni strumenti di sintesi logica. La procedura di Quine--McCluskey
+  è esatta ma esponenziale; gli strumenti industriali usano euristiche.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Mappe di Karnaugh}
+
+\subsection{L'idea}
+
+Una mappa di Karnaugh è la tabella di verità di una funzione di $n$ variabili
+ridisegnata su una griglia di $2^{n}$ celle, una cella per riga. Le celle sono
+ordinate in modo che due vicine differiscano in una sola variabile: di qui
+l'ordine 00, 01, 11, 10 delle colonne, che è un codice Gray
+(Capitolo~\ref{ch:combinational}), e di qui il fatto che in una mappa $m_3$
+viene prima di $m_2$. Anche i bordi sinistro e destro sono adiacenti: la mappa
+si richiude su sé stessa.
+
+L'adiacenza grafica è così adiacenza logica: due 1 adiacenti sono due
+mintermini che differiscono in una variabile, e per $x\,y+x\,\nott{y}=x$ si
+fondono in una clausola con un letterale in meno.
+
+\begin{prgconcept}[La regola della mappa]
+Raggruppate gli 1 in rettangoli di 1, 2, 4 o 8 celle, i più grandi possibile,
+finché ogni 1 è coperto. Un gruppo di $2^{k}$ celle elimina $k$ variabili: la
+clausola di un gruppo contiene solo le variabili che al suo interno non
+cambiano.
+\end{prgconcept}
+
+\subsection{Due, tre e quattro variabili}
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.25\textwidth}\centering
+\resizebox{0.8\textwidth}{!}{\begin{karnaugh-map}[2][2][1][$B$][$A$]
+  \minterms{1,2,3}\autoterms[0]
+  \implicant{2}{3}\implicant{1}{3}
+\end{karnaugh-map}}
+\caption{$F=A+B$}\label{fig:b2:k2}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.36\textwidth}\centering
+\resizebox{\textwidth}{!}{\begin{karnaugh-map}[4][2][1][$BC$][$A$]
+  \minterms{3,4,5,6,7}\autoterms[0]
+  \implicant{4}{6}\implicant{3}{7}
+\end{karnaugh-map}}
+\caption{$F=A+BC$}\label{fig:b2:k3}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.36\textwidth}\centering
+\resizebox{\textwidth}{!}{\begin{karnaugh-map}[4][4][1][$CD$][$AB$]
+  \minterms{0,2,5,7,8,10,13,15}\autoterms[0]
+  \implicant{5}{15}\implicantcorner
+\end{karnaugh-map}}
+\caption{$F=BD+\nott{B}\,\nott{D}$}\label{fig:b2:k4}
+\end{subfigure}
+\caption{Mappe di Karnaugh di due, tre e quattro variabili.}
+\label{fig:b2:kmaps}
+\end{figure}
+
+\paragraph{Due variabili (Figura~\ref{fig:b2:k2}).} La funzione vale 1 per
+$AB=01$, 10 e 11; la sua forma canonica $\nott{A}B+A\nott{B}+AB$ ha sei
+letterali. Un gruppo è la riga $A=1$: al suo interno $B$ cambia, quindi $B$
+sparisce e la clausola è $A$. L'altro è la colonna $B=1$: cambia $A$, e la
+clausola è $B$. Dunque $F=A+B$: la funzione è semplicemente OR. La cella $AB$
+appartiene a entrambi i gruppi; usare un 1 due volte è la legge di
+idempotenza, $x+x=x$.
+
+\paragraph{Tre variabili (Figura~\ref{fig:b2:k3}).} È la funzione $F$ del
+capitolo: un 1 nelle celle dei mintermini 3, 4, 5, 6 e 7. Un gruppo di quattro
+copre l'intera riga $A=1$: $B$ e $C$ cambiano entrambe, e la clausola è $A$.
+Un gruppo di due copre la colonna $BC=11$: cambia $A$, e la clausola è $BC$.
+Ogni 1 è coperto e nessun gruppo può essere ingrandito: $F=A+BC$, lo stesso
+risultato dell'algebra, trovato a occhio in pochi secondi.
+
+\paragraph{Quattro variabili (Figura~\ref{fig:b2:k4}).} La funzione
+$F=\sum m(0,2,5,7,8,10,13,15)$ ha otto mintermini e trentadue letterali. Un
+gruppo di quattro al centro ha dappertutto $B=1$ e $D=1$: la clausola è $BD$.
+Anche i quattro angoli sono un solo gruppo, perché la mappa si richiude sia in
+orizzontale sia in verticale, come se fosse disegnata su un toro: lì $B=0$ e
+$D=0$, e la clausola è $\nott{B}\,\nott{D}$. Il risultato ha quattro letterali,
+e si riconosce: $F$ è lo XNOR di $B$ e $D$.
+
+La regola pratica è: prendere sempre prima i gruppi più grandi, poi coprire ciò
+che resta.
+
+\subsection{Condizioni di indifferenza}
+
+A volte una combinazione degli ingressi non può mai presentarsi, oppure quando
+si presenta l'uscita non importa. Una cifra in decimale codificato in binario,
+per esempio, usa le configurazioni da 0000 a 1001, e le sei configurazioni da
+1010 a 1111 non compaiono mai. Quelle celle si segnano nella mappa con un
+trattino (o, in molti testi, con una croce): \term{condizione di indifferenza}
+\eng{don't care}. Una cella di indifferenza può essere trattata come un 1
+quando rende un gruppo più grande, e come uno 0 altrimenti. Più libertà
+significa gruppi più grandi e un circuito meno costoso. L'esercizio classico è
+il decodificatore per un display a sette segmenti, dove ogni segmento è una
+funzione di quattro variabili con sei condizioni di indifferenza.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{Trentadue sommatori completi fanno una \texttt{add}}
+
+L'istruzione \code{add t2, t0, t1} porta i due registri a trentadue sommatori
+completi, uno per posizione di bit (Figura~\ref{fig:b2:ripple}). Il riporto
+uscente di ogni posizione è il riporto entrante della successiva: un
+\term{sommatore a propagazione del riporto} \eng{ripple-carry adder}, in cui il
+riporto si propaga verso sinistra come in una somma fatta a mano.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[fa/.style={blkacc,minimum width=17mm,minimum height=12mm}]
+  \foreach \i/\x/\l in {0/10.5/0, 1/7.9/1, 2/5.3/2, 3/1.3/31}{
+    \node[fa] (f\i) at (\x,0) {sommatore\\\footnotesize bit \l};
+    \draw[<-] ([xshift=-3mm]f\i.north) -- ++(0,6mm) node[above,font=\ttfamily\small]{A\l};
+    \draw[<-] ([xshift=3mm]f\i.north) -- ++(0,6mm) node[above,font=\ttfamily\small]{B\l};
+    \draw[->] (f\i.south) -- ++(0,-6mm) node[below,font=\ttfamily\small]{S\l};
+  }
+  \draw[->,very thick,prgamber] (12.4,0) node[right,font=\ttfamily]{0} -- (f0.east);
+  \draw[->,very thick,prgamber] (f0.west) -- (f1.east);
+  \draw[->,very thick,prgamber] (f1.west) -- (f2.east);
+  \draw[->,very thick,prgamber] (f2.west) -- ++(-0.8,0);
+  \node[text=prgamber,font=\bfseries] at (3.3,0) {$\cdots$};
+  \draw[->,very thick,prgamber] (3.0,0) -- (f3.east);
+  \draw[->,very thick,prgamber] (f3.west) -- ++(-0.9,0) node[left,lbl,text=prgamber,align=right]{riporto\\uscente};
+  \node[lbl,text=prgamber] at (6.6,-0.9) {\emph{il riporto si propaga verso sinistra}};
+\end{tikzpicture}
+\caption{Un sommatore a propagazione del riporto di 32 bit.}\label{fig:b2:ripple}
+\end{figure}
+
+Il riporto uscente del bit 31 è l'overflow senza segno del
+Capitolo~\ref{ch:integers}, che \riscv semplicemente scarta. I processori reali
+usano schemi più veloci per il riporto, come il carry look-ahead
+(Capitolo~\ref{ch:combinational}), ma la funzione calcolata è la stessa.
+
+\subsection{Un sommatore completo, una porta per istruzione}
+
+\asmfile[caption={Il sommatore completo come programma.},label=lst:b2:fa]{code/l09/s27.S}
+
+Cinque istruzioni, cinque porte: il Listato~\ref{lst:b2:fa} è lo schema della
+Figura~\ref{fig:b2:fa}, letto da sinistra a destra. Eseguirlo passo-passo in
+\prgqt e compilare la tabella di verità è \emph{analisi}; ricavare queste porte
+dalla tabella con il metodo di questo capitolo era \emph{sintesi}. E con
+registri interi come ingressi, le stesse cinque righe lavorano su tutte le
+trentadue posizioni di bit insieme.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quante funzioni booleane distinte di tre variabili esistono?}
+\item 8
+\item 9
+\item 64
+\item 256
+\end{quiz}
+
+\begin{quiz}{Quale mintermine di tre variabili $A$, $B$, $C$ corrisponde alla riga 5 della tabella di verità?}
+\item $\nott{A}\,B\,\nott{C}$
+\item $A\,\nott{B}\,C$
+\item $A+\nott{B}+C$
+\item $A\,B\,\nott{C}$
+\end{quiz}
+
+\begin{quiz}{In una mappa di Karnaugh, un gruppo rettangolare di quattro 1 adiacenti elimina:}
+\item una variabile
+\item due variabili
+\item tre variabili
+\item quattro variabili
+\end{quiz}
+
+\begin{quiz}{In un sommatore completo, il riporto uscente vale 1 quando:}
+\item esattamente un ingresso vale 1
+\item un numero dispari di ingressi vale 1
+\item almeno due ingressi valgono 1
+\item solo quando tutti e tre gli ingressi valgono 1
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Scrivete le forme canoniche P e S delle uscite $S$ e $C_{out}$ del
+  sommatore completo.
+\item Minimizzate $C_{out}$ con una mappa di Karnaugh di tre variabili. Quante
+  porte si risparmiano?
+\item Minimizzate $F=\sum m(0,1,2,5,8,9,10)$ con una mappa di quattro variabili.
+\item Costruite NOT, AND e OR usando solo NAND, e verificate ciascuno con una
+  tabella di verità.
+\item Programmate il sommatore completo su \prg e mostrate $S$ e $C_{out}$
+  come lampade per le otto combinazioni degli ingressi.
+\end{enumerate}
+\expected{Su carta: la forma canonica di $C_{out}$ ha quattro mintermini (3, 5,
+6, 7) e la mappa dà tre clausole di due letterali,
+$C_{out}=AB+AC_{in}+BC_{in}$, la funzione di \emph{maggioranza}. Il terzo
+compito dà $F=\nott{B}\,\nott{D}+\nott{B}\,\nott{C}+\nott{A}\,\nott{C}\,D$. Su
+\prg: otto coppie di lampade che riproducono la tabella di verità del sommatore
+completo.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+literal & letterale\\
+clause, product term & clausola, termine prodotto\\
+factor, sum term & fattore, termine somma\\
+minterm / maxterm & mintermine / maxtermine\\
+half adder / full adder & semisommatore / sommatore completo\\
+carry in / carry out & riporto entrante / uscente\\
+canonical form & forma canonica\\
+sum of products (SOP) & somma di prodotti (tipo P)\\
+product of sums (POS) & prodotto di somme (tipo S)\\
+Karnaugh map & mappa di Karnaugh\\
+don't care & condizione di indifferenza\\
+ripple-carry adder & sommatore a propagazione del riporto\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Una funzione booleana è una tabella di verità, e una tabella di verità dà
+sempre un'espressione canonica. La minimizzazione è il processo che ottimizza
+una rete logica per semplificarne la realizzazione. Le mappe di Karnaugh
+trasformano l'algebra in un disegno: raggruppare gli 1, leggere le clausole. Il
+semisommatore e il sommatore completo sono i primi veri circuiti di questo
+libro, e trentadue sommatori completi in fila sono ciò che esegue la \ins{add}
+scritta nel Capitolo~\ref{ch:firstcontact}.
+
+\paragraph{Letture.} \citet{patterson2020}, appendice~A; \citet{bucci2017}, i
+capitoli sulle reti combinatorie; Charles Petzold, \emph{Code}, i capitoli
+sulle porte logiche e sulle macchine addizionatrici binarie.

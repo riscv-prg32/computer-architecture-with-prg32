@@ -1,0 +1,477 @@
+% ============================================================================
+%  Capitolo 8 -- Elementi di algebra di Boole, parte 1           (Lezione 08)
+% ============================================================================
+\chapter{Algebra di Boole: operatori e proprietà}
+\label{ch:boole1}
+
+\epigraphline{Povero me! Povero me! Arriverò troppo tardi!}
+  {Lewis Carroll, \emph{Alice nel Paese delle Meraviglie}, 1865}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item descrivere un calcolatore come processore, memoria e ingresso/uscita, collegati da un bus;
+\item spiegare la differenza tra l'analisi e la sintesi di un circuito logico;
+\item scrivere le tabelle di verità di AND, OR, NOT, XOR, NAND e NOR e riconoscerne i simboli;
+\item applicare le proprietà dell'algebra di Boole, leggi di De Morgan comprese, per semplificare un'espressione;
+\item usare \ins{and}, \ins{or}, \ins{xor} e \ins{not} su \riscv per esaminare, porre a 1, azzerare e invertire singoli bit.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+State facendo algebra di Boole fin dai primi giorni. Il
+Listato~\ref{lst:b1:left} è il modo in cui ogni gioco \prg chiede se una
+direzione è premuta.
+
+\asmfile[caption={\key{LEFT} è premuto?},label=lst:b1:left]{code/l08/s04.S}
+
+La funzione \code{prg32\_input\_read} restituisce tutti i pulsanti insieme, un
+bit per pulsante (Tabella~\ref{tab:b1:buttons}). Tenere premuti insieme
+\key{RIGHT} e \key{A} dà $\hex{12} = 0001\,0010_2$. L'istruzione \ins{andi}
+con \hex{01} conserva il bit~0 e forza a zero ogni altro bit, così che il
+risultato è diverso da zero esattamente quando \key{LEFT} è premuto. La
+costante usata con \ins{andi} si chiama \term{maschera}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Un bit per pulsante (le costanti \code{PRG32\_BTN\_*} di
+\fname{prg32.h}).}\label{tab:b1:buttons}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{Pulsante} & \key{LEFT} & \key{RIGHT} & \key{UP} & \key{DOWN} & \key{A} & \key{B} & \key{SELECT}\\
+\midrule
+Bit & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+Maschera & \hex{01} & \hex{02} & \hex{04} & \hex{08} & \hex{10} & \hex{20} & \hex{40}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{lab2_step1_lamps.png}
+\caption{Sette lampade, una per bit della maschera dei pulsanti: una lampada è
+accesa quando il suo bit vale 1.}\label{fig:b1:lamps}
+\end{figure}
+
+Ogni domanda sul joystick è un'espressione booleana su queste sette variabili.
+E \ins{andi} è trentadue porte AND che lavorano fianco a fianco. Che cos'è,
+esattamente, un AND?
+
+% ----------------------------------------------------------------------------
+\section{Il calcolatore come macchina logica}
+
+Questa parte del libro scende di un livello sotto le istruzioni.
+
+\subsection{Tre sottosistemi e un bus}
+
+In termini odierni il modello di von Neumann del Capitolo~\ref{ch:history} si
+disegna come nella Figura~\ref{fig:b1:bus}: le unità del 1945, collegate da
+fili condivisi. Il \term{processore} (CPU) contiene l'unità di controllo, la
+ALU e i registri, ed esegue le istruzioni. La \term{memoria centrale} contiene
+le istruzioni e i dati. Il sottosistema di \term{ingresso/uscita} collega
+joystick, display, suono, rete e memoria di massa. Il \term{bus} è l'insieme
+dei fili che li unisce: linee degli indirizzi, linee dei dati e linee di
+controllo. Tutto ciò che viaggia sul bus è una configurazione di bit.
+Sull'ESP32-C6 i tre sottosistemi e il bus stanno tutti dentro un solo chip.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blk,fill=prgaccent,text=white,text width=36mm,minimum height=17mm] (cpu) at (0,0) {\textbf{Processore (CPU)}\\\footnotesize unità di controllo, ALU, registri};
+  \node[blk,fill=prgsteel,text=white,text width=36mm,minimum height=17mm] (mem) at (4.7,0) {\textbf{Memoria centrale}\\\footnotesize istruzioni e dati};
+  \node[blk,fill=prggreen,text=white,text width=36mm,minimum height=17mm] (io) at (9.4,0) {\textbf{Ingresso / uscita}\\\footnotesize joystick, display, suono, rete};
+  \node[blk,fill=prgamber,text=white,minimum width=132mm,minimum height=7mm] (bus) at (4.7,-2.0) {\textbf{Bus}: linee degli indirizzi, dei dati, di controllo};
+  \foreach \n in {cpu,mem,io} \draw[bus,<->] (\n.south) -- (\n.south|-bus.north);
+\end{tikzpicture}
+\caption{Il calcolatore elettronico: tre sottosistemi e un bus.}
+\label{fig:b1:bus}
+\end{figure}
+
+\subsection{Il processore}
+
+La capacità di elaborazione di un calcolatore risiede nel processore. Esso può
+eseguire un insieme di azioni elementari, le \term{istruzioni}: comandi
+espliciti che governano il trasferimento dell'informazione all'interno del
+calcolatore e tra il calcolatore e i dispositivi di I/O, e che specificano le
+operazioni aritmetiche e logiche da compiere. La memoria centrale contiene i
+dati di ingresso e di uscita dell'elaborazione e la sequenza delle istruzioni;
+una sequenza di istruzioni registrata in memoria centrale è un
+\term{programma}. Il processore preleva le istruzioni dalla memoria e le esegue
+una per una: \emph{prelievo, esecuzione, e da capo}.
+
+Un calcolatore elettronico è, di conseguenza, un sistema
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[numerico:] un sistema digitale, in cui tutta l'informazione trattata è
+  espressa come stringhe di bit;
+\item[automatico:] una volta avviato procede da solo, istruzione dopo
+  istruzione, senza intervento umano;
+\item[a programma memorizzato:] il programma è registrato in memoria e può
+  essere sostituito, così che la stessa macchina fa lavori diversi;
+\item[elettronico:] è costruito con circuiti elettronici che memorizzano i bit
+  e li elaborano.
+\end{description}
+
+\subsection{Circuiti logici}
+
+I circuiti elettronici che memorizzano ed elaborano i bit si chiamano
+\term{circuiti di commutazione} o \term{circuiti logici}. Un circuito logico
+forma una \term{rete di commutazione}, e progettarne una si dice
+\term{progetto logico}. Due livelli di tensione su un filo, due stati di un
+interruttore, due valori di una variabile: per descrivere il comportamento di
+questi circuiti si usa un'algebra, una notazione matematica che ne semplifica
+sia l'analisi sia la sintesi. L'algebra è quella di \citet{boole1854},
+applicata agli interruttori da Nakajima e da \citet{shannon1938}.
+
+\begin{definition}{Analisi e sintesi}
+\term{Analisi}: data la descrizione della \emph{struttura} di un circuito
+(come è fatto), trovarne il \emph{comportamento} (che cosa fa).
+\term{Sintesi}: data la descrizione del \emph{comportamento} (che cosa deve
+fare), trovare una \emph{struttura} che lo realizzi (come costruirlo).
+\end{definition}
+
+Leggere uno schema e ricavarne la tabella di verità è analisi; lo è anche
+leggere \code{andi t3, t0, 1} e dire che cosa finisce in \reg{t3}. Passare
+dalla tabella di verità di una somma a un sommatore è sintesi; lo è anche
+passare da «muoviti se \key{LEFT} o \key{RIGHT} è premuto» a una maschera e un
+salto. La sintesi ha di solito molte soluzioni, e scegliere la meno costosa è
+il problema della \term{minimizzazione}, argomento del
+Capitolo~\ref{ch:boole2}.
+
+% ----------------------------------------------------------------------------
+\section{L'algebra di Boole}
+
+\begin{definition}{Algebra di Boole}
+L'\term{algebra di Boole} è l'algebra delle variabili che possono assumere solo
+due valori, 0 e 1, con tre operazioni di base:
+\begin{itemize}[nosep]
+\item AND, il \term{prodotto logico} o congiunzione, scritto $x\cdot y$ o
+  semplicemente $xy$;
+\item OR, la \term{somma logica} o disgiunzione, scritta $x+y$;
+\item NOT, il \term{complemento} o negazione, scritto $\nott{x}$ (nei
+  programmi e sulla tastiera, \code{x'}).
+\end{itemize}
+\end{definition}
+
+\subsection{Le tre operazioni fondamentali}
+
+Un'operazione è definita dalla sua \term{tabella di verità}, che elenca
+l'uscita per ogni combinazione degli ingressi (Figura~\ref{fig:b1:gates}). AND
+vale 1 solo quando entrambi gli ingressi valgono 1; OR vale 0 solo quando
+entrambi gli ingressi valgono 0; NOT inverte. Ogni operazione ha un simbolo
+grafico, la \term{porta logica}, che sta per il circuito che la calcola.
+
+\newcommand{\gatepanel}[4]{% port, title, formula, table body
+\begin{minipage}[t]{0.31\textwidth}\centering
+{\sffamily\bfseries\small\color{prgsteel}#2}\\[3pt]
+\begin{circuitikz}\draw (0,0) node[#1](g){} (g.out) node[right,font=\small]{$z$}
+  (g.in 1) node[left,font=\small]{$x$} (g.in 2) node[left,font=\small]{$y$};\end{circuitikz}\\[2pt]
+{\small #3}\\[4pt]
+{\small\ttfamily\begin{tabular}{cc|c}\textrm{$x$}&\textrm{$y$}&\textrm{$z$}\\\hline #4\end{tabular}}
+\end{minipage}}
+
+\begin{figure}[htb]
+\centering
+\gatepanel{and port}{AND (congiunzione)}{$z=x\cdot y$}{0&0&0\\0&1&0\\1&0&0\\1&1&1}\hfill
+\gatepanel{or port}{OR (disgiunzione)}{$z=x+y$}{0&0&0\\0&1&1\\1&0&1\\1&1&1}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+{\sffamily\bfseries\small\color{prgsteel}NOT (negazione)}\\[3pt]
+\begin{circuitikz}\draw (0,0) node[not port](g){} (g.out) node[right,font=\small]{$z$} (g.in) node[left,font=\small]{$x$};\end{circuitikz}\\[9pt]
+{\small $z=\nott{x}$}\\[4pt]
+{\small\ttfamily\begin{tabular}{c|c}\textrm{$x$}&\textrm{$z$}\\\hline 0&1\\1&0\end{tabular}}
+\end{minipage}
+\caption{Le tre operazioni fondamentali.}
+\label{fig:b1:gates}
+\end{figure}
+
+\subsection{Altre tre porte}
+
+Altre tre operazioni si incontrano dappertutto (Figura~\ref{fig:b1:gates2}).
+XOR, l'\term{or esclusivo}, vale 1 quando gli ingressi sono diversi: è il bit
+di somma di un'addizione, e \riscv lo ha come istruzione. NAND e NOR sono i
+complementi di AND e OR; il cerchietto su un simbolo significa negazione.
+
+\begin{figure}[htb]
+\centering
+\gatepanel{xor port}{XOR (or esclusivo)}{$z=\nott{x}y+x\nott{y}=x\oplus y$}{0&0&0\\0&1&1\\1&0&1\\1&1&0}\hfill
+\gatepanel{nand port}{NAND (not and)}{$z=\nott{x\cdot y}$}{0&0&1\\0&1&1\\1&0&1\\1&1&0}\hfill
+\gatepanel{nor port}{NOR (not or)}{$z=\nott{x+y}$}{0&0&1\\0&1&0\\1&0&0\\1&1&0}
+\caption{XOR, NAND e NOR.}
+\label{fig:b1:gates2}
+\end{figure}
+
+\subsection{Proprietà}
+
+La Tabella~\ref{tab:b1:props} raccoglie le proprietà dell'algebra. Ogni
+proprietà si presenta in coppia: una forma per AND e una per OR.
+
+\begin{table}[htb]
+\centering\small
+\caption{Proprietà dell'algebra di Boole.}\label{tab:b1:props}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Proprietà} & \textbf{Forma AND} & \textbf{Forma OR}\\
+\midrule
+Commutativa & $x\cdot y=y\cdot x$ & $x+y=y+x$\\
+Associativa & $(x\cdot y)\cdot z=x\cdot(y\cdot z)$ & $(x+y)+z=x+(y+z)$\\
+Idempotenza & $x\cdot x=x$ & $x+x=x$\\
+Assorbimento & $x\cdot(x+y)=x$ & $x+(x\cdot y)=x$\\
+Distributiva & $x\cdot(y+z)=x\cdot y+x\cdot z$ & $x+y\cdot z=(x+y)\cdot(x+z)$\\
+Elemento neutro & $x\cdot 1=x$ & $x+0=x$\\
+Elemento nullo & $x\cdot 0=0$ & $x+1=1$\\
+Complemento & $x\cdot\nott{x}=0$ & $x+\nott{x}=1$\\
+Involuzione & \multicolumn{2}{c}{$\nott{\nott{x}}=x$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per la proprietà associativa, AND e OR si estendono a un numero qualsiasi di
+operandi: $x\cdot y\cdot z$, $x+y+z$.
+
+\begin{prgwarn}
+Anche OR è distributivo rispetto ad AND: $x+yz=(x+y)(x+z)$. Questo è falso per
+la somma e il prodotto ordinari, ed è la proprietà che si dimentica più spesso.
+\end{prgwarn}
+
+Come si dimostra una proprietà? Poiché una variabile ha solo due valori, ogni
+identità può essere verificata provando tutti i casi: è il metodo
+dell'\term{induzione perfetta}. Due espressioni sono \term{equivalenti} se
+hanno la stessa tabella di verità. In alternativa una proprietà può essere
+derivata algebricamente da altre; l'assorbimento, per esempio, segue da
+elemento neutro, distributività ed elemento nullo:
+\[
+x+xy \;=\; x\cdot 1+x\cdot y \;=\; x\,(1+y) \;=\; x\cdot 1 \;=\; x .
+\]
+
+\subsection{Le leggi di De Morgan}
+
+\begin{theorem}{De Morgan, 1847}
+\[
+\nott{x\cdot y}=\nott{x}+\nott{y},\qquad\qquad \nott{x+y}=\nott{x}\cdot\nott{y}.
+\]
+Il complemento di un prodotto è la somma dei complementi, e viceversa.
+\end{theorem}
+
+\noindent\emph{Dimostrazione} della prima legge, per induzione perfetta: le
+colonne di $\nott{xy}$ e di $\nott{x}+\nott{y}$ sono identiche.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{cc|c>{\columncolor{prgaccent!15}}c|cc>{\columncolor{prgaccent!15}}c}
+\textrm{$x$}&\textrm{$y$}&\textrm{$xy$}&\textrm{$\nott{xy}$}&\textrm{$\nott{x}$}&\textrm{$\nott{y}$}&\textrm{$\nott{x}+\nott{y}$}\\\hline
+0&0&0&1&1&1&1\\
+0&1&0&1&1&0&1\\
+1&0&0&1&0&1&1\\
+1&1&1&0&0&0&0\\
+\end{tabular}
+\end{center}
+
+La seconda legge si dimostra allo stesso modo (Esercizio~\ref{ex:b1:paper}).
+\hfill$\square$
+
+\smallskip
+In termini di porte: un NAND è un OR degli ingressi negati, e un NOR è un AND
+degli ingressi negati. Le leggi si generalizzano a un numero qualsiasi di
+variabili.
+
+\subsection{Dualità e precedenza}
+
+\begin{theorem}{Principio di dualità}
+Ogni identità dell'algebra di Boole resta vera se si scambiano AND con OR e 0
+con 1.
+\end{theorem}
+
+Così $x\cdot 1=x$ diventa $x+0=x$, e ciascuna delle leggi di De Morgan è la
+duale dell'altra. La dualità dimezza il lavoro: basta dimostrare una legge di
+ogni coppia.
+
+Quanto alla \term{precedenza}, NOT viene per primo, poi AND, poi OR, come per
+potenze, prodotti e somme: $x+y\,\nott{z}$ significa
+$x+(y\cdot(\nott{z}))$. Le parentesi cambiano l'ordine esattamente come
+nell'algebra ordinaria.
+
+\subsection{Semplificare con l'algebra}
+
+Le proprietà sono strumenti per trasformare un'espressione in una equivalente
+e meno costosa.
+
+\begin{example}{Tre porte diventano un filo}
+\begin{align*}
+x\,y+x\,\nott{y} &= x\,(y+\nott{y}) && \text{proprietà distributiva, letta da destra a sinistra}\\
+ &= x\cdot 1 && \text{legge del complemento}\\
+ &= x && \text{elemento neutro.}
+\end{align*}
+Due porte AND, una porta OR e un invertitore sono diventati un pezzo di filo.
+\end{example}
+
+Allo stesso modo, usando la proprietà distributiva di OR rispetto ad AND,
+\begin{equation}\label{eq:b1:simp}
+x+\nott{x}\,y \;=\; (x+\nott{x})(x+y) \;=\; 1\cdot(x+y) \;=\; x+y ,
+\end{equation}
+un'identità chiamata talvolta \emph{teorema di semplificazione}, che sarà usata
+di nuovo nel Capitolo~\ref{ch:boole2}.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{Istruzioni bit a bit: l'algebra su un intero registro}
+
+Ogni istruzione bit a bit di \riscv applica una porta a tutte le trentadue
+coppie di bit insieme (Tabella~\ref{tab:b1:bitwise}, dove sono mostrati otto
+bit). Le forme immediate \ins{andi}, \ins{ori} e \ins{xori} prendono una
+costante di 12 bit. \ins{not} è una pseudoistruzione: \code{xori t0, a, -1},
+perché $-1$ è tutti uni e $x\oplus 1=\nott{x}$.
+
+\begin{table}[htb]
+\centering\small
+\caption{Istruzioni bit a bit, con $a=\texttt{1100\,1010}$ e
+$b=\texttt{0000\,1111}$.}\label{tab:b1:bitwise}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Istruzione} & \textbf{Operazione} & \textbf{Risultato} & \textbf{In C}\\
+\midrule
+\code{and t0, a, b} & AND bit a bit & \texttt{0000 1010} & \code{a \& b}\\
+\code{or\ \ t0, a, b} & OR bit a bit & \texttt{1100 1111} & \code{a | b}\\
+\code{xor t0, a, b} & XOR bit a bit & \texttt{1100 0101} & \code{a \textasciicircum\ b}\\
+\code{not t0, a} & complementa ogni bit & \texttt{0011 0101} & \code{\textasciitilde a}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Quattro cose da fare con una maschera}
+
+Le leggi dell'elemento neutro e dell'elemento nullo sono esattamente ciò che fa
+funzionare una maschera (Tabella~\ref{tab:b1:mask}). Con AND, un 1 nella
+maschera lascia passare il bit e uno 0 lo forza a 0; con OR, uno 0 lascia
+passare il bit e un 1 lo forza a 1; con XOR, uno 0 lascia passare il bit e un
+1 lo inverte.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro usi di una maschera (il bit 4 è il pulsante \key{A}).}\label{tab:b1:mask}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Scopo} & \textbf{Legge usata} & \textbf{Istruzione} & \textbf{Altri bit}\\
+\midrule
+Esaminare un bit & $x\cdot 1=x$, $x\cdot 0=0$ & \code{andi t1, t0, 0x10} & forzati a 0 nel risultato\\
+Porre un bit a 1 & $x+1=1$, $x+0=x$ & \code{ori\ \ t0, t0, 0x10} & invariati\\
+Azzerare un bit & $x\cdot 0=0$, $x\cdot 1=x$ & \code{andi t0, t0, \textasciitilde 0x10} & invariati\\
+Invertire un bit & $x\oplus 1=\nott{x}$, $x\oplus 0=x$ & \code{xori t0, t0, 0x10} & invariati\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La maschera \code{\textasciitilde 0x10} è \hex{FFFFFFEF}, che l'assemblatore
+codifica come immediato $-17$.
+
+\subsection{De Morgan al joystick}
+
+Il verme è «fermo» quando né \key{LEFT} né \key{RIGHT} è premuto. Il
+Listato~\ref{lst:b1:demorgan} scrive il test in due modi.
+
+\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, come due programmi.},label=lst:b1:demorgan]{code/l08/s24.S}
+
+Una maschera con due bit esamina due pulsanti in una sola istruzione: il
+risultato è zero solo se entrambi i bit sono zero, cioè quando $\nott{L+R}$ è
+vero. Per De Morgan questo è uguale a $\nott{L}\cdot\nott{R}$, che è la via
+lunga scritta sotto. L'algebra dice che i due programmi sono equivalenti, e
+quale costa meno: due istruzioni invece di cinque. La minimizzazione non
+riguarda solo l'hardware.
+
+\subsection{Una lampada per bit: scorrere e mascherare}
+
+Le lampade della Figura~\ref{fig:b1:lamps} sono disegnate da un ciclo il cui
+corpo è il Listato~\ref{lst:b1:lamp}. Per leggere il bit numero $n$ di una
+parola, si fa scorrere la parola a destra di $n$ e si maschera con 1: è
+l'idioma standard.
+
+\asmfile[caption={Lettura del bit numero \reg{s0} della maschera dei pulsanti.},label=lst:b1:lamp]{code/l08/s25.S}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Per quali ingressi $x$ NAND $y$ vale 0?}
+\item $x=0$, $y=0$
+\item $x=0$, $y=1$
+\item $x=1$, $y=1$
+\item mai
+\end{quiz}
+
+\begin{quiz}{Per De Morgan, $\nott{a\cdot\nott{b}}$ è uguale a:}
+\item $\nott{a}\cdot b$
+\item $\nott{a}+b$
+\item $a+\nott{b}$
+\item $\nott{a}+\nott{b}$
+\end{quiz}
+
+\begin{quiz}{$\reg{t0}=\hex{0000005A}$. Che cosa c'è in \reg{t1} dopo \code{andi t1, t0, 0x0F}?}
+\item \hex{0000005A}
+\item \hex{00000050}
+\item \hex{0000000A}
+\item \hex{0000000F}
+\end{quiz}
+
+\begin{quiz}{Quale istruzione porta a 1 il bit 5 di \reg{t0} e lascia invariati tutti gli altri bit?}
+\item \code{andi t0, t0, 0x20}
+\item \code{ori t0, t0, 0x20}
+\item \code{xori t0, t0, 0x20}
+\item \code{addi t0, t0, 0x20}
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]\label{ex:b1:paper}
+\begin{enumerate}[nosep]
+\item Dimostrate la seconda legge di De Morgan,
+  $\nott{x+y}=\nott{x}\cdot\nott{y}$, con una tabella di verità.
+\item Semplificate con l'algebra $x\,y+x\,\nott{y}\,z+\nott{x}\,y$, nominando
+  la legge usata a ogni passo.
+\item Scrivete la maschera e le istruzioni che verificano se \key{A} e
+  \key{B} sono premuti \emph{insieme}.
+\item Modificate il programma delle lampade in modo che le lampade mostrino il
+  complemento dei pulsanti (accese quando rilasciati).
+\item Convertite una lettera da maiuscola a minuscola e viceversa usando una
+  sola istruzione bit a bit (suggerimento: la tabella ASCII del
+  Capitolo~\ref{ch:information}).
+\end{enumerate}
+\expected{Su carta, il secondo compito dà
+$y\,(x+\nott{x})+x\,\nott{y}\,z = y+x\,\nott{y}\,z = y+x\,z$, l'ultimo passo
+per la (\ref{eq:b1:simp}). Per il terzo: \code{andi t1, t0, 0x30} e poi un
+confronto \emph{con} \hex{30}; verificare che sia diverso da zero
+significherebbe \key{A} \emph{oppure} \key{B}. Su \prg: tutte e sette le
+lampade accese a riposo, ciascuna che si spegne mentre il suo pulsante è tenuto
+premuto. Per la lettera, \ins{xori} con \hex{20} inverte il bit~5.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+logic circuit & circuito logico\\
+switching network & rete di commutazione\\
+analysis / synthesis & analisi / sintesi\\
+logical product (AND) & prodotto logico (congiunzione)\\
+logical sum (OR) & somma logica (disgiunzione)\\
+involution & involuzione\\
+truth table & tabella di verità\\
+logic gate & porta logica\\
+complement & complemento (negazione)\\
+duality & dualità\\
+mask & maschera\\
+to set / clear / toggle & porre a 1 / azzerare / invertire\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+L'architettura di von Neumann rappresenta una macchina reale in forma
+semplificata: processore, memoria, ingresso/uscita. L'algebra di Boole
+rappresenta funzioni logiche che si possono realizzare con circuiti
+elettronici. Tre operazioni, una manciata di proprietà e le leggi di De Morgan
+bastano a trasformare qualsiasi espressione. Un'istruzione bit a bit è
+l'algebra applicata a trentadue bit insieme, e una maschera è la legge
+dell'elemento neutro al lavoro.
+
+\paragraph{Letture.} \citet{patterson2020}, appendice~A, «The Basics of Logic
+Design»; \emph{Playing with RISC-V}, capitolo~6, «State and Input: Branches,
+Bitmasks, and Boundaries» \citep{prg32textbook}; \citet{bucci2017}, i capitoli
+sull'algebra di Boole.

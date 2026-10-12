@@ -10,7 +10,9 @@ Author: Raffaele Montella. The reference implementation of Verm1, the course-lon
 project (the four programs of Appendix D), was contributed by Giuseppe Coviello.
 
 The compiled book is `Computer_Architecture-Program_First_Formalise_Later.pdf`. The Italian
-edition, in progress, is in `../../it/textbook`: same structure, file names and labels.
+edition is in `../../it/textbook`: same structure, file names and labels. This edition is the
+reference: a change is made here first, and `python3 textbook/check_editions.py` (in
+`../../tools`) then says what the Italian edition is missing.
 
 ## Compiling
 
@@ -74,7 +76,7 @@ The scripts that re-export the listings and regenerate appendices E and F are in
   node textbook/export_listings.js en                         # code/lNN/sKK.*
   for i in 1 2 3 4; do grep -v '^#@' ../verm1/verm1_part$i.S > ../en/textbook/code/verm1/verm1_part$i.S; done
   cp ../verm1/store/*.json ../en/textbook/code/verm1/store/
-  node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py
+  node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py en
   ```
 
   The scripts read `tools/decks`, so they run from this repository layout, not on
@@ -90,8 +92,8 @@ in the text use labels (`\ref{ch:integers}`), not numbers, so they follow automa
 ## Things to decide before distributing
 
 - **Licence.** The colophon states CC BY-SA 4.0 for text and figures and MIT for
-  programs, while the `LICENSE` file at the root of the repository is CC0 1.0: make the
-  two agree (change `frontmatter/copyright.tex` or the `LICENSE` file).
+  programs. The `LICENSE` file at the root of the repository is CC BY-SA 4.0; the text of
+  the MIT License for the programs is not in the repository.
 - **Photographs.** The historical photographs come from the lecture slides; check the
   rights of each before publishing the PDF outside the course.
 - **Dates.** The midterm and closing-event dates are "to be announced" in Chapter 0, as

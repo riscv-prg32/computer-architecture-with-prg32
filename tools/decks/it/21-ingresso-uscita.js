@@ -183,7 +183,7 @@ Deck({
     ], "Su carta: 7 bit, per esempio 8 per 13; circa 4 MB. Su PRG32: un puntatore che resta sullo schermo e un pulsante che scatta una volta per pressione.",
       "8 x 600 = 4.800 per 11 x 600 = 6.600 punti: 31.680.000 bit = 3,96 MB."),
     G("Glossario: inglese e italiano", ["Inglese", "Italiano", "Inglese", "Italiano"], [
-      ["cathode-ray tube", "tubo a raggi catodici", "pointing device", "dispositivo di puntamento"],
+      ["cathode-ray tube", "tubo a raggi catodici", "pointing device", "periferica di puntamento"],
       ["liquid crystals", "cristalli liquidi", "dot-matrix / ink-jet printer", "stampante ad aghi / a getto d'inchiostro"],
       ["backlight", "retroilluminazione", "drum / toner", "tamburo / toner"],
       ["active matrix", "matrice attiva", "polling", "interrogazione ciclica"],

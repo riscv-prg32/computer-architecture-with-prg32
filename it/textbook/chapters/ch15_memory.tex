@@ -1,0 +1,491 @@
+% ============================================================================
+%  Capitolo 15 -- La memoria                                     (Lezione 15)
+% ============================================================================
+\chapter{La memoria}
+\label{ch:memory}
+
+\epigraphline{\ldots i computer e i programmi cominceranno a pensare e le
+persone smetteranno.}{Dr.\ Walter Gibbs, \emph{Tron}, Steven Lisberger, 1982}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item classificare le memorie come volatili o persistenti, in linea o fuori linea, e collocarle nella gerarchia delle memorie;
+\item descrivere come SRAM e DRAM memorizzano un bit, e perché sono usate per compiti diversi;
+\item spiegare che cosa sono le parole, gli indirizzi e la memoria indirizzabile al byte;
+\item distinguere l'ordine little-endian da quello big-endian, e dire quale usa \riscv;
+\item descrivere passo per passo come il processore legge e scrive una parola;
+\item spiegare l'ingresso/uscita mappato in memoria e a che cosa serve il DMA.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={La stessa memoria letta come parola e come byte.},label=lst:mem:warm]{code/l15/s04.S}
+
+Nel Listato~\ref{lst:mem:warm} una parola di trentadue bit occupa quattro
+indirizzi consecutivi: la memoria è indirizzata byte per byte. Il byte
+all'indirizzo più basso è \hex{78}, il meno significativo: l'ordine è
+little-endian. \ins{lw} preleva quattro byte in una sola operazione, \ins{lbu}
+ne preleva uno.
+
+\begin{prgtry}
+Eseguitelo in \prgqt e aprite la vista della memoria all'indirizzo contenuto in
+\reg{t0}: i byte appaiono come \texttt{78 56 34 12}. L'ordine dei byte del
+Capitolo~\ref{ch:information} è diventato un esperimento.
+\end{prgtry}
+
+Di che cosa è fatta una memoria, e che cosa succede tra il processore e la
+memoria quando viene eseguita \ins{lw}?
+
+% ----------------------------------------------------------------------------
+\section{Che cos'è una memoria?}
+
+\begin{definition}{Memoria}
+La \term{memoria} è l'elemento di un calcolatore, o di un suo sottosistema,
+dedicato alla persistenza dei dati e delle istruzioni dei programmi.
+\end{definition}
+
+Le memorie sono i componenti capaci di memorizzare informazione: dati,
+programmi e risultati. Si classificano lungo due assi. Una memoria è
+\term{volatile} se l'informazione è conservata solo finché il calcolatore è
+alimentato, e \term{persistente} se è conservata anche a calcolatore spento. È
+\term{in linea} se i dati sono sempre accessibili, e \term{fuori linea} se il
+supporto deve essere montato prima che i dati possano essere raggiunti.
+
+\subsection{La gerarchia delle memorie}
+
+Nessuna tecnologia è allo stesso tempo veloce, capiente ed economica. Un
+calcolatore ne usa quindi diverse, disposte in una \term{gerarchia}
+(Figura~\ref{fig:mem:hier}): salendo, le memorie sono più veloci e più costose
+per bit; scendendo, più capienti e meno costose per bit. I tempi di accesso
+tipici vanno da meno di un nanosecondo a pochi nanosecondi per registri e
+cache, decine di nanosecondi per la DRAM, decine di microsecondi per i dischi a
+stato solido, millisecondi per i dischi magnetici, da secondi a minuti per il
+nastro.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\n/\d/\c/\w in {0/registri/{dentro il processore}/prgred/30, 1/cache/{SRAM, sul chip del processore}/prgamber/46, 2/{memoria centrale}/DRAM/prgaccent/62, 3/{dischi a stato solido e magnetici}/{persistenti, in linea}/prgsteel/78, 4/{nastri e supporti rimovibili}/{persistenti, fuori linea}/prgviolet/94}{
+    \node[blk,fill=\c,draw=\c,text=white,minimum width=\w mm,minimum height=9mm] at (0,-\i*1.05) {\textbf{\n}\\[-1pt]\scriptsize \d};
+  }
+  \draw[->,very thick,prgink] (5.6,-4.4) -- (5.6,0.3) node[above,lbl,align=center]{più veloci, più\\costose per bit};
+  \draw[->,very thick,prgink] (-5.6,0.3) -- (-5.6,-4.4) node[below,lbl,align=center]{più capienti,\\meno costose per bit};
+\end{tikzpicture}
+\caption{La gerarchia delle memorie.}
+\label{fig:mem:hier}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Un po' di storia: anelli di ferrite}
+
+\subsection{La memoria a nuclei magnetici}
+
+Nei primi calcolatori, prima che si diffondessero le memorie a semiconduttore,
+un bit era il verso del campo magnetico di un piccolo anello di ferrite, una
+ceramica magnetica (Figura~\ref{fig:mem:core}). Una memoria a nuclei è statica:
+conserva il suo contenuto senza alimentazione. Le prime ricerche furono
+condotte da An Wang e Way-Dong Woo a Harvard nel 1949; all'inizio degli anni
+Cinquanta Jay Forrester al MIT costruì una memoria a nuclei per Whirlwind, un
+calcolatore pensato come simulatore di volo.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{core_memory.jpg}\caption{Nuclei di ferrite e i loro fili}\label{fig:mem:core}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.34\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{ram_modules.jpg}\caption{Moduli di memoria di più generazioni}\label{fig:mem:modules}\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\textwidth}\centering\includegraphics[width=\textwidth,height=38mm,keepaspectratio]{ram_on_board.jpg}\caption{Un modulo e il suo alloggiamento}\label{fig:mem:slot}\end{subfigure}
+\caption{La memoria, ieri e oggi.}
+\end{figure}
+
+\subsection{Leggere e scrivere un nucleo}
+
+Ogni nucleo è attraversato da fili. Due linee di indirizzo, X e Y, selezionano
+un nucleo: solo il nucleo al loro incrocio riceve corrente sufficiente per
+cambiare.
+
+\emph{La lettura è distruttiva.} Il bit selezionato viene posto a 0; se
+conteneva 1, compare un impulso su un terzo filo, la linea di \emph{sense}, e
+altrimenti non succede niente. Il dato è stato letto e perso. La soluzione di
+Wang fu che ogni lettura è seguita da una scrittura che memorizza di nuovo il
+dato.
+
+\emph{La scrittura.} Tutti i bit partono da 0. X e Y selezionano il nucleo, che
+viene posto a 1; se il bit deve essere 0, una linea di \emph{inhibit} impedisce
+il cambiamento. (Sense e inhibit condividono un solo filo.) Il contributo di
+Forrester fu la disposizione che gestisce un gran numero di nuclei con pochi
+collegamenti.
+
+La lettura distruttiva seguita da una riscrittura è tornata oggi nella DRAM.
+
+% ----------------------------------------------------------------------------
+\section{La memoria oggi}
+
+\subsection{SRAM e DRAM}
+
+\begin{definition}{SRAM e DRAM}
+In una \term{RAM statica} (SRAM) ogni bit è tenuto da un circuito bistabile,
+come in un flip-flop. In una \term{RAM dinamica} (DRAM) ogni bit è una carica
+in un minuscolo condensatore, dietro un solo transistor.
+\end{definition}
+
+Le celle di una SRAM sono disposte in una matrice e raggiunte per riga e
+colonna; ciascuna richiede sei transistor (Capitolo~\ref{ch:electronics}) e
+conserva il suo contenuto finché è alimentata. La SRAM è veloce e costosa, ed è
+usata per le memorie cache; è anche la memoria centrale di un microcontrollore
+come l'ESP32-C6, che ha 512~KB di SRAM e nessuna DRAM.
+
+Il condensatore di una cella DRAM si scarica, e il suo contenuto deve essere
+\term{rinfrescato} periodicamente da un circuito interno alla memoria. La DRAM
+è economica e densa, ed è la memoria centrale di portatili, telefoni e server.
+Una \emph{SDRAM} è una DRAM sincrona, il cui accesso è governato da un clock;
+DDR4 e DDR5 ne sono generazioni.
+
+\subsection{Altre memorie}
+
+Una \emph{RAM ferroelettrica} (FeRAM) conserva il suo stato senza
+alimentazione. La memoria \emph{flash} è persistente e si cancella a blocchi: è
+la memoria delle chiavette USB, dei telefoni e dei dischi a stato solido,
+trattati nel prossimo capitolo. Il programma di un microcontrollore vive nella
+flash e le sue variabili nella SRAM.
+
+I moduli di memoria hanno cambiato forma e dimensione negli anni
+(Figura~\ref{fig:mem:modules}): SIMM, SDRAM PC100 e PC133, Rambus e DDR
+contenevano da decine a centinaia di megabyte ciascuno; i moduli DDR5 di oggi
+contengono da 16 a 64~GB.
+
+\subsection{Come riconoscere la memoria}
+
+Sulla scheda madre di un desktop o di un server la memoria sta in file di
+lunghi alloggiamenti accanto al processore, che contengono i moduli
+(Figura~\ref{fig:mem:slot}). Su un portatile o un telefono sta in chip saldati
+vicino al processore. Sul kit \prg non c'è niente da vedere: la SRAM è dentro
+l'ESP32-C6 stesso, e la flash è un piccolo chip al suo fianco.
+
+Due parametri caratterizzano una memoria: la sua \term{dimensione}, il numero
+di celle, che oggi è di gigabyte su un PC e di kilobyte su un microcontrollore;
+e il suo \term{tempo di accesso}, il ritardo dopo il quale il dato è
+disponibile, decine di nanosecondi per la DRAM. Per confronto, a 160~MHz un
+periodo di clock dell'ESP32-C6 è di 6,25~ns.
+
+% ----------------------------------------------------------------------------
+\section{La memoria centrale}
+
+\subsection{Parole e indirizzi}
+
+\begin{definition}{Memoria centrale}
+La \term{memoria centrale} è un array di \term{parole}; una parola è una
+stringa di $m$ bit, alla quale il processore accede con una sola operazione di
+lettura o di scrittura. Ogni parola è identificata da un \term{indirizzo}: un
+intero compreso tra 0 e $N-1$, rappresentato su $n$ bit, con $N=2^{n}$.
+\end{definition}
+
+L'indirizzo è una parola codice, e la memoria la decodifica: è il
+decodificatore del Capitolo~\ref{ch:combinational} e la piccola memoria del
+Capitolo~\ref{ch:registers}, in scala maggiore. Trentadue bit di indirizzo
+danno $2^{32}$ indirizzi, 4~GiB. Una memoria si dice ad \term{accesso casuale}
+(RAM) quando il tempo di accesso non dipende dalla posizione del dato. I
+processori accedono alla memoria con un parallelismo uguale alla lunghezza
+della loro parola: 16, 32 o 64 bit.
+
+\subsection{Memoria indirizzabile al byte}
+
+In una memoria \term{indirizzabile al byte} il byte è la più piccola unità che
+ha un indirizzo (Figura~\ref{fig:mem:bytes}). Una parola di 32 bit occupa
+quattro indirizzi consecutivi, e il suo indirizzo è quello del suo primo byte.
+Parole consecutive distano 4 indirizzi: è per questo che il program counter
+avanza di 4, e che l'indice di un array di parole è moltiplicato per 4
+(Capitolo~\ref{ch:information}).
+
+\begin{figure}[htb]
+\centering\small
+\begin{tabular}{@{}r@{\quad}*{8}{|>{\centering\arraybackslash\ttfamily}p{9mm}}|@{}}
+\multicolumn{1}{r}{\footnotesize indirizzo} & \multicolumn{1}{c}{\scriptsize $A$} & \multicolumn{1}{c}{\scriptsize $A{+}1$} & \multicolumn{1}{c}{\scriptsize $A{+}2$} & \multicolumn{1}{c}{\scriptsize $A{+}3$} & \multicolumn{1}{c}{\scriptsize $A{+}4$} & \multicolumn{1}{c}{\scriptsize $A{+}5$} & \multicolumn{1}{c}{\scriptsize $A{+}6$} & \multicolumn{1}{c}{}\\\cline{2-9}
+ & \cellcolor{prgaccent!20}78 & \cellcolor{prgaccent!20}56 & \cellcolor{prgaccent!20}34 & \cellcolor{prgaccent!20}12 & \cellcolor{prgamber!25}48 & \cellcolor{prgamber!25}45 & \cellcolor{prgamber!25}4C & \ldots\\\cline{2-9}
+\multicolumn{1}{r}{} & \multicolumn{4}{c}{\footnotesize una parola: \texttt{.word 0x12345678}} & \multicolumn{3}{c}{\footnotesize tre byte: \texttt{"HEL\ldots"}} & \multicolumn{1}{c}{}\\
+\end{tabular}
+\caption{Una memoria indirizzabile al byte: ogni cella è un byte.}
+\label{fig:mem:bytes}
+\end{figure}
+
+\subsection{Big-endian e little-endian}
+
+I due nomi dicono come i byte di una parola sono disposti in memoria
+(Figura~\ref{fig:mem:endian}). Nell'ordine \term{little-endian} il byte meno
+significativo va all'indirizzo più basso: è l'ordine di \riscv, di x86 e di
+ARM. Nell'ordine \term{big-endian} il byte più significativo va all'indirizzo
+più basso: è l'ordine del Motorola~68000, il processore di riferimento delle
+edizioni precedenti di questo corso, e dei protocolli di Internet.
+
+\begin{figure}[htb]
+\centering\small
+\begin{tabular}{@{}r@{\quad}*{4}{|>{\centering\arraybackslash\ttfamily}p{13mm}}|@{}}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{\scriptsize 1000} & \multicolumn{1}{c}{\scriptsize 1001} & \multicolumn{1}{c}{\scriptsize 1002} & \multicolumn{1}{c}{\scriptsize 1003}\\\cline{2-5}
+\textbf{little-endian}: \riscv, x86, ARM & \cellcolor{prggreen!25}FF & \cellcolor{prgviolet!20}E6 & \cellcolor{prgamber!25}A3 & \cellcolor{prgaccent!20}10\\\cline{2-5}
+\multicolumn{5}{c}{}\\[-6pt]\cline{2-5}
+\textbf{big-endian}: Motorola 68000, ordine di rete & \cellcolor{prgaccent!20}10 & \cellcolor{prgamber!25}A3 & \cellcolor{prgviolet!20}E6 & \cellcolor{prggreen!25}FF\\\cline{2-5}
+\end{tabular}
+\caption{La parola \hex{10A3E6FF} memorizzata all'indirizzo 1000.}
+\label{fig:mem:endian}
+\end{figure}
+
+\subsection{Parole allineate e non allineate}
+
+Una parola che comincia a un indirizzo multiplo della sua dimensione è
+\term{allineata}: multipli di 4 per parole di 32 bit. Una parola allineata è
+prelevata con un solo accesso alla memoria; una parola non allineata sta a
+cavallo di due parole di memoria, e servono due accessi. La specifica \riscv
+lascia all'implementazione il trattamento degli accessi non allineati: un load
+o uno store a un indirizzo non allineato è, secondo il processore, eseguito più
+lentamente o rifiutato con un'eccezione. I programmi corretti tengono allineati
+i loro dati. L'assemblatore allinea i dati dichiarati con \code{.word}, e la
+direttiva \code{.balign 4} forza l'allineamento dopo una stringa o un byte
+(Listato~\ref{lst:mem:align}). Le istruzioni devono sempre essere allineate.
+
+\asmfile[caption={Forzare l'allineamento di una parola.},label=lst:mem:align,numbers=none]{code/l15/s19.S}
+
+\subsection{Parametri di una memoria}
+
+La \term{capacità} di una memoria è il numero $N$ dei suoi registri e la
+lunghezza in bit di ciascuno: 1~MB sono $2^{20}$ registri di 8 bit; «16 kW di
+32 bit» sono $16\times 2^{10}$ registri di 32 bit. Il tempo di accesso è il
+tempo necessario per compiere una lettura o una scrittura: il tempo per
+selezionare la locazione, più il tempo per la lettura o la scrittura vera e
+propria.
+
+\begin{prgmachine}
+L'ESP32-C6 ha 512~KB di SRAM per i dati, 320~KB di ROM, e una flash esterna di
+alcuni megabyte per i programmi. Il menu di \prg mostra ciò che resta al
+programmatore: circa 98~KB di RAM e 509~KB di flash per le cartucce. La memoria
+centrale del chip è quella di otto Commodore~64, o un trentamillesimo di quella
+di un portatile.
+\end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\section{Processore e memoria}
+
+\subsection{L'interfaccia}
+
+Il processore e la memoria si parlano attraverso tre bus e due registri
+(Figura~\ref{fig:mem:iface}). Il \term{registro indirizzo di memoria} (MA)
+contiene l'indirizzo e pilota il \term{bus indirizzi}. Il \term{registro
+buffer di memoria} (MB) contiene il dato che viaggia, in un verso o
+nell'altro, sul \term{bus dati}. L'unità di controllo pilota le \term{linee di
+controllo}, tra le quali ci sono l'abilitazione alla lettura e l'abilitazione
+alla scrittura. MA e MB sono registri interni del modello di processore del
+Capitolo~\ref{ch:processor}: non sono tra i trentadue registri che un
+programmatore \riscv vede.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=44mm,minimum height=10mm] (ma) at (0,1.5) {\textbf{MA}: registro indirizzo di memoria};
+  \node[blkamb,minimum width=44mm,minimum height=10mm] (mb) at (0,0) {\textbf{MB}: registro buffer di memoria};
+  \node[blk,fill=prgsteel,text=white,minimum width=44mm,minimum height=9mm] (cu) at (0,-1.5) {unità di controllo};
+  \node[draw=prgsteel,dashed,rounded corners,fit=(ma)(mb)(cu),inner sep=3mm,label={[lbl]above:Processore}] {};
+  \node[blkvio,minimum width=26mm,minimum height=40mm] (m) at (8,0) {\textbf{Memoria}};
+  \draw[->,bus,prgaccent] (ma.east) -- (ma.east-|m.west) node[midway,above,lbl,text=prgaccent]{bus indirizzi};
+  \draw[<->,bus,prgamber] (mb.east) -- (mb.east-|m.west) node[midway,above,lbl,text=prgamber]{bus dati};
+  \draw[->,thick,prgred] (cu.east) -- (cu.east-|m.west) node[midway,above,lbl,text=prgred]{controllo: abil.\ lettura, abil.\ scrittura};
+\end{tikzpicture}
+\caption{L'interfaccia tra processore e memoria.}
+\label{fig:mem:iface}
+\end{figure}
+
+\subsection{Prelevare una parola: \texttt{lw t1, 0(t0)}}
+
+\begin{table}[htb]
+\centering\small
+\caption{I passi di un load.}\label{tab:mem:lw}
+\begin{tabularx}{\textwidth}{@{}cLl@{}}
+\toprule
+\textbf{Passo} & \textbf{Che cosa succede} & \textbf{Dove}\\
+\midrule
+1 & l'indirizzo, $\reg{t0}+0$, è calcolato dalla ALU e posto in MA & processore\\
+2 & MA pilota il bus indirizzi & bus indirizzi\\
+3 & l'unità di controllo attiva l'abilitazione alla lettura & linee di controllo\\
+4 & la memoria decodifica l'indirizzo e mette i quattro byte della parola sul bus dati & memoria, bus dati\\
+5 & il dato sul bus dati è catturato in MB & processore\\
+6 & MB è copiato nel registro destinazione \reg{t1} & processore\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Uno store, \code{sw t1, 0(t0)}, è simmetrico (Tabella~\ref{tab:mem:lw}):
+l'indirizzo va in MA e il dato in MB, viene attivata l'abilitazione alla
+scrittura, e la memoria memorizza ciò che trova sul bus dati. Il tempo di
+accesso è il tempo che passa tra il passo 2 e il passo 5.
+
+\subsection{Sincronizzare processore e memoria}
+
+Come fa il processore a sapere che la memoria ha finito? Con la tecnica
+\emph{asincrona} aspetta finché la memoria segnala, su una linea di
+\term{acknowledge} (conferma), che l'operazione è completa: il processore si
+adatta alla velocità della memoria, e il progetto della memoria diventa
+indipendente da quello del processore, al prezzo di una maggiore complessità.
+Con la tecnica \emph{sincrona} una delle linee di controllo porta gli impulsi
+di un clock a frequenza fissa, e una lettura o una scrittura si completa entro
+un ciclo di clock, che va quindi dimensionato sulla velocità della memoria. La
+seconda tecnica è più semplice, ed è la regola dentro un singolo chip come un
+microcontrollore.
+
+% ----------------------------------------------------------------------------
+\section{Memoria e ingresso/uscita}
+
+\subsection{Collegare processore, memoria e I/O}
+
+Il sottosistema di ingresso/uscita permette al processore di interagire con
+dispositivi di ingresso (tastiera, mouse), dispositivi di uscita (schermo,
+stampante) e dispositivi che sono entrambe le cose (memoria di massa, schede di
+rete, porte seriali). Può essere collegato in due modi.
+
+\begin{definition}{I/O mappato in memoria}
+Con l'\term{I/O mappato in memoria} \eng{memory-mapped I/O} la memoria e i
+dispositivi condividono lo stesso bus e lo stesso spazio degli indirizzi: un
+registro di un dispositivo si legge e si scrive come una locazione di memoria,
+e non servono istruzioni speciali.
+\end{definition}
+
+L'alternativa è l'\term{I/O isolato}: due bus fisici, o due spazi degli
+indirizzi, uno per la memoria e uno per l'I/O, e istruzioni dedicate per
+raggiungere i dispositivi. La famiglia Intel x86 ha entrambi: le istruzioni
+\ins{in} e \ins{out} oltre ai dispositivi mappati in memoria.
+
+\begin{prgmachine}
+L'I/O mappato in memoria è la via di \riscv: \riscv non ha affatto istruzioni
+di ingresso/uscita. Scrivere una parola in un registro di una periferica con
+\ins{sw} è il modo in cui un programma \riscv accende un pixel o legge un
+pulsante.
+\end{prgmachine}
+
+\subsection{Dove stanno le cose sull'ESP32-C6}
+
+La Tabella~\ref{tab:mem:map} è una mappa semplificata dello spazio degli
+indirizzi del chip del kit. Un solo spazio degli indirizzi serve per tutto: le
+stesse trentadue linee di indirizzo raggiungono ROM, RAM, flash e ogni
+dispositivo, e le stesse \ins{lw} e \ins{sw} li fanno funzionare. (La tabella è
+semplificata a partire dal manuale tecnico di riferimento \citep{esp32c6trm},
+che va consultato prima di fare affidamento su un indirizzo.)
+
+\begin{table}[htb]
+\centering\small
+\caption{Lo spazio degli indirizzi dell'ESP32-C6, semplificato.}\label{tab:mem:map}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{L'intervallo comincia con} & \textbf{Che cosa c'è} & \textbf{Raggiunto da}\\
+\midrule
+\hex{4000\ldots} & ROM: il codice che avvia il chip & prelievo delle istruzioni\\
+\hex{4080\ldots} & SRAM: 512 KB per dati, stack e cartucce caricate in RAM & \ins{lw}, \ins{sw}, prelievo delle istruzioni\\
+\hex{4200\ldots} & flash esterna, vista attraverso una cache: firmware e costanti & \ins{lw}, prelievo delle istruzioni\\
+\hex{6000\ldots} & registri delle periferiche: GPIO, SPI, I2S, timer, Wi-Fi & \ins{lw}, \ins{sw}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+L'indirizzo \hex{40800000}, al quale viene caricata ogni cartuccia
+(Capitolo~\ref{ch:setup}), è l'inizio della SRAM.
+
+\subsection{I tre bus componenti, e il DMA}
+
+Il bus che collega processore, memoria e I/O è dunque fatto di tre bus: il
+\emph{bus dati}, che trasporta i dati; il \emph{bus indirizzi}, che trasporta
+l'indirizzo, di memoria o di I/O, da cui o verso cui il dato è diretto; e le
+\emph{linee di controllo}: abilitazione alla lettura e alla scrittura,
+acknowledge, e altre.
+
+\begin{definition}{Accesso diretto alla memoria}
+Con l'\term{accesso diretto alla memoria} (DMA, \emph{direct memory access}),
+blocchi di dati passano direttamente tra un dispositivo e la memoria. Il
+processore avvia il trasferimento e viene avvisato quando è terminato.
+\end{definition}
+
+Se più unità condividono il bus e possono accedere direttamente alla memoria,
+un controller DMA fa da arbitro tra esse. Sull'ESP32-C6 le periferiche SPI e
+I2S usano il DMA per inviare il frame buffer al display e i campioni audio
+all'amplificatore: il processore non copia i pixel uno per uno.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Una memoria ha 16 linee di indirizzo ed è indirizzabile al byte. Quanto è grande?}
+\item 16 byte
+\item 32 KiB
+\item 64 KiB
+\item 16 MiB
+\end{quiz}
+
+\begin{quiz}{Su \riscv, \code{value: .word 0xCAFE0001} sta all'indirizzo $A$. Che cosa legge \code{lbu t0, 0(t0)} se $\reg{t0}=A$?}
+\item \hex{CA}
+\item \hex{FE}
+\item \hex{00}
+\item \hex{01}
+\end{quiz}
+
+\begin{quiz}{Perché la DRAM va rinfrescata?}
+\item Perché i suoi condensatori perdono la carica
+\item Perché la lettura è lenta
+\item Perché non è ad accesso casuale
+\item Perché il clock è troppo veloce
+\end{quiz}
+
+\begin{quiz}{Come scrive un programma \riscv su un dispositivo di uscita?}
+\item Con l'istruzione \ins{out}
+\item Con \ins{sw} all'indirizzo di un registro del dispositivo
+\item Con un registro speciale \reg{x32}
+\item Non può: solo il firmware può farlo
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Una memoria di 4~KiB parole di 16 bit: quante linee di indirizzo, quante
+  linee di dati, quanti bit in tutto?
+\item Scrivete i byte memorizzati, in ordine di indirizzo, da
+  \code{.word 0xDEADBEEF} e da \code{.asciz "Ciao"} su una macchina
+  little-endian.
+\item Elencate i passi di \code{sw t1, 8(t0)} sull'interfaccia
+  processore--memoria.
+\item In \prgqt, trovate la vostra variabile contatore nella vista della
+  memoria e guardate i suoi quattro byte cambiare frame per frame.
+\item Memorizzate una parola con \ins{sw} e rileggetela con quattro istruzioni
+  \ins{lbu}; ricostruitela con scorrimenti e \ins{or} e verificate che
+  coincida.
+\end{enumerate}
+\expected{Su carta: 12 linee di indirizzo, 16 linee di dati, 65\,536 bit;
+\texttt{EF BE AD DE} e \texttt{43 69 61 6F 00}. Su \prg: il byte meno
+significativo del contatore cambia a ogni frame, il successivo ogni 256 frame.
+Nell'ultimo compito i byte sono fatti scorrere di 8, 16 e 24 posizioni e poi
+uniti.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+main memory & memoria centrale\\
+volatile / persistent & volatile / persistente\\
+magnetic core & nucleo magnetico (di ferrite)\\
+refresh & rinfresco (refresh)\\
+byte order & ordinamento dei byte\\
+access time & tempo di accesso\\
+aligned word & parola allineata\\
+address / data bus & bus indirizzi / bus dati\\
+read / write enable & abilitazione lettura / scrittura\\
+memory-mapped I/O & I/O mappato in memoria\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+La memoria è un componente fondamentale di un calcolatore: un dispositivo
+capace di conservare lo stato dei dati. Tipi diversi di memoria servono a scopi
+diversi, perché nessuna tecnologia è insieme veloce, capiente ed economica. I
+dati sono memorizzati come parole di bit, ciascuna con un indirizzo; \riscv
+indirizza i byte e li ordina in little-endian. L'accesso avviene attraverso la
+selezione (il bus indirizzi), la lettura o la scrittura (il bus dati) e le
+linee di controllo. In \riscv, i dispositivi di ingresso e di uscita si
+raggiungono esattamente come la memoria.
+
+\paragraph{Letture.} \citet{patterson2020}, paragrafi 2.3 e 5.1--5.2;
+\citet{stallings2021}, il capitolo sulla memoria interna; il manuale tecnico
+di riferimento dell'ESP32-C6, «System and Memory» \citep{esp32c6trm}.

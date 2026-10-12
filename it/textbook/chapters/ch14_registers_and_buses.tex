@@ -1,0 +1,482 @@
+% ============================================================================
+%  Capitolo 14 -- Macchine elementari: registri e bus            (Lezione 14)
+% ============================================================================
+\chapter{Macchine elementari: registri e bus}
+\label{ch:registers}
+
+\epigraphline{Strade? Dove stiamo andando non c'è bisogno di strade.}
+  {Dr.\ Emmett Brown, \emph{Ritorno al futuro}, Robert Zemeckis, 1985}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item descrivere un registro come un insieme di flip-flop con un clock comune, e spiegarne il segnale di caricamento;
+\item spiegare che cos'è un bus, e confrontare i bus dedicati con un bus comune;
+\item dire perché a un bus comune servono i buffer a tre stati, e che cosa significa alta impedenza;
+\item descrivere un registro a scorrimento e le sue quattro combinazioni di ingresso e uscita seriali e paralleli;
+\item convertire un dato da parallelo a seriale e viceversa, in hardware e in assembly \riscv.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+Il display e il chip audio del kit sono collegati al processore da pochi fili,
+non da trentadue. Una parola deve quindi viaggiare un bit dopo l'altro: un
+trasferimento \term{seriale}. Il Listato~\ref{lst:rb:serial} invia un byte in
+questo modo.
+
+\asmfile[caption={Inviare un byte un bit alla volta, il bit più significativo per primo.},label=lst:rb:serial]{code/l14/s04.S}
+
+Il ciclo è un registro a scorrimento in software: scorrere, prendere un bit,
+ripetere. (Le due righe omesse scriverebbero nei registri del chip che ne
+controllano i piedini, un argomento del Capitolo~\ref{ch:memory}.) L'ESP32-C6
+contiene hardware che fa esattamente questo, milioni di volte al secondo: ogni
+pixel del display del kit arriva un bit alla volta. Questo capitolo costruisce
+le macchine che lo fanno.
+
+% ----------------------------------------------------------------------------
+\section{Porte di parola e registri}
+
+\subsection{Porte di parola}
+
+Una \term{parola} è un vettore di $n$ bit, $V=(v_0,v_1,\dots,v_{n-1})$. Una
+\term{porta di parola} agisce su tutti i bit di una parola insieme: con un
+segnale di controllo $a$, calcola $a\cdot v_i$ per ogni $i$. Con $a=1$ la
+parola passa invariata; con $a=0$ ogni bit è forzato a 0. Sono $n$ porte
+identiche che condividono un ingresso di controllo, il mattone di ogni
+datapath. Il multiplexer su parole del Capitolo~\ref{ch:combinational} è
+costruito con porte di parola, e le istruzioni bit a bit \ins{and}, \ins{or} e
+\ins{xor} di \riscv sono porte di parola larghe trentadue bit.
+
+\subsection{Il registro}
+
+Un \term{registro} è un dispositivo capace di memorizzare un gruppo di bit.
+Nella sua forma più semplice è un gruppo di flip-flop con un segnale di
+sincronizzazione comune, un clock o un'abilitazione
+(Capitolo~\ref{ch:sequential}). \term{Caricare} un registro significa
+memorizzare il dato presente ai suoi ingressi, il che avviene quando il segnale
+di \term{caricamento} \eng{load} è attivo, tipicamente in sincronia con il
+clock.
+
+L'esempio classico è il 74273, un registro di 8 bit in un solo chip
+(Figura~\ref{fig:rb:chip}): otto flip-flop D, un clock e un azzeramento,
+ingressi da $D_0$ a $D_7$ e uscite da $Q_0$ a $Q_7$. In \riscv ciascuno dei
+registri da \reg{x1} a \reg{x31} è fatto di trentadue di questi flip-flop.
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.45\textwidth}\centering
+\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{chip_74273.jpg}
+\caption{SN74LS273: otto flip-flop D}\label{fig:rb:chip}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.45\textwidth}\centering
+\includegraphics[width=\textwidth,height=36mm,keepaspectratio]{pcb.jpg}
+\caption{Linee di bus su un circuito stampato}\label{fig:rb:pcb}
+\end{subfigure}
+\caption{Un registro e un bus, come oggetti.}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Bus}
+
+\subsection{I trasferimenti di dati e il bus}
+
+\begin{definition}{Bus}
+Un \term{bus} è un canale di comunicazione che permette ai componenti di un
+sistema elettronico di scambiarsi dati trasmettendo e ricevendo segnali:
+l'insieme delle linee che trasporta un dato.
+\end{definition}
+
+Il nome è una contrazione del latino \emph{omnibus}, «per tutti». Un bus di $n$
+linee trasporta una parola di $n$ bit in un solo passo. Il trasferimento di un
+dato da un registro $X$ a un registro $Y$ è l'operazione fondamentale
+dell'architettura di un calcolatore: quasi ogni istruzione del
+Capitolo~\ref{ch:firstcontact} è, in fondo, una sequenza di trasferimenti tra
+registri.
+
+\subsection{Due soluzioni tecniche}
+
+Con i \term{bus dedicati} c'è un insieme di linee per ogni possibile
+trasferimento. Più trasferimenti possono avvenire nello stesso momento; la
+soluzione è efficiente ma costosa, perché i fili crescono con il quadrato del
+numero dei registri. Con un \term{bus comune} un unico percorso raccoglie molti
+trasferimenti potenziali: ogni volta si scelgono una sorgente e una
+destinazione, e un trasferimento richiede due passi, dalla sorgente al bus e
+dal bus alla destinazione. Il bus comune è economico e diffuso; è meno
+efficiente, perché i trasferimenti non possono essere simultanei. I processori
+reali usano soluzioni intermedie: più bus, ciascuno condiviso da un gruppo di
+registri.
+
+\subsection{Trasferimenti paralleli, seriali e misti}
+
+In un trasferimento \term{parallelo} gli $n$ bit della parola viaggiano insieme
+su $n$ linee, in un solo passo. In un trasferimento \term{seriale} i bit
+viaggiano uno dopo l'altro su una sola linea, in $n$ passi. Un trasferimento
+può anche essere \emph{misto}: seriale sul byte, per esempio, con otto linee
+che trasportano un byte alla volta.
+
+I bus hanno dimensioni fisiche molto diverse (Figura~\ref{fig:rb:pcb}). Dentro
+un chip sono paralleli. Tra chip e tra macchine oggi sono quasi sempre seriali:
+USB, SATA, PCI Express, HDMI ed Ethernet sono tutti seriali, perché a velocità
+molto alte è più facile tenere pulita una sola linea veloce che tenere in
+sincronia trentadue linee.
+
+\subsection{Dal bus al registro, e dal registro al bus}
+
+La Figura~\ref{fig:rb:busreg} mostra le due operazioni elementari su un bus
+comune. \emph{Dal bus al registro}: il dato è caricato nel registro $R$ quando
+il segnale di caricamento $c$ è attivo (uno \term{strobe}, di solito in
+sincronia con il clock). \emph{Dal registro al bus}: il contenuto di $R$
+raggiunge il bus attraverso un \term{buffer} controllato da un segnale di
+abilitazione; quando l'abilitazione non è attiva il registro deve lasciare il
+bus libero per gli altri. Come lo faccia è l'argomento del prossimo paragrafo.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \draw[prgamber,line width=3pt] (0,0) -- (5,0) node[pos=0.1,above,lbl,text=prgamber]{bus A};
+  \node[blkacc,minimum width=26mm,minimum height=9mm] (r1) at (2.5,-1.6) {registro $R$};
+  \draw[->,bus] (2.5,0) -- (r1.north);
+  \draw[->,thick,prgred] (0,-1.6) node[left,lbl,text=prgred]{caric.\ $c$} -- (r1.west);
+  \node[lbl] at (2.5,-2.5) {dal bus al registro};
+  \draw[prgamber,line width=3pt] (7,0) -- (12,0) node[pos=0.1,above,lbl,text=prgamber]{bus A};
+  \node[blkacc,minimum width=26mm,minimum height=9mm] (r2) at (9.5,-2.2) {registro $R$};
+  \node[blkvio,minimum width=14mm,minimum height=6mm] (b) at (9.5,-1.0) {buffer};
+  \draw[->,bus] (r2.north) -- (b.south);
+  \draw[->,bus] (b.north) -- (9.5,0);
+  \draw[->,thick,prgred] (7.3,-1.0) node[left,lbl,text=prgred]{abil.} -- (b.west);
+  \node[lbl] at (9.5,-3.1) {dal registro al bus};
+\end{tikzpicture}
+\caption{I due trasferimenti elementari su un bus comune.}
+\label{fig:rb:busreg}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Buffer a tre stati}
+
+\subsection{La porta a tre stati}
+
+Se due registri pilotassero lo stesso filo, uno con 0 e uno con 1, il risultato
+sarebbe un cortocircuito tra l'alimentazione e la massa.
+
+\begin{definition}{Uscita a tre stati}
+Un'uscita \term{a tre stati} (o \emph{tristate}) ha una terza condizione oltre
+a 0 e 1: l'\term{alta impedenza}, scritta $z$. In alta impedenza l'uscita è
+elettricamente scollegata: non pilota il filo e non lo carica.
+\end{definition}
+
+Un segnale di abilitazione $a$ decide: con $a=1$ la porta funziona normalmente,
+con $a=0$ la sua uscita è $z$. Elettricamente, entrambi i transistor di uscita
+della porta (Capitolo~\ref{ch:electronics}) sono interdetti. La tabella
+seguente descrive un AND a tre stati con abilitazione attiva alta.
+
+\begin{center}\small\ttfamily
+\begin{tabular}{ccc|c}
+\textrm{$a$}&\textrm{$x$}&\textrm{$y$}&\textrm{uscita}\\\hline
+1&0&0&0\\1&0&1&0\\1&1&0&0\\1&1&1&1\\\rowcolor{prgamber!15}0&\textrm{qualsiasi}&\textrm{qualsiasi}&z
+\end{tabular}
+\end{center}
+
+È la tecnica più diffusa per collegare più registri sorgente a un bus comune.
+
+\subsection{Abilitare un bus}
+
+Una porta \emph{di parola} a tre stati posta tra un bus $X$ e un bus $Y$, con
+un segnale di abilitazione $a$, fa sì che $Y$ riproduca $X$ se $a$ è attivo;
+altrimenti tutte le linee di $Y$ sono in alta impedenza, e $Y$ assume il valore
+neutro. Si dice che $Y$ è \emph{sostenuto} da un buffer a tre stati.
+
+\begin{prgmachine}
+I piedini GPIO dell'ESP32-C6 funzionano in questo modo: ogni piedino può essere
+un'uscita, oppure può essere rilasciato e usato come ingresso. Sul kit i
+piedini del joystick sono configurati come ingressi, con i loro buffer di
+uscita in alta impedenza, e i piedini del display come uscite.
+\end{prgmachine}
+
+\subsection{Collegare i bus: l'OR di bus}
+
+Più registri sorgente si collegano a un bus semplicemente unendo le loro
+uscite, ciascuna attraverso un buffer a tre stati
+(Figura~\ref{fig:rb:busor}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i/\n/\e in {0/A/\alpha,1/B/\beta,2/X/\xi}{
+    \node[blkacc,minimum width=22mm,minimum height=8mm] (r\i) at (\i*3.3,0) {registro \n};
+    \node[blkvio,minimum width=14mm,minimum height=6mm] (t\i) at (\i*3.3,-1.2) {3 stati};
+    \draw[->,bus] (r\i) -- (t\i);
+    \draw[->,bus] (t\i.south) -- (\i*3.3,-2.2);
+    \draw[->,thick,prgred] (\i*3.3-1.5,-1.2) node[left,lbl,text=prgred]{$\e$} -- (t\i.west);
+  }
+  \draw[prgamber,line width=3pt] (-1.8,-2.2) -- (8.4,-2.2) node[right,lbl,text=prgamber]{bus comune $Y$};
+  \node[blk,fill=prgsteel,text=white,minimum width=34mm,minimum height=8mm] (d) at (3.3,-3.5) {registri destinazione};
+  \draw[->,bus] (3.3,-2.2) -- (d.north);
+\end{tikzpicture}
+\caption{Tre sorgenti su un bus comune, ciascuna dietro un buffer a tre stati
+con la propria abilitazione.}
+\label{fig:rb:busor}
+\end{figure}
+
+\begin{prgconcept}[La regola del bus comune]
+Delle $n$ sorgenti che confluiscono in un bus, al più una è abilitata alla
+volta: un segnale attivo, e gli altri $n-1$ neutri.
+\end{prgconcept}
+
+Dentro i chip moderni le lunghe linee condivise sono di solito sostituite da
+multiplexer, che fanno la stessa selezione senza stati di alta impedenza; tra
+chip, i bus a tre stati sono ancora la regola.
+
+% ----------------------------------------------------------------------------
+\section{Registri a scorrimento}
+
+\subsection{Definizione}
+
+\begin{definition}{Registro a scorrimento}
+Un \term{registro a scorrimento} \eng{shift register} è una catena di celle di
+memoria di un bit collegate tra loro: a ogni impulso di clock ogni bit si
+sposta da una cella a quella adiacente.
+\end{definition}
+
+Ogni cella è un flip-flop D il cui ingresso è l'uscita del suo vicino
+(Figura~\ref{fig:rb:sipo}). Lo scorrimento può andare in un verso fisso o in un
+verso scelto da una linea di controllo (registri bidirezionali). I flip-flop
+sensibili al fronte sono qui essenziali: con latch trasparenti un bit
+percorrerebbe l'intera catena durante un solo impulso di clock.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \foreach \i in {0,1,2,3}{
+    \node[blkacc,minimum width=17mm,minimum height=11mm] (f\i) at (\i*2.9,0) {D\hfill Q};
+    \draw[->,thick] (f\i.south) -- ++(0,-7mm) node[below,font=\ttfamily\small]{Q\i};
+    \draw[->,thick,prgred] (\i*2.9-0.5,-2.1) -- (\i*2.9-0.5,-0.55);
+  }
+  \draw[->,thick] (-2.1,0) node[left,lbl,align=right]{ingresso\\seriale} -- (f0.west);
+  \foreach \a/\b in {0/1,1/2,2/3} \draw[->,thick] (f\a.east) -- (f\b.west);
+  \draw[->,thick] (f3.east) -- ++(1.0,0) node[right,lbl,align=left]{uscita\\seriale};
+  \draw[thick,prgred] (-2.1,-2.1) node[left,font=\ttfamily]{CK} -- (3*2.9-0.5,-2.1);
+\end{tikzpicture}
+\caption{Un registro a scorrimento di quattro bit costruito con flip-flop D,
+con ingresso seriale e uscite sia seriale sia parallele.}
+\label{fig:rb:sipo}
+\end{figure}
+
+\subsection{Quattro tipi di registro a scorrimento}
+
+L'ingresso e l'uscita di un registro a scorrimento possono essere ciascuno
+seriale o parallelo, il che dà quattro tipi (Tabella~\ref{tab:rb:four}).
+Rendono più facili la lettura e la scrittura dei dati, perché trasformano dati
+paralleli in dati seriali e viceversa.
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro tipi di registro a scorrimento.}\label{tab:rb:four}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Tipo} & \textbf{Nome} & \textbf{Uso}\\
+\midrule
+ingresso seriale, uscita seriale & SISO & un ritardo di $n$ impulsi di clock; un collegamento seriale tra due registri\\
+ingresso seriale, uscita parallela & SIPO & conversione da seriale a parallelo: il ricevitore\\
+ingresso parallelo, uscita seriale & PISO & conversione da parallelo a seriale: il trasmettitore\\
+ingresso parallelo, uscita parallela & PIPO & un registro ordinario che può anche scorrere\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trasferimenti tra registri}
+
+In un trasferimento seriale l'uscita seriale di un registro a scorrimento
+alimenta l'ingresso seriale di un altro: $n$ impulsi di clock spostano una
+parola di $n$ bit, e basta un filo. In un trasferimento parallelo le uscite
+parallele di un registro alimentano gli ingressi paralleli di un altro: un solo
+impulso di clock sposta l'intera parola, e servono $n$ fili.
+
+\begin{prgconcept}
+Spostare una parola di $n$ bit costa o tempo o rame: $n$ impulsi o $n$ fili. È
+lo stesso compromesso che c'è tra bus dedicati e bus comune.
+\end{prgconcept}
+
+\subsection{Da seriale a parallelo e ritorno}
+
+Un collegamento seriale completo funziona in cinque passi
+(Figura~\ref{fig:rb:serpar}). Il dato di $n$ bit è posto in parallelo in un
+registro $R$. $R$ è un registro a scorrimento, e gli $n$ bit ne escono uno dopo
+l'altro, in $n$ passi successivi. Una sola linea li porta all'apparato a valle.
+Lì un altro registro viene caricato serialmente in $n$ passi, ricostruendo il
+dato bit per bit. Infine il dato ricostruito è passato oltre in parallelo.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=15mm] (a) {\textbf{Caricare}\\[1pt]\footnotesize in parallelo};
+  \node[blkamb,text width=21mm,minimum height=15mm,right=of a] (b) {\textbf{Far uscire}\\[1pt]\footnotesize $n$ passi};
+  \node[blkvio,text width=21mm,minimum height=15mm,right=of b] (c) {\textbf{Viaggiare}\\[1pt]\footnotesize una linea};
+  \node[blkgrn,text width=21mm,minimum height=15mm,right=of c] (d) {\textbf{Far entrare}\\[1pt]\footnotesize $n$ passi};
+  \node[blkred,text width=21mm,minimum height=15mm,right=of d] (e) {\textbf{Usare}\\[1pt]\footnotesize in parallelo};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{La conversione di un dato da parallelo a seriale e ritorno.}
+\label{fig:rb:serpar}
+\end{figure}
+
+Questo è l'hardware del riscaldamento. Il display del kit riceve ogni pixel in
+questo modo su un bus chiamato SPI, e la tastiera del Capitolo~\ref{ch:io}
+invia ogni codice di tasto in questo modo. UART, SPI, I2C, I2S e USB poggiano
+tutti su una coppia di registri a scorrimento, uno a ciascun capo.
+
+\subsection{Registri con un indirizzo: una prima memoria}
+
+Prendete quattro registri di tre bit e metteteci davanti un decodificatore
+(Figura~\ref{fig:rb:mem}). Due linee di indirizzo, $A_1$ e $A_0$, vanno al
+decodificatore da 2 a 4, che seleziona un registro. Tre ingressi dati,
+$I_2I_1I_0$, raggiungono tutti i registri, ma viene caricato solo quello
+selezionato; tre uscite dati, $O_2O_1O_0$, mostrano il contenuto del registro
+selezionato attraverso buffer a tre stati. Tre linee di controllo governano
+l'insieme: una \term{selezione del chip} \eng{chip select} (CS), che abilita il
+dispositivo, una linea che sceglie tra lettura e scrittura, e
+un'\emph{abilitazione dell'uscita} (OE). Il risultato è una memoria di 4 parole
+per 3 bit.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkamb,minimum width=16mm,minimum height=31mm] (dec) at (0,-1.17) {decodif.\\2-4};
+  \foreach \i in {0,1,2,3}{
+    \node[blkacc,minimum width=36mm,minimum height=6.5mm] (r\i) at (3.7,-\i*0.78) {registro \i\ (3 bit)};
+    \draw[->,thick,prgamber] (dec.east|-r\i.west) -- (r\i.west);
+  }
+  \draw[->,thick] (-2.2,-1.17) node[left,font=\ttfamily]{A1 A0} -- (dec.west);
+  \draw[->,bus] (3.7,1.0) node[above,font=\ttfamily]{I2 I1 I0} -- (r0.north);
+  \draw[->,bus] (r3.south) -- (3.7,-3.4) node[below,font=\ttfamily]{O2 O1 O0};
+  \node[lbl,text=prgred] at (-0.6,-3.4) {controllo: CS, RD, OE};
+\end{tikzpicture}
+\caption{Quattro registri e un decodificatore: una memoria di 4 parole per 3 bit.}
+\label{fig:rb:mem}
+\end{figure}
+
+\begin{prgconcept}
+Un decodificatore davanti a un gruppo di registri fa una memoria. Il prossimo
+capitolo porta questa idea alla scala della memoria centrale di un calcolatore.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\subsection{I bus sul kit PRG32}
+
+Il kit contiene un esempio di quasi ogni tipo di bus di questo capitolo
+(Tabella~\ref{tab:rb:kit}). La selezione del chip del display è il CS della
+piccola memoria appena vista: più dispositivi possono condividere lo stesso bus
+seriale perché ascolta solo quello selezionato.
+
+\begin{table}[htb]
+\centering\small
+\caption{I bus sul kit \prg (da \fname{docs/hardware} del
+repository).}\label{tab:rb:kit}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}P{0.16\textwidth}LL@{}}
+\toprule
+\textbf{Collegamento} & \textbf{Tipo} & \textbf{Linee} & \textbf{Che cosa vi viaggia}\\
+\midrule
+dentro l'ESP32-C6 & parallelo & 32 linee dati, indirizzi e controllo & istruzioni, dati e trasferimenti tra registri\\
+display (ILI9341) & seriale, SPI & clock, dati in uscita, selezione del chip, dato/comando & ogni pixel di ogni frame, bit per bit\\
+amplificatore audio & seriale, I2S & clock di bit, selezione di parola, dati & campioni audio, 22\,050 al secondo\\
+joystick e pulsanti & un filo per pulsante & un piedino di ingresso ciascuno & una rappresentazione decodificata: una linea per pulsante\\
+USB verso il portatile & seriale, coppia differenziale & due fili dati & il firmware e la console di debug\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Gli scorrimenti in RISC-V: un registro a scorrimento in una istruzione}
+
+\ins{slli} e \ins{srli} spostano tutti i bit di un registro di un dato numero
+di posizioni, riempiendo con zeri; \ins{srai} riempie con copie del bit di
+segno (Capitolo~\ref{ch:integers}); \ins{sll}, \ins{srl} e \ins{sra} prendono
+la quantità da un secondo registro. Con esse le due conversioni sono due
+istruzioni ciascuna (Listato~\ref{lst:rb:shift}).
+
+\asmfile[caption={Da parallelo a seriale, e da seriale a parallelo.},label=lst:rb:shift]{code/l14/s25.S}
+
+A un vero registro a scorrimento servono $n$ impulsi di clock per scorrere di
+$n$ posizioni. Il processore non funziona così: in hardware uno scorrimento di
+una quantità qualsiasi in un solo passo è fatto da un \term{barrel shifter},
+che è fatto di strati di multiplexer, non di una catena di flip-flop. È
+combinatorio, fa il suo lavoro entro un periodo di clock, ed è una delle unità
+della ALU del Capitolo~\ref{ch:combinational}.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Perché a un bus comune servono i buffer a tre stati?}
+\item Per rendere più veloci i trasferimenti
+\item Perché solo la sorgente abilitata piloti le linee
+\item Per memorizzare il dato sul bus
+\item Per convertire i dati da seriali a paralleli
+\end{quiz}
+
+\begin{quiz}{Quanti impulsi di clock richiede il trasferimento seriale di una parola di 32 bit?}
+\item 1
+\item 5
+\item 32
+\item 64
+\end{quiz}
+
+\begin{quiz}{Una memoria ha 10 linee di indirizzo e 8 linee di dati. Quanti bit memorizza?}
+\item 80
+\item 1\,024
+\item 8\,192
+\item 10\,240
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Disegnate un registro a scorrimento di 4 bit con ingresso seriale e
+  uscita parallela con flip-flop D, e compilatene il contenuto lungo quattro
+  impulsi di clock per l'ingresso 1, 0, 1, 1.
+\item Tre registri condividono un bus comune: scrivete i segnali di
+  abilitazione e di caricamento necessari per copiare il registro $B$ nel
+  registro $A$.
+\item Completate il riscaldamento: scrivete il ciclo che riceve otto bit da una
+  linea e ricostruisce il byte.
+\item Su \prg, mostrate un byte come otto lampade e fatelo scorrere a sinistra
+  di una posizione ogni mezzo secondo.
+\item Fate rientrare da destra il bit che esce a sinistra (una rotazione): un
+  \emph{contatore ad anello}.
+\end{enumerate}
+\expected{Il terzo compito è \code{slli a1, a1, 1} e poi \ins{or} con il bit
+ricevuto, otto volte. L'ultimo è \code{srli t1, a0, 7};
+\code{andi t1, t1, 1}; \code{slli a0, a0, 1}; \code{or a0, a0, t1};
+\code{andi a0, a0, 255}. Su \prg: una configurazione di lampade che cammina
+verso sinistra e, nell'ultimo compito, gira in tondo per sempre.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+word gate & porta di parola\\
+register & registro\\
+bus & bus\\
+dedicated / common bus & bus dedicato / comune\\
+load, strobe & caricamento, strobe\\
+three-state (tri-state) & a tre stati (tristate)\\
+high impedance & alta impedenza\\
+shift register & registro a scorrimento\\
+serial / parallel transfer & trasferimento seriale / parallelo\\
+chip select & selezione del chip\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+I registri sono una forma evoluta di memoria con un funzionamento elementare.
+La loro lettura e la loro scrittura avvengono attraverso bus di tipi diversi.
+Perché un bus comune funzioni servono circuiti a tre stati: 0, 1, e scollegato.
+I dati possono essere trasferiti in serie o in parallelo, e i registri a
+scorrimento convertono tra i due modi. Un decodificatore davanti a un gruppo di
+registri fa una memoria: l'argomento del prossimo capitolo.
+
+\paragraph{Letture.} \citet{patterson2020}, appendice~A; \citet{bucci2017}, i
+capitoli su registri e bus; \fname{docs/hardware/hardware.md} nel repository
+di \prg.

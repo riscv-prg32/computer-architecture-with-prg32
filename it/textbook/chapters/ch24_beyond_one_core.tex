@@ -1,0 +1,674 @@
+% ============================================================================
+%  Capitolo 24 -- Oltre un solo core                             (Lezione 24)
+% ============================================================================
+\chapter{Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA}
+\label{ch:beyond}
+
+\epigraphline{Se doveste arare un campo, che cosa preferireste usare: due buoi
+robusti o 1024 polli?}{attribuita a Seymour Cray}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item scrivere l'equazione delle prestazioni e dire quale fattore attacca ciascuna tecnica;
+\item spiegare come un processore superscalare fuori ordine esegue più
+  istruzioni per ciclo, e nominare core \riscv che lo fanno;
+\item leggere un ciclo scritto con l'estensione vettoriale di \riscv;
+\item descrivere un supercalcolatore, calcolare uno speed-up con la legge di Amdahl, e dire perché il limite è l'energia;
+\item dire in che cosa sono bravi una GPU e una FPGA, e che cosa costa ciascuna al programmatore.
+\end{itemize}
+\end{chapgoals}
+
+Questo capitolo conclusivo è uno sguardo in avanti. Parte da un ciclo di
+\vermone e lo segue su quattro tipi di macchina: le stesse istruzioni, su
+macchine che ne eseguono molte insieme. Non fa parte della prova intercorso. I
+listati vettoriali \riscv sono stati provati su QEMU; i frammenti CUDA e
+Verilog sono forme standard da libro di testo che per questo libro non sono
+state compilate. Le cifre sui supercalcolatori sono arrotondate e vengono dalle
+liste TOP500 dal 2022 al 2025.
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Il ciclo che svuota la mappa, dalla \code{new\_game} di \vermone.},label=lst:by:loop]{code/l24/s04.S}
+
+Il Listato~\ref{lst:by:loop} pone a zero 960 byte: quattro istruzioni per byte,
+3\,840 istruzioni in tutto, un byte alla volta e un'istruzione alla volta. Nel
+caso migliore un'istruzione per ciclo di clock e 160 milioni di cicli al
+secondo sul kit: circa 24 microsecondi. A nessuno serve che questo ciclo sia
+più veloce; ma è abbastanza piccolo da poter essere seguito su ogni macchina di
+questo capitolo. Quanti modi ci sono per renderlo più veloce?
+
+\subsection{L'equazione delle prestazioni}
+
+\begin{theorem}{Equazione delle prestazioni}
+Il tempo che un programma impiega è il prodotto di tre numeri,
+\[ T = N\times \mathit{CPI}\times t , \]
+dove $N$ è il numero di istruzioni eseguite, $\mathit{CPI}$ il numero medio di
+cicli di clock per istruzione e $t$ la durata di un ciclo di clock.
+\end{theorem}
+
+Per il ciclo precedente sul kit: $N=3\,840$, circa 1 ciclo ciascuna, 6,25
+nanosecondi per ciclo. Ogni fattore può essere attaccato: \emph{meno
+istruzioni}, con algoritmi migliori, istruzioni più ricche, vettori;
+\emph{meno cicli per istruzione}, con le pipeline e l'esecuzione superscalare;
+\emph{un ciclo più breve}, con transistor più veloci e pipeline più profonde.
+E quando un processore non basta: più processori che lavorano insieme. Ogni
+macchina di questo capitolo è una risposta diversa alla stessa equazione
+\citep{patterson2020}.
+
+\subsection{Perché non semplicemente un clock più veloce?}
+
+Per trent'anni ogni nuova generazione di transistor è stata più piccola, più
+veloce, e non più calda per millimetro quadrato. Intorno al 2005 questo è
+finito: transistor più piccoli arrivano ancora, ma un clock più veloce
+significa più calore di quanto un chip possa smaltire
+(Capitolo~\ref{ch:electronics}), e da allora le frequenze di clock sono rimaste
+a pochi gigahertz. La legge di Moore, più transistor, è andata avanti; la
+regola che teneva costante la densità di potenza, nota come scaling di Dennard,
+è finita. I transistor in più sono andati altrove: processori più larghi, più
+core, unità vettoriali, acceleratori. Le prestazioni vengono ora dal fare molte
+cose insieme: dal \term{parallelismo}. I 160~MHz del kit sono lenti per scelta:
+costano milliwatt.
+
+% ----------------------------------------------------------------------------
+\section{Processori superscalari}
+
+\subsection{Da una alla volta a molte insieme}
+
+\begin{table}[htb]
+\centering\small
+\caption{Da un'istruzione alla volta a molte insieme.}\label{tab:by:kinds}
+\begin{tabularx}{\textwidth}{@{}P{0.21\textwidth}LP{0.14\textwidth}L@{}}
+\toprule
+\textbf{Processore} & \textbf{Come funziona} & \textbf{Istr.\ per ciclo} & \textbf{Esempio}\\
+\midrule
+Multiciclo & un'istruzione si completa prima che cominci la successiva & meno di 1 & il modello del Capitolo~\ref{ch:processor}\\
+Con pipeline & più istruzioni in volo, ciascuna in uno stadio diverso & al più 1 & l'ESP32-C6 del kit: quattro stadi\\
+Superscalare, in ordine & due o più pipeline fianco a fianco & fino a 2 o più & piccoli core applicativi\\
+Superscalare, fuori ordine & le istruzioni partono appena i loro operandi sono pronti & fino a 4, 6, 8, \ldots & portatili, telefoni, server\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il Capitolo~\ref{ch:instructions} ha introdotto la pipeline e nominato i
+processori superscalari in una riga; questo paragrafo apre quella riga
+(Tabella~\ref{tab:by:kinds}). La \emph{larghezza} di un processore è il numero
+di istruzioni che può avviare in un ciclo. Con due pipeline fianco a fianco e i
+cinque stadi classici, sei istruzioni si completano in sette cicli
+(Tabella~\ref{tab:by:two}); a una sola pipeline ne servono dieci, e a un
+processore senza pipeline trenta.
+
+\begin{table}[htb]
+\centering\small
+\caption{Due pipeline fianco a fianco: sei istruzioni in sette cicli, se niente
+si mette di mezzo.}\label{tab:by:two}
+\begin{tabular}{@{}l*{7}{>{\centering\arraybackslash}p{8mm}}@{}}
+\toprule
+\textbf{ciclo} & 1 & 2 & 3 & 4 & 5 & 6 & 7\\
+\midrule
+$i_1$ & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+$i_2$ & \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &&\\
+$i_3$ && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+$i_4$ && \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB &\\
+$i_5$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+$i_6$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{prgviolet!18}EX & \cellcolor{prggreen!20}MEM & \cellcolor{prgred!15}WB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Che cosa si mette di mezzo: le dipendenze}
+
+\asmfile[caption={Dipendenze tra istruzioni vicine.},label=lst:by:dep]{code/l24/s10.S}
+
+Questo è il caso ideale, ed è raro. Nel Listato~\ref{lst:by:dep} l'istruzione
+$i_2$ non può essere eseguita accanto a $i_1$, perché ne usa il risultato: una
+\term{dipendenza sui dati}. $i_3$ non dipende da nessuno: perché dovrebbe
+aspettare? E dopo il salto $i_4$ il processore non sa che cosa viene dopo: una
+\term{dipendenza di controllo}. Il codice reale è pieno di catene di questo
+tipo, e la sola larghezza non basta. Un processore superscalare che lavora in
+ordine si blocca a $i_2$, e tutto ciò che sta dietro aspetta. Il rimedio è
+lasciare che $i_3$ sorpassi.
+
+\subsection{L'esecuzione fuori ordine}
+
+\begin{enumerate}
+\item \textbf{Prelievo e decodifica, in ordine.} Più istruzioni per ciclo
+  entrano in una finestra di decine o centinaia di istruzioni.
+\item \textbf{Ridenominazione.} Ogni risultato riceve un registro fisico nuovo,
+  così che due usi del nome \reg{t0} non collidono più.
+\item \textbf{Esecuzione quando è pronta.} Un'istruzione parte appena i suoi
+  operandi esistono, qualunque sia la sua posizione nel programma.
+\item \textbf{Conferma, in ordine.} I risultati diventano ufficiali nell'ordine
+  del programma: visto da fuori, niente ha mai sorpassato.
+\end{enumerate}
+
+L'algoritmo è quello di Tomasulo, progettato nel 1967 per l'unità in virgola
+mobile dell'IBM System/360 Model~91; il reorder buffer che conferma in ordine è
+arrivato negli anni Ottanta. Il modello del programmatore, quello imparato in
+questo libro, è conservato esattamente: è questo il contratto dell'insieme di
+istruzioni.
+
+\subsection{La ridenominazione dei registri: trentadue nomi, molti registri}
+
+\asmfile[caption={Lo stesso codice come è scritto, e come è eseguito dopo la ridenominazione.},label=lst:by:rename]{code/l24/s12.S}
+
+Nel Listato~\ref{lst:by:rename} la seconda metà riusa il \emph{nome}
+\reg{t0}, non il suo valore: una \term{falsa dipendenza}. Una volta
+ridenominate, le due metà non condividono niente, e possono essere eseguite
+nello stesso momento su registri diversi. (I numeri da \code{p41} a \code{p44}
+sono inventati.) I trentadue registri noti al programmatore sono nomi; il chip
+ne ha molti di più, alcune centinaia in un core grande.
+
+\subsection{Indovinare il futuro: la predizione dei salti}
+
+Un processore largo incontra un salto ogni poche istruzioni e non può aspettare
+di conoscerne l'esito. Ne \emph{predice} la direzione dalla storia di quel
+salto, e continua a eseguire lungo l'ipotesi: un'ipotesi giusta non costa
+niente; una sbagliata butta via il lavoro speculativo e ricomincia. Il ciclo
+del riscaldamento salta indietro 959 volte e prosegue una volta: un predittore
+lo impara nei primi giri. I predittori moderni hanno ragione molto più di nove
+volte su dieci.
+
+\begin{prgaside}[Speculazione e sicurezza]
+L'esecuzione speculativa ha un lato oscuro. Nel 2018 gli attacchi chiamati
+Spectre e Meltdown hanno mostrato che il lavoro buttato via può lasciare
+comunque nella cache tracce che rivelano segreti. I trucchi per le prestazioni
+sono anche questioni di sicurezza.
+\end{prgaside}
+
+\subsection{RISC-V diventa superscalare}
+
+\begin{table}[htb]
+\centering\small
+\caption{Alcuni core \riscv. L'elenco invecchia in fretta.}\label{tab:by:cores}
+\begin{tabularx}{\textwidth}{@{}lP{0.3\textwidth}L@{}}
+\toprule
+\textbf{Core} & \textbf{Da} & \textbf{Tipo}\\
+\midrule
+core HP dell'ESP32-C6 & Espressif & in ordine, quattro stadi, un'istruzione per ciclo: il kit\\
+BOOM & University of California, Berkeley & fuori ordine, open source, per ricerca e didattica\\
+XiangShan & Accademia Cinese delle Scienze & fuori ordine, open source, alte prestazioni\\
+XuanTie C910 & T-Head (Alibaba) & fuori ordine, largo tre; rilasciato come open source\\
+Performance P550 & SiFive & fuori ordine, largo tre, tredici stadi; venduto come progetto\\
+Veyron & Ventana Micro Systems & fuori ordine, per i centri di calcolo\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Poiché l'insieme di istruzioni è aperto, chiunque può costruire un core di
+questo tipo (Tabella~\ref{tab:by:cores}), e diversi sono pubblicati come codice
+sorgente che uno studente può leggere: non ha precedenti tra le architetture
+commerciali.
+
+\begin{definition}{Architettura e microarchitettura}
+L'\term{architettura} è il contratto: le istruzioni, i registri, che cosa fa
+ciascuna istruzione. La \term{microarchitettura} è un modo di onorarlo: stadi,
+larghezza, predittori, cache.
+\end{definition}
+
+La \ins{add} scritta per un microcontrollore a 160~MHz è la \ins{add} di un
+core per server, e \vermone girerebbe senza modifiche su uno qualsiasi dei core
+della tabella, dato uno schermo. È per questo che un insieme di istruzioni
+imparato una volta è una conoscenza che dura. La distinzione organizza l'intero
+libro: i Capitoli da \ref{ch:firstcontact} a~\ref{ch:verm1p4} hanno insegnato
+l'architettura, e il kit è una piccola microarchitettura.
+
+% ----------------------------------------------------------------------------
+\section{Vettori: un'istruzione, molti dati}
+
+\subsection{La tassonomia di Flynn}
+
+\begin{table}[htb]
+\centering\small
+\caption{La tassonomia di \citet{flynn1972}.}\label{tab:by:flynn}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Classe} & \textbf{Istruzioni} & \textbf{Dati} & \textbf{Esempio}\\
+\midrule
+SISD & un flusso & un flusso & il kit: un core, un dato alla volta\\
+SIMD & un flusso & molti insieme & istruzioni vettoriali; una GPU, in prima approssimazione\\
+MISD & molti & un flusso & rara: sistemi ridondanti che votano\\
+MIMD & molti & molti & processori multicore, cluster, supercalcolatori\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La classificazione della Tabella~\ref{tab:by:flynn} è grossolana, ed è ancora
+il primo vocabolario del calcolo parallelo.
+
+\subsection{Lo stesso ciclo, con i vettori}
+
+\asmfile[caption={Svuotare la mappa con l'estensione vettoriale.},label=lst:by:vec]{code/l24/s18.S}
+
+L'estensione V di \riscv, ratificata nel 2021, aggiunge i \term{registri
+vettoriali}, larghi molti byte (Listato~\ref{lst:by:vec}). L'istruzione
+\ins{vsetvli} chiede: quanti dei byte che restano stanno in un registro? La
+risposta torna in \reg{t2}. Poi \ins{vse8.v} memorizza \reg{t2} byte con una
+sola istruzione. Con registri di 128 bit il ciclo tratta 16 byte per giro: 60
+giri invece di 960.
+
+Il codice non dice mai quanto sono larghi i registri: è \emph{agnostico
+rispetto alla lunghezza del vettore}, e lo stesso binario usa 128, 256 o
+1\,024 bit. L'estensione non è sul kit, dato che l'ESP32-C6 è RV32IMAC; il
+listato è stato provato su QEMU con registri di 128, 256, 512 e 1\,024 bit.
+
+\subsection{Una somma, corsia per corsia}
+
+\asmfile[caption={La somma di sedici parole con i vettori.},label=lst:by:vsum]{code/l24/s19.S}
+
+Il Listato~\ref{lst:by:vsum} è la somma parallela dei Capitoli
+\ref{ch:information} e~\ref{ch:video}, in \riscv. \ins{vle32.v} carica più
+parole insieme; \ins{vadd.vv} somma registro a registro, \emph{corsia} per
+corsia (\emph{lane}); alla fine \ins{vredsum.vs} somma tra loro le corsie. Con
+i sedici numeri da 1 a 16 il risultato è 136. (L'impostazione \code{tu},
+\emph{tail undisturbed}, conserva le somme parziali delle corsie che l'ultimo
+giro non usa.)
+
+% ----------------------------------------------------------------------------
+\section{Calcolo ad alte prestazioni}
+
+\subsection{Che cos'è un supercalcolatore?}
+
+Un supercalcolatore non è un solo enorme processore. Sono migliaia di
+calcolatori ordinari, i \term{nodi}, che lavorano allo stesso problema
+(Figura~\ref{fig:by:cluster}). Ogni nodo ha uno o due processori con decine di
+core, spesso più GPU, e moltissima memoria. Una rete molto veloce unisce i
+nodi, e un file system parallelo li serve tutti. La velocità si misura in
+operazioni in virgola mobile al secondo, FLOPS, su un problema standard: un
+enorme sistema di equazioni lineari (il benchmark chiamato HPL,
+\emph{High-Performance Linpack}). La lista TOP500 classifica le macchine più
+veloci due volte l'anno dal 1993.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{cluster_1.jpg}
+\caption{Un piccolo cluster: nodi, GPU, una rete veloce. La struttura di un
+supercalcolatore, in piccolo.}
+\label{fig:by:cluster}
+\end{figure}
+
+\begin{table}[htb]
+\centering\small
+\caption{Ordini di grandezza (cifre HPL arrotondate dalle liste TOP500; la
+cifra per il portatile è un ordine di grandezza).}\label{tab:by:flops}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Macchina} & \textbf{Dove} & \textbf{Operazioni in virgola mobile al secondo}\\
+\midrule
+ESP32-C6 & il kit & nessuna unità in virgola mobile: virgola fissa, come in \vermone\\
+Un portatile & la vostra borsa & circa $10^{11}$\\
+Leonardo (2022) & CINECA, Bologna & circa $2,4\times 10^{17}$\\
+Frontier (2022) & Oak Ridge, USA & oltre $10^{18}$: la prima macchina exascale\\
+El Capitan (2024) & Livermore, USA & circa $1,7\times 10^{18}$\\
+JUPITER (2025) & J\"ulich, Germania & circa $10^{18}$: la prima macchina exascale europea\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\emph{Exa} è $10^{18}$. Sette ordini di grandezza separano un portatile da una
+macchina exascale (Tabella~\ref{tab:by:flops}): circa cinquant'anni di legge
+di Moore, comprati invece con il parallelismo.
+
+\subsection{La legge di Amdahl}
+
+\begin{theorem}{Legge di Amdahl}
+Se una frazione $p$ del lavoro di un programma può essere svolta in parallelo,
+lo speed-up ottenuto con $n$ processori è
+\[ S(n)=\frac{1}{(1-p)+\dfrac{p}{n}},\qquad\text{e}\qquad
+   \lim_{n\to\infty}S(n)=\frac{1}{1-p}. \]
+\end{theorem}
+
+\noindent\emph{Dimostrazione.} Si prenda come 1 il tempo su un processore. La
+parte seriale impiega $1-p$ qualunque sia il numero di processori; la parte
+parallela, divisa tra $n$, impiega $p/n$. Lo speed-up è il rapporto tra i due
+tempi. \hfill$\square$
+
+\smallskip
+La frazione seriale non si riduce, per quanti processori si aggiungano
+\citep{amdahl1967}. Con $p=0,9$ lo speed-up non può mai superare 10, nemmeno
+con un milione di processori (Tabella~\ref{tab:by:amdahl}): mille processori
+su un programma parallelo al 90\% lo rendono meno di dieci volte più veloce.
+Prima di comprare processori, misurate $p$. La stessa legge vale per qualsiasi
+miglioramento che si applichi solo a una parte del lavoro: una GPU più veloce
+non aiuta la parte che gira sulla CPU.
+
+\begin{table}[htb]
+\centering\small
+\caption{La legge di Amdahl in numeri: lo speed-up.}\label{tab:by:amdahl}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+\textbf{Frazione parallela $p$} & $n=10$ & $n=100$ & $n=1000$ & $n$ illimitato\\
+\midrule
+0,50 & 1,8 & 2,0 & 2,0 & 2\\
+0,90 & 5,3 & 9,2 & 9,9 & 10\\
+0,99 & 9,2 & 50 & 91 & 100\\
+0,999 & 9,9 & 91 & 500 & 1000\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Come verifica, $p=0,9$ e $n=100$ danno $1/(0,1+0,009)=9,17$. La risposta di
+Gustafson, nel 1988, fu che con più processori si risolvono problemi più
+grandi, e che in un problema più grande la parte parallela di solito cresce
+più in fretta di quella seriale.
+
+\subsection{Due modi di dividere il lavoro}
+
+Con la \term{memoria condivisa}, più core di un nodo vedono la stessa memoria,
+e il programma gira come \emph{thread} che leggono e scrivono le stesse
+variabili. È facile cominciare: OpenMP aggiunge una riga sopra un ciclo. Il
+pericolo sono due thread che scrivono la stessa variabile. Con la
+\term{memoria distribuita} ogni nodo ha la propria memoria e niente è
+condiviso; il programma gira come \emph{processi} che si scambiano messaggi, e
+MPI, la \emph{Message Passing Interface}, è lo standard. Scala fino a un
+milione di core, e il programmatore ne paga il prezzo. Le applicazioni reali
+usano entrambi: MPI tra i nodi, thread e GPU dentro ogni nodo. I modelli
+meteorologici e marini del Dipartimento funzionano in questo modo.
+
+\subsection{Il limite è l'energia}
+
+Una macchina exascale assorbe circa venti megawatt, il consumo di una piccola
+città (Frontier ha raggiunto il suo exaflop a circa 21~MW): circa 50 miliardi
+di operazioni per joule. L'elettricità della sua vita costa quanto la macchina.
+Quindi la cifra che conta sono le operazioni per watt, che ha la sua
+classifica, la Green500, guidata dalle GPU e da altri acceleratori: l'hardware
+specializzato fa di più con ogni joule. La stessa ragione mette nel kit un
+piccolo core \riscv: milliwatt. L'efficienza energetica è il filo che lega un
+microcontrollore a un supercalcolatore.
+
+\subsection{RISC-V e il supercalcolo europeo}
+
+Le macchine più grandi di oggi usano processori x86 o Arm con acceleratori
+GPU. L'Europa progetta i propri processori e acceleratori su \riscv: la
+European Processor Initiative, e DARE, il progetto nominato nel
+Capitolo~\ref{ch:intro} \citep{eurohpcdare}. Monte Cimone, costruito nel 2022
+all'Università di Bologna con CINECA, è un cluster HPC completo su processori
+\riscv; il Barcelona Supercomputing Center progetta e fabbrica core \riscv
+propri. Un insieme di istruzioni aperto permette a un continente di costruire
+ciò che altrimenti dovrebbe comprare.
+
+% ----------------------------------------------------------------------------
+\section{Acceleratori GPU}
+
+\subsection{Due modi di spendere i transistor}
+
+Una CPU ha pochi core grandi, alcune decine, ciascuno fuori ordine, con
+predittori e grandi cache: è costruita per finire \emph{un} compito il prima
+possibile, ed è a suo agio con i salti e con i dati irregolari. Una GPU ha
+migliaia di core piccoli e semplici, che eseguono tutti lo stesso codice su
+dati diversi: è costruita per finire un milione di compiti al secondo, ed è a
+suo agio con gli array regolari: pixel, matrici, griglie. Sono i buoi e i polli
+di Cray, e la risposta dipende dal campo. La GPU non è più veloce in nessuna
+cosa singola; fa più cose insieme.
+
+\subsection{Come un programma usa una GPU}
+
+\begin{enumerate}
+\item \textbf{Preparare.} Il programma sulla CPU, l'\emph{host}, costruisce i
+  suoi array in memoria centrale.
+\item \textbf{Copiare dentro.} I dati viaggiano verso la memoria della GPU: un
+  costo reale, in tempo.
+\item \textbf{Lanciare.} Una piccola funzione, il \term{kernel}, gira in
+  migliaia di thread, uno per elemento dei dati.
+\item \textbf{Copiare fuori.} I risultati tornano indietro, e l'host prosegue.
+\end{enumerate}
+
+La GPU è un dispositivo, come quelli del Capitolo~\ref{ch:io}: la CPU le invia
+dati e comandi attraverso un driver. I modelli di programmazione sono CUDA,
+OpenCL e SYCL, e direttive come OpenACC e l'offload di OpenMP.
+
+\cfile[caption={La mappa di \vermone con un thread per cella (CUDA C, nella
+sua forma usuale da libro di testo; non compilato per questo libro).},label=lst:by:cuda]{code/l24/s31.c}
+
+Nel Listato~\ref{lst:by:cuda} non c'è alcun ciclo: ci sono 960 thread. Ogni
+thread calcola il proprio indice e fa uno store. I thread arrivano a blocchi,
+e gli ultimi non trovano niente da fare. Per 960 byte le due copie costano
+molto più del lavoro, e il punto è serio: una GPU conviene quando i dati sono
+grandi e il lavoro per elemento è reale.
+
+\subsection{Quando conviene una GPU?}
+
+Conviene quando la stessa operazione si applica a moltissimi dati, in modo
+indipendente: immagini, matrici, le griglie di una simulazione, reti neurali; e
+quando i dati possono restare sulla GPU per molti passi invece di viaggiare a
+ognuno. Non conviene quando il lavoro è una catena di decisioni, ciascuna
+dipendente dalla precedente. E vale di nuovo la legge di Amdahl: ciò che resta
+sulla CPU fissa il limite. Una simulazione meteorologica aggiorna ogni cella di
+una griglia tridimensionale a partire dalle sue vicine, milioni di volte: la
+stessa forma della mappa di \vermone, un po' più grande. L'addestramento delle
+reti neurali di oggi è, quasi interamente, aritmetica matriciale su GPU.
+
+% ----------------------------------------------------------------------------
+\section{Acceleratori FPGA}
+
+\subsection{Un chip che diventa il circuito che descrivete}
+
+\begin{definition}{FPGA}
+Una \term{FPGA} (\emph{field-programmable gate array}) è un chip fatto di un
+mare di piccoli blocchi programmabili: \term{tabelle di look-up}, ciascuna
+capace di essere una qualsiasi funzione di pochi ingressi; flip-flop, uno
+accanto a ogni tabella; e fili e interruttori che possono unire qualsiasi
+blocco a qualsiasi altro. Un file di configurazione, il \term{bitstream},
+imposta ogni tabella e ogni interruttore.
+\end{definition}
+
+Caricate un altro bitstream, e lo stesso chip è un altro circuito. La prima
+FPGA, la Xilinx XC2064, fu venduta nel 1985; oggi vanno da pochi euro a schede
+per centri di calcolo. Una FPGA non esegue un programma: \emph{diventa} un
+circuito. Niente viene prelevato o decodificato, e tutte le porte lavorano
+nello stesso momento.
+
+\subsection{Una tabella di look-up è una tabella di verità in memoria}
+
+\begin{center}\small\ttfamily
+\begin{tabular}{cc|ccc}
+\textrm{$a$}&\textrm{$b$}&\textrm{memorizzato per AND}&\textrm{memorizzato per XOR}&\textrm{memorizzato per NOT $a$}\\\hline
+0&0&0&0&1\\0&1&0&1&1\\1&0&0&1&0\\1&1&1&0&0
+\end{tabular}
+\end{center}
+
+Gli ingressi sono l'indirizzo, e quattro bit memorizzati scelgono la funzione:
+cambiare i bit cambia la porta. Il Capitolo~\ref{ch:boole1} diceva che una
+tabella di verità definisce una funzione, e il Capitolo~\ref{ch:storage} che
+una ROM indirizzata dagli ingressi realizza qualsiasi funzione. Una tabella di
+look-up è quella ROM, con quattro-sei ingressi e da sedici a sessantaquattro
+bit; il flip-flop accanto a essa è quello del Capitolo~\ref{ch:sequential}.
+Una FPGA è questo libro, ripetuto centomila volte su un chip.
+
+\subsection{La regola dell'inversione a U di Verm1, come hardware}
+
+\lstinputlisting[style=verilog,caption={La regola dell'inversione a U in Verilog (non sintetizzata per questo libro).},label=lst:by:verilog]{code/l24/s36.v}
+
+Verilog, come VHDL, è un \term{linguaggio di descrizione dell'hardware}:
+descrive circuiti, non passi (Listato~\ref{lst:by:verilog}). L'istruzione
+\code{assign} è un filo, sempre vera: non c'è un prima e non c'è un dopo. Il
+circuito è fatto di due porte XOR e un AND con un ingresso invertito,
+\[ \mathit{refuse}=(d_1\oplus w_1)\cdot\nott{(d_0\oplus w_0)} . \]
+Sul kit questa regola richiedeva tre istruzioni e tre cicli
+(Capitolo~\ref{ch:verm1p2}); qui le porte rispondono in una frazione di
+nanosecondo, in continuazione.
+
+\subsection{Dalla descrizione al circuito}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=16mm] (a) {\textbf{Descrivere}\\[1pt]\footnotesize Verilog, VHDL, o C};
+  \node[blkamb,text width=21mm,minimum height=16mm,right=of a] (b) {\textbf{Simulare}\\[1pt]\footnotesize forme d'onda};
+  \node[blkvio,text width=21mm,minimum height=16mm,right=of b] (c) {\textbf{Sintetizzare}\\[1pt]\footnotesize tabelle e flip-flop};
+  \node[blkgrn,text width=21mm,minimum height=16mm,right=of c] (d) {\textbf{Piazzare e instradare}\\[1pt]\footnotesize sul chip};
+  \node[blkred,text width=21mm,minimum height=16mm,right=of d] (e) {\textbf{Configurare}\\[1pt]\footnotesize caricare il bitstream};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Da una descrizione a un circuito.}
+\label{fig:by:fpgaflow}
+\end{figure}
+
+Ogni tentativo richiede da minuti a ore (Figura~\ref{fig:by:fpgaflow}): più
+lento che compilare una cartuccia, molto più veloce che fabbricare un chip. Lo
+stesso flusso, con una fabbrica alla fine invece di un bitstream, produce un
+\term{ASIC}, un chip fatto per un solo scopo. Le FPGA sono il luogo in cui i
+chip si provano prima di fabbricarli.
+
+\subsection{Anche un processore è un circuito}
+
+Un core \riscv è una descrizione in un linguaggio hardware, e può essere
+caricato su una FPGA. Questi \term{soft core} sono liberi da leggere e da
+usare: PicoRV32, VexRiscv, NEORV32, Rocket. Un core della classe di quello del
+kit sta in una FPGA piccola ed economica, e accanto a esso si può mettere un
+circuito proprio per l'unica operazione che un programma ripete di più: un
+acceleratore su misura. \riscv riserva spazio nella sua codifica per istruzioni
+personalizzate, con cui raggiungere tali circuiti.
+
+\begin{prgconcept}[Il cerchio si chiude]
+Le porte del Capitolo~\ref{ch:boole1} costruiscono il sommatore del
+Capitolo~\ref{ch:boole2}, i registri del Capitolo~\ref{ch:registers} e il
+processore del Capitolo~\ref{ch:processor}; e quel processore è un file che si
+può leggere. Dalle porte a un processore, e ritorno: ora conoscete ogni strato
+intermedio.
+\end{prgconcept}
+
+\subsection{Quattro modi di calcolare}
+
+\begin{table}[htb]
+\centering\small
+\caption{Quattro modi di calcolare.}\label{tab:by:four}
+\begin{tabularx}{\textwidth}{@{}lLLLL@{}}
+\toprule
+ & \textbf{CPU} & \textbf{GPU} & \textbf{FPGA} & \textbf{ASIC}\\
+\midrule
+Che cos'è & pochi core complessi & migliaia di core semplici & un circuito che si configura & un circuito fatto per un solo lavoro\\
+Si programma in & qualsiasi linguaggio & kernel: CUDA, OpenCL, SYCL & Verilog, VHDL, HLS & gli stessi, poi una fabbrica\\
+Forte in & tutto, moderatamente & dati regolari in massa & flussi, bassa latenza & una cosa, alla perfezione\\
+Lavoro per joule & basso & alto & alto & il più alto\\
+Sforzo d'uso & basso & medio & alto & molto alto\\
+Cambiare idea & ricompilare & ricompilare & un nuovo bitstream & un nuovo chip\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La generalità si paga in energia; l'efficienza si paga in sforzo
+(Tabella~\ref{tab:by:four}). Un moderno sistema su un chip li ha tutti e
+quattro: un telefono contiene core CPU, una GPU, e circuiti fissi per il video
+e la radio.
+
+% ----------------------------------------------------------------------------
+\section{Ritorno alla macchina}
+
+\begin{table}[htb]
+\centering\small
+\caption{Svuotare la mappa di \vermone, 960 celle, su cinque macchine.}\label{tab:by:five}
+\begin{tabularx}{\textwidth}{@{}P{0.27\textwidth}LP{0.22\textwidth}@{}}
+\toprule
+\textbf{Macchina} & \textbf{Come} & \textbf{Passi nel tempo}\\
+\midrule
+Il kit: ESP32-C6 & un byte per giro, un'istruzione per ciclo & 3\,840 cicli\\
+Core \riscv fuori ordine & lo stesso binario; più istruzioni per ciclo, il salto predetto & una frazione di quei cicli\\
+\riscv con vettori, 128 bit & 16 byte per giro & 60 giri\\
+GPU & 960 thread, uno per cella & un lancio, più due copie\\
+FPGA & 960 flip-flop con un reset comune & un ciclo di clock\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Le prime tre righe della Tabella~\ref{tab:by:five} sono lo stesso insieme di
+istruzioni; la prima e la terza sono state eseguite per questo libro. Il
+lavoro è lo stesso dappertutto; ciò che cambia è quanto di esso avviene nello
+stesso momento. E cambiano i costi: alla prima riga servono un chip da due
+euro e quattro righe di assembly; all'ultima serve un progetto hardware.
+
+\begin{prgconcept}
+La domanda dell'ingegnere non è mai quale macchina sia la più veloce, ma quale
+basti.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Un programma è parallelo all'80\%. Qual è il massimo speed-up che un numero qualunque di processori può dare?}
+\item 4
+\item 5
+\item 8
+\item 80
+\end{quiz}
+
+\begin{quiz}{Che cosa elimina la ridenominazione dei registri?}
+\item i salti
+\item il bisogno di uno stack
+\item le false dipendenze tra usi dello stesso nome di registro
+\item i cache miss
+\end{quiz}
+
+\begin{quiz}{Con registri vettoriali a 256 bit, quanti giri servono al ciclo vettoriale per i 960 byte?}
+\item 4
+\item 30
+\item 60
+\item 960
+\end{quiz}
+
+\begin{quiz}{Una tabella di look-up a due ingressi memorizza, per gli ingressi 00, 01, 10, 11, i bit 0, 1, 1, 1. Quale porta è?}
+\item AND
+\item OR
+\item XOR
+\item NAND
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi sulla macchina]
+\begin{enumerate}[nosep]
+\item Compilate la tabella di Amdahl per $p=0,95$ e $n=10$, 100, 1000.
+\item Disegnate il diagramma della pipeline di un processore largo tre per nove
+  istruzioni indipendenti con cinque stadi.
+\item Ridenominate i registri del codice di \code{step} che sposta e fa
+  rientrare la testa in \vermone, parte~2: quali istruzioni potrebbero essere
+  eseguite nello stesso ciclo?
+\item Scrivete la tabella di verità memorizzata in una tabella di look-up a
+  quattro ingressi per
+  $\mathit{refuse}=(\mathit{dir}\oplus\mathit{want})=2$.
+\item Compilate il test \fname{vector\_qemu.S} del materiale del corso ed
+  eseguitelo su QEMU con registri vettoriali di 128 e di 512 bit: perché lo
+  stesso binario funziona?
+\end{enumerate}
+\expected{Amdahl con $p=0,95$: 6,9, 16,8, 19,6. Nove istruzioni su un
+processore largo tre: sette cicli. La tabella di look-up ha quattro uni su
+sedici elementi, per $(\mathit{dir},\mathit{want})=(0,2)$, $(1,3)$, $(2,0)$,
+$(3,1)$. QEMU si avvia con
+\code{qemu-system-riscv32 -machine virt -cpu rv32,v=true,vlen=128}.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+superscalar & superscalare\\
+register renaming & ridenominazione dei registri\\
+out-of-order execution & esecuzione fuori ordine\\
+branch prediction & predizione dei salti\\
+speed-up & accelerazione (speed-up)\\
+node & nodo\\
+shared memory & memoria condivisa\\
+message passing & scambio di messaggi\\
+accelerator & acceleratore\\
+kernel (GPU) & kernel\\
+look-up table & tabella di look-up\\
+bitstream & bitstream\\
+hardware description language & linguaggio di descrizione dell'hardware\\
+soft core & soft core\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+Un'equazione, tre fattori: ogni macchina veloce ne attacca uno, o moltiplica i
+processori. I core superscalari fuori ordine rispettano il contratto
+dell'insieme di istruzioni ed eseguono molte istruzioni insieme. Vettori, GPU e
+cluster sfruttano i dati che possono essere elaborati in modo indipendente, e
+la legge di Amdahl dice fin dove si arriva. Le FPGA trasformano una descrizione
+in un circuito: la logica di questo libro, in grande scala.
+
+Il libro finisce qui: da un bit a un supercalcolatore, con un solo insieme di
+istruzioni.
+
+\paragraph{Letture.} \citet{patterson2020}, capitoli 4 e~6;
+\citet{hennessy2019}; \url{https://top500.org}; la specifica vettoriale di
+\riscv su \url{https://riscv.org}.

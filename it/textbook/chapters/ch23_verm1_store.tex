@@ -1,0 +1,358 @@
+% ============================================================================
+%  Capitolo 23 -- Verm1 sul Cartridge Store                      (Lezione 23)
+% ============================================================================
+\chapter{Verm1 sul Cartridge Store}
+\label{ch:store}
+
+\epigraphline{I veri artisti consegnano.}{Steve Jobs, alla squadra del Macintosh, 1983}
+
+\begin{chapgoals}
+Alla fine di questo capitolo avrete
+\begin{itemize}
+\item il vostro \vermone compilato per due architetture, il kit ESP32-C6 e QEMU, dallo stesso sorgente;
+\item un manifesto che dà al gioco un'identità: id, titolo, versione, autori, licenza;
+\item un'icona, e un colophon con crediti e comandi;
+\item un bundle, un solo file ZIP, controllato e pronto per il Cartridge Store;
+\item un'idea chiara di ciò che succede dopo la pubblicazione, e di ciò di cui siete responsabili.
+\end{itemize}
+\end{chapgoals}
+
+Questo è l'ultimo capitolo del progetto, ed è di nuovo un tutorial: alla fine
+avrete un bundle, \fname{verm1-1.0.0.zip}, controllato e pronto per essere
+sottoposto. Tutto fino al caricamento è stato eseguito sul gioco di riferimento
+dai test del materiale del corso; il caricamento stesso è un atto personale
+compiuto con un token personale, e per questo libro non è stato eseguito.
+
+% ----------------------------------------------------------------------------
+\section{Perché pubblicare?}
+
+Un programma che gira solo sul computer del suo autore è un esercizio; uno che
+altri possono installare è un prodotto. Pubblicare impone le domande che un
+esercizio permette di saltare: come si chiama, chi lo ha fatto, su che cosa
+gira, che cosa possono farne gli altri. Il Cartridge Store
+(Figura~\ref{fig:st:store}) è lo scaffale di \prg: giochi e programmi che si
+installano sul kit, su QEMU e su \prgqt. Ogni cartuccia che vi si trova è stata
+scritta da qualcuno che è partito da dove siete partiti voi, e la vostra può
+stare accanto a esse. Lo Store è a \url{https://store.prg32.uniparthenope.it},
+e \prgqt ha un proprio browser dello Store.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.75\textwidth]{prg32qt_store.png}
+\caption{Il Cartridge Store, visto da \prgqt.}
+\label{fig:st:store}
+\end{figure}
+
+Il percorso dal sorgente allo scaffale ha sei stazioni
+(Figura~\ref{fig:st:flow}). Le prime quattro avvengono sul computer
+dell'autore: niente lo lascia prima del comando che pubblica.
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=3mm]
+  \node[blkacc,text width=17mm,minimum height=15mm] (a) {\texttt{verm1.S}\\[1pt]\scriptsize il vostro sorgente};
+  \node[blkamb,text width=17mm,minimum height=15mm,right=of a] (b) {2 cartucce\\[1pt]\scriptsize una per architettura};
+  \node[blkvio,text width=17mm,minimum height=15mm,right=of b] (c) {metadati\\[1pt]\scriptsize identità, icona, crediti};
+  \node[blkgrn,text width=17mm,minimum height=15mm,right=of c] (d) {bundle\\[1pt]\scriptsize un file ZIP};
+  \node[blkred,text width=17mm,minimum height=15mm,right=of d] (e) {revisione\\[1pt]\scriptsize un redattore lo controlla};
+  \node[blk,fill=prgsteel,text=white,text width=17mm,minimum height=15mm,right=of e] (f) {Store\\[1pt]\scriptsize chiunque installa};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e,e/f} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Dal sorgente allo scaffale.}
+\label{fig:st:flow}
+\end{figure}
+
+\subsection{Prima di impacchettare: è finito?}
+
+\begin{table}[htb]
+\centering\small
+\caption{Il gioco è finito?}\label{tab:st:finished}
+\begin{tabularx}{\textwidth}{@{}P{0.3\textwidth}LP{0.2\textwidth}@{}}
+\toprule
+\textbf{Controllo} & \textbf{Come} & \textbf{Con}\\
+\midrule
+Parte, si gioca e finisce & giocate tre partite intere, perdete in tre modi diversi & \prgqt\\
+Nessun frame è in ritardo & telemetria durante una partita lunga: i frame in ritardo restano a zero & \prgqt, modalità debug\\
+La memoria è coerente & mettete in pausa a caso e confrontate l'anello, la mappa e lo schermo & \prgqt, vista della memoria\\
+Gira sulla seconda architettura & compilate per QEMU, caricate, giocate & QEMU\\
+Gira sull'hardware reale & caricate su un kit, giocate con il joystick e l'altoparlante veri & il kit, se ne avete uno\\
+È vostro & un titolo, una regola o un aspetto che il riferimento non ha & voi\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Il debugger viene usato un'ultima volta, come strumento di qualità
+(Tabella~\ref{tab:st:finished}). Una cartuccia che non è mai stata eseguita su
+un bersaglio non dovrebbe essere pubblicata per quel bersaglio.
+
+% ----------------------------------------------------------------------------
+\section{Passo 1: un sorgente, due cartucce}
+
+\shfile[caption={Compilare per il kit e per QEMU.},label=lst:sto:build]{code/l23/s07.sh}
+
+Il Listato~\ref{lst:sto:build} è il comando di ogni capitolo con un'opzione in
+più: \code{-{}-architecture} nomina il bersaglio del file. I nomi seguono una
+regola, \fname{gioco-architettura.prg32}. Il compilatore di cartucce risponde
+con il nome, l'indirizzo di caricamento \hex{40800000} e la dimensione del
+codice: \vermone finito è di circa 6 kilobyte (6\,216 byte per il gioco di
+riferimento).
+
+\txtfile[caption={È portabile?},label=lst:sto:summary]{code/l23/s08.sh}
+
+Il comando \code{summary} stampa ciò che il file dichiara di sé
+(Listato~\ref{lst:sto:summary}). Il valore \code{abi-table} di
+\code{import\_model} significa che la cartuccia raggiunge il runtime attraverso
+una tabella di funzioni, la ABI di \prg, di cui \code{prg32\_gfx\_rect} e le
+altre sono elementi. Una cartuccia di questo tipo non dipende da una
+particolare compilazione del firmware: è \term{portabile}, e lo Store accetta
+cartucce portabili. Una cartuccia non portabile è collegata agli indirizzi di
+una sola immagine del firmware, e si rompe al successivo aggiornamento.
+Ripetete il controllo sul file per QEMU.
+
+% ----------------------------------------------------------------------------
+\section{Passo 2: un'identità}
+
+\subsection{\texttt{manifest.json}: chi è questo gioco?}
+
+Create il file del Listato~\ref{lst:sto:manifest} in
+\fname{\textasciitilde/verm1} con un editor di testo. (Nel listato la
+descrizione è tagliata; il file completo del gioco di riferimento è
+nell'Appendice~\ref{app:verm1}.)
+
+\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/s10.json}
+
+La riga \code{abi} dice quale versione del formato dei metadati è questa. Gli
+altri campi sono impegni (Tabella~\ref{tab:st:fields}).
+
+\begin{table}[htb]
+\centering\small
+\caption{I campi del manifesto, e a che cosa impegnano il loro autore.}\label{tab:st:fields}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{Campo} & \textbf{Regola} & \textbf{Per \vermone}\\
+\midrule
+\code{id} & per consuetudine un nome di dominio rovesciato; non cambia mai & uno per autore: metteteci il vostro nome\\
+\code{version} & major.minor.patch; una versione pubblicata non viene mai sostituita & 1.0.0, poi 1.0.1 per una correzione\\
+\code{title} & ciò che il giocatore legge & Verm1, o il nome della vostra variante\\
+\code{authors} & le persone che lo hanno scritto & voi, e chiunque abbia lavorato con voi\\
+\code{license} & che cosa possono farne gli altri & MIT, se volete che altri imparino da esso\\
+\code{tags} & come verrà trovato & arcade, snake, assembly, education\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{prgwarn}
+Trattate un id e una versione, una volta pubblicati, come permanenti. Un errore
+si corregge con una nuova versione, non con una sostituzione. E due autori non
+possono pubblicare lo stesso id: ciascuno usa un id proprio, per esempio
+\code{it.uniparthenope.arc12.}\emph{cognome}\code{.verm1}.
+\end{prgwarn}
+
+\subsection{Un'icona}
+
+L'icona è un piccolo PNG che rappresenta il gioco sullo scaffale
+(Figura~\ref{fig:st:icon}). L'icona di riferimento è di 64 per 64 pixel: un
+verme e un pezzo di cibo, nei colori del gioco. La pixel art si addice a una
+macchina di 320 per 200 pixel: disegnatela in grande, cella per cella, con un
+qualsiasi editor che salvi PNG, oppure disegnatela con un programma, come è
+stata fatta l'icona di riferimento. Salvatela come \fname{icon.png} accanto al
+manifesto, che la nomina sotto \code{assets}. Un'icona presa dal web è il
+lavoro di qualcun altro: disegnate la vostra.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=28mm]{verm1_icon.png}
+\caption{\fname{icon.png}, ingrandita.}
+\label{fig:st:icon}
+\end{figure}
+
+\subsection{\texttt{colophon.json}: crediti e comandi}
+
+\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/s13.json}
+
+\emph{Colophon} è la parola dei tipografi per la nota alla fine di un libro che
+dice chi lo ha fatto. Qui è la pagina dei crediti della cartuccia
+(Listato~\ref{lst:sto:colophon}): ruoli e nomi, dando credito a tutti; i
+comandi, cioè che cosa fa ciascun ingresso, per il giocatore; i
+ringraziamenti. Sostituite dappertutto \texttt{Your Name}, e impostate la data
+di rilascio. Il primo ringraziamento resta: un gioco che parte
+dall'implementazione di riferimento di \vermone, contributo di Giuseppe
+Coviello, lo dice.
+
+\subsection{Un omaggio non è una copia}
+
+\vermone è un omaggio a Snake: l'idea di un verme che cresce è vecchia quanto
+\emph{Blockade} (1976) ed è libera per tutti. Il nome, il codice, l'icona e i
+suoni sono originali: niente è stato preso da un altro gioco. Le regole di un
+gioco non sono protette; il codice, le immagini, la musica e i nomi lo sono.
+Prima di pubblicare, chiedetevi per ogni pezzo: l'ho scritto o disegnato io?
+Se no, la sua licenza mi permette di pubblicarlo, e ho dato credito? I nomi e
+i personaggi dei giochi commerciali sono marchi, e non vanno usati. La licenza
+scelta dice agli altri che cosa possono fare con l'opera: la MIT permette di
+studiarla, modificarla e condividerla, conservando il nome dell'autore.
+
+\begin{prgconcept}[La regola]
+Sopra c'è il vostro nome. Pubblicate solo ciò che firmereste.
+\end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\section{Passo 3: la cartuccia porta con sé i suoi documenti}
+
+\shfile[caption={\fname{metadata.json}, e come allegarlo.},label=lst:sto:attach]{code/l23/s16.sh}
+
+Il file \fname{metadata.json} è una copia del manifesto senza le due voci
+\code{assets} e \code{architectures}. Il comando \code{attach-metadata} scrive
+titolo, icona e crediti \emph{dentro} la cartuccia, una volta per file e con la
+sua architettura (Listato~\ref{lst:sto:attach}): una cartuccia copiata a mano
+dice ancora che cosa è. Lo strumento risponde, per il gioco di riferimento,
+\code{legacy=6316 blocks=3}: i tre blocchi sono i metadati, l'icona e il
+colophon, accodati dopo il programma, che di per sé non viene toccato.
+
+\begin{prgwarn}
+Dare il manifesto completo a \code{-{}-metadata} fa fallire lo strumento, a
+causa della voce \code{assets}.
+\end{prgwarn}
+
+\txtfile[caption={Rileggere i metadati (uscita ridotta).},label=lst:sto:inspect]{code/l23/s17.sh}
+
+\begin{prgconcept}
+Non fidatevi mai di una scrittura che non avete riletto. È l'abitudine di tutto
+il libro: la vista della memoria del debugger, e ora questo.
+\end{prgconcept}
+
+Controllate l'id, il titolo, la versione e l'architettura
+(Listato~\ref{lst:sto:inspect}); \code{trailer\_present} dice che i documenti
+sono nel file. Poi eseguite ancora una volta la cartuccia: deve funzionare
+ancora.
+
+% ----------------------------------------------------------------------------
+\section{Passo 4: il bundle}
+
+\txtfile[caption={Impacchettare il bundle (uscita reale per il gioco di riferimento).},label=lst:sto:pack]{code/l23/s19.sh}
+
+Lo strumento legge il manifesto e raccoglie i file che esso nomina
+(Listato~\ref{lst:sto:pack}), che devono essere nella stessa cartella del
+manifesto. Un file mancante o con il nome sbagliato lo ferma qui, e non allo
+Store. Il nome del bundle porta la versione. L'intero gioco, per due macchine,
+è di 16 kilobyte.
+
+\begin{prgcheck}[Eseguite: provate il bundle, non la vostra cartella]
+\begin{enumerate}[nosep]
+\item Decomprimete \fname{verm1-1.0.0.zip} in una cartella vuota.
+\item In \prgqt importate \fname{verm1-esp32c6.prg32} da quella cartella ed
+  eseguitelo: titolo, icona e crediti devono essere i vostri.
+\item Caricate \fname{verm1-qemu.prg32} su QEMU e giocate una partita.
+\item Se avete un kit, caricate il file per l'ESP32-C6 e giocate con il
+  joystick vero.
+\item Chiedete a un collega di fare lo stesso su un altro computer: il primo
+  utente che non siete voi.
+\end{enumerate}
+\textbf{Risultato atteso.} Il gioco gira dai file del bundle, su ogni bersaglio
+dichiarato, su un computer che non è il vostro. Provare i file impacchettati,
+e non quelli della cartella di lavoro, coglie l'errore classico: un bundle
+costruito prima dell'ultima correzione.
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Passo 5: la pubblicazione}
+
+\shfile[caption={Pubblicare: un token e un comando.},label=lst:sto:publish]{code/l23/s22.sh}
+
+Per pubblicare, l'autore accede allo Store, crea un \term{token} nella pagina
+\emph{Tokens}, lo tiene nell'ambiente della shell e sottopone il bundle
+(Listato~\ref{lst:sto:publish}).
+
+\begin{prgwarn}[Il token siete voi]
+Chi ha il token pubblica a vostro nome. È un segreto: non va nel sorgente, in
+un file, in un repository o in una schermata. Se viene perso o mostrato per
+errore, revocatelo e createne uno nuovo.
+\end{prgwarn}
+
+\subsection{Che cosa succede dopo}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[In attesa.] Il bundle è memorizzato come proposta: non è ancora sullo
+  scaffale.
+\item[Revisione.] Un redattore controlla che si installi, che giri, che sia
+  descritto onestamente e che non contenga niente che non sia dell'autore.
+\item[Pubblicato.] Il gioco compare nello Store, per le architetture
+  dichiarate.
+\item[Un errore?] Correggetelo, portate la versione a 1.0.1, impacchettate e
+  sottoponete di nuovo: la 1.0.0 resta com'era.
+\end{description}
+
+La moderazione protegge i giocatori e gli autori. Un rifiuto arriva con una
+motivazione, e gli si risponde con una nuova versione.
+
+\subsection{La lista di controllo per la sottomissione}
+
+Una lista di controllo non è burocrazia: è il modo in cui piloti e chirurghi
+evitano gli errori che fanno gli esperti.
+
+\begin{enumerate}
+\item Il gioco è stato giocato fino alla fine su ogni architettura del
+  manifesto.
+\item \code{cartridge summary} dice \code{import\_model: abi-table} per ogni
+  file.
+\item L'id è vostro e unico; la versione è nuova; titolo, sommario e
+  descrizione dicono che cosa è il gioco.
+\item Autori, licenza e colophon sono completi; ogni pezzo è vostro o
+  accreditato.
+\item \code{inspect-metadata} mostra l'id, la versione e l'architettura giusti
+  in ogni cartuccia.
+\item Il bundle è stato decompresso e provato su un altro computer.
+\item Il token non è in alcun file, in alcuna schermata e in alcun repository.
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Avete pubblicato la versione 1.0.0 e trovato un errore. Che cosa fate?}
+\item caricate di nuovo la 1.0.0
+\item pubblicate la 1.0.1
+\item cambiate l'id
+\item chiedete che il vecchio file venga modificato
+\end{quiz}
+
+\begin{quiz}{Perché \fname{metadata.json} non contiene la voce \code{architectures}?}
+\item è facoltativa
+\item i metadati vanno dentro una cartuccia, che ha una sola architettura
+\item QEMU non la supporta
+\item sarebbe troppo lunga
+\end{quiz}
+
+\begin{quiz}{Dove va tenuto il token dello Store?}
+\item in \fname{verm1.S}, come commento
+\item nel manifest
+\item in una variabile d'ambiente della vostra shell
+\item nel \fname{README} del repository
+\end{quiz}
+
+\section{Il vostro rilascio}
+
+\begin{exercise}[l'elaborato del progetto]
+\begin{enumerate}[nosep]
+\item Scegliete il vostro id e il vostro titolo, e scrivete il manifesto e il
+  colophon per la vostra variante di \vermone.
+\item Disegnate la vostra icona.
+\item Compilate, allegate, ispezionate, impacchettate: producete il vostro
+  bundle, e superate la lista di controllo con un collega come revisore.
+\item Se volete il vostro gioco sullo scaffale, pubblicatelo.
+\end{enumerate}
+\expected{Un bundle del vostro gioco, rivisto da un collega rispetto alla
+lista di controllo. La pubblicazione è facoltativa e personale; il bundle, con
+il sorgente della vostra variante, è l'elaborato del progetto, e l'esame orale
+può partire da una qualsiasi delle sue righe.}
+\end{exercise}
+
+\section{Che cosa avete costruito}
+
+Un gioco di seicento righe di assembly, a partire da tre funzioni che
+ritornavano soltanto. Con esso, ogni strato della macchina: bit e numeri, porte
+e tabelle, stato e memoria, il processore, lo schermo, i dispositivi. Un
+metodo: un passo eseguibile alla volta, e uno sguardo dentro ogni volta che
+qualcosa sorprende. E l'ultimo passo, che ne fa ingegneria: un prodotto con un
+nome, una versione e un autore.
+
+Il prossimo gioco sta a voi sceglierlo. Il prossimo capitolo mostra dove le
+stesse istruzioni girano in grande scala.

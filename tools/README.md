@@ -96,8 +96,12 @@ every correction made to the original slides.
 - Every slide has a note in `../<lang>/notes/<deck file>.md` (one section `## Slide N` per slide).
   `node notes.js` checks that no slide is without its note and rewrites the headings from the deck
   titles; `build.js` copies each note into the notes pane of its slide.
-- The textbook in `../en/textbook` follows the decks one to one (Chapter N is Lecture N). A change of
-  content here is a change there: see its README.
+- The textbook in `../en/textbook` follows the decks one to one (Chapter N is Lecture N), and
+  `../it/textbook` is its Italian edition. A change of content here is a change there: see their READMEs.
+- English is the primary language. A change is made in `decks/en` first and then carried to `decks/it`,
+  to the notes and to the two books; `python3 textbook/check_editions.py` fails if the Italian book has
+  lost a label, a listing, a figure or a reference of the English one, or if a quiz or a glossary of a
+  chapter no longer matches its deck.
 
 ## Rebuilding
 
@@ -124,8 +128,8 @@ node notes.js        # check the slide notes of both languages
   listings, cartridges run on the PRG32-QT headless runner, the vector listings of lecture 24, the four parts of Verm1 played by a scripted
   player (which also writes the screenshots used in the decks), the intermediate steps of the tutorials
   and the packaging of the Store bundle (see its README).
-- `textbook/` holds the scripts that export the listings and regenerate the generated appendices of
-  the book (see `../en/textbook/README.md`).
+- `textbook/` holds the scripts that export the listings, regenerate the generated appendices of the
+  two books and check one edition against the other (see `../en/textbook/README.md`).
 - `assets/` holds the pictures: the photographs of the original decks and
   screenshots from the PRG32 repository and textbook.
 

@@ -1,0 +1,701 @@
+% ============================================================================
+%  Appendice A -- Riferimento di RISC-V
+% ============================================================================
+\chapter{Riferimento di RISC-V}
+\label{app:riscv}
+
+Questa appendice è un riferimento completo dell'architettura \riscv così come
+è usata in questo libro: l'insieme di istruzioni RV32IMAC dell'ESP32-C6, i
+registri di controllo e stato del modo macchina, le convenzioni
+dell'assemblatore e la convenzione di chiamata. Segue le specifiche ratificate
+\citep{riscvisa,riscvpriv,riscvabi,riscvasm}, che prevalgono in caso di
+dubbio. Dappertutto, $x[r]$ indica il contenuto del registro $r$, $M[a]$ la
+memoria all'indirizzo $a$, $\mathrm{sext}(\cdot)$ l'estensione in segno a 32
+bit e $\mathrm{zext}(\cdot)$ l'estensione con zeri; l'aritmetica è modulo
+$2^{32}$.
+
+% ----------------------------------------------------------------------------
+\section{Il nome di un insieme di istruzioni}
+
+Un insieme di istruzioni \riscv prende il nome da una base e da un elenco di
+estensioni. La base dà la larghezza dei registri; ogni lettera aggiunge un
+gruppo di istruzioni (Tabella~\ref{tab:rv:ext}). RV32IMAC è quindi la base a 32
+bit con moltiplicazione e divisione, istruzioni atomiche e istruzioni
+compresse. Dal 2019 le istruzioni per i registri di controllo e stato e
+l'istruzione \ins{fence.i} sono formalmente estensioni separate, Zicsr e
+Zifencei, che anche l'ESP32-C6 realizza.
+
+\begin{table}[htb]
+\centering\small
+\caption{Basi ed estensioni di \riscv.}\label{tab:rv:ext}
+\begin{tabularx}{\textwidth}{@{}llLc@{}}
+\toprule
+\textbf{Nome} & \textbf{Significato} & \textbf{Che cosa aggiunge} & \textbf{ESP32-C6}\\
+\midrule
+RV32I & base intera, 32 bit & 32 registri di 32 bit; 40 istruzioni & sì\\
+RV32E & base embedded & come RV32I con 16 registri & --\\
+RV64I & base intera, 64 bit & registri e indirizzi di 64 bit & --\\
+M & moltiplicazione, divisione & \ins{mul}, \ins{mulh}, \ins{mulhsu}, \ins{mulhu}, \ins{div}, \ins{divu}, \ins{rem}, \ins{remu} & sì\\
+A & atomiche & \ins{lr.w}, \ins{sc.w} e le operazioni atomiche in memoria & sì\\
+F, D & virgola mobile & registri \reg{f0}--\reg{f31}; IEEE 754 a precisione singola e doppia & no\\
+C & compresse & codifiche a 16 bit delle istruzioni più comuni & sì\\
+Zicsr & accesso ai CSR & \ins{csrrw}, \ins{csrrs}, \ins{csrrc} e le forme immediate & sì\\
+Zifencei & barriera sulle istruzioni & \ins{fence.i} & sì\\
+B (Zba, Zbb, Zbs) & manipolazione dei bit & scorrimenti con somma, conteggi, rotazioni, operazioni su un singolo bit & no\\
+V & vettori & registri \reg{v0}--\reg{v31} di lunghezza variabile (Capitolo~\ref{ch:beyond}) & no\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{I registri}
+
+\begin{table}[htb]
+\centering\small
+\caption{I registri interi e i loro ruoli nella convenzione di chiamata
+standard; l'ultima colonna dice chi preserva il registro attraverso una
+chiamata.}\label{tab:rv:regs}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Registro} & \textbf{Nome ABI} & \textbf{Ruolo} & \textbf{Preservato da}\\
+\midrule
+\reg{x0} & \reg{zero} & zero cablato & --\\
+\reg{x1} & \reg{ra} & indirizzo di ritorno & chiamante\\
+\reg{x2} & \reg{sp} & puntatore allo stack & chiamato\\
+\reg{x3} & \reg{gp} & puntatore globale & -- (da non modificare)\\
+\reg{x4} & \reg{tp} & puntatore al thread & -- (da non modificare)\\
+\reg{x5}--\reg{x7} & \reg{t0}--\reg{t2} & temporanei & chiamante\\
+\reg{x8} & \reg{s0} / \reg{fp} & registro salvato / puntatore al frame & chiamato\\
+\reg{x9} & \reg{s1} & registro salvato & chiamato\\
+\reg{x10}--\reg{x11} & \reg{a0}--\reg{a1} & argomenti / valori di ritorno & chiamante\\
+\reg{x12}--\reg{x17} & \reg{a2}--\reg{a7} & argomenti & chiamante\\
+\reg{x18}--\reg{x27} & \reg{s2}--\reg{s11} & registri salvati & chiamato\\
+\reg{x28}--\reg{x31} & \reg{t3}--\reg{t6} & temporanei & chiamante\\
+\reg{pc} & -- & program counter & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'hardware dà un significato speciale solo a \reg{x0}, che si legge sempre
+come zero e ignora le scritture. Tutti gli altri ruoli della
+Tabella~\ref{tab:rv:regs} sono convenzioni. Le istruzioni compresse con un
+campo registro di 3 bit possono nominare solo \reg{x8}--\reg{x15}, cioè
+\reg{s0}, \reg{s1} e \reg{a0}--\reg{a5}. Il program counter non è un registro
+generico: è letto da \ins{auipc}, \ins{jal} e dai salti condizionati, e scritto
+dai salti.
+
+% ----------------------------------------------------------------------------
+\section{I formati delle istruzioni}
+
+Tutte le istruzioni dell'insieme di base sono lunghe 32 bit e sono memorizzate
+in ordine little-endian; i due bit meno significativi di un'istruzione a 32
+bit sono \texttt{11}. I sei formati sono mostrati nella
+Figura~\ref{fig:rv:formats}.
+
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{bytefield}[bitwidth=0.0275\textwidth,bitheight=6.5mm]{32}
+\bitheader[endianness=big]{0,6,7,11,12,14,15,19,20,24,25,31}\\
+\begin{rightwordgroup}{R}\bitbox{7}{funct7} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{I}\bitbox{12}{imm[11:0]} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{S}\bitbox{7}{imm[11:5]} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{5}{imm[4:0]} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{B}\bitbox{1}{\tiny 12} & \bitbox{6}{imm[10:5]} & \bitbox{5}{rs2} & \bitbox{5}{rs1} & \bitbox{3}{funct3} & \bitbox{4}{imm[4:1]} & \bitbox{1}{\tiny 11} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{U}\bitbox{20}{imm[31:12]} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}\\[2pt]
+\begin{rightwordgroup}{J}\bitbox{1}{\tiny 20} & \bitbox{10}{imm[10:1]} & \bitbox{1}{\tiny 11} & \bitbox{8}{imm[19:12]} & \bitbox{5}{rd} & \bitbox{7}{opcode}\end{rightwordgroup}
+\end{bytefield}
+\caption{I sei formati delle istruzioni a 32 bit.}
+\label{fig:rv:formats}
+\end{figure}
+
+\paragraph{Immediati.} In ogni formato il bit 31 dell'istruzione è il bit di
+segno dell'immediato, che è sempre esteso in segno a 32 bit.
+\begin{itemize}
+\item \textbf{I}: 12 bit, intervallo $-2048\ldots 2047$.
+\item \textbf{S}: 12 bit, divisi tra i bit 31--25 e 11--7, così che
+  \code{rs1} e \code{rs2} restano al loro posto.
+\item \textbf{B}: 13 bit, di cui il bit 0 è sempre zero e non è memorizzato;
+  lo scostamento è un multiplo di 2 nell'intervallo $-4096\ldots 4094$,
+  relativo all'indirizzo del salto.
+\item \textbf{U}: i 20 bit superiori; i 12 inferiori sono zero.
+\item \textbf{J}: 21 bit, di cui il bit 0 è zero e non memorizzato; lo
+  scostamento è un multiplo di 2 nell'intervallo $\pm 1$~MiB.
+\end{itemize}
+
+\begin{table}[htb]
+\centering\small
+\caption{Gli opcode principali usati da RV32IMAC (bit da 6 a 0).}\label{tab:rv:opcodes}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Opcode} & \textbf{Nome} & \textbf{Formato} & \textbf{Istruzioni}\\
+\midrule
+\texttt{0110111} & LUI & U & \ins{lui}\\
+\texttt{0010111} & AUIPC & U & \ins{auipc}\\
+\texttt{1101111} & JAL & J & \ins{jal}\\
+\texttt{1100111} & JALR & I & \ins{jalr}\\
+\texttt{1100011} & BRANCH & B & \ins{beq}, \ins{bne}, \ins{blt}, \ins{bge}, \ins{bltu}, \ins{bgeu}\\
+\texttt{0000011} & LOAD & I & \ins{lb}, \ins{lh}, \ins{lw}, \ins{lbu}, \ins{lhu}\\
+\texttt{0100011} & STORE & S & \ins{sb}, \ins{sh}, \ins{sw}\\
+\texttt{0010011} & OP-IMM & I & \ins{addi}, \ins{slti}, \ins{sltiu}, \ins{xori}, \ins{ori}, \ins{andi}, scorrimenti\\
+\texttt{0110011} & OP & R & operazioni registro-registro; l'estensione M\\
+\texttt{0001111} & MISC-MEM & I & \ins{fence}, \ins{fence.i}\\
+\texttt{1110011} & SYSTEM & I & \ins{ecall}, \ins{ebreak}, \ins{mret}, \ins{wfi}, istruzioni CSR\\
+\texttt{0101111} & AMO & R & l'estensione A\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{RV32I: l'insieme di istruzioni intero di base}
+
+La Tabella~\ref{tab:rv:rv32i} elenca le quaranta istruzioni di RV32I. I
+confronti con segno leggono i registri in complemento a due; «u» segna le
+forme senza segno.
+
+{\small
+\begin{longtable}{@{}lllp{0.34\textwidth}@{}}
+\caption{Le istruzioni di RV32I.}\label{tab:rv:rv32i}\\
+\toprule
+\textbf{Assembly} & \textbf{Fmt} & \textbf{opcode / f3 / f7} & \textbf{Effetto}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Assembly} & \textbf{Fmt} & \textbf{opcode / f3 / f7} & \textbf{Effetto}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\multicolumn{4}{@{}l}{\emph{Costanti e indirizzi}}\\
+\code{lui rd, imm} & U & \texttt{0110111} & $x[rd]=imm\ll 12$\\
+\code{auipc rd, imm} & U & \texttt{0010111} & $x[rd]=pc+(imm\ll 12)$\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Aritmetica e logica con un immediato}}\\
+\code{addi rd, rs1, imm} & I & \texttt{0010011 / 000} & $x[rd]=x[rs1]+\mathrm{sext}(imm)$\\
+\code{slti rd, rs1, imm} & I & \texttt{0010011 / 010} & $x[rd]=1$ se $x[rs1]<\mathrm{sext}(imm)$ (con segno), altrimenti 0\\
+\code{sltiu rd, rs1, imm} & I & \texttt{0010011 / 011} & lo stesso, confronto senza segno\\
+\code{xori rd, rs1, imm} & I & \texttt{0010011 / 100} & $x[rd]=x[rs1]\oplus\mathrm{sext}(imm)$\\
+\code{ori rd, rs1, imm} & I & \texttt{0010011 / 110} & $x[rd]=x[rs1]\mid\mathrm{sext}(imm)$\\
+\code{andi rd, rs1, imm} & I & \texttt{0010011 / 111} & $x[rd]=x[rs1]\ \&\ \mathrm{sext}(imm)$\\
+\code{slli rd, rs1, sh} & I & \texttt{0010011 / 001 / 0000000} & $x[rd]=x[rs1]\ll sh$, $0\le sh\le 31$\\
+\code{srli rd, rs1, sh} & I & \texttt{0010011 / 101 / 0000000} & scorrimento logico a destra: entrano zeri\\
+\code{srai rd, rs1, sh} & I & \texttt{0010011 / 101 / 0100000} & scorrimento aritmetico a destra: entra il bit di segno\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Aritmetica e logica tra registri}}\\
+\code{add rd, rs1, rs2} & R & \texttt{0110011 / 000 / 0000000} & $x[rd]=x[rs1]+x[rs2]$\\
+\code{sub rd, rs1, rs2} & R & \texttt{0110011 / 000 / 0100000} & $x[rd]=x[rs1]-x[rs2]$\\
+\code{sll rd, rs1, rs2} & R & \texttt{0110011 / 001 / 0000000} & scorrimento a sinistra di $x[rs2]\bmod 32$\\
+\code{slt rd, rs1, rs2} & R & \texttt{0110011 / 010 / 0000000} & $x[rd]=1$ se $x[rs1]<x[rs2]$ (con segno), altrimenti 0\\
+\code{sltu rd, rs1, rs2} & R & \texttt{0110011 / 011 / 0000000} & lo stesso, senza segno\\
+\code{xor rd, rs1, rs2} & R & \texttt{0110011 / 100 / 0000000} & or esclusivo bit a bit\\
+\code{srl rd, rs1, rs2} & R & \texttt{0110011 / 101 / 0000000} & scorrimento logico a destra di $x[rs2]\bmod 32$\\
+\code{sra rd, rs1, rs2} & R & \texttt{0110011 / 101 / 0100000} & scorrimento aritmetico a destra di $x[rs2]\bmod 32$\\
+\code{or rd, rs1, rs2} & R & \texttt{0110011 / 110 / 0000000} & or bit a bit\\
+\code{and rd, rs1, rs2} & R & \texttt{0110011 / 111 / 0000000} & and bit a bit\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Load e store}}\\
+\code{lb rd, imm(rs1)} & I & \texttt{0000011 / 000} & $x[rd]=\mathrm{sext}(M_{8}[x[rs1]+\mathrm{sext}(imm)])$\\
+\code{lh rd, imm(rs1)} & I & \texttt{0000011 / 001} & lo stesso, 16 bit, esteso in segno\\
+\code{lw rd, imm(rs1)} & I & \texttt{0000011 / 010} & lo stesso, 32 bit\\
+\code{lbu rd, imm(rs1)} & I & \texttt{0000011 / 100} & 8 bit, esteso con zeri\\
+\code{lhu rd, imm(rs1)} & I & \texttt{0000011 / 101} & 16 bit, esteso con zeri\\
+\code{sb rs2, imm(rs1)} & S & \texttt{0100011 / 000} & $M_{8}[x[rs1]+\mathrm{sext}(imm)]=x[rs2]_{7:0}$\\
+\code{sh rs2, imm(rs1)} & S & \texttt{0100011 / 001} & lo stesso, i 16 bit bassi\\
+\code{sw rs2, imm(rs1)} & S & \texttt{0100011 / 010} & lo stesso, 32 bit\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Salti condizionati} (la destinazione è $pc+\mathrm{sext}(imm)$)}\\
+\code{beq rs1, rs2, label} & B & \texttt{1100011 / 000} & salta se $x[rs1]=x[rs2]$\\
+\code{bne rs1, rs2, label} & B & \texttt{1100011 / 001} & salta se $x[rs1]\ne x[rs2]$\\
+\code{blt rs1, rs2, label} & B & \texttt{1100011 / 100} & salta se $x[rs1]<x[rs2]$, con segno\\
+\code{bge rs1, rs2, label} & B & \texttt{1100011 / 101} & salta se $x[rs1]\ge x[rs2]$, con segno\\
+\code{bltu rs1, rs2, label} & B & \texttt{1100011 / 110} & salta se $x[rs1]<x[rs2]$, senza segno\\
+\code{bgeu rs1, rs2, label} & B & \texttt{1100011 / 111} & salta se $x[rs1]\ge x[rs2]$, senza segno\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Salti}}\\
+\code{jal rd, label} & J & \texttt{1101111} & $x[rd]=pc+4$; $pc=pc+\mathrm{sext}(imm)$\\
+\code{jalr rd, imm(rs1)} & I & \texttt{1100111 / 000} & $t=pc+4$; $pc=(x[rs1]+\mathrm{sext}(imm))\ \&\ {\sim}1$; $x[rd]=t$\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Ordinamento della memoria e ambiente}}\\
+\code{fence} & I & \texttt{0001111 / 000} & ordina gli accessi alla memoria come visti da altri hart e dispositivi\\
+\code{ecall} & I & \texttt{1110011 / 000}, imm 0 & environment call: solleva un'eccezione (causa 8, 9 o 11)\\
+\code{ebreak} & I & \texttt{1110011 / 000}, imm 1 & breakpoint: solleva un'eccezione (causa 3)\\
+\end{longtable}}
+
+\paragraph{Osservazioni.}
+\begin{itemize}
+\item Non c'è un'istruzione per sottrarre un immediato: lo fa \code{addi} con
+  una costante negativa. Non c'è nemmeno una \ins{nop}: è
+  \code{addi x0, x0, 0}.
+\item Non ci sono flag. Overflow e riporto si calcolano con \ins{slt} e
+  \ins{sltu} quando servono (Capitolo~\ref{ch:integers}).
+\item Una costante di 32 bit si carica con \ins{lui} seguita da \ins{addi}.
+  Poiché \ins{addi} estende in segno il suo immediato, quando il bit 11 della
+  costante vale 1 la parte superiore va aumentata di uno: l'assemblatore lo fa
+  quando espande \ins{li}, e gli operatori di rilocazione \code{\%hi} e
+  \code{\%lo} lo fanno per gli indirizzi.
+\item Un'istruzione la cui codifica è tutta zeri o tutta uni è illegale per
+  definizione: un salto in una memoria cancellata o vuota viene colto subito.
+\item Con l'estensione C le istruzioni sono allineate a 2 byte; senza, a 4, e
+  un salto a un indirizzo non allineato solleva un'eccezione.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{L'estensione M: moltiplicazione e divisione}
+
+\begin{table}[htb]
+\centering\small
+\caption{L'estensione M: formato R, opcode \texttt{0110011}, funct7
+\texttt{0000001}.}\label{tab:rv:m}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct3} & \textbf{Effetto}\\
+\midrule
+\code{mul rd, rs1, rs2} & \texttt{000} & i 32 bit bassi del prodotto (gli stessi per operandi con e senza segno)\\
+\code{mulh rd, rs1, rs2} & \texttt{001} & i 32 bit alti del prodotto con segno $\times$ con segno\\
+\code{mulhsu rd, rs1, rs2} & \texttt{010} & i 32 bit alti del prodotto con segno $\times$ senza segno\\
+\code{mulhu rd, rs1, rs2} & \texttt{011} & i 32 bit alti del prodotto senza segno $\times$ senza segno\\
+\code{div rd, rs1, rs2} & \texttt{100} & quoziente con segno, arrotondato verso zero\\
+\code{divu rd, rs1, rs2} & \texttt{101} & quoziente senza segno\\
+\code{rem rd, rs1, rs2} & \texttt{110} & resto con segno; ha il segno del dividendo\\
+\code{remu rd, rs1, rs2} & \texttt{111} & resto senza segno\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La divisione non solleva mai un'eccezione. Una divisione per zero dà un
+quoziente di tutti uni ($-1$, o $2^{32}-1$ senza segno) e un resto uguale al
+dividendo. L'unico overflow con segno, $-2^{31}/-1$, dà il quoziente $-2^{31}$
+e il resto 0. Un programma che deve rilevare una divisione per zero esamina il
+divisore con un salto.
+
+% ----------------------------------------------------------------------------
+\section{L'estensione A: istruzioni atomiche}
+
+L'estensione A serve ai programmi in cui più thread di esecuzione condividono
+la memoria. Tutte le sue istruzioni hanno formato R, opcode \texttt{0101111}
+e, per le parole, funct3 \texttt{010}; i cinque bit più significativi
+selezionano l'operazione (Tabella~\ref{tab:rv:a}).
+
+\begin{table}[htb]
+\centering\small
+\caption{L'estensione A (RV32).}\label{tab:rv:a}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct5} & \textbf{Effetto}\\
+\midrule
+\code{lr.w rd, (rs1)} & \texttt{00010} & load riservato: $x[rd]=M[x[rs1]]$, e l'indirizzo è riservato\\
+\code{sc.w rd, rs2, (rs1)} & \texttt{00011} & store condizionato: memorizza $x[rs2]$ solo se la prenotazione vale ancora; $x[rd]=0$ in caso di successo, diverso da zero in caso di fallimento\\
+\code{amoswap.w rd, rs2, (rs1)} & \texttt{00001} & atomicamente: $x[rd]=M[x[rs1]]$; $M[x[rs1]]=x[rs2]$\\
+\code{amoadd.w rd, rs2, (rs1)} & \texttt{00000} & atomicamente: $x[rd]=M$; $M=M+x[rs2]$\\
+\code{amoxor.w}, \code{amoand.w}, \code{amoor.w} & \texttt{00100}, \texttt{01100}, \texttt{01000} & lo stesso con xor, and, or\\
+\code{amomin.w}, \code{amomax.w} & \texttt{10000}, \texttt{10100} & lo stesso con minimo, massimo con segno\\
+\code{amominu.w}, \code{amomaxu.w} & \texttt{11000}, \texttt{11100} & lo stesso con minimo, massimo senza segno\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{L'estensione C: istruzioni compresse}
+
+L'estensione C dà una codifica a 16 bit alle istruzioni più frequenti. Ogni
+istruzione compressa si espande esattamente in un'istruzione a 32 bit, così
+che l'estensione non aggiunge niente a ciò che il processore sa fare: rende i
+programmi più corti di circa un quarto. L'assemblatore sceglie da solo la
+forma corta ogni volta che gli operandi lo consentono; un disassemblatore la
+mostra con il prefisso \code{c.} (Tabella~\ref{tab:rv:c}). Un'istruzione a 16
+bit si riconosce dai suoi due bit meno significativi, che sono diversi da
+\texttt{11}.
+
+{\small
+\begin{longtable}{@{}lp{0.33\textwidth}p{0.36\textwidth}@{}}
+\caption{Le istruzioni compresse di RV32C (senza virgola mobile).}\label{tab:rv:c}\\
+\toprule
+\textbf{Compressa} & \textbf{Si espande in} & \textbf{Restrizioni}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Compressa} & \textbf{Si espande in} & \textbf{Restrizioni}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{c.addi4spn rd', n} & \code{addi rd', sp, n} & $n$ multiplo di 4 diverso da zero, fino a 1020\\
+\code{c.lw rd', n(rs1')} & \code{lw rd', n(rs1')} & $n$ multiplo di 4, fino a 124\\
+\code{c.sw rs2', n(rs1')} & \code{sw rs2', n(rs1')} & come sopra\\
+\code{c.nop} & \code{addi x0, x0, 0} & \\
+\code{c.addi rd, n} & \code{addi rd, rd, n} & $-32\le n\le 31$, $n\ne 0$\\
+\code{c.jal label} & \code{jal ra, label} & solo RV32; $\pm 2$ KiB\\
+\code{c.li rd, n} & \code{addi rd, x0, n} & $-32\le n\le 31$\\
+\code{c.addi16sp n} & \code{addi sp, sp, n} & $n$ multiplo di 16 diverso da zero, $-512\ldots 496$\\
+\code{c.lui rd, n} & \code{lui rd, n} & $rd\ne$ \reg{x0}, \reg{x2}; $n\ne 0$\\
+\code{c.srli rd', sh} & \code{srli rd', rd', sh} & \\
+\code{c.srai rd', sh} & \code{srai rd', rd', sh} & \\
+\code{c.andi rd', n} & \code{andi rd', rd', n} & $-32\le n\le 31$\\
+\code{c.sub rd', rs2'} & \code{sub rd', rd', rs2'} & \\
+\code{c.xor}, \code{c.or}, \code{c.and} & \code{xor}, \code{or}, \code{and} \code{rd', rd', rs2'} & \\
+\code{c.j label} & \code{jal x0, label} & $\pm 2$ KiB\\
+\code{c.beqz rs1', label} & \code{beq rs1', x0, label} & $\pm 256$ byte\\
+\code{c.bnez rs1', label} & \code{bne rs1', x0, label} & $\pm 256$ byte\\
+\code{c.slli rd, sh} & \code{slli rd, rd, sh} & \\
+\code{c.lwsp rd, n(sp)} & \code{lw rd, n(sp)} & $n$ multiplo di 4, fino a 252\\
+\code{c.swsp rs2, n(sp)} & \code{sw rs2, n(sp)} & come sopra\\
+\code{c.jr rs1} & \code{jalr x0, 0(rs1)} & $rs1\ne$ \reg{x0}; \code{c.jr ra} è \ins{ret}\\
+\code{c.jalr rs1} & \code{jalr ra, 0(rs1)} & \\
+\code{c.mv rd, rs2} & \code{add rd, x0, rs2} & \\
+\code{c.add rd, rs2} & \code{add rd, rd, rs2} & \\
+\code{c.ebreak} & \code{ebreak} & \\
+\end{longtable}}
+
+I registri scritti \code{rd'}, \code{rs1'}, \code{rs2'} sono nominati da 3 bit
+e possono essere solo \reg{x8}--\reg{x15}. Questo spiega ciò che mostra il
+debugger di \prgqt: una \code{addi t3, t3, 1} diventa \code{c.addi t3, 1}, una
+\ins{ret} diventa \code{c.jr ra}, e il salvataggio di \reg{ra} a
+\code{12(sp)} diventa \code{c.swsp ra, 12(sp)}.
+
+% ----------------------------------------------------------------------------
+\section{Pseudoistruzioni}
+
+L'assemblatore accetta un certo numero di mnemonici che non sono istruzioni e
+li espande (Tabella~\ref{tab:rv:pseudo}).
+
+{\small
+\begin{longtable}{@{}lp{0.37\textwidth}p{0.3\textwidth}@{}}
+\caption{Le pseudoistruzioni dell'assemblatore \riscv.}\label{tab:rv:pseudo}\\
+\toprule
+\textbf{Pseudoistruzione} & \textbf{Espansione} & \textbf{Significato}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Pseudoistruzione} & \textbf{Espansione} & \textbf{Significato}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\code{nop} & \code{addi x0, x0, 0} & nessuna operazione\\
+\code{li rd, imm} & \code{addi rd, x0, imm}, oppure \code{lui} + \code{addi} & carica una costante\\
+\code{la rd, symbol} & \code{auipc rd, hi} + \code{addi rd, rd, lo} & carica un indirizzo, relativo al PC\\
+\code{lw rd, symbol} & \code{auipc rd, hi} + \code{lw rd, lo(rd)} & carica una variabile globale\\
+\code{sw rs, symbol, rt} & \code{auipc rt, hi} + \code{sw rs, lo(rt)} & memorizza una variabile globale, attraverso \code{rt}\\
+\code{mv rd, rs} & \code{addi rd, rs, 0} & copia un registro\\
+\code{not rd, rs} & \code{xori rd, rs, -1} & complemento bit a bit\\
+\code{neg rd, rs} & \code{sub rd, x0, rs} & complemento a due\\
+\code{seqz rd, rs} & \code{sltiu rd, rs, 1} & pone a 1 se zero\\
+\code{snez rd, rs} & \code{sltu rd, x0, rs} & pone a 1 se diverso da zero\\
+\code{sltz rd, rs} & \code{slt rd, rs, x0} & pone a 1 se negativo\\
+\code{sgtz rd, rs} & \code{slt rd, x0, rs} & pone a 1 se positivo\\
+\code{beqz rs, label} & \code{beq rs, x0, label} & salta se zero\\
+\code{bnez rs, label} & \code{bne rs, x0, label} & salta se diverso da zero\\
+\code{blez rs, label} & \code{bge x0, rs, label} & salta se $\le 0$\\
+\code{bgez rs, label} & \code{bge rs, x0, label} & salta se $\ge 0$\\
+\code{bltz rs, label} & \code{blt rs, x0, label} & salta se $<0$\\
+\code{bgtz rs, label} & \code{blt x0, rs, label} & salta se $>0$\\
+\code{bgt rs, rt, label} & \code{blt rt, rs, label} & salta se maggiore, con segno\\
+\code{ble rs, rt, label} & \code{bge rt, rs, label} & salta se minore o uguale, con segno\\
+\code{bgtu rs, rt, label} & \code{bltu rt, rs, label} & salta se maggiore, senza segno\\
+\code{bleu rs, rt, label} & \code{bgeu rt, rs, label} & salta se minore o uguale, senza segno\\
+\code{j label} & \code{jal x0, label} & salto incondizionato\\
+\code{jal label} & \code{jal ra, label} & salta e collega\\
+\code{jr rs} & \code{jalr x0, 0(rs)} & salta a un registro\\
+\code{jalr rs} & \code{jalr ra, 0(rs)} & chiamata attraverso un registro\\
+\code{ret} & \code{jalr x0, 0(ra)} & ritorno da una funzione\\
+\code{call symbol} & \code{auipc ra, hi} + \code{jalr ra, lo(ra)} & chiama una funzione (il linker può accorciarla in \code{jal})\\
+\code{tail symbol} & \code{auipc t1, hi} + \code{jalr x0, lo(t1)} & salta a una funzione senza collegare\\
+\code{csrr rd, csr} & \code{csrrs rd, csr, x0} & legge un CSR\\
+\code{csrw csr, rs} & \code{csrrw x0, csr, rs} & scrive un CSR\\
+\code{csrs csr, rs} & \code{csrrs x0, csr, rs} & pone a 1 dei bit in un CSR\\
+\code{csrc csr, rs} & \code{csrrc x0, csr, rs} & azzera dei bit in un CSR\\
+\code{csrwi}, \code{csrsi}, \code{csrci} & \code{csrrwi}, \code{csrrsi}, \code{csrrci} con \code{rd} = \code{x0} & lo stesso con un immediato di 5 bit\\
+\end{longtable}}
+
+% ----------------------------------------------------------------------------
+\section{L'assemblatore: direttive, etichette ed espressioni}
+
+L'assemblatore del corso è l'assemblatore GNU della toolchain \riscv di
+ESP-IDF. Un file sorgente ha l'estensione \fname{.S}, il che significa che
+passa prima attraverso il preprocessore C: \code{\#include} e \code{\#define}
+sono disponibili, e un \code{\#} comincia un commento solo quando non può
+essere una direttiva del preprocessore. I commenti si possono scrivere anche
+come in C, tra \code{/*} e \code{*/}.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le direttive usate in questo libro.}\label{tab:rv:directives}
+\begin{tabularx}{\textwidth}{@{}P{0.33\textwidth}L@{}}
+\toprule
+\textbf{Direttiva} & \textbf{Effetto}\\
+\midrule
+\code{.section .text} (o \code{.text}) & ciò che segue è codice eseguibile\\
+\code{.section .rodata} & dati di sola lettura: stringhe, tabelle\\
+\code{.section .data} (o \code{.data}) & variabili inizializzate\\
+\code{.section .bss} (o \code{.bss}) & variabili inizializzate a zero, che non occupano spazio nel file\\
+\code{.global name} (o \code{.globl}) & rende l'etichetta visibile fuori dal file\\
+\code{.equ NAME, value} (o \code{.set}) & dà un nome a una costante; non si usa memoria\\
+\code{.byte}, \code{.half}, \code{.word} & memorizzano valori di 8, 16, 32 bit, separati da virgole\\
+\code{.ascii "text"} & memorizza i caratteri di una stringa\\
+\code{.asciz "text"} (o \code{.string}) & lo stesso, seguiti da un byte a zero\\
+\code{.space n} (o \code{.zero n}) & riserva $n$ byte posti a zero\\
+\code{.balign n} & avanza al successivo multiplo di $n$ byte\\
+\code{.align n}, \code{.p2align n} & avanza al successivo multiplo di $2^{n}$ byte\\
+\code{.option norelax} & vieta al linker di accorciare le sequenze (usata in ogni cartuccia \prg)\\
+\code{.option push}, \code{.option pop} & salvano e ripristinano le opzioni\\
+\code{.option rvc}, \code{.option norvc} & consentono o vietano le istruzioni compresse\\
+\code{.macro name args} \ldots\ \code{.endm} & definiscono una macro\\
+\code{.include "file"} & inserisce un altro file sorgente\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Etichette.} Un nome seguito da due punti è un'etichetta e sta per
+l'indirizzo di ciò che segue. Un'etichetta fatta di un solo numero è
+\emph{locale} e può essere definita molte volte: \code{1b} si riferisce
+all'etichetta \code{1:} più vicina \emph{all'indietro} (\emph{backwards}), e
+\code{1f} a quella più vicina \emph{in avanti} (\emph{forwards}).
+
+\paragraph{Espressioni.} Dovunque sia attesa una costante si può scrivere
+un'espressione, con gli operatori del C, che viene calcolata dall'assemblatore:
+\code{COLS*ROWS}, \code{grid+12*COLS}, \code{\textasciitilde 0x10},
+\code{1 << 4}. I numeri sono decimali, esadecimali (\code{0x}), binari
+(\code{0b}) o caratteri (\code{'A'}).
+
+\paragraph{Operatori di rilocazione.} \code{\%hi(sym)} e \code{\%lo(sym)}
+danno i 20 bit superiori e i 12 inferiori di un indirizzo assoluto, già
+corretti per l'estensione in segno della parte inferiore;
+\code{\%pcrel\_hi(sym)} e \code{\%pcrel\_lo(label)} fanno lo stesso per un
+indirizzo relativo al PC, e sono ciò che usano \ins{la} e \ins{call}.
+
+% ----------------------------------------------------------------------------
+\section{La convenzione di chiamata}
+
+La convenzione di chiamata standard per RV32 senza virgola mobile (la ABI
+chiamata ILP32) è la seguente \citep{riscvabi}.
+
+\begin{enumerate}
+\item \textbf{Argomenti.} I primi otto argomenti di una funzione viaggiano in
+  \reg{a0}--\reg{a7}, in ordine; gli argomenti ulteriori vanno sullo stack. Un
+  valore di 64 bit occupa due registri, la parola bassa per prima.
+\item \textbf{Risultati.} Il risultato torna in \reg{a0} (e \reg{a1} per 64
+  bit).
+\item \textbf{Registri salvati dal chiamante.} \reg{ra}, \reg{t0}--\reg{t6} e
+  \reg{a0}--\reg{a7} possono essere distrutti da qualsiasi chiamata. Un
+  chiamante a cui servono i loro valori dopo la chiamata li salva da sé.
+\item \textbf{Registri salvati dal chiamato.} \reg{sp} e \reg{s0}--\reg{s11}
+  devono avere, al ritorno, il valore che avevano alla chiamata. Una funzione
+  che li usa li salva all'ingresso e li ripristina all'uscita.
+\item \textbf{Lo stack.} Cresce verso gli indirizzi bassi; \reg{sp} punta
+  all'ultima parola occupata ed è multiplo di 16 a ogni chiamata. Una funzione
+  può usare la memoria sotto \reg{sp} solo dopo aver abbassato \reg{sp}.
+\item \textbf{\reg{gp} e \reg{tp}} non vanno modificati dal codice ordinario.
+\end{enumerate}
+
+Il Listato~\ref{lst:rv:frame} è lo schema di una funzione che chiama altre
+funzioni e usa due registri salvati; a una funzione \emph{foglia} che usa solo
+registri \reg{t} e \reg{a} non serve niente di tutto questo.
+
+\begin{asm}[caption={Il frame di una funzione non foglia.},label=lst:rv:frame]
+my_function:
+    addi sp, sp, -16        # prologue: a frame of 16 bytes
+    sw   ra, 12(sp)         # the return address
+    sw   s0, 8(sp)          # the saved registers that will be used
+    sw   s1, 4(sp)
+
+    mv   s0, a0             # values that must survive the calls
+    call other_function     # may destroy ra, t0-t6, a0-a7
+    add  a0, a0, s0         # the result goes in a0
+
+    lw   ra, 12(sp)         # epilogue, in reverse order
+    lw   s0, 8(sp)
+    lw   s1, 4(sp)
+    addi sp, sp, 16
+    ret
+\end{asm}
+
+Su \prg i tre punti di ingresso di una cartuccia sono funzioni ordinarie che
+seguono questa convenzione, e così tutte le funzioni del runtime
+(Appendice~\ref{app:prg32}).
+
+% ----------------------------------------------------------------------------
+\section{Privilegio, registri di controllo e stato, trap}
+
+\subsection{Modi di privilegio}
+
+\begin{table}[htb]
+\centering\small
+\caption{I modi di privilegio.}\label{tab:rv:modes}
+\begin{tabular}{@{}cllc@{}}
+\toprule
+\textbf{Livello} & \textbf{Nome} & \textbf{Esegue} & \textbf{ESP32-C6}\\
+\midrule
+0 & utente (U) & le applicazioni & sì\\
+1 & supervisore (S) & il kernel di un sistema operativo & no\\
+3 & macchina (M) & il firmware; l'unico modo obbligatorio & sì\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Le istruzioni CSR (Zicsr)}
+
+I registri di controllo e stato formano uno spazio di indirizzi separato di 12
+bit, 4\,096 registri. Sono letti e scritti in modo atomico da sei istruzioni
+di formato I, opcode \texttt{1110011}, il cui campo immediato è l'indirizzo
+del CSR (Tabella~\ref{tab:rv:csrins}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Le istruzioni CSR.}\label{tab:rv:csrins}
+\begin{tabularx}{\textwidth}{@{}lcL@{}}
+\toprule
+\textbf{Assembly} & \textbf{funct3} & \textbf{Effetto}\\
+\midrule
+\code{csrrw rd, csr, rs1} & \texttt{001} & $t=\mathit{CSR}$; $\mathit{CSR}=x[rs1]$; $x[rd]=t$\\
+\code{csrrs rd, csr, rs1} & \texttt{010} & $t=\mathit{CSR}$; $\mathit{CSR}=t\mid x[rs1]$; $x[rd]=t$ (pone a 1 dei bit)\\
+\code{csrrc rd, csr, rs1} & \texttt{011} & $t=\mathit{CSR}$; $\mathit{CSR}=t\ \&\ {\sim}x[rs1]$; $x[rd]=t$ (azzera dei bit)\\
+\code{csrrwi rd, csr, uimm} & \texttt{101} & come \ins{csrrw}, con un immediato senza segno di 5 bit\\
+\code{csrrsi rd, csr, uimm} & \texttt{110} & come \ins{csrrs}, con l'immediato\\
+\code{csrrci rd, csr, uimm} & \texttt{111} & come \ins{csrrc}, con l'immediato\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{I registri del modo macchina}
+
+\begin{table}[htb]
+\centering\small
+\caption{I principali CSR del modo macchina.}\label{tab:rv:csr}
+\begin{tabularx}{\textwidth}{@{}llL@{}}
+\toprule
+\textbf{Indirizzo} & \textbf{Nome} & \textbf{Contenuto}\\
+\midrule
+\hex{300} & \reg{mstatus} & stato: MIE (bit 3), abilitazione globale delle interruzioni; MPIE (bit 7), il suo valore prima della trap; MPP (bit 12--11), il modo prima della trap\\
+\hex{301} & \reg{misa} & la base e le estensioni realizzate\\
+\hex{304} & \reg{mie} & abilitazioni delle interruzioni: MSIE (bit 3), MTIE (bit 7), MEIE (bit 11)\\
+\hex{305} & \reg{mtvec} & vettore delle trap: indirizzo base (bit 31--2) e modo (bit 1--0): 0 diretto, 1 vettorizzato\\
+\hex{340} & \reg{mscratch} & una parola a uso del gestore delle trap\\
+\hex{341} & \reg{mepc} & l'indirizzo dell'istruzione che è stata interrotta, o che ha causato l'eccezione\\
+\hex{342} & \reg{mcause} & bit 31: 1 per un'interruzione, 0 per un'eccezione; gli altri bit: il codice della causa\\
+\hex{343} & \reg{mtval} & informazione aggiuntiva: l'indirizzo che ha causato l'errore, o l'istruzione illegale\\
+\hex{344} & \reg{mip} & interruzioni in attesa: MSIP (bit 3), MTIP (bit 7), MEIP (bit 11)\\
+\hex{B00}, \hex{B02} & \reg{mcycle}, \reg{minstret} & contatori dei cicli di clock e delle istruzioni completate (i 32 bit bassi)\\
+\hex{F11}--\hex{F14} & \reg{mvendorid}, \reg{marchid}, \reg{mimpid}, \reg{mhartid} & identificazione del costruttore, dell'architettura, dell'implementazione e del thread hardware\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ingresso in una trap e ritorno}
+
+Quando una trap viene accolta nel modo macchina l'hardware compie, in un solo
+passo, le azioni seguenti.
+\begin{enumerate}[nosep]
+\item $\reg{mepc}=$ l'indirizzo dell'istruzione interrotta (per
+  un'interruzione) o dell'istruzione che ha causato l'eccezione.
+\item $\reg{mcause}=$ la causa; $\reg{mtval}=$ l'informazione aggiuntiva.
+\item In \reg{mstatus}: $\mathrm{MPIE}=\mathrm{MIE}$; $\mathrm{MIE}=0$;
+  $\mathrm{MPP}=$ il modo corrente.
+\item Il modo diventa M.
+\item $pc=\mathit{base}$ di \reg{mtvec}; oppure, nel modo vettorizzato e per
+  un'interruzione, $pc=\mathit{base}+4\times\mathit{causa}$.
+\end{enumerate}
+L'istruzione \ins{mret} (codifica \hex{30200073}) ritorna: il modo diventa
+quello in MPP, $\mathrm{MIE}=\mathrm{MPIE}$, $\mathrm{MPIE}=1$, e
+$pc=\reg{mepc}$. L'istruzione \ins{wfi} (\hex{10500073}), \emph{wait for
+interrupt}, permette al processore di fermarsi finché un'interruzione è in
+attesa.
+
+Un'interruzione del modo macchina viene accolta quando il suo bit è a 1 sia in
+\reg{mip} sia in \reg{mie} e, se il processore è nel modo macchina, MIE vale
+1. Dopo un'eccezione, un gestore che vuole riprendere \emph{dopo} l'istruzione
+che l'ha causata (per esempio dopo una \ins{ecall}) deve sommare 4, o 2 per
+un'istruzione compressa, a \reg{mepc}.
+
+\begin{table}[htb]
+\centering\small
+\caption{I valori standard di \reg{mcause}.}\label{tab:rv:mcause}
+\begin{tabular}{@{}clcl@{}}
+\toprule
+\multicolumn{2}{c}{\textbf{Interruzioni} (bit 31 = 1)} & \multicolumn{2}{c}{\textbf{Eccezioni} (bit 31 = 0)}\\
+\cmidrule(r){1-2}\cmidrule(l){3-4}
+\textbf{Codice} & \textbf{Causa} & \textbf{Codice} & \textbf{Causa}\\
+\midrule
+1 & interruzione software di supervisore & 0 & indirizzo di istruzione non allineato\\
+3 & interruzione software di macchina & 1 & errore di accesso a un'istruzione\\
+5 & interruzione del timer di supervisore & 2 & istruzione illegale\\
+7 & interruzione del timer di macchina & 3 & breakpoint\\
+9 & interruzione esterna di supervisore & 4 & indirizzo di load non allineato\\
+11 & interruzione esterna di macchina & 5 & errore di accesso in load\\
+$\ge 16$ & definite dalla piattaforma & 6 & indirizzo di store non allineato\\
+ & & 7 & errore di accesso in store\\
+ & & 8 & environment call dal modo U\\
+ & & 9 & environment call dal modo S\\
+ & & 11 & environment call dal modo M\\
+ & & 12 & page fault su un'istruzione\\
+ & & 13 & page fault in load\\
+ & & 15 & page fault in store\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Codificare e decodificare a mano}
+
+\paragraph{Per decodificare} una parola di 32 bit: scrivetela in binario;
+leggete i bit 6--0 e trovate il formato nella Tabella~\ref{tab:rv:opcodes};
+tagliate i campi come nella Figura~\ref{fig:rv:formats}; trovate l'istruzione
+con \code{funct3} (e \code{funct7}) nella Tabella~\ref{tab:rv:rv32i}
+o~\ref{tab:rv:m}; ricostruite l'immediato ed estendetelo in segno; traducete i
+numeri dei registri con la Tabella~\ref{tab:rv:regs}.
+
+\paragraph{Per codificare,} si procede nel verso opposto. Per esempio
+\code{sw a0, 8(sp)} è uno store di formato S con $\code{rs2}=\reg{a0}=10$,
+$\code{rs1}=\reg{sp}=2$, $\code{funct3}=010$ e l'immediato
+$8=0000000\,01000_2$:
+\[
+\underbrace{\texttt{0000000}}_{imm[11:5]}\;\underbrace{\texttt{01010}}_{rs2}\;
+\underbrace{\texttt{00010}}_{rs1}\;\underbrace{\texttt{010}}_{funct3}\;
+\underbrace{\texttt{01000}}_{imm[4:0]}\;\underbrace{\texttt{0100011}}_{opcode}
+\;=\;\hex{00A12423}.
+\]
+La Tabella~\ref{tab:rv:examples} raccoglie le codifiche incontrate nel libro.
+
+\begin{table}[htb]
+\centering\small
+\caption{Codifiche incontrate nel libro (forme non compresse).}\label{tab:rv:examples}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Istruzione} & \textbf{Codifica} & \textbf{Istruzione} & \textbf{Codifica}\\
+\midrule
+\code{addi t1, t1, 1} & \hex{00130313} & \code{sub t0, t1, t2} & \hex{407302B3}\\
+\code{lw t1, 0(t0)} & \hex{0002A303} & \code{sub t1, t0, t1} & \hex{40628333}\\
+\code{sw t1, 0(t0)} & \hex{0062A023} & \code{addi t0, t0, 10} & \hex{00A28293}\\
+\code{add t2, t0, t1} & \hex{006283B3} & \code{sw a0, 8(sp)} & \hex{00A12423}\\
+\code{ret} & \hex{00008067} & \code{nop} & \hex{00000013}\\
+\code{ecall} & \hex{00000073} & \code{ebreak} & \hex{00100073}\\
+\code{mret} & \hex{30200073} & \code{wfi} & \hex{10500073}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Idiomi}
+
+La Tabella~\ref{tab:rv:idioms} raccoglie le brevi sequenze che ricorrono nei
+programmi di questo libro.
+
+\begin{table}[htb]
+\centering\small
+\caption{Idiomi comuni.}\label{tab:rv:idioms}
+\begin{tabularx}{\textwidth}{@{}LP{0.47\textwidth}@{}}
+\toprule
+\textbf{Scopo} & \textbf{Codice}\\
+\midrule
+esaminare il bit $n$ di \reg{t0} & \code{srli t1, t0, n} ; \code{andi t1, t1, 1}\\
+porre a 1, azzerare, invertire dei bit con una maschera $m$ & \code{ori t0, t0, m} ; \code{andi t0, t0, \textasciitilde m} ; \code{xori t0, t0, m}\\
+moltiplicare per $2^{k}$; divisione senza e con segno per $2^{k}$ & \code{slli} ; \code{srli} ; \code{srai} (che arrotonda verso $-\infty$)\\
+elemento $i$ di un array di parole a \reg{t0} & \code{slli t1, t1, 2} ; \code{add t0, t0, t1} ; \code{lw a0, 0(t0)}\\
+\reg{a0} e \reg{a1} sono uguali? (1 o 0) & \code{xor a0, a0, a1} ; \code{seqz a0, a0}\\
+limitare \reg{t2} a $[0, max]$ & \code{bgez t2, 1f} ; \code{li t2, 0} ; \code{1: ble t2, t3, 2f} ; \code{mv t2, t3} ; \code{2:}\\
+indice modulo una potenza di due $n$ & \code{andi t0, t0, n-1}\\
+overflow senza segno di \code{add t2, t0, t1} & \code{sltu t3, t2, t0}\\
+fronte di un segnale: ora e non prima & \code{not t1, t1} ; \code{and s1, s0, t1}\\
+virgola fissa Q24.8: a intero; prodotto & \code{srai a0, t1, 8} ; \code{mul} poi \code{srai \ldots, 8}\\
+da cifra decimale a carattere ASCII & \code{addi t0, t0, 48}\\
+un ciclo contato & \code{li t1, n} ; \code{1: \ldots} ; \code{addi t1, t1, -1} ; \code{bnez t1, 1b}\\
+\bottomrule
+\end{tabularx}
+\end{table}

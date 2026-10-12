@@ -1,0 +1,434 @@
+% ============================================================================
+%  Capitolo 20 -- I bus e la scheda video                        (Lezione 20)
+% ============================================================================
+\chapter{I bus e la scheda video}
+\label{ch:video}
+
+\epigraphline{\ldots niente è più serio del gioco\ldots}
+  {attribuita a Jean Cocteau (1889--1963)}
+
+\begin{chapgoals}
+Alla fine di questo capitolo saprete
+\begin{itemize}
+\item spiegare che cos'è il controller di una periferica e perché i dispositivi hanno bisogno di sincronizzarsi con il processore;
+\item caratterizzare un bus per larghezza, velocità e velocità di trasferimento, ed elencarne vantaggi e limiti;
+\item descrivere il compito di una scheda video: frame buffer, risoluzione, profondità di colore, interfaccia di uscita;
+\item calcolare la memoria che serve a un frame e il tempo necessario per inviarlo su un bus;
+\item spiegare che cosa fa una GPU e che cos'è il calcolo di uso generale sulle GPU.
+\end{itemize}
+\end{chapgoals}
+
+% ----------------------------------------------------------------------------
+\section{Riscaldamento sulla macchina}
+
+\asmfile[caption={Un pixel, per favore: la chiamata, e che cosa fa in linea di principio il runtime.},label=lst:vid:pixel]{code/l20/s04.S}
+
+Le prime quattro righe del Listato~\ref{lst:vid:pixel} disegnano un pixel
+rosso. Il resto è uno schizzo di ciò che succede dietro la chiamata (è uno
+schizzo del principio, non il sorgente del runtime: \reg{t3} sta per l'indice
+di palette che il runtime ricava dal colore in \reg{a2}).
+
+\begin{prgconcept}
+Lo schermo è un array in memoria, con un elemento per pixel: il \term{frame
+buffer}. Disegnare un pixel è un'istruzione di store all'indirizzo
+$\mathit{base}+y\times 320+x$.
+\end{prgconcept}
+
+Non compare niente finché il frame non viene inviato al display, cosa che fa
+la funzione \code{prg32\_gfx\_present}. Su un personal computer questi due
+compiti, tenere il frame e inviarlo al monitor, appartengono alla scheda
+video. Il kit non ha una scheda video: il suo processore fa tutto, il che
+rende visibile ogni passo. Il capitolo segue il pixel dal frame buffer al
+display, e poi generalizza.
+
+% ----------------------------------------------------------------------------
+\section{Periferiche e controller}
+
+\subsection{Dispositivi di ingresso/uscita}
+
+Le \term{periferiche} servono all'interazione tra l'utente e il sistema. Hanno
+un'autonomia limitata: sono controllate e coordinate dal processore. E
+lavorano in modo asincrono rispetto a esso, così che servono meccanismi di
+sincronizzazione: per sapere quando sarà disponibile un dato di ingresso, e
+per sapere quando un dispositivo di uscita ha finito di produrre i suoi dati.
+Il terminale, lo strumento di interazione più comune, è fatto di due
+dispositivi indipendenti, la tastiera e il video; non sono collegati
+direttamente, ed è il processore che riproduce sul video ciò che arriva dalla
+tastiera (Capitolo~\ref{ch:io}).
+
+\subsection{Controller}
+
+\begin{definition}{Controller}
+Un \term{controller} è l'unità che interfaccia una periferica al bus: riceve i
+comandi dal processore, pilota il dispositivo, e contiene i registri
+attraverso i quali si scambiano dati e stato.
+\end{definition}
+
+Le periferiche sono interfacciate al processore attraverso controller dedicati
+(Figura~\ref{fig:vid:ctrl}). Sull'ESP32-C6 i controller (SPI, I2S, GPIO, USB)
+sono sullo stesso chip del processore, e i loro registri sono mappati in
+memoria (Capitolo~\ref{ch:memory}).
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}
+  \node[blkacc,minimum width=24mm,minimum height=9mm] (p) at (0,0) {processore};
+  \node[blkvio,minimum width=24mm,minimum height=9mm] (m) at (3.2,0) {memoria};
+  \draw[prgamber,line width=3pt] (-1.6,-1.5) -- (8.6,-1.5) node[pos=0.86,above,lbl,text=prgamber]{dati, indirizzi, controllo};
+  \draw[<->,bus] (p) -- (0,-1.5); \draw[<->,bus] (m) -- (3.2,-1.5);
+  \foreach \i/\c/\d in {0/{controller\\video}/monitor,1/{controller\\USB}/{tastiera,\\mouse},2/{controller\\dei dischi}/dischi}{
+    \node[blk,fill=prgsteel,text=white,minimum width=22mm,minimum height=10mm] (c\i) at (\i*3.2+0.6,-3.0) {\c};
+    \node[blkgrn,minimum width=22mm,minimum height=9mm] (d\i) at (\i*3.2+0.6,-4.6) {\d};
+    \draw[<->,bus] (c\i.north) -- (\i*3.2+0.6,-1.5);
+    \draw[<->,thick] (c\i) -- (d\i);
+  }
+\end{tikzpicture}
+\caption{Le periferiche raggiungono il bus attraverso i loro controller.}
+\label{fig:vid:ctrl}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{I bus}
+
+\subsection{Che cosa caratterizza un bus}
+
+Un bus (Capitolo~\ref{ch:registers}) è un canale di comunicazione condiviso da
+più unità, e le sue caratteristiche influenzano in modo decisivo le
+prestazioni dell'intero sistema. Lo descrivono tre numeri.
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+\item[Larghezza.] Il numero di bit del bus dati.
+\item[Velocità.] La frequenza di lavoro del bus; con la larghezza, dà il
+  numero di byte per ciclo di clock.
+\item[Velocità di trasferimento.] I megabyte trasmessi al secondo: larghezza
+  per frequenza.
+\end{description}
+
+Un bus di 32 bit a 66~MHz, il bus PCI, trasporta
+$4\ \text{byte}\times 66\cdot 10^{6} = 264$~MB/s. Un bus è anche uno
+\emph{standard}: segnali, connettori e un protocollo su cui tutte le unità
+concordano. L'\term{interfaccia} è il modulo hardware che codifica i dati
+elettricamente o otticamente; il \term{protocollo} è la descrizione di più
+alto livello di come si svolge il dialogo.
+
+\subsection{Vantaggi e svantaggi}
+
+Con un bus si possono aggiungere facilmente nuovi dispositivi; le periferiche
+possono essere spostate da un calcolatore a un altro che usa lo stesso bus; un
+solo insieme di fili collega più periferiche; e il costo per byte trasmesso è
+basso. D'altra parte la larghezza di banda del bus limita la velocità di
+trasferimento; la velocità massima dipende dalla lunghezza del bus e dal
+numero di dispositivi a esso collegati; e il bus è una risorsa condivisa, su
+cui può avvenire un solo trasferimento alla volta.
+
+\subsection{I bus negli anni}
+
+\begin{table}[htb]
+\centering\small
+\caption{I bus negli anni.}\label{tab:vid:buses}
+\begin{tabularx}{\textwidth}{@{}lP{0.23\textwidth}LL@{}}
+\toprule
+\textbf{Bus} & \textbf{Tipo} & \textbf{Usato per} & \textbf{Oggi}\\
+\midrule
+ISA, EISA, VESA & parallelo, da 16 a 32 bit & schede di espansione dei primi PC & in disuso\\
+PCI & parallelo, 32 o 64 bit & schede di espansione & sostituito da PCI Express\\
+AGP & parallelo, porta dedicata & la sola scheda video & sostituito da PCI Express\\
+PCI Express & seriale, da 1 a 16 linee (lane) & schede video, memoria di massa veloce & attuale: ogni generazione raddoppia la velocità\\
+IDE (ATA), SCSI & parallelo & dischi & sostituiti da Serial ATA e NVMe\\
+USB & seriale & quasi ogni dispositivo esterno & attuale: da 12 Mbit/s a decine di Gbit/s\\
+SPI, I2C, I2S & seriale, pochi fili & chip sulla stessa scheda & attuali: i bus del kit \prg\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La storia della Tabella~\ref{tab:vid:buses} è il passaggio dal parallelo al
+seriale spiegato nel Capitolo~\ref{ch:registers}. (Le sigle: ISA,
+\emph{industry standard architecture}; PCI, \emph{peripheral component
+interconnect}; AGP, \emph{accelerated graphics port}; IDE, \emph{integrated
+device electronics}; SCSI, \emph{small computer system interface}; USB,
+\emph{universal serial bus}.)
+
+% ----------------------------------------------------------------------------
+\section{La scheda video}
+
+\subsection{Che cosa fa una scheda video}
+
+La funzione di una \term{scheda video} è inviare al monitor l'informazione da
+visualizzare. Traduce la rappresentazione dell'immagine prodotta dal
+processore in un formato che il monitor può mostrare. Contiene una memoria
+propria, la \term{memoria video}, che contiene il frame: il frame buffer. Ogni
+volta che lo schermo va ridisegnato, legge la rappresentazione digitale
+dell'immagine e invia al monitor il segnale per il colore di ogni pixel. E ha
+una propria capacità di elaborazione. Su \prg la «scheda video» è una regione
+di RAM più la periferica SPI: nessun hardware separato.
+
+\subsection{Monitor analogici e digitali}
+
+Per un monitor CRT, che ha un ingresso analogico, la scheda converte
+l'immagine digitale in segnali analogici; la conversione è fatta da un
+componente chiamato RAMDAC (\emph{random access memory digital-analog
+converter}). L'uscita VGA del 1987 fu progettata per i tubi a raggi catodici,
+e soffre di rumore elettrico, distorsione ed errori nel posizionamento dei
+pixel. Per un monitor LCD, che ha un ingresso digitale, la scheda adatta i
+colori e la risoluzione dell'immagine, fornisce memoria locale da usare come
+buffer e supporta l'accelerazione grafica, per esempio in tre dimensioni; con
+DVI ogni pixel dell'uscita corrisponde a un pixel dello schermo, alla sua
+risoluzione nativa.
+
+\begin{table}[htb]
+\centering\small
+\caption{Uscite video.}\label{tab:vid:outputs}
+\begin{tabularx}{\textwidth}{@{}lllL@{}}
+\toprule
+\textbf{Interfaccia} & \textbf{Anno} & \textbf{Segnale} & \textbf{Note}\\
+\midrule
+VGA & 1987 & analogico & per monitor CRT; mantenuta per anni per compatibilità\\
+DVI & 1999 & digitale (e analogico) & introdotta con i monitor LCD\\
+HDMI & 2003 & digitale & sostituisce gli standard precedenti; trasporta anche l'audio\\
+DisplayPort & 2006 & digitale & video, audio e altri dati; anche su connettori USB-C\\
+SPI verso un controller di display & -- & digitale, seriale & il kit \prg: un pannello ILI9341 di 320 per 240 pixel\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+L'ILI9341 dell'ultima riga della Tabella~\ref{tab:vid:outputs} è il chip sul
+modulo display del kit: ha una propria memoria per il frame e pilota i
+cristalli liquidi (Capitolo~\ref{ch:io}).
+
+\subsection{Risoluzione: la dimensione della griglia di pixel}
+
+La \term{risoluzione} determina la definizione dell'immagine, e quanti pixel
+vanno memorizzati e inviati per ogni frame (Tabella~\ref{tab:vid:res}). Il
+tradizionale rapporto 4:3 ha ceduto il posto al panoramico 16:9.
+
+\begin{table}[htb]
+\centering\small
+\caption{Alcune risoluzioni.}\label{tab:vid:res}
+\begin{tabular}{@{}lrll@{}}
+\toprule
+\textbf{Risoluzione} & \textbf{Pixel} & \textbf{Rapporto} & \textbf{Dove}\\
+\midrule
+$320\times 200$ & 64\,000 & 8:5 & Commodore 64, giochi VGA, la viewport di \prg\\
+$640\times 480$ & 307\,200 & 4:3 & VGA\\
+$1024\times 768$ & 786\,432 & 4:3 & monitor degli anni Novanta\\
+$1920\times 1080$ & 2\,073\,600 & 16:9 & Full HD\\
+$3840\times 2160$ & 8\,294\,400 & 16:9 & 4K\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Profondità di colore: bit per pixel}
+
+La \term{profondità di colore} è il numero di bit usati per ogni pixel
+(Tabella~\ref{tab:vid:depth}). In True Color ogni colore si ottiene da 256
+sfumature di ciascuno dei tre primari additivi, rosso, verde e blu. Nel modo a
+8 bit il valore di un pixel non è un colore ma un \emph{indice} in una tabella
+di 256 colori, la \term{palette} (tavolozza).
+
+\begin{table}[htb]
+\centering\small
+\caption{Profondità di colore.}\label{tab:vid:depth}
+\begin{tabular}{@{}lrll@{}}
+\toprule
+\textbf{Profondità} & \textbf{Colori} & \textbf{Byte per pixel} & \textbf{Nome}\\
+\midrule
+4 bit & 16 & 0,5 & VGA standard\\
+8 bit & 256 & 1 & modo a 256 colori: un indice in una palette\\
+16 bit & 65\,536 & 2 & High Color: RGB565\\
+24 bit & 16\,777\,216 & 3 & True Color\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\prg usa entrambe le righe centrali: un frame buffer a 8 bit per pixel che
+contiene indici di palette, e una palette di 256 colori in RGB565
+(Capitolo~\ref{ch:information}).
+
+\begin{theorem}{Memoria di un frame}
+Un frame di $W\times H$ pixel con una profondità di $d$ bit per pixel occupa
+$W\cdot H\cdot d/8$ byte.
+\end{theorem}
+
+Per esempio $640\times 480$ in True Color richiede
+$307\,200\times 3 = 921\,600$ byte.
+
+\subsection{Seguire il pixel su PRG32}
+
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+  \node[blkacc,text width=21mm,minimum height=16mm] (a) {\textbf{il vostro codice}\\[1pt]\scriptsize\texttt{prg32\_gfx\_pixel}};
+  \node[blkvio,text width=21mm,minimum height=16mm,right=of a] (b) {\textbf{frame buffer}\\[1pt]\footnotesize $320\times 200$ byte in RAM};
+  \node[blkamb,text width=21mm,minimum height=16mm,right=of b] (c) {\textbf{palette}\\[1pt]\footnotesize 256 elementi in RGB565};
+  \node[blkred,text width=21mm,minimum height=16mm,right=of c] (d) {\textbf{bus SPI}\\[1pt]\footnotesize 27 MHz, seriale, con DMA};
+  \node[blkgrn,text width=21mm,minimum height=16mm,right=of d] (e) {\textbf{display}\\[1pt]\footnotesize ILI9341, $320\times 240$};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[->,thick] (\x) -- (\y);
+\end{tikzpicture}
+\caption{Il viaggio di un pixel sul kit \prg.}
+\label{fig:vid:journey}
+\end{figure}
+
+La Figura~\ref{fig:vid:journey} è il viaggio del pixel del riscaldamento, e la
+Tabella~\ref{tab:vid:numbers} ne dà i numeri (da
+\fname{docs/hardware/ili9341.md} del repository).
+
+\begin{table}[htb]
+\centering\small
+\caption{L'aritmetica di un frame su \prg.}\label{tab:vid:numbers}
+\begin{tabularx}{\textwidth}{@{}LL@{}}
+\toprule
+\textbf{Grandezza} & \textbf{Valore}\\
+\midrule
+memoria per un frame, un byte per pixel & $320\times 200\times 1 = 64\,000$ byte\\
+lo stesso frame a due byte per pixel & 128\,000 byte: un quarto di tutta la RAM del chip\\
+bit inviati al display per un intero frame & $64\,000$ pixel $\times$ 16 bit $=1\,024\,000$ bit\\
+tempo sul bus a 27 MHz & circa 38 ms: al più circa 26 frame interi al secondo\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+L'ultima riga segue da $1\,024\,000/27\,000\,000 = 37,9$~ms. La piattaforma dà
+a questi numeri due risposte ingegneristiche: un frame buffer
+\emph{indicizzato}, che dimezza la memoria, e il tracciamento delle righe che
+sono cambiate, così che vengano inviate solo quelle. Il
+Capitolo~\ref{ch:verm1p4} sfrutterà la seconda.
+
+\subsection{Memoria e larghezza di banda: la pressione sull'hardware video}
+
+La memoria e il tempo di processore richiesti da una grafica sempre più
+esigente, i videogiochi tridimensionali sopra tutti, hanno imposto alle schede
+video una rapida evoluzione. Al crescere della definizione delle immagini
+cresce la memoria necessaria per rappresentare un frame, e il flusso di dati
+dalla memoria alla scheda video rischia di saturare la capacità del bus: un
+frame 4K in True Color a 60 frame al secondo sono
+$8,3\cdot 10^{6}\times 3\times 60$ byte, circa 1,5~GB di pixel ogni secondo.
+Le linee di attacco furono due: sempre più memoria sulla scheda stessa, e un
+bus più largo o dedicato, AGP ieri e PCI Express oggi. Si potevano perfino
+collegare insieme più schede per dividere il lavoro; oggi una sola scheda, o
+molte schede in un server, sono la regola.
+
+% ----------------------------------------------------------------------------
+\section{GPU e GPGPU}
+
+\subsection{L'unità di elaborazione grafica}
+
+La quota di tempo di processore spesa a calcolare immagini è cresciuta con
+l'uso delle interfacce grafiche. Per alleggerire la CPU, alle schede video
+furono dati processori dedicati.
+
+\begin{definition}{GPU}
+Un'\term{unità di elaborazione grafica} (GPU, \emph{graphics processing unit})
+è un processore specializzato nelle operazioni della grafica, che esegue in
+parallelo su molti pixel.
+\end{definition}
+
+Una GPU accelera la grafica raster, cioè la copia di blocchi di pixel
+(\emph{blitting}) e le operazioni sulle texture, e la grafica tridimensionale:
+trasformazioni, applicazione delle texture, illuminazione. I programmi la
+usano attraverso librerie: OpenGL, Direct3D, e oggi Vulkan e Metal. Un
+\term{driver di periferica} adatta il software che gira sulla CPU alle
+primitive offerte dalla GPU; ciò che non è supportato viene emulato dalla CPU,
+lentamente.
+
+\begin{prgmachine}
+Su \prg non c'è una GPU: \code{prg32\_gfx\_rect} è un ciclo di istruzioni di
+store eseguito dal core \riscv. È per questo che la frequenza dei frame di una
+cartuccia impegnativa cala, e che il costo di ogni pixel si può vedere.
+\end{prgmachine}
+
+\subsection{Calcolo di uso generale sulle GPU}
+
+Le GPU moderne eseguono la stessa operazione in parallelo su intere matrici di
+pixel, con un numero molto grande di core semplici: centinaia, migliaia. Il
+\term{GPGPU} è l'uso delle GPU per applicazioni di tipo generale, non
+necessariamente grafiche (la Figura~\ref{fig:info:gpgpu} ne mostrava l'esempio
+più semplice, una somma parallela). I modelli di programmazione sono CUDA
+(\emph{Compute Unified Device Architecture}, di NVIDIA) e OpenCL, uno standard
+aperto. La simulazione scientifica, l'analisi dei dati e, oggi soprattutto,
+l'addestramento e l'uso delle reti neurali girano su GPU; così i modelli
+meteorologici e marini del Dipartimento. Il Capitolo~\ref{ch:beyond} torna
+sull'argomento.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Quanta memoria serve a un frame di $640\times 480$ pixel in True Color (24 bit)?}
+\item 307\,200 byte
+\item 614\,400 byte
+\item 921\,600 byte
+\item 7\,372\,800 byte
+\end{quiz}
+
+\begin{quiz}{Un bus a 16 bit lavora a 50 MHz, un trasferimento per ciclo. Qual è la sua velocità di trasferimento?}
+\item 50 MB/s
+\item 100 MB/s
+\item 400 MB/s
+\item 800 MB/s
+\end{quiz}
+
+\begin{quiz}{In un frame buffer indicizzato a 8 bit, il byte di un pixel contiene:}
+\item la sua componente rossa
+\item la sua luminosità
+\item la posizione del suo colore in una palette
+\item la sua coordinata $x$
+\end{quiz}
+
+\begin{quiz}{Che cos'è il GPGPU?}
+\item Un'uscita video più veloce
+\item L'uso dei processori grafici per calcoli non grafici
+\item Un bus per schede video
+\item Un tipo di memoria video
+\end{quiz}
+
+\section{Esercizi}
+
+\begin{exercise}[prima su carta, poi su \prg]
+\begin{enumerate}[nosep]
+\item Calcolate la memoria per un frame 4K in True Color, e i byte al secondo
+  a 60 frame al secondo.
+\item Il bus del display di \prg lavora a 27~MHz: quanto tempo serve per
+  inviare 20 righe di 320 pixel a 16 bit per pixel?
+\item Disegnate una linea diagonale pixel per pixel, con
+  \code{prg32\_gfx\_pixel} in un ciclo.
+\item Riempite lo schermo una volta con \code{prg32\_gfx\_clear} e una volta
+  con 64\,000 chiamate a \code{prg32\_gfx\_pixel}: confrontate le frequenze
+  dei frame.
+\item Cambiate un elemento della palette con \code{prg32\_palette\_set} a ogni
+  frame, e guardate cambiare insieme tutti i pixel che lo usano.
+\end{enumerate}
+\expected{Su carta: 24\,883\,200 byte per frame, circa 1,5~GB al secondo;
+102\,400 bit, circa 3,8~ms. Su \prg: la rotazione della palette anima lo
+schermo senza ridisegnare un solo pixel. È la ragione per cui il colore
+indicizzato era amato dai programmatori di giochi: uno store cambia migliaia
+di pixel.}
+\end{exercise}
+
+\section{Glossario}
+
+\begin{glossarytable}
+peripheral & periferica\\
+controller & controller (unità di controllo della periferica)\\
+bus width & larghezza del bus\\
+transfer rate & velocità di trasferimento\\
+video card & scheda video\\
+resolution & risoluzione\\
+colour depth & profondità di colore\\
+palette & tavolozza (palette)\\
+video memory & memoria video\\
+device driver & driver di periferica\\
+\end{glossarytable}
+
+\section{Conclusioni e letture}
+
+I dispositivi di ingresso/uscita sono un componente fondamentale dei
+calcolatori, e ciascuno è gestito da un controller che lo interfaccia al bus.
+Un bus è caratterizzato da larghezza, velocità e velocità di trasferimento, e
+la sua larghezza di banda è un limite attorno al quale progettare. Le schede
+video rendono possibile visualizzare grafica e testo: un frame buffer, una
+risoluzione, una profondità di colore, un'uscita. I loro processori, le GPU,
+sono usati anche per il calcolo ad alte prestazioni.
+
+\paragraph{Letture.} \citet{tanenbaum2013}, capitoli 2 e~3 (bus, display);
+\emph{Playing with RISC-V}, capitolo~7, il gioco grafico
+\citep{prg32textbook}; \fname{docs/hardware/ili9341.md} nel repository di
+\prg.

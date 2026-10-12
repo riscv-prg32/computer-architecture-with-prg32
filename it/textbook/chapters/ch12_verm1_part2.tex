@@ -1,0 +1,422 @@
+% ============================================================================
+%  Capitolo 12 -- Verm1, parte 2: la guida, il cibo e un punteggio (Lezione 12)
+% ============================================================================
+\chapter{Verm1, parte 2: la guida, il cibo e un punteggio}
+\label{ch:verm1p2}
+
+\epigraphline{Un gioco è una serie di scelte interessanti.}{Sid Meier}
+
+\begin{chapgoals}
+Alla fine di questo capitolo avrete
+\begin{itemize}
+\item la testa di un verme che guidate con il joystick, in quattro direzioni;
+\item una regola che vieta l'inversione a U, scritta come uno XOR e un confronto;
+\item il movimento preso da due piccole tabelle invece che da quattro salti;
+\item il cibo che compare in una cella casuale, viene mangiato, e ricompare;
+\item un punteggio, mostrato come tacche nella riga del titolo, e un suono quando il verme mangia.
+\end{itemize}
+\end{chapgoals}
+
+In questo secondo tutorial il giocatore entra nel gioco. Ogni idea usata è già
+stata vista come circuito nei Capitoli da \ref{ch:boole1}
+a~\ref{ch:combinational}; qui le stesse idee sono istruzioni
+(Tabella~\ref{tab:v2:from}). Il file di riferimento è \fname{verm1\_part2.S}
+(Appendice~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Che cosa la parte 2 prende dai capitoli sulla logica.}\label{tab:v2:from}
+\begin{tabularx}{\textwidth}{@{}lLL@{}}
+\toprule
+\textbf{Da} & \textbf{Idea} & \textbf{Dove compare}\\
+\midrule
+Capitolo \ref{ch:boole1} & AND come maschera: conservare un bit, azzerare gli altri & un pulsante nella parola dei pulsanti\\
+Capitolo \ref{ch:boole1} & tabelle di verità: un codice per ogni caso & le quattro direzioni in due bit\\
+Capitolo \ref{ch:boole2} & XOR vale 1 dove due bit sono diversi & la regola dell'inversione a U; il test di uguaglianza\\
+Capitolo \ref{ch:electronics} & un pulsante è un interruttore verso massa con un pull-up & perché «premuto» arriva come 1 solo dopo che il runtime lo ha invertito\\
+Capitolo \ref{ch:combinational} & comparatore, multiplexer, ROM come tabella & la testa sul cibo; \code{dx} e \code{dy}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Partite da una parte 1 che funziona}
+
+Aprite il vostro \fname{verm1.S} della parte~1, compilatelo ed eseguitelo con i
+due comandi del Listato~\ref{lst:v1:build}: la testa deve attraversare lo
+schermo. Se non lo fa, copiate il file di riferimento \fname{verm1\_part1.S} e
+partite da quello. Il file viene modificato in tre passi e viene eseguito dopo
+il secondo e dopo il terzo. I listati segnati \textbf{modificato} sostituiscono
+codice che il file già contiene; i listati segnati \textbf{nuovo} aggiungono
+codice. Tenete una copia di ogni parte finita, e tenete aperto il debugger di
+\prgqt: il passo~4 lo usa per guardare una decisione mentre viene presa.
+
+% ----------------------------------------------------------------------------
+\section{Passo 1: nomi per i bit}
+
+\subsection{Costanti: pulsanti e direzioni}
+
+Aggiungete alle costanti della parte~1 le righe di \code{RED} e quelle da
+\code{BTN\_LEFT} a \code{DIR\_UP} (Listato~\ref{lst:v2:const}). C'è un colore
+nuovo, il rosso, per il cibo. Ogni pulsante è un bit di una parola, e una
+maschera lo seleziona. Una direzione è un numero da 0 a 3: due bit.
+
+\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v2:const]{code/l12/s07.S}
+
+\subsection{Un codice scelto con cura}
+
+I codici delle quattro direzioni non sono arbitrari
+(Tabella~\ref{tab:v2:dirs}). Il bit~0 dice «verticale» e il bit~1 dice
+«all'indietro», così che una direzione e la sua opposta differiscono nel bit~1
+e solo lì: lo XOR di un codice con il suo opposto è sempre $10_2=2$.
+
+\begin{table}[htb]
+\centering\small
+\caption{Le quattro direzioni. Sullo schermo $y$ cresce verso il basso: DOWN è
+$+1$, UP è $-1$.}\label{tab:v2:dirs}
+\begin{tabular}{@{}lcccrrl@{}}
+\toprule
+\textbf{Direzione} & \textbf{Codice} & \textbf{Bit 1} & \textbf{Bit 0} & \textbf{dx} & \textbf{dy} & \textbf{Opposta}\\
+\midrule
+RIGHT & 0 & 0 & 0 & $+1$ & 0 & LEFT = 2\\
+DOWN & 1 & 0 & 1 & 0 & $+1$ & UP = 3\\
+LEFT & 2 & 1 & 0 & $-1$ & 0 & RIGHT = 0\\
+UP & 3 & 1 & 1 & 0 & $-1$ & DOWN = 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{prgconcept}
+Una buona codifica trasforma una regola in una sola porta. È la lezione del
+Capitolo~\ref{ch:boole2}, e vale più di qualsiasi trucco di programmazione.
+\end{prgconcept}
+
+\subsection{Dati: due tabelle e cinque nuove variabili}
+
+Sostituite i dati della parte~1 con il Listato~\ref{lst:v2:data}. Le tabelle
+\code{dx} e \code{dy} hanno quattro parole ciascuna, una per direzione; sono
+costanti, e perciò stanno in \code{.rodata}. La variabile \code{dir} è la
+direzione dell'ultimo passo, \code{want} quella chiesta dal giocatore;
+\code{score}, \code{food\_x} e \code{food\_y} si usano nel passo~3.
+
+\asmfile[caption={Passo 1 \textbf{(modificato)}: i dati.},label=lst:v2:data]{code/l12/s09.S}
+
+% ----------------------------------------------------------------------------
+\section{Passo 2: la guida}
+
+Il piano è: leggere i pulsanti, rifiutare l'inversione a U, cercare il
+movimento in una tabella.
+
+\subsection{Dal dito al bit}
+
+Il piedino di un pulsante legge 0 quando il pulsante è premuto: è attivo basso
+(Capitolo~\ref{ch:electronics}). La funzione \code{prg32\_input\_read} inverte
+e impacchetta: una parola, un bit per pulsante, con $1=\text{premuto}$.
+\key{UP} e \key{RIGHT} insieme danno $\hex{04}+\hex{02}=\hex{06}$, e
+$\reg{a0}\cdot\hex{04}$ vale zero se e solo se \key{UP} non è premuto. La
+cartuccia non vede mai il livello elettrico: il runtime dà la stessa parola
+sulla scheda, su QEMU e su \prgqt.
+
+\subsection{\texttt{update}: dai pulsanti a un desiderio}
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: l'inizio di \code{verm1\_update}.},label=lst:v2:wish]{code/l12/s12.S}
+
+Il Listato~\ref{lst:v2:wish} sostituisce l'inizio di \code{verm1\_update}, che
+ora chiama una funzione e quindi ha bisogno di uno stack frame. \ins{andi}
+conserva un bit, e zero significa «non premuto». Ogni pulsante premuto
+sovrascrive il desiderio in \reg{t2}; con due pulsanti premuti vince l'ultimo
+test, così che \key{UP} batte \key{LEFT}, che batte \key{DOWN}, che batte
+\key{RIGHT}. Poi viene la regola: lo XOR del desiderio e della direzione
+corrente vale 2 esattamente quando sono opposti, e in quel caso il desiderio
+non viene memorizzato e sopravvive quello vecchio.
+
+Il desiderio è memorizzato in \code{want} e diventa la direzione solo al passo
+successivo. In questo modo due pressioni rapide tra un passo e il successivo
+non possono ripiegare il verme su sé stesso.
+
+\begin{table}[htb]
+\centering\small
+\caption{La regola dell'inversione a U come tabella di verità: sei delle sedici righe.}\label{tab:v2:uturn}
+\begin{tabular}{@{}llccl@{}}
+\toprule
+\textbf{dir} & \textbf{want} & \textbf{dir $\oplus$ want} & \textbf{$=2$?} & \textbf{Decisione}\\
+\midrule
+0 RIGHT & 0 RIGHT & \texttt{00} & no & prosegue\\
+0 RIGHT & 1 DOWN & \texttt{01} & no & gira\\
+0 RIGHT & 2 LEFT & \texttt{10} & sì & rifiuta: inversione a U\\
+0 RIGHT & 3 UP & \texttt{11} & no & gira\\
+1 DOWN & 3 UP & \texttt{10} & sì & rifiuta: inversione a U\\
+3 UP & 2 LEFT & \texttt{01} & no & gira\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La regola è uno XOR e un confronto con la costante 2
+(Tabella~\ref{tab:v2:uturn}). Completate le sedici righe per esercizio e
+contate i rifiuti: sono quattro, uno per direzione. Senza la codifica accurata
+la regola richiederebbe quattro confronti.
+
+\subsection{\texttt{update}: il timer chiama \texttt{step}}
+
+\asmfile[caption={Passo 2 \textbf{(modificato)}: il resto di \code{verm1\_update}.},label=lst:v2:timer]{code/l12/s14.S}
+
+Il timer in virgola fissa della parte~1 è invariato
+(Listato~\ref{lst:v2:timer}). Le righe che spostavano \code{head\_x} sono
+sparite: muoversi è ora una funzione a sé, \code{step}. Le etichette locali
+sono 6 e 7 perché i numeri da 1 a 5 sono usati sopra.
+
+\subsection{\texttt{step}: cercare il movimento}
+
+\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, prima metà.},label=lst:v2:step1]{code/l12/s15.S}
+
+Il desiderio diventa la direzione, una volta per passo
+(Listato~\ref{lst:v2:step1}). Poi la direzione seleziona il movimento: una
+parola è di 4 byte, quindi lo scostamento è il codice fatto scorrere a sinistra
+di 2, e l'indirizzo della tabella più lo scostamento è l'indirizzo della parola
+da caricare. Non c'è alcun salto: il codice seleziona, come in un multiplexer.
+Una tabella in memoria di sola lettura indirizzata da un codice è una ROM
+(Capitolo~\ref{ch:storage}). L'alternativa sono quattro salti; la tabella è più
+corta, e cambiare le regole significa cambiare dati, non codice.
+
+\subsection{\texttt{step}: muoversi e rientrare, nei due versi}
+
+\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, seconda metà.},label=lst:v2:step2]{code/l12/s16.S}
+
+Nella parte~1 esisteva solo il bordo destro. Ora \code{dx} può essere $-1$ e la
+colonna può scendere sotto 0: una colonna negativa è un numero con segno, e
+\ins{bgez} e \ins{blt} sono i confronti con segno del
+Capitolo~\ref{ch:integers} (Listato~\ref{lst:v2:step2}). Lo stesso si fa per la
+riga, con \code{ROWS}. I registri \reg{t4} e \reg{t6} conservano la nuova cella
+per il passo~3.
+
+Per il momento la funzione si chiude con le tre righe del
+Listato~\ref{lst:v2:end}, che ripristinano \reg{ra} e ritornano. Il passo~3
+metterà prima di esse il test per il cibo.
+
+\asmfile[caption={Passo 2: una fine provvisoria per \code{step}.},label=lst:v2:end]{code/l12/s17.S}
+
+\begin{prgcheck}[Eseguite: state guidando]
+\begin{enumerate}[nosep]
+\item Compilate ed eseguite: la testa parte ancora verso destra, dalla colonna
+  5 della riga 12.
+\item Tenete premuto \key{DOWN}: la testa gira al suo passo successivo e
+  scende, rientrando dalla riga 23 alla riga 0.
+\item Mentre va a destra, tenete premuto \key{LEFT}: non succede niente.
+  L'inversione a U è rifiutata.
+\item Tenete premuto \key{DOWN} e poi \key{LEFT}: due svolte, e ora la testa va
+  a sinistra.
+\end{enumerate}
+\textbf{Risultato atteso.} Tenere premuto \key{DOWN} dall'inizio per 64 frame
+porta la testa in colonna 5, riga 22: dieci passi, tutti verso il basso. Tenere
+premuto \key{LEFT} per 64 frame la porta in colonna 15, riga 12, come se non
+fosse stato premuto niente. (Entrambi i casi sono stati verificati
+sull'esecutore senza interfaccia di \prgqt.)
+\end{prgcheck}
+
+% ----------------------------------------------------------------------------
+\section{Passo 3: il cibo, un punteggio, un suono}
+
+\subsection{\texttt{init}: una partenza completa}
+
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/s20.S}
+
+Ogni variabile riceve ora il suo valore di partenza
+(Listato~\ref{lst:v2:init}). \code{init} chiama una funzione, per collocare il
+primo cibo, e quindi ha bisogno di uno stack frame.
+
+\subsection{\texttt{place\_food}: una cella casuale}
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{place\_food}.},label=lst:v2:food]{code/l12/s21.S}
+
+La funzione \code{prg32\_random\_number(min, max)} restituisce un numero
+compreso tra i suoi due argomenti, estremi inclusi; gli argomenti vanno in
+\reg{a0} e \reg{a1} e il risultato torna in \reg{a0}
+(Listato~\ref{lst:v2:food}). I numeri casuali vengono dal runtime, e sulla
+scheda dal generatore hardware dell'ESP32-C6: due esecuzioni del gioco sono
+diverse. Il cibo può cadere sulla testa; la parte~3 lo corregge.
+
+\subsection{\texttt{step}: la testa è sul cibo?}
+
+\asmfile[caption={Passo 3 \textbf{(modificato)}: la fine di \code{step}.},label=lst:v2:eat]{code/l12/s22.S}
+
+Sostituite la fine provvisoria con il Listato~\ref{lst:v2:eat}. Un comparatore
+di uguaglianza è una fila di porte XOR seguita da un OR
+(Capitolo~\ref{ch:combinational}); qui sono due \ins{xor} e una \ins{or}: ogni
+\ins{xor} vale 0 quando due numeri sono uguali, e la \ins{or} dei due risultati
+vale 0 solo se entrambe le coppie sono uguali. Mangiare significa un punto in
+più, nuovo cibo e un suono. I registri \reg{t4} e \reg{t6} contengono ancora la
+nuova colonna e la nuova riga; dopo le chiamate non servono più, ed è per
+questo che tenerli in registri temporanei è sicuro.
+
+\subsection{\texttt{eat\_sound}: una nota}
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/s23.S}
+
+La firma è
+\begin{center}\code{prg32\_audio\_note(canale, strumento, nota, volume, millisecondi)}\end{center}
+con cinque argomenti, da \reg{a0} ad \reg{a4}, poi la chiamata. La nota 72 è il
+Do5 nella numerazione MIDI. Su \prgqt la nota è suonata dal computer, sulla
+scheda dall'amplificatore e dal suo altoparlante. Il suono viene per ultimo: il
+gioco funzionava anche senza.
+
+\subsection{\texttt{draw}: il punteggio come tacche}
+
+\asmfile[caption={Passo 3 \textbf{(modificato)}: l'inizio di \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/s24.S}
+
+Il Listato~\ref{lst:v2:marks} disegna un piccolo rettangolo per punto, a 4
+pixel di distanza, in un ciclo che termina quando il contatore raggiunge il
+punteggio. Il contatore è tenuto in \reg{s0}, perché deve sopravvivere alle
+chiamate: un registro \reg{t} può essere distrutto da qualsiasi chiamata,
+mentre un registro \reg{s} è preservato, a condizione che la funzione che lo
+usa lo salvi e lo ripristini. Quindi \reg{s0} è salvato nel frame, con
+\reg{ra}. La convenzione, incontrata nel Capitolo~\ref{ch:firstcontact}, è
+studiata nel Capitolo~\ref{ch:processor}. Le cifre arrivano nella parte~4,
+quando sarà disponibile la divisione.
+
+\subsection{\texttt{draw}: il cibo e la testa}
+
+\asmfile[caption={Passo 3 \textbf{(modificato)}: il resto di \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/s25.S}
+
+Le stesse tre righe compaiono due volte, per colonna, riga e colore
+(Listato~\ref{lst:v2:draw}); la conversione in pixel è lasciata a una funzione.
+La testa è disegnata per ultima, così che copra il cibo.
+
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/s26.S}
+
+\code{draw\_cell} è l'aritmetica della parte~1, scritta una volta sola
+(Listato~\ref{lst:v2:cell}). È una funzione con un contratto:
+$\reg{a0}=\text{colonna}$, $\reg{a1}=\text{riga}$, $\reg{a2}=\text{colore}$.
+Il colore arriva in \reg{a2} e deve uscire in \reg{a4}: viene spostato per
+primo, perché \reg{a2} sta per essere sovrascritto. Scrivere il contratto in un
+commento fa parte del lavoro.
+
+\begin{prgcheck}[Eseguite: Verm1, parte 2]
+Una cella rossa è da qualche parte sullo schermo. Guidateci sopra la testa:
+suona una nota, compare una tacca accanto a \texttt{VERM1}, il cibo si sposta
+(Figura~\ref{fig:v2:shot}).
+\end{prgcheck}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.55\textwidth]{verm1_p2.png}
+\caption{La testa, il cibo, e due tacche dopo il titolo: due punti. La
+schermata è prodotta dai test, in cui un giocatore programmato guida la testa
+sul cibo due volte.}
+\label{fig:v2:shot}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Passo 4: osservare una decisione}
+
+In questa sessione \prgqt è usato come sonda logica.
+
+\begin{prgtry}[Cogliete la regola dell'inversione a U al lavoro]
+\begin{enumerate}[nosep]
+\item Eseguite la cartuccia in modalità debug e premete \key{Update}: il
+  listato mostra \code{verm1\_update}.
+\item Guardate la telemetria mentre tenete premuto un pulsante: la maschera di
+  ingresso mostra \hex{04} per \key{UP}, \hex{01} per \key{LEFT}.
+\item Trovate l'istruzione \code{xor t3, t2, t1} e fate clic sul margine: un
+  breakpoint.
+\item Tenete premuto \key{LEFT} mentre la testa va a destra, e premete
+  \key{Resume}: il programma si ferma sulla \ins{xor}.
+\item Leggete i registri: \reg{t1} vale 0, la direzione; \reg{t2} vale 2, il
+  desiderio.
+\item Premete \key{Step}: \reg{t3} diventa 2. Fate altri due passi: il salto
+  viene preso e la \ins{sw} viene saltata.
+\end{enumerate}
+Abbassate la velocità del debugger a 0.25x se vi serve tempo per premere.
+\end{prgtry}
+
+La Tabella~\ref{tab:v2:regs} elenca ciò che si legge nei registri, sempre con
+la testa che va a destra. La sua ultima riga mostra la priorità dei test:
+\key{UP} è esaminato per ultimo e vince. \reg{a0} viene sovrascritto più avanti
+nel frame, e va letto alla prima istruzione dopo la chiamata.
+
+\begin{table}[htb]
+\centering\small
+\caption{Che cosa mostrano i registri al breakpoint.}\label{tab:v2:regs}
+\begin{tabular}{@{}lccccl@{}}
+\toprule
+\textbf{Tenete premuto} & \textbf{\reg{a0}} & \textbf{\reg{t1} (dir)} & \textbf{\reg{t2} (want)} & \textbf{\reg{t3} = \reg{t2}$\oplus$\reg{t1}} & \textbf{Memorizzato?}\\
+\midrule
+niente & \hex{00} & 0 & 0 & 0 & sì: 0\\
+\key{DOWN} & \hex{08} & 0 & 1 & 1 & sì: 1\\
+\key{LEFT} & \hex{01} & 0 & 2 & 2 & no: inversione a U\\
+\key{UP} & \hex{04} & 0 & 3 & 3 & sì: 3\\
+\key{UP} + \key{RIGHT} & \hex{06} & 0 & 3 & 3 & sì: 3\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Leggere le variabili in memoria}
+
+Dopo \code{la t0, dir} il registro \reg{t0} contiene l'indirizzo di
+\code{dir}: scrivetelo nel campo \emph{Memory}. Le variabili si susseguono, 4
+byte ciascuna, nell'ordine del file: dall'indirizzo di \code{dir}, a $+0$ c'è
+\code{dir}, a $+4$ \code{want}, a $+8$ \code{step\_q8}, a $+12$ \code{score}, a
+$+16$ \code{food\_x} e a $+20$ \code{food\_y}; \code{head\_x} e \code{head\_y}
+sono le due parole prima di \code{dir}. Mangiate una volta, mettete in pausa, e
+leggete \code{score}: \texttt{01 00 00 00}, il byte meno significativo per
+primo. Poi leggete \code{food\_x} e \code{food\_y} e confrontateli con lo
+schermo: sono la colonna e la riga della cella rossa.
+
+% ----------------------------------------------------------------------------
+\section{Verificate di aver capito}
+
+\begin{quiz}{Il giocatore tiene premuti insieme \key{DOWN} e \key{RIGHT}: \code{prg32\_input\_read} restituisce}
+\item \hex{02}
+\item \hex{08}
+\item \hex{0a}
+\item \hex{10}
+\end{quiz}
+
+\begin{quiz}{Il verme va verso UP (3). Quale desiderio viene rifiutato?}
+\item RIGHT (0)
+\item DOWN (1)
+\item LEFT (2)
+\item UP (3)
+\end{quiz}
+
+\begin{quiz}{Perché \code{slli t1, t1, 2} prima di sommare all'indirizzo di \code{dx}?}
+\item per rendere positivo il codice
+\item ogni elemento della tabella è di 4 byte
+\item per azzerare il bit 1
+\item le tabelle cominciano all'indirizzo 4
+\end{quiz}
+
+\begin{quiz}{\code{xor t1, t1, t4} dà zero esattamente quando}
+\item \reg{t1} vale zero
+\item \reg{t4} vale zero
+\item \reg{t1} e \reg{t4} sono uguali
+\item \reg{t1} e \reg{t4} sono opposti
+\end{quiz}
+
+\section{Fatelo vostro}
+
+\begin{exercise}[su \prg]
+\begin{enumerate}[nosep]
+\item Fate del pulsante \key{A} un freno: mentre è tenuto premuto, il timer non avanza.
+\item Date due punti per un pezzo di cibo mangiato nella riga più in alto.
+\item Disegnate la testa in un colore diverso per ogni direzione, usando una
+  terza tabella di quattro colori.
+\item Cambiate la codifica in modo che RIGHT = 0, LEFT = 1, DOWN = 2, UP = 3:
+  che cosa diventa la regola dell'inversione a U?
+\end{enumerate}
+\expected{Ogni modifica è di poche righe. Tenete una copia della parte~2
+funzionante prima di sperimentare: la parte~3 parte da lì. (Suggerimenti: per
+il freno, \ins{andi} con \code{BTN\_A}, \hex{10}, all'inizio del timer e un
+salto all'uscita. La tabella dei colori è fatta di quattro \code{.word} in
+\code{.rodata}, indicizzata come \code{dx}. Con la nuova codifica gli opposti
+differiscono nel bit~0, quindi il test diventa $\oplus = 1$.)}
+\end{exercise}
+
+\section{Dove siamo, e che cosa viene dopo}
+
+Il giocatore è nel gioco: un desiderio, una regola, un movimento, una
+ricompensa. Bit e maschere, XOR come comparatore, una tabella come selettore:
+la logica è stata trasformata in istruzioni. Ma il verme non ha un corpo,
+niente può andare storto, e il gioco non finisce mai. I Capitoli da
+\ref{ch:sequential} a~\ref{ch:storage} danno gli strumenti: macchine a stati,
+registri, la memoria come array, e ciò che sopravvive quando si toglie
+l'alimentazione. La parte~3 aggiunge un corpo che cresce, le collisioni, una
+schermata del titolo e una fine partita.
