@@ -15,7 +15,7 @@ Deck({
   title: "Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs", short: "Beyond one core",
   sub: "The same instructions, on machines that execute many of them at once",
   quote: ["If you were plowing a field, which would you rather use: two strong oxen or 1024 chickens?", "attributed to Seymour Cray"],
-  cover: "cluster_1.jpg",
+  cover: "rcf_cluster.jpg",
   notes: "Closing lecture and outlook, new in 2026/27: it has no Italian source. It starts from one loop of Verm1 and follows it onto four kinds of machine. It prepares the visit to the supercomputing systems of the Department. Not part of the midterm test. The RISC-V vector listings are tested on QEMU (tools/tests/vector_qemu.S); the CUDA and Verilog fragments are standard textbook forms that were not compiled for these slides. Figures for supercomputers are rounded and date from the TOP500 lists of 2022 to 2025: check the current list before class.",
   slides: [
     O("What you will be able to do by the end", [
@@ -38,7 +38,7 @@ Deck({
       ["Each can be attacked", ["fewer instructions: better algorithms, richer instructions, vectors", "fewer cycles per instruction: pipelines, superscalar execution", "a shorter cycle: faster transistors, deeper pipelines"]],
       "And when one processor is not enough: more processors working together",
       "Every machine of this lecture is a different answer to the same equation",
-    ], "The performance equation of Patterson and Hennessy. For the loop of the previous slide on the kit: 3 840 instructions, about 1 cycle each, 6.25 nanoseconds per cycle.", { big: "T = N x CPI x t", label: "N instructions, CPI cycles per instruction, t seconds per cycle" }),
+    ], "The performance equation of Patterson and Hennessy. For the loop of the warm-up (code deck) on the kit: 3 840 instructions, about 1 cycle each, 6.25 nanoseconds per cycle.", { big: "T = N x CPI x t", label: "N instructions, CPI cycles per instruction, t seconds per cycle" }),
     T("Why not simply a faster clock?", [
       "For thirty years each new generation of transistors was smaller, faster and no hotter per square millimetre",
       "Around 2005 that stopped: smaller transistors still arrive, but a faster clock means more heat than a chip can shed",
@@ -139,7 +139,7 @@ skip:`, [
       "A very fast network joins the nodes, and a parallel file system serves them all",
       "Speed is measured in floating-point operations per second, FLOPS, on a standard problem: a huge system of linear equations",
       "The TOP500 list has ranked the fastest machines twice a year since 1993",
-    ], "The benchmark is HPL, High-Performance Linpack. The picture is the teaching cluster shown in Lecture 03: the same structure, in small.", { img: "cluster_1.jpg", cap: "A small cluster: nodes, GPUs, a fast network" }),
+    ], "The benchmark is HPL, High-Performance Linpack.", { img: "rcf_cluster.jpg", cap: "Racks of nodes: the Research Computing Facilities of the University" }),
     G("Orders of magnitude", ["Machine", "Where", "Floating-point operations per second"], [
       ["ESP32-C6", "your kit", "no floating-point unit: fixed point, as in Verm1"],
       ["A laptop", "your bag", "about a hundred billion: 10^11"],
@@ -218,7 +218,7 @@ clear<<<(960 + 255) / 256, 256>>>(grid, 960);`, [
       "A configuration file, the bitstream, sets every table and every switch",
       "Load another bitstream and the same chip is another circuit",
       "First sold in 1985; today from a few euros to boards for data centres",
-    ], "The Xilinx XC2064, 1985. An FPGA does not execute a program: it becomes a circuit. Nothing is fetched or decoded; all the gates work at the same time.", { img: "pcb.jpg", cap: "Programmable logic sits on boards like any other chip" }),
+    ], "The Xilinx XC2064, 1985. An FPGA does not execute a program: it becomes a circuit. Nothing is fetched or decoded; all the gates work at the same time.", { img: "fpga_board.jpg", cap: "An FPGA development board: the large chip is the FPGA" }),
     G("A look-up table is a truth table in memory", ["a", "b", "stored for AND", "stored for XOR", "stored for NOT a"], [
       ["0", "0", "0", "0", "1"],
       ["0", "1", "0", "1", "1"],
@@ -292,6 +292,6 @@ endmodule`, [
       "Vectors, GPUs and clusters exploit data that can be processed independently; Amdahl's law says how far that goes",
       "FPGAs turn a description into a circuit: the logic of this course, at scale",
       ["Reading", ["Patterson, Hennessy: Computer Organization and Design, RISC-V Edition, chapters 4 and 6", "Hennessy, Patterson: Computer Architecture, A Quantitative Approach", "top500.org; the RISC-V vector specification at riscv.org"]],
-    ], "The course ends here: from a bit to a supercomputer, with one instruction set. Next: the visit to the Department's computing systems, and the presentation of the students' games.", { img: "book_patterson.jpg", cap: "Patterson, Hennessy: RISC-V edition" }),
+    ], "The course ends here: from a bit to a supercomputer, with one instruction set. Next: the visit to the Department's computing systems, and the presentation of the students' games."),
   ],
 });

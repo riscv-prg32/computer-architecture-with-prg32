@@ -9,7 +9,3 @@ La frase attribuita a Dijkstra paragona il computer al telescopio: un astronomo 
 ## I giochi rétro come esemplari
 
 Pong, Breakout, Tetris e Asteroids sono cartucce di esempio di PRG32. In questo corso servono da esemplari, come un organismo semplice per un biologo: ognuno è abbastanza piccolo da essere letto per intero, eppure contiene tutto ciò che conta in un programma: stato, ingresso, aritmetica, decisioni e un ciclo. Quando più avanti studierete un argomento, chiedetevi dove compare in uno di questi giochi.
-
-## Dove si colloca l'informatica
-
-Seguite una tempesta da sinistra a destra. È prima un fenomeno naturale. Fisica e matematica la descrivono con equazioni. L'informatica trasforma le equazioni in algoritmi e simulazioni. L'ingegneria fornisce i supercalcolatori, le reti e i sensori che li eseguono in modo affidabile. L'economia riceve previsioni e servizi che hanno valore per le persone. L'informatica è l'anello di mezzo: senza di essa le equazioni restano sulla carta. L'esempio è reale: le previsioni meteo-marine del Dipartimento si calcolano ogni giorno in questo modo.

@@ -185,7 +185,7 @@ Deck({
       ["Piattaforma PRG32 e relativo libro (liberi, open source)", ["github.com/riscv-prg32/PRG32", "Playing with RISC-V: Assembly, C, and Retro Games on the PRG32 Platform"]],
       ["Libri di testo", ["Patterson, Hennessy: Struttura e progetto dei calcolatori, edizione RISC-V", "Tanenbaum, Austin: Architettura dei calcolatori. Un approccio strutturale", "Nel Syllabus anche: Stallings, Computer Organization and Architecture; Bucci, Architettura dei calcolatori elettronici"]],
       "Documentazione ufficiale di RISC-V: riscv.org",
-    ], "Cartella Drive: https://drive.google.com/drive/folders/15Kdu8XYbQQVP0ieuZA5OIEmoKqDjQ-eR?usp=sharing . E-learning: https://elearning.uniparthenope.it/course/view.php?id=107 . Edizioni originali: Patterson, Hennessy, Computer Organization and Design, RISC-V Edition (Morgan Kaufmann); Tanenbaum, Austin, Structured Computer Organization (Pearson). Edizioni italiane: Zanichelli e Pearson.", { img: "book_patterson.jpg", cap: "Patterson, Hennessy: edizione RISC-V (traduzione italiana, Zanichelli)" }),
+    ], "Cartella Drive: https://drive.google.com/drive/folders/15Kdu8XYbQQVP0ieuZA5OIEmoKqDjQ-eR?usp=sharing . E-learning: https://elearning.uniparthenope.it/course/view.php?id=107 . Edizioni originali: Patterson, Hennessy, Computer Organization and Design, RISC-V Edition (Morgan Kaufmann); Tanenbaum, Austin, Structured Computer Organization (Pearson). Edizioni italiane: Zanichelli e Pearson."),
     T("Creative Commons e materiale condiviso", [
       "Queste slide e tutto il materiale didattico stanno in una cartella Google Drive condivisa con gli studenti, che possono contribuire",
       "Periodicamente il materiale viene consolidato e pubblicato sul portale e-learning del Dipartimento",

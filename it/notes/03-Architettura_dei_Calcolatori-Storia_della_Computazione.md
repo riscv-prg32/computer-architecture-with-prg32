@@ -12,7 +12,7 @@ Cinque obiettivi. Il primo è una definizione: che cos'è l'informatica, e perch
 
 ## Slide 3: Una definizione
 
-La definizione ha tre parti da soppesare. *Scienza applicata*: usa i risultati delle scienze di base per risolvere problemi. *Trattamento dell'informazione*: l'oggetto è l'informazione, non la macchina. *Procedure automatizzate*: il trattamento è svolto da procedure eseguibili senza giudizio umano. La parola italiana lo dice direttamente, dal francese *information automatique*. L'inglese preferisce *computer science*, che mette lo strumento nel nome e crea l'equivoco che la slide successiva corregge.
+La definizione ha tre parti da soppesare. *Scienza applicata*: usa i risultati delle scienze di base per risolvere problemi. *Trattamento dell'informazione*: l'oggetto è l'informazione, non la macchina. *Procedure automatizzate*: il trattamento è svolto da procedure eseguibili senza giudizio umano. La parola italiana lo dice direttamente, dal francese *information automatique*. L'inglese preferisce *computer science*, che mette lo strumento nel nome e crea un equivoco. Lo corregge una frase attribuita a Edsger Dijkstra: l'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi.
 
 ## Slide 4: Due anime, una disciplina
 
@@ -58,24 +58,28 @@ Nel 1971 l'Intel 4004 aveva 2300 transistor; il processore di un portatile oggi 
 
 Un confronto a quarant'anni di distanza. Il Commodore 64 aveva un processore a 8 bit con tre registri, un clock di circa 1 MHz e 64 KB di memoria; l'ESP32-C6 ha 32 bit, trentadue registri, 160 MHz e uno spazio di indirizzamento di 4 GB. Eppure lo schermo ha la stessa dimensione, 320 per 200 pixel, e lo stesso è lo spirito: una macchina abbastanza piccola da essere capita interamente da una persona sola. La differenza che vi riguarda sta nella riga dell'insieme di istruzioni: proprietario allora, standard aperto adesso.
 
-## Slide 15: Il calcolo ad alte prestazioni alla Parthenope
+## Slide 15: Dove si colloca l'informatica
 
-Le immagini mostrano un cluster didattico dell'Ateneo e la pagina delle sue infrastrutture di calcolo per la ricerca. Un cluster è fatto di molti calcolatori che lavorano insieme a un solo problema. Le idee sono quelle che esercitate sul kit: registri, memoria, istruzioni, soltanto in numero enormemente maggiore e con il problema aggiuntivo di far collaborare le parti. L'ultima lezione del corso torna su queste macchine, e l'evento di chiusura comprende una visita.
+Seguite una tempesta da sinistra a destra. È prima un fenomeno naturale. Fisica e matematica la descrivono con equazioni. L'informatica trasforma le equazioni in algoritmi e simulazioni. L'ingegneria fornisce i supercalcolatori, le reti e i sensori che li eseguono in modo affidabile. L'economia riceve previsioni e servizi che hanno valore per le persone. L'informatica è l'anello di mezzo: senza di essa le equazioni restano sulla carta. L'esempio è reale: le previsioni meteo-marine del Dipartimento si calcolano ogni giorno in questo modo.
 
-## Slide 16: Verifica la comprensione: Quale idea è il cuore dell'architettura di von Neumann? / Che cosa distingue RISC-V da x86 e ARM?
+## Slide 16: Il calcolo ad alte prestazioni alla Parthenope
+
+Le immagini mostrano gli armadi delle Research Computing Facilities dell'Ateneo, ciò che producono ogni giorno, le previsioni meteo di meteo@uniparthenope, e la pagina che elenca le macchine. Un cluster è fatto di molti calcolatori che lavorano insieme a un solo problema. Le idee sono quelle che esercitate sul kit: registri, memoria, istruzioni, soltanto in numero enormemente maggiore e con il problema aggiuntivo di far collaborare le parti. L'ultima lezione del corso torna su queste macchine, e l'evento di chiusura comprende una visita.
+
+## Slide 17: Verifica la comprensione: Quale idea è il cuore dell'architettura di von Neumann? / Che cosa distingue RISC-V da x86 e ARM?
 
 Cercate l'idea, non un dettaglio. Il numero dei registri e la durata di un'istruzione cambiano da un processore all'altro, e ingresso e uscita sono una delle quattro unità, non un'opzione. Ciò che definisce l'architettura è che le istruzioni stanno nella stessa memoria dei dati, e vengono prelevate ed eseguite una dopo l'altra.
 
 La velocità è una proprietà di un particolare chip, non di un insieme di istruzioni, e RISC-V non è stata la prima RISC: RISC di Berkeley, MIPS e ARM sono venuti prima. Né è limitata ai microcontrollori. La novità è la licenza: l'insieme di istruzioni è uno standard aperto che chiunque può realizzare.
 
-## Slide 17: Verifica la comprensione: Chi è considerato il primo programmatore della storia?
+## Slide 18: Verifica la comprensione: Chi è considerato il primo programmatore della storia?
 
 Tutti e quattro i nomi appartengono alla storia, con ruoli diversi. Babbage progettò la macchina. Turing definì la computazione, un secolo dopo. Zuse costruì il primo calcolatore programmabile funzionante. La persona che scrisse una procedura per una macchina, e la pubblicò nel 1843, è Ada Lovelace.
 
-## Slide 18: Glossario: inglese e italiano
+## Slide 19: Glossario: inglese e italiano
 
 Dieci termini. Notate che l'italiano ha due parole per la macchina, *calcolatore* ed *elaboratore*, entrambe più antiche del prestito *computer*. *Stored program*, programma memorizzato, è l'idea di von Neumann. L'*unità di controllo* e l'*unità aritmetico-logica*, ALU, sono due delle quattro unità, e le ritroverete nelle lezioni sul processore. *High-performance computing*, HPC, è il campo dei cluster che avete appena visto.
 
-## Slide 19: Conclusioni e letture
+## Slide 20: Conclusioni e letture
 
 Quattro conclusioni. Il calcolo è più antico dell'elettronica: rappresentazione e procedura sono venute prima. Il calcolatore a programma memorizzato del 1945 è la macchina che programmiamo ancora. RISC ha reso i processori abbastanza semplici da essere capiti per intero, e RISC-V li ha resi aperti. E l'informatica è ovunque, perché l'informazione appartiene a ogni campo. Le letture raccontano la stessa storia più distesamente. La prossima lezione compie il primo passo formale: come l'informazione diventa bit.

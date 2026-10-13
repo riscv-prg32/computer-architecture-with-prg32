@@ -87,7 +87,7 @@ value: .word 0x12345678`, [
       "Su un portatile o un telefono: chip saldati vicino al processore",
       "Sul kit PRG32: niente da vedere. La SRAM sta dentro l'ESP32-C6 stesso, e la flash è un piccolo chip lì accanto",
       ["Due parametri caratteristici", ["dimensione: il numero di celle, oggi gigabyte su un PC e kilobyte su un microcontrollore", "tempo di accesso: il ritardo dopo cui il dato è disponibile, decine di nanosecondi per la DRAM"]],
-    ], "1 ns = 10^-9 s. A 160 MHz un periodo di clock dell'ESP32-C6 dura 6,25 ns.", { img: "ram_on_board.jpg", cap: "Inserimento di un modulo di memoria nel suo zoccolo" }),
+    ], "1 ns = 10^-9 s. A 160 MHz un periodo di clock dell'ESP32-C6 dura 6,25 ns.", { img: "ram_on_board.jpg", cap: "Moduli di memoria nei loro zoccoli" }),
 
     H("La memoria centrale", "Un vettore di parole con indirizzi."),
     T("Parole e indirizzi", [

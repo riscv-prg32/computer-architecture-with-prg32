@@ -10,61 +10,61 @@ In Lecture 02 you typed 0x07e0, 255, `.asciz` and `.word` without knowing exactl
 
 Six objectives, from the general to the particular and back. You will tell analog from digital, read a byte in binary and in hexadecimal, decode a PRG32 colour into its three fields, say how text is stored, and describe how an array lives in memory and how assembly reaches one of its elements. The last objective looks beyond the machine: what an algorithm is, when it is deterministic, and where machine learning fits.
 
-## Slide 3: Fundamental concepts: the flow of data
-
-Every computation has the same shape. Data enter from the world; a program, which is an algorithm made concrete, transforms them; results leave; and somebody uses them, which is what turns information into knowledge. On PRG32 you already know the four boxes by name: the buttons are read by `prg32_input_read`, your `update` function processes, your `draw` function produces the output, and the player reacts. Keep this picture: every program you will ever write is an instance of it.
-
-## Slide 4: Analog and digital information
+## Slide 3: Analog and digital information
 
 An *analog* quantity varies continuously, like a voltage or the hands of a watch. A *digital* quantity is a sequence of symbols from a finite alphabet, like the digits of a display. In the figure the smooth curve is the analog signal; the staircase is its digital version, obtained by *sampling* at regular instants and *quantising* each sample to one of a few levels. Something is lost, and something is gained: a finite number of levels can be counted, copied without error and checked. With two levels only, the symbol is the bit.
 
-## Slide 5: Bit, byte, word
+## Slide 4: Bit, byte, word
 
 The units of information, each tied to something you have used. A *bit* is one button. A *nibble*, four bits, is one hexadecimal digit. A *byte*, eight bits, is one ASCII character, and it is the reason why the bar of Lecture 02 was at most 255 wide. A *halfword*, sixteen bits, is one colour. A *word*, thirty-two bits, is one register and one instruction. The rule to remember: n bits give 2 to the n patterns. And the caption: what a pattern means is not written in the bits.
 
-## Slide 6: Counting in base 2 and base 16
+## Slide 5: Counting in base 2 and base 16
 
 Sixteen rows to learn by heart, as you once learned the multiplication tables. Each row gives the same number in decimal, in binary with four bits, and in hexadecimal with one digit. The four binary columns weigh 8, 4, 2 and 1: 1011 is 8 + 2 + 1 = 11, which hexadecimal writes B. After 9 the hexadecimal digits continue with the letters A to F for the values ten to fifteen. Cover two columns and reconstruct them from the third until you no longer need to think.
 
-## Slide 7: Positional notation: what 11011001 means
+## Slide 6: Positional notation: what 11011001 means
 
 In a positional system a digit is worth its value times the weight of its position, and the weights are the powers of the base. The slide reads the byte 11011001 this way: the positions weigh 128, 64, 32, 16, 8, 4, 2 and 1; where the bit is 1 the weight is added, where it is 0 it is not. The sum is 128 + 64 + 16 + 8 + 1 = 217. It is exactly what you do in base ten without noticing: 217 is 2 hundreds, 1 ten and 7 units.
 
-## Slide 8: Why programmers write hexadecimal
+## Slide 7: Why programmers write hexadecimal
 
 Sixteen is two to the fourth power, so one hexadecimal digit corresponds to exactly four bits. To convert, cut the binary number into groups of four from the right and replace each group using the table: 0000 0111 1110 0000 becomes 0, 7, E, 0. No arithmetic is needed. This is why programmers use hexadecimal: it is binary written compactly. A register is eight hexadecimal digits instead of thirty-two bits. The prefix `0x` announces that a number is hexadecimal.
 
-## Slide 9: A colour is a number: RGB565
+## Slide 8: A colour is a number: RGB565
 
 Here the green of Lecture 02 is opened. A PRG32 colour is sixteen bits divided into three fields: five bits of red, six of green, five of blue. The format is called RGB565. In 0x07E0 the red field is 00000, the green field is 111111 and the blue field is 00000: maximum green and nothing else. The eight swatches show other combinations: yellow is red plus green, white is everything. The sentence at the bottom is the lesson of the whole lecture: the same sixteen bits could be something else entirely.
 
-## Slide 10: ASCII: one character, one byte
+## Slide 9: ASCII: one character, one byte
 
 ASCII assigns a number to each character and fits it in one byte. Three observations from the table. The capital A is 65 and the small a is 97: they differ by 32, that is by a single bit. The character "0" is 48, not zero: a digit typed on a keyboard is not yet a number. And there are characters that do not print: the newline, 10, and NUL, 0, which you will meet on the next slide as the end of a string.
 
-## Slide 11: Strings: a sequence of characters in memory
+## Slide 10: Strings: a sequence of characters in memory
 
 A string is a sequence of character codes in consecutive bytes. The problem is how to know where it ends. The C convention marks the end with a zero byte; the Pascal convention writes the length first. The third row is your string of Lecture 02: `.asciz` stores the eleven characters of HELLO PRG32 followed by a zero, twelve bytes in all. The function that draws text receives only the address of the first byte and reads until it finds the zero. If the zero were missing, it would continue with whatever follows in memory.
 
-## Slide 12: Unicode and UTF-8: every writing system
+## Slide 11: Unicode and UTF-8: every writing system
 
 ASCII has 128 characters, enough for English only. Unicode assigns a number, called a *code point*, to every character of every writing system. UTF-8 stores that number in one to four bytes: the characters of ASCII keep their single byte, an accented letter takes two, the euro sign three, an emoji four. Two consequences. Plain ASCII text is already valid UTF-8. And the length of a string in bytes is no longer its length in characters.
 
-## Slide 13: Byte order: little-endian
+## Slide 12: Byte order: little-endian
 
 A word is four bytes, and memory has one address per byte: in which order are the four bytes stored? RISC-V is *little-endian*: the least significant byte goes at the lowest address, so 0x12345678 is stored as 78, 56, 34, 12. The opposite order, *big-endian*, is used by network protocols. Normally you do not notice, because `lw` and `sw` are consistent with each other. You notice when you look at memory byte by byte in a debugger, or exchange data with a different machine.
 
-## Slide 14: Five ways to organise data
+## Slide 13: Five ways to organise data
 
 Five structures. An *array* keeps elements of the same type one after another and reaches them by index. A *list* links each element to the next: easy to modify, slow to reach by position. A *stack* returns first what was put in last; you used one in Lecture 02 to save `ra`. A *dictionary* associates keys with values. A *tree* is a hierarchy. The sixth card is the one that matters for this course: in the machine all of them are bytes in memory, plus a rule for finding the next element.
 
-## Slide 15: Algorithms and computability
+## Slide 14: Algorithms and computability
 
 A problem is *computable* if an algorithm can solve it. The Turing machine is the mathematical model of a computer with a program; the von Neumann machine is the architecture that realises it in hardware. The last line is the surprising one: there are problems that no algorithm can solve, and therefore that no computer will ever solve, however fast. The classic example is deciding, for any program, whether it will stop.
 
-## Slide 16: Five properties of an algorithm
+## Slide 15: Deterministic and non-deterministic algorithms
 
-Five properties make a procedure an algorithm. Its steps are *atomic*: they cannot be broken down further. They are *unambiguous*: the executor can interpret each in one way only. The algorithm is *finite* in steps and in data, it *terminates* in a finite time, and it is *effective*: it leads to one well-defined result. A RISC-V instruction is a good model of an atomic, unambiguous step: its meaning is fixed by the specification, bit by bit.
+In a *deterministic* algorithm the same input always produces the same sequence of steps and the same result: `first_update` always adds one. A *non-deterministic* algorithm can behave differently at each run with the same input. There are two common reasons: it uses random numbers on purpose, like a game that places an enemy at random, or it depends on the timing of several things that happen together. The first kind is useful; the second is a frequent source of bugs.
+
+## Slide 16: Machine learning
+
+A classical program is a function written by a person: y = f(x). In *machine learning* the function is not written: it is built automatically from examples. Today's generative models are this idea at an enormous scale, with billions of learned numbers. Two remarks connect it to this course. Those numbers are bits in memory, multiplied and added by processors. And a model can be wrong with great confidence: only someone who knows the fundamentals can check what it says.
 
 ## Slide 17: Check your understanding: How many different values can one byte represent? / The PRG32 colour 0xF81F is:
 

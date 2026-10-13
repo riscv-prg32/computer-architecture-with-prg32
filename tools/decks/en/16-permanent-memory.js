@@ -31,7 +31,7 @@ Deck({
       "Distinguish ROM, PROM, EPROM, EEPROM and flash, and say what firmware is",
       "Explain why a cache makes a computer faster, and what a cache miss is",
       "Describe tracks, sectors and blocks of a magnetic disk and the components of its access time",
-      "Explain how an optical disk stores bits, and compare CD and DVD",
+      "Explain how an optical disk stores bits, and how a compact disc is read",
       "Place flash, solid-state disks, hard disks and tapes in a multi-level storage system",
     ]),
 
@@ -71,7 +71,7 @@ game_update:
       "Connections for storage (Serial ATA, M.2) and for the outside world (USB, Ethernet, audio)",
       "A flash chip with the firmware that starts the machine",
       "From an architectural point of view a board of 2002 and one of today have much in common",
-    ], "Example in the original deck: the ASUS WS C621E SAGE dual-socket workstation board. The annotated pictures of a 2002 board (Italian labels) are not reused.", { img: "workstation_board.jpg", cap: "A dual-processor workstation motherboard", wide: true }),
+    ], "Example in the original deck: the ASUS WS C621E SAGE dual-socket workstation board. The annotated pictures of a 2002 board (Italian labels) are not reused.", { img: "workstation_board.jpg", cap: "A dual-processor server motherboard", wide: true }),
     T("Firmware: the BIOS and its heirs", [
       "The BIOS is a program in a non-volatile chip specific to a given motherboard, used by the processor at power-on",
       ["Its instructions and data can be divided into", ["POST, power-on self test: checks that the devices work", "SETUP: configuration of the devices", "BOOT: starts the operating system", "DRIVERS: basic low-level functions for keyboard, disks and other devices"]],
@@ -132,7 +132,7 @@ game_update:
       "Slower access: some orders of magnitude slower than the main memory",
       "Information is organised in blocks, usually of a kilobyte or more, not in single bytes",
       "Some media allow direct access to any block; others only sequential access",
-    ], "The secondary memory stores and keeps all the programs and data of the computer; the main memory holds the programs being executed and the data they need.", { img: "hard_disk.jpg", cap: "A 6 TB hard disk drive" }),
+    ], "The secondary memory stores and keeps all the programs and data of the computer; the main memory holds the programs being executed and the data they need.", { img: "hard_disk.jpg", cap: "An open hard disk: platter, arm and head" }),
     D("Magnetic disks: tracks, sectors, blocks", async (s, h) => {
       h.card(s, h.MX, h.TOP, 5.5, h.BOT - h.TOP);
       await h.svg(s, diskSvg(), h.MX + 0.15, h.TOP + 0.3, 5.2, h.BOT - h.TOP - 0.6);
@@ -162,7 +162,7 @@ game_update:
       ["0 and 1 are not pit and land", ["1 is a change, from pit to land or from land to pit", "0 is no change"]],
       "Usually written once, because the physical changes are irreversible: used to distribute programs and as archives that must not be modified",
       "CD-Recordable: recording burns points in a dye layer; rewritable disks use a material that can change back",
-    ], "Encoding a 1 as a transition is a self-clocking idea used in many serial links as well.", { img: "pit_land.jpg", cap: "Pits and lands, and the light the sensor sees" }),
+    ], "Encoding a 1 as a transition is a self-clocking idea used in many serial links as well.", { img: "pit_land.jpg", cap: "Pits and lands of a pressed CD-ROM, under an electron microscope" }),
     T("The compact disc", [
       "The information is stored on a single spiral track, with constant recording density",
       "The distance between two successive turns of the spiral, the track pitch, is 1.6 micrometres",
@@ -190,7 +190,7 @@ game_update:
       "Tape library|robots that mount tapes: the cheapest per byte, for archives",
     ], "A modern computing system has several levels of permanent memory, often managed automatically: data that are used often migrate towards the fast levels, the rest sinks towards the cheap ones.",
       "The same idea as the cache, applied to storage. The department's HPC storage works this way (visit at the end of the course)."),
-    I("Storage at scale", [["storage_racks.jpg", "Disk and tape libraries in a data centre"], ["ssd.jpg", "A solid-state disk: flash memory in the shape of a disk"], ["dvd_drive.jpg", "Inside a DVD drive"]],
+    I("Storage at scale", [["storage_racks.jpg", "A tape library in a data centre"], ["ssd.jpg", "A solid-state disk: flash memory in the shape of a disk"], ["dvd_drive.jpg", "Inside a DVD drive"]],
       "Pictures from the original deck.", "From a chip of a few megabytes on the kit to rooms of petabytes: the same hierarchy, at every scale."),
 
     Q("Which memory can be erased electrically, in blocks, without removing it from the board?", ["ROM", "PROM", "EPROM", "Flash"], 3, "Flash is the block-erasable evolution of EEPROM. EPROM needs ultraviolet light; ROM and PROM cannot be erased."),

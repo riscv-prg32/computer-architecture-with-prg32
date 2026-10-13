@@ -8,7 +8,7 @@ The previous lecture dealt with the memory that forgets when the power goes. Thi
 
 ## Slide 2: What you will be able to do by the end
 
-Six objectives. Name the functional units of a computer and find them on a motherboard and on the kit. Distinguish ROM, PROM, EPROM, EEPROM and flash, and say what firmware is. Explain why a cache makes a computer faster, and what a miss is. Describe tracks, sectors and blocks of a magnetic disk and the components of its access time. Explain how an optical disk stores bits. And place flash, solid-state disks, hard disks and tapes in a storage system with several levels.
+Six objectives. Name the functional units of a computer and find them on a motherboard and on the kit. Distinguish ROM, PROM, EPROM, EEPROM and flash, and say what firmware is. Explain why a cache makes a computer faster, and what a miss is. Describe tracks, sectors and blocks of a magnetic disk and the components of its access time. Explain how an optical disk stores bits, and how a compact disc is read. And place flash, solid-state disks, hard disks and tapes in a storage system with several levels.
 
 ## Slide 3: Functional units of a computer
 

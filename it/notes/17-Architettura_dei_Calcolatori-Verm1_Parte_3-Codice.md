@@ -76,7 +76,7 @@ Dei quattro stub ne resta uno: `play_update`, che ancora non fa nulla. Il verme 
 
 ## Slide 19: Eseguite: un verme che sta fermo
 
-Eseguite e premete A: un verme di tre celle nella riga 12, con la testa più chiara a destra, e il cibo in una cella a caso. Ora guardate la memoria con il debugger. All'indirizzo di `body_x` i primi byte sono 03 04 05. Nella mappa, alla riga 12 per 40 più 3, ci sono tre byte a 01 in un mare di zeri. State guardando le due strutture della slide 7 e della slide 8, riempite.
+Eseguite e premete A: un verme di tre celle nella riga 12, con la testa più chiara a destra, e il cibo in una cella a caso. Ora guardate la memoria con il debugger. All'indirizzo di `body_x` i primi byte sono 03 04 05. Nella mappa, alla riga 12 per 40 più 3, ci sono tre byte a 01 in un mare di zeri. State guardando le due strutture della presentazione della lezione, l'anello e la mappa, riempite.
 
 ## Slide 20: MODIFICATO play_update: la vostra update della Parte 2
 

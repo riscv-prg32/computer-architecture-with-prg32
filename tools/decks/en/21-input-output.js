@@ -153,7 +153,7 @@ Deck({
       "The points struck by the beam lose their charge; after each line the drum turns a fraction of a degree",
       "The toner is attracted by the points that are still charged: an image of the line is formed",
       "The drum is pressed against the paper and transfers the toner; heated rollers fix it permanently; the drum is discharged and cleaned",
-    ], "Three slides of the original are merged. The page is first built as a bitmap in the printer's memory: a frame buffer for paper.", { img: "laser_printer.jpg", cap: "The path of the paper in a laser printer" }),
+    ], "Three slides of the original are merged. The page is first built as a bitmap in the printer's memory: a frame buffer for paper.", { img: "laser_printer.jpg", cap: "The laser writes the page on the drum, line by line" }),
 
     H("Back to the machine", "Input and output on the kit, and three ways to do them."),
     G("The devices of the PRG32 kit", ["Device", "Direction", "How it is connected", "How a cartridge uses it"], [

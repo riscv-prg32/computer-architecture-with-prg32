@@ -21,7 +21,7 @@ Deck({
       "Italian informatica, from the French informatique: information automatique",
       "In English: computer science, and increasingly informatics",
       "The tool: elaboratore in Italian, ordinateur in French, computer in English",
-    ], "« L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi. » The next slide carries the quotation."),
+    ], "« L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi. » The Italian form of a remark attributed to Edsger W. Dijkstra: computer science is no more about computers than astronomy is about telescopes."),
     B("Computer science is no more about computers than astronomy is about telescopes.", "Attributed to Edsger W. Dijkstra", "The machine is the instrument, not the subject. In this course we study the instrument closely precisely so that it stops being a mystery."),
     V("Two souls, one discipline",
       ["Theoretical informatics", ["The theoretical foundations of information", "Computation at the logical level: what can be computed, and at what cost", "Algorithms: a finite set of operations that describe the transformation from A to B"]],
@@ -33,7 +33,7 @@ Deck({
       ["abacus_roman.jpg", "Roman hand abacus: a physical representation of data and operations"],
       ["abacus_chinese.jpg", "Chinese suanpan: Babylonians, Chinese, Greeks and Romans all used counting frames"],
       ["antikythera.jpg", "Antikythera mechanism, 2nd-1st century BC: the oldest known geared calculator"],
-      ["antikythera_plate.jpg", "Its dials computed astronomical positions and eclipses"],
+      ["antikythera_plate.jpg", "A modern model: its dials computed astronomical positions and eclipses"],
     ], "The dating of the Antikythera mechanism is debated: most estimates fall between about 205 and 60 BC.", "A number becomes a position of beads or the angle of a gear: representation comes before calculation."),
     T("The medieval Islamic world (9th to 13th century)", [
       ["Astronomical instruments", ["the mechanical astrolabe; the torquetum"]],
@@ -136,8 +136,8 @@ Deck({
     ], "An example from this Department: the weather and marine forecasts of meteo.uniparthenope.it, computed every day on our own high-performance systems.",
       "The source slide showed portraits and pictures for each stage (equations, forecast maps, a hurricane, the mobile app)."),
     I("High-performance computing at Parthenope", [
-      ["cluster_1.jpg", "A teaching cluster: mini PCs with GPUs on a 10 Gbit network"],
-      ["cluster_2.jpg", "The same cluster running a parallel simulation"],
+      ["rcf_cluster.jpg", "The racks of the Research Computing Facilities of the University"],
+      ["cluster_1.jpg", "What they compute every day: the forecasts of meteo@uniparthenope"],
       ["rcf_page.png", "Research Computing Facilities: rcf.uniparthenope.it"],
     ], "The closing event of the course includes a visit to the supercomputing systems of the Department.", "The same ideas you practise on a 160 MHz microcontroller scale up to clusters: registers, memory, instructions, only many more of them."),
 

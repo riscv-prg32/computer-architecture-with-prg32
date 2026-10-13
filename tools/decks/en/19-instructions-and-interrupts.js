@@ -241,7 +241,7 @@ Deck({
     ], null, { widths: [3, 3.3, 3, 3.5] }),
     T("Conclusions and reading", [
       "An instruction is an operation code and zero, one or more operands; in RISC-V it is always 32 bits, in six regular formats",
-      "The length of the instructions, fixed or variable, determines how the PC behaves",
+      "A fixed length keeps the fetch simple: the PC advances by a constant, 4 for an instruction that is not compressed",
       "The processor has a cycle: it fetches an instruction, decodes it, executes it, and writes the result",
       "Exceptional events break the cycle: the processor saves where it was, serves the event and resumes",
       "Interrupts can be enabled, masked and ordered by priority; RISC-V does it with a handful of registers and the instruction mret",

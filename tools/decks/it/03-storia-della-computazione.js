@@ -22,7 +22,7 @@ Deck({
       "Informatica, dal francese informatique: information automatique",
       "In inglese: computer science, e sempre più spesso informatics",
       "Lo strumento: elaboratore in italiano, ordinateur in francese, computer in inglese",
-    ], "«L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi.» La slide successiva riporta la citazione."),
+    ], "«L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi.» La frase è attribuita a Edsger W. Dijkstra."),
     B("L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi.", "Attribuita a Edsger W. Dijkstra", "La macchina è lo strumento, non l'oggetto di studio. In questo corso studiamo lo strumento da vicino proprio perché smetta di essere un mistero."),
     V("Due anime, una disciplina",
       ["Informatica teorica", ["I fondamenti teorici dell'informazione", "La computazione a livello logico: che cosa si può calcolare, e a quale costo", "Algoritmi: un insieme finito di operazioni che descrivono la trasformazione da A a B"]],
@@ -34,7 +34,7 @@ Deck({
       ["abacus_roman.jpg", "Abaco romano tascabile: una rappresentazione fisica di dati e operazioni"],
       ["abacus_chinese.jpg", "Suanpan cinese: babilonesi, cinesi, greci e romani usavano tutti tavole per contare"],
       ["antikythera.jpg", "Macchina di Anticitera, II-I secolo a.C.: il più antico calcolatore a ingranaggi conosciuto"],
-      ["antikythera_plate.jpg", "I suoi quadranti calcolavano posizioni astronomiche ed eclissi"],
+      ["antikythera_plate.jpg", "Un modello moderno: i quadranti calcolavano posizioni astronomiche ed eclissi"],
     ], "La datazione della macchina di Anticitera è discussa: la maggior parte delle stime cade tra il 205 e il 60 a.C. circa.", "Un numero diventa una posizione di palline o l'angolo di un ingranaggio: la rappresentazione viene prima del calcolo."),
     T("Il mondo islamico medievale (dal IX al XIII secolo)", [
       ["Strumenti astronomici", ["l'astrolabio meccanico; il torqueto"]],
@@ -137,8 +137,8 @@ Deck({
     ], "Un esempio di questo Dipartimento: le previsioni meteo-marine di meteo.uniparthenope.it, calcolate ogni giorno sui nostri sistemi ad alte prestazioni.",
       "La slide originale mostrava ritratti e immagini per ogni stadio (equazioni, mappe di previsione, un uragano, l'app mobile)."),
     I("Il calcolo ad alte prestazioni alla Parthenope", [
-      ["cluster_1.jpg", "Un cluster didattico: mini PC con GPU su una rete a 10 Gbit"],
-      ["cluster_2.jpg", "Lo stesso cluster che esegue una simulazione parallela"],
+      ["rcf_cluster.jpg", "Gli armadi delle Research Computing Facilities dell'Ateneo"],
+      ["cluster_1.jpg", "Che cosa calcolano ogni giorno: le previsioni di meteo@uniparthenope"],
       ["rcf_page.png", "Research Computing Facilities: rcf.uniparthenope.it"],
     ], "L'evento di chiusura del corso comprende una visita ai sistemi di supercalcolo del Dipartimento.", "Le stesse idee che esercitate su un microcontrollore a 160 MHz si ritrovano nei cluster: registri, memoria, istruzioni, soltanto in numero molto maggiore."),
 

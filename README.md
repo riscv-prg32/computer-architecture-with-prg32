@@ -10,8 +10,8 @@ assembly on the PRG32 platform, with the course-long project Verm1.
 | `en/slides`, `it/slides` | two slide decks per lecture, English (`NN-Computer_Architecture-*.pptx`) and Italian (`NN-Architettura_dei_Calcolatori-*.pptx`): the **lecture deck**, of at most 20 slides, and the **code deck** (`-Code`, `-Codice`), with every listing explained, the complete program and the guide for testing it on PRG32-QT, on QEMU and on the board. 455 + 461 slides per language, the same slides in the same order |
 | `en/notes`, `it/notes` | the notes of every slide, one Markdown file per deck; the generator copies them into the notes pane of the slides. `reserve/` keeps the notes of the slides that are in neither deck |
 | `code/` | one complete, tested RISC-V program per lecture (`lNN.S`): the listings of the slides, runnable as they are on the three hosts |
-| `en/textbook` | the LaTeX textbook that follows the lectures, Chapter N = Lecture N: sources, the PDF (456 pages) and the Overleaf-ready zip |
-| `it/textbook` | the Italian edition of the textbook, *Architettura dei calcolatori: prima programmare, poi formalizzare* (464 pages): same structure, file names and labels as the English one, which is the reference edition |
+| `en/textbook` | the LaTeX textbook that follows the lectures, Chapter N = Lecture N: sources, the PDF (458 pages) and the Overleaf-ready zip |
+| `it/textbook` | the Italian edition of the textbook, *Architettura dei calcolatori: prima programmare, poi formalizzare* (466 pages): same structure, file names and labels as the English one, which is the reference edition |
 | `tools/` | the deck generator, the deck specifications (`tools/decks/en`, `tools/decks/it`) and the plan that splits each lecture into its two decks (`tools/decks/plan.js`), the pictures (`tools/assets`), the tests of every listing (`tools/tests`) and the scripts that feed the textbook (`tools/textbook`) |
 | `verm1/` | the Verm1 project: the four reference programs, the intermediate steps of the tutorials and the files of the Cartridge Store bundle |
 
@@ -36,6 +36,12 @@ Mariacarla Staffa. Reference implementation of Verm1: Giuseppe Coviello
 (contributor). PRG32: Raffaele Montella, Ivan Cafiero, Simone Boscaglia.
 
 **Licence.** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0): see `LICENSE`.
+The licence covers the whole course: the decks, the notes, the textbooks, the programs (`code/`, `verm1/`)
+and the tools. PRG32 and PRG32-QT are separate projects, under the MIT License. The photographs of
+historical machines and of devices come from Wikimedia Commons under their own free licences (public
+domain, CC0, CC BY, CC BY-SA): `tools/assets/CREDITS.md` lists title, author and licence of each one,
+the build copies the credit into the notes of the slide that shows the picture, and the books print the
+list in their colophon.
 
 The decks derive in part from the Italian decks of the previous editions of the course,
 which are not in this repository.

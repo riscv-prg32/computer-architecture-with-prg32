@@ -16,7 +16,7 @@ Deck({
   title: "Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA", short: "Oltre un solo core",
   sub: "Le stesse istruzioni, su macchine che ne eseguono molte insieme",
   quote: ["Se doveste arare un campo, che cosa usereste: due buoi robusti o 1024 polli?", "attribuita a Seymour Cray"],
-  cover: "cluster_1.jpg",
+  cover: "rcf_cluster.jpg",
   notes: "Lezione conclusiva e di prospettiva, nuova nel 2026/27: non ha una presentazione italiana di origine. Parte da un ciclo di Verm1 e lo segue su quattro tipi di macchina. Prepara la visita ai sistemi di supercalcolo del Dipartimento. Non fa parte della prova intercorso. I listati vettoriali RISC-V sono provati su QEMU (tools/tests/vector_qemu.S); i frammenti CUDA e Verilog sono forme standard da manuale, non compilate per queste slide. Le cifre sui supercalcolatori sono arrotondate e risalgono alle liste TOP500 dal 2022 al 2025: controllate la lista corrente prima della lezione.",
   slides: [
     O("Che cosa saprete fare alla fine", [
@@ -39,7 +39,7 @@ Deck({
       ["Ciascuno si può attaccare", ["meno istruzioni: algoritmi migliori, istruzioni più ricche, vettori", "meno cicli per istruzione: pipeline, esecuzione superscalare", "un ciclo più corto: transistor più veloci, pipeline più profonde"]],
       "E quando un processore non basta: più processori che lavorano insieme",
       "Ogni macchina di questa lezione è una risposta diversa alla stessa equazione",
-    ], "L'equazione delle prestazioni di Patterson e Hennessy. Per il ciclo della slide precedente sul kit: 3 840 istruzioni, circa 1 ciclo ciascuna, 6,25 nanosecondi per ciclo.", { big: "T = N x CPI x t", label: "N istruzioni, CPI cicli per istruzione, t secondi per ciclo" }),
+    ], "L'equazione delle prestazioni di Patterson e Hennessy. Per il ciclo del riscaldamento (presentazione del codice) sul kit: 3 840 istruzioni, circa 1 ciclo ciascuna, 6,25 nanosecondi per ciclo.", { big: "T = N x CPI x t", label: "N istruzioni, CPI cicli per istruzione, t secondi per ciclo" }),
     T("Perché non semplicemente un clock più veloce?", [
       "Per trent'anni ogni nuova generazione di transistor è stata più piccola, più veloce e non più calda per millimetro quadrato",
       "Intorno al 2005 questo è finito: i transistor più piccoli arrivano ancora, ma un clock più veloce significa più calore di quanto un chip possa smaltire",
@@ -140,7 +140,7 @@ skip:`, [
       "Una rete molto veloce unisce i nodi, e un file system parallelo li serve tutti",
       "La velocità si misura in operazioni in virgola mobile al secondo, FLOPS, su un problema standard: un enorme sistema di equazioni lineari",
       "La lista TOP500 classifica le macchine più veloci due volte l'anno dal 1993",
-    ], "Il benchmark è HPL, High-Performance Linpack. La foto è il cluster didattico mostrato nella Lezione 03: la stessa struttura, in piccolo.", { img: "cluster_1.jpg", cap: "Un piccolo cluster: nodi, GPU, una rete veloce" }),
+    ], "Il benchmark è HPL, High-Performance Linpack.", { img: "rcf_cluster.jpg", cap: "Armadi di nodi: le Research Computing Facilities dell'Ateneo" }),
     G("Ordini di grandezza", ["Macchina", "Dove", "Operazioni in virgola mobile al secondo"], [
       ["ESP32-C6", "il vostro kit", "nessuna unità in virgola mobile: virgola fissa, come in Verm1"],
       ["Un portatile", "il vostro zaino", "circa cento miliardi: 10^11"],
@@ -219,7 +219,7 @@ clear<<<(960 + 255) / 256, 256>>>(grid, 960);`, [
       "Un file di configurazione, il bitstream, imposta ogni tabella e ogni interruttore",
       "Caricate un altro bitstream e lo stesso chip è un altro circuito",
       "In vendita dal 1985; oggi da pochi euro fino alle schede per i data center",
-    ], "Lo Xilinx XC2064, 1985. Una FPGA non esegue un programma: diventa un circuito. Nulla viene prelevato o decodificato; tutte le porte lavorano nello stesso momento.", { img: "pcb.jpg", cap: "La logica programmabile sta sulle schede come ogni altro chip" }),
+    ], "Lo Xilinx XC2064, 1985. Una FPGA non esegue un programma: diventa un circuito. Nulla viene prelevato o decodificato; tutte le porte lavorano nello stesso momento.", { img: "fpga_board.jpg", cap: "Una scheda di sviluppo FPGA: il chip grande è l'FPGA" }),
     G("Una tabella di look-up è una tabella di verità in memoria", ["a", "b", "memorizzato per AND", "memorizzato per XOR", "memorizzato per NOT a"], [
       ["0", "0", "0", "0", "1"],
       ["0", "1", "0", "1", "1"],
@@ -293,6 +293,6 @@ endmodule`, [
       "Vettori, GPU e cluster sfruttano i dati che si possono elaborare in modo indipendente; la legge di Amdahl dice fin dove si arriva",
       "Le FPGA trasformano una descrizione in un circuito: la logica di questo corso, su grande scala",
       ["Letture", ["Patterson, Hennessy: Struttura e progetto dei calcolatori, edizione RISC-V, capitoli 4 e 6", "Hennessy, Patterson: Computer Architecture, A Quantitative Approach", "top500.org; la specifica vettoriale di RISC-V su riscv.org"]],
-    ], "Il corso finisce qui: da un bit a un supercalcolatore, con un solo insieme di istruzioni. Poi: la visita ai sistemi di calcolo del Dipartimento, e la presentazione dei giochi degli studenti.", { img: "book_patterson.jpg", cap: "Patterson, Hennessy: edizione RISC-V" }),
+    ], "Il corso finisce qui: da un bit a un supercalcolatore, con un solo insieme di istruzioni. Poi: la visita ai sistemi di calcolo del Dipartimento, e la presentazione dei giochi degli studenti."),
   ],
 });

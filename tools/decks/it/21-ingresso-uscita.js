@@ -154,7 +154,7 @@ Deck({
       "I punti colpiti dal raggio perdono la carica; dopo ogni riga il tamburo ruota di una frazione di grado",
       "Il toner è attratto dai punti ancora carichi: si forma un'immagine della riga",
       "Il tamburo viene premuto contro la carta e vi trasferisce il toner; rulli riscaldati lo fissano in modo permanente; il tamburo viene scaricato e pulito",
-    ], "Tre slide dell'originale sono fuse in una. La pagina viene prima costruita come bitmap nella memoria della stampante: un frame buffer per la carta.", { img: "laser_printer.jpg", cap: "Il percorso della carta in una stampante laser" }),
+    ], "Tre slide dell'originale sono fuse in una. La pagina viene prima costruita come bitmap nella memoria della stampante: un frame buffer per la carta.", { img: "laser_printer.jpg", cap: "Il laser scrive la pagina sul tamburo, riga per riga" }),
 
     H("Ritorno alla macchina", "Ingresso e uscita sul kit, e tre modi di realizzarli."),
     G("I dispositivi del kit PRG32", ["Dispositivo", "Direzione", "Come è collegato", "Come lo usa una cartuccia"], [

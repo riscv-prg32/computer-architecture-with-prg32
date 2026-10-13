@@ -6,10 +6,6 @@
 
 Two pipelines side by side. Read the table by rows: each row is an instruction, each column a cycle. Instructions enter in pairs: `i1` and `i2` are fetched together, then `i3` and `i4`, then `i5` and `i6`. Six instructions finish in seven cycles; a single pipeline would need ten. This is the ideal case, in which the instructions do not depend on each other.
 
-## RISC-V goes superscalar
-
-RISC-V processors of this kind exist. The first row is the core of your kit: in order, one instruction per cycle. The others are out-of-order cores: BOOM from Berkeley and XiangShan from the Chinese Academy of Sciences, both open source; the C910, the P550, Veyron, from companies. Because the instruction set is open, anyone may build such a core, and some are published as source code that you could read.
-
 ## Flynn's taxonomy
 
 Flynn's taxonomy classifies machines by two questions: one stream of instructions or many, one stream of data or many. SISD is the kit: one core, one datum at a time. SIMD is one instruction applied to many data at once: vector instructions and, roughly, GPUs. MISD is rare. MIMD is many processors each with its own data: multicore chips, clusters, supercomputers.
@@ -33,6 +29,10 @@ How a program uses a GPU, in four steps. The program on the CPU, the *host*, pre
 ## When does a GPU pay off?
 
 When does a GPU pay off? When the same operation applies to very many data independently: images, matrices, the grids of a simulation, neural networks. When the data can stay on the GPU for many steps instead of travelling each time. Not when the work is a chain of decisions, each depending on the previous one. And Amdahl applies again: what remains on the CPU sets the limit.
+
+## A look-up table is a truth table in memory
+
+A look-up table is a truth table kept in memory. The inputs `a` and `b` are the address; the stored bits are the outputs. Read the three columns on the right: with the bits 0, 0, 0, 1 the table is an AND; with 0, 1, 1, 0 an XOR; with 1, 1, 0, 0 it is NOT a. Changing the stored bits changes the gate. It is the ROM that implements any function, from Lecture 11, in miniature.
 
 ## From description to circuit
 

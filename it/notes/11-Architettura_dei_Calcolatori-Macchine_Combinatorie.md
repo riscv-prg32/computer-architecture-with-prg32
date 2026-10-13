@@ -8,7 +8,7 @@ Le lezioni precedenti vi hanno dato le porte e un metodo per combinarle. Questa 
 
 ## Slide 2: Che cosa saprete fare alla fine
 
-Sei obiettivi. Distinguere una macchina combinatoria da una sequenziale. Calcolare quanti bit richiede un codice e riconoscere codici incompleti e ridondanti. Progettare un decodificatore e un codificatore, e comporre decodificatori piccoli in decodificatori più grandi. Spiegare multiplexer e demultiplexer e costruirli con le porte. Costruire un comparatore e una rete di parità, sapendo che cosa un controllo di parità può e non può rilevare. E indicare ciascuna di queste macchine dentro il processore.
+Sei obiettivi. Distinguere una macchina combinatoria da una sequenziale. Calcolare quanti bit richiede un codice e riconoscere codici incompleti e ridondanti. Progettare un decodificatore e un codificatore, e dire che cosa fa un transcodificatore. Spiegare multiplexer e demultiplexer e costruirli con le porte. Costruire un comparatore e una rete di parità, sapendo che cosa un controllo di parità può e non può rilevare. E indicare ciascuna di queste macchine dentro il processore.
 
 ## Slide 3: Una tassonomia dei circuiti digitali
 
@@ -84,4 +84,4 @@ Dodici termini. *Enable*, abilitazione, è l'ingresso che accende o spegne un bl
 
 ## Slide 20: Conclusioni e letture
 
-Cinque conclusioni. L'informazione è un attributo, un tipo e un valore, e un codice scrive il valore come stringa. Un codice binario a lunghezza fissa richiede il logaritmo di N bit, arrotondato per eccesso; un codice ridondante ne spende di più per rilevare gli errori. Codifica, decodifica e transcodifica sono svolte da macchine combinatorie. I multiplexer selezionano una sorgente, i demultiplexer una destinazione, comparatori e reti di parità controllano. E il processore li usa tutti. A queste macchine manca la memoria: dopo la Parte 2 di Verm1, la aggiunge la Lezione 13.
+Cinque conclusioni. Un codice scrive ogni elemento di un insieme come stringa di simboli su un alfabeto, la sua parola codice. Un codice binario a lunghezza fissa richiede il logaritmo di N bit, arrotondato per eccesso; un codice ridondante ne spende di più per rilevare gli errori. Codifica, decodifica e transcodifica sono svolte da macchine combinatorie. I multiplexer selezionano una sorgente, i demultiplexer una destinazione, comparatori e reti di parità controllano. E il processore li usa tutti. A queste macchine manca la memoria: dopo la Parte 2 di Verm1, la aggiunge la Lezione 13.

@@ -57,7 +57,7 @@ Deck({
     O("Che cosa saprete fare alla fine", [
       "Distinguere una macchina combinatoria da una sequenziale",
       "Calcolare quanti bit richiede un codice a lunghezza fissa, e riconoscere codici incompleti e ridondanti",
-      "Progettare un decodificatore e un codificatore, e comporre decodificatori piccoli in decodificatori più grandi",
+      "Progettare un decodificatore e un codificatore, e dire che cosa fa un transcodificatore",
       "Spiegare che cosa fanno un multiplexer e un demultiplexer, e costruirli con le porte",
       "Costruire un comparatore e una rete di parità, e dire che cosa un controllo di parità può e non può rilevare",
       "Indicare ciascuna di queste macchine dentro un processore RISC-V",
@@ -366,7 +366,7 @@ palette: .word 0xf800, 0x07e0, 0x001f, 0xffe0`, [
       ["redundant code", "codice ridondante", "parity bit", "bit di parità"],
     ], null, { widths: [3, 3.2, 3.2, 3.4] }),
     T("Conclusioni e letture", [
-      "L'informazione è un attributo, un tipo e un valore; un codice scrive il valore come stringa su un alfabeto",
+      "Un codice scrive ogni elemento di un insieme come stringa di simboli su un alfabeto: la sua parola codice",
       "I codici a lunghezza fissa richiedono ceil(log2 N) bit; i codici ridondanti ne spendono di più per rilevare gli errori",
       "Codifica, decodifica e transcodifica sono svolte da macchine combinatorie",
       "I multiplexer selezionano una sorgente, i demultiplexer una destinazione; comparatori e reti di parità controllano",

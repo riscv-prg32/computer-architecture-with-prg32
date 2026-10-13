@@ -54,25 +54,25 @@ The project has four parts and a publication, and each part comes after the bloc
 
 The calendar of the course, in blocks. After three opening lectures there are four blocks of four lectures: *Information* (what a bit means), *Logic* (how bits are combined), *State and memory* (how bits are remembered) and *The machine* (the processor and its devices). After each block comes a part of Verm1. Lecture 23 publishes the game and Lecture 24 looks at larger machines. The lecture numbers on this slide are the ones used everywhere in the material: when a slide says "Lecture 13", this is the table that tells you where it sits.
 
-## Slide 14: Syllabus
-
-The syllabus in six cards: the organisation of a computer; Boolean algebra and logic networks; the representation of data; the structure of CPU, memory and input/output; RISC-V assembly; and the project. Compare it with the map of the blocks: the content is the same, arranged by subject here and by learning order there. When you prepare for the exam, this slide is the list to tick off; the detailed version is in the Syllabus file on Esse3 and on the e-learning portal.
-
-## Slide 15: Learning outcomes
-
-The learning outcomes say what you will be able to do, in five steps of growing autonomy: know the binary system, digital logic and how a computer operates; apply this to exercises and assembly programs; judge which representation and which control structure suit a problem; communicate inside a team with the correct technical terms; and keep learning on your own from reliable sources. Read the first card again: no previous computing background is assumed, so every one of these outcomes is reached starting from zero.
-
-## Slide 16: Timetable: September to December 2026
+## Slide 14: Timetable: September to December 2026
 
 Four meetings a week from September to December, all in Aula 1: Monday afternoon and Wednesday morning with Prof. Montella, Tuesday and Friday morning with Prof. Staffa. Lectures and laboratory do not always alternate strictly: an internal calendar, shared with the class, gives the actual distribution week by week. Check that calendar, not only this table, before deciding which material to prepare for a given day.
 
-## Slide 17: One midterm test
+## Slide 15: One midterm test
 
 There is one midterm test: ten multiple-choice questions and two exercises, on paper, in about 45 minutes. Bring an identity document and a pen, and know your institutional e-mail address and student number. The test measures two things at once: how you are doing, and how the course is doing. The best preparation is already built into the lectures: each one ends with questions of exactly this kind. Answering them week by week costs a few minutes; leaving them all for the night before does not work.
 
-## Slide 18: Assessment
+## Slide 16: No tech. No GPT.
+
+The rule for the midterm and the exam is short: no devices and no help, human or artificial, of any kind. This includes ChatGPT, other language models and every form of generative AI. Copying cancels your test immediately. The rule is not hostility towards technology, which you will use every day in this course: it follows from what the test is for. A test measures what *you* know; an answer produced by something else measures nothing and helps nobody, least of all you.
+
+## Slide 17: Assessment
 
 The exam has two parts and you must pass both: theory, an oral with questions on the whole syllabus, some of which need a diagram or a calculation at the board; and practice, the laboratory exam with Prof. Staffa. Each counts for half, and the final mark is the mean of the two. Note that the oral can also lower the mark obtained in the midterm: the midterm is a real result, not a guarantee. How the midterm enters the theory mark is explained in class.
+
+## Slide 18: Exam sessions and finalisation
+
+To record the final mark you need a positive result in both parts, and the recording happens only during a theory session; the laboratory exam is usually a week earlier. Book both on Esse3. The two frequent questions have the same answer: yes, you may take the theory before the practice, and your result is kept for the academic year, but nothing is recorded until both parts are passed. Plan the two exams together rather than one at a time.
 
 ## Slide 19: Teaching material
 

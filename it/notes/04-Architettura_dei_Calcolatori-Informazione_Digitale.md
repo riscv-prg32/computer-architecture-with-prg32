@@ -10,61 +10,61 @@ Nella Lezione 02 avete battuto 0x07e0, 255, `.asciz` e `.word` senza sapere esat
 
 Sei obiettivi, dal generale al particolare e ritorno. Saprete distinguere analogico e digitale, leggere un byte in binario e in esadecimale, scomporre un colore PRG32 nei suoi tre campi, dire come si memorizza il testo, e descrivere come un vettore sta in memoria e come l'assembly ne raggiunge un elemento. L'ultimo obiettivo guarda oltre la macchina: che cos'è un algoritmo, quando è deterministico, e dove si colloca il machine learning.
 
-## Slide 3: Concetti fondamentali: il flusso dei dati
-
-Ogni calcolo ha la stessa forma. I dati entrano dal mondo; un programma, che è un algoritmo reso concreto, li trasforma; i risultati escono; e qualcuno li usa, ed è questo a trasformare l'informazione in conoscenza. Su PRG32 conoscete già per nome i quattro riquadri: i pulsanti sono letti da `prg32_input_read`, la vostra funzione `update` elabora, la vostra funzione `draw` produce l'uscita, e il giocatore reagisce. Tenete questa figura: ogni programma che scriverete ne è un caso particolare.
-
-## Slide 4: Informazione analogica e digitale
+## Slide 3: Informazione analogica e digitale
 
 Una grandezza *analogica* varia con continuità, come una tensione o le lancette di un orologio. Una grandezza *digitale* è una sequenza di simboli presi da un alfabeto finito, come le cifre di un display. Nella figura la curva liscia è il segnale analogico; la scalinata è la sua versione digitale, ottenuta *campionando* a istanti regolari e *quantizzando* ogni campione su uno di pochi livelli. Qualcosa si perde, e qualcosa si guadagna: un numero finito di livelli si può contare, copiare senza errori e controllare. Con due soli livelli il simbolo è il bit.
 
-## Slide 5: Bit, byte, parola
+## Slide 4: Bit, byte, parola
 
 Le unità dell'informazione, ciascuna legata a qualcosa che avete usato. Un *bit* è un pulsante. Un *nibble*, quattro bit, è una cifra esadecimale. Un *byte*, otto bit, è un carattere ASCII, ed è la ragione per cui la barra della Lezione 02 era larga al massimo 255. Una *halfword*, sedici bit, è un colore. Una *word*, o parola, trentadue bit, è un registro e un'istruzione. La regola da ricordare: n bit danno 2 alla n configurazioni. E la didascalia: che cosa significa una configurazione non è scritto nei bit.
 
-## Slide 6: Contare in base 2 e in base 16
+## Slide 5: Contare in base 2 e in base 16
 
 Sedici righe da imparare a memoria, come un tempo le tabelline. Ogni riga dà lo stesso numero in decimale, in binario su quattro bit e in esadecimale con una cifra. Le quattro colonne binarie pesano 8, 4, 2 e 1: 1011 è 8 + 2 + 1 = 11, che l'esadecimale scrive B. Dopo il 9 le cifre esadecimali proseguono con le lettere da A a F per i valori da dieci a quindici. Coprite due colonne e ricostruitele dalla terza finché non vi serve più pensarci.
 
-## Slide 7: Notazione posizionale: che cosa significa 11011001
+## Slide 6: Notazione posizionale: che cosa significa 11011001
 
 In un sistema posizionale una cifra vale il suo valore per il peso della sua posizione, e i pesi sono le potenze della base. La slide legge così il byte 11011001: le posizioni pesano 128, 64, 32, 16, 8, 4, 2 e 1; dove il bit è 1 il peso si somma, dove è 0 no. La somma è 128 + 64 + 16 + 8 + 1 = 217. È esattamente ciò che fate in base dieci senza accorgervene: 217 sono 2 centinaia, 1 decina e 7 unità.
 
-## Slide 8: Perché i programmatori scrivono in esadecimale
+## Slide 7: Perché i programmatori scrivono in esadecimale
 
 Sedici è due alla quarta, quindi una cifra esadecimale corrisponde esattamente a quattro bit. Per convertire si taglia il numero binario in gruppi di quattro a partire da destra e si sostituisce ogni gruppo usando la tabella: 0000 0111 1110 0000 diventa 0, 7, E, 0. Non serve alcun calcolo. Per questo i programmatori usano l'esadecimale: è il binario scritto in modo compatto. Un registro sono otto cifre esadecimali invece di trentadue bit. Il prefisso `0x` annuncia che un numero è esadecimale.
 
-## Slide 9: Un colore è un numero: RGB565
+## Slide 8: Un colore è un numero: RGB565
 
 Qui si apre il verde della Lezione 02. Un colore PRG32 sono sedici bit divisi in tre campi: cinque bit di rosso, sei di verde, cinque di blu. Il formato si chiama RGB565. In 0x07E0 il campo rosso è 00000, il campo verde è 111111 e il campo blu è 00000: verde al massimo e nient'altro. Gli otto campioni mostrano altre combinazioni: il giallo è rosso più verde, il bianco è tutto. La frase in fondo è la lezione dell'intera lezione: gli stessi sedici bit potrebbero essere tutt'altro.
 
-## Slide 10: ASCII: un carattere, un byte
+## Slide 9: ASCII: un carattere, un byte
 
 L'ASCII assegna un numero a ogni carattere e lo fa stare in un byte. Tre osservazioni dalla tabella. La A maiuscola è 65 e la a minuscola è 97: differiscono di 32, cioè di un solo bit. Il carattere «0» è 48, non zero: una cifra battuta sulla tastiera non è ancora un numero. E ci sono caratteri che non si stampano: l'a capo, 10, e NUL, 0, che incontrerete nella prossima slide come fine di una stringa.
 
-## Slide 11: Stringhe: una sequenza di caratteri in memoria
+## Slide 10: Stringhe: una sequenza di caratteri in memoria
 
 Una stringa è una sequenza di codici di carattere in byte consecutivi. Il problema è sapere dove finisce. La convenzione del C segna la fine con un byte a zero; quella del Pascal scrive prima la lunghezza. La terza riga è la vostra stringa della Lezione 02: `.asciz` memorizza gli undici caratteri di HELLO PRG32 seguiti da uno zero, dodici byte in tutto. La funzione che disegna il testo riceve solo l'indirizzo del primo byte e legge finché non trova lo zero. Se lo zero mancasse, proseguirebbe con ciò che segue in memoria.
 
-## Slide 12: Unicode e UTF-8: ogni sistema di scrittura
+## Slide 11: Unicode e UTF-8: ogni sistema di scrittura
 
 L'ASCII ha 128 caratteri, sufficienti solo per l'inglese. Unicode assegna un numero, detto *code point*, a ogni carattere di ogni sistema di scrittura. UTF-8 memorizza quel numero in uno-quattro byte: i caratteri dell'ASCII conservano il loro unico byte, una lettera accentata ne prende due, il simbolo dell'euro tre, un'emoji quattro. Due conseguenze. Il testo ASCII puro è già UTF-8 valido. E la lunghezza di una stringa in byte non è più la sua lunghezza in caratteri.
 
-## Slide 13: Ordine dei byte: little-endian
+## Slide 12: Ordine dei byte: little-endian
 
 Una parola sono quattro byte, e la memoria ha un indirizzo per ogni byte: in che ordine si memorizzano i quattro byte? RISC-V è *little-endian*: il byte meno significativo va all'indirizzo più basso, quindi 0x12345678 si memorizza come 78, 56, 34, 12. L'ordine opposto, *big-endian*, è quello dei protocolli di rete. Di solito non ci si accorge di nulla, perché `lw` e `sw` sono coerenti tra loro. Ci si accorge quando si guarda la memoria byte per byte in un debugger, o si scambiano dati con una macchina diversa.
 
-## Slide 14: Cinque modi di organizzare i dati
+## Slide 13: Cinque modi di organizzare i dati
 
 Cinque strutture. Un *vettore* tiene elementi dello stesso tipo uno dopo l'altro e li raggiunge per indice. Una *lista* collega ogni elemento al successivo: facile da modificare, lenta da percorrere fino a una posizione. Una *pila* restituisce per primo ciò che è stato messo per ultimo; ne avete usata una nella Lezione 02 per salvare `ra`. Un *dizionario* associa chiavi a valori. Un *albero* è una gerarchia. Il sesto riquadro è quello che conta per questo corso: nella macchina sono tutti byte in memoria, più una regola per trovare l'elemento successivo.
 
-## Slide 15: Algoritmi e calcolabilità
+## Slide 14: Algoritmi e calcolabilità
 
 Un problema è *calcolabile* se un algoritmo può risolverlo. La macchina di Turing è il modello matematico di un calcolatore con un programma; la macchina di von Neumann è l'architettura che la realizza in hardware. L'ultima riga è quella sorprendente: esistono problemi che nessun algoritmo può risolvere, e quindi che nessun calcolatore risolverà mai, per quanto veloce. L'esempio classico è decidere, per un programma qualsiasi, se si fermerà.
 
-## Slide 16: Cinque proprietà di un algoritmo
+## Slide 15: Algoritmi deterministici e non deterministici
 
-Cinque proprietà fanno di una procedura un algoritmo. I suoi passi sono *atomici*: non si possono scomporre oltre. Sono *non ambigui*: l'esecutore può interpretarli in un solo modo. L'algoritmo è *finito* nei passi e nei dati, *termina* in un tempo finito, ed è *efficace*: porta a un risultato unico e ben definito. Un'istruzione RISC-V è un buon modello di passo atomico e non ambiguo: il suo significato è fissato dalla specifica, bit per bit.
+In un algoritmo *deterministico* lo stesso ingresso produce sempre la stessa sequenza di passi e lo stesso risultato: `first_update` somma sempre uno. Un algoritmo *non deterministico* può comportarsi in modo diverso a ogni esecuzione con lo stesso ingresso. Le ragioni comuni sono due: usa di proposito numeri casuali, come un gioco che piazza un nemico a caso, oppure dipende dai tempi di più cose che accadono insieme. Il primo tipo è utile; il secondo è una fonte frequente di bug.
+
+## Slide 16: Machine learning
+
+Un programma classico è una funzione scritta da una persona: y = f(x). Nel *machine learning* la funzione non viene scritta: è costruita automaticamente a partire da esempi. I modelli generativi di oggi sono questa idea su scala enorme, con miliardi di numeri appresi. Due osservazioni la collegano a questo corso. Quei numeri sono bit in memoria, moltiplicati e sommati da processori. E un modello può sbagliare con grande sicurezza: solo chi conosce i fondamenti può controllare ciò che dice.
 
 ## Slide 17: Verifica la comprensione: Quanti valori diversi può rappresentare un byte? / Il colore PRG32 0xF81F è:
 

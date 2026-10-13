@@ -242,7 +242,7 @@ Deck({
     ], null, { widths: [3, 3.3, 3, 3.5] }),
     T("Conclusioni e letture", [
       "Un'istruzione è un codice operativo e zero, uno o più operandi; in RISC-V è sempre di 32 bit, in sei formati regolari",
-      "La lunghezza delle istruzioni, fissa o variabile, determina il comportamento del PC",
+      "La lunghezza fissa rende semplice il prelievo: il PC avanza di una costante, 4 per un'istruzione non compressa",
       "Il processore ha un ciclo: preleva un'istruzione, la decodifica, la esegue, e scrive il risultato",
       "Gli eventi eccezionali spezzano il ciclo: il processore salva dov'era, serve l'evento e riprende",
       "Le interruzioni si possono abilitare, mascherare e ordinare per priorità; RISC-V lo fa con una manciata di registri e l'istruzione mret",

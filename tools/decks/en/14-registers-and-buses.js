@@ -60,7 +60,7 @@ Deck({
       ["Example: the 74273, an 8-bit register in one chip", ["eight D flip-flops; one clock and one clear; inputs D0 to D7, outputs Q0 to Q7"]],
       "Loading a register: the datum on its inputs is stored when the load signal is active, typically in step with the clock",
       "In RISC-V each of the registers x1 to x31 is thirty-two such flip-flops",
-    ], "Datasheet: ti.com/lit/ds/symlink/sn74ls273.pdf. The 7474 holds two D flip-flops with preset and clear. See Lecture 13 for the flip-flop itself.", { img: "chip_74273.jpg", cap: "SN74LS273: eight D flip-flops with a common clock" }),
+    ], "Datasheet: ti.com/lit/ds/symlink/sn74ls273.pdf. The 7474 holds two D flip-flops with preset and clear. See Lecture 13 for the flip-flop itself.", { img: "chip_74273.jpg", cap: "A 74LS273 on a board: eight D flip-flops with a common clock" }),
 
     H("Buses", "How data travel between registers."),
     DEF("Data transfers and the bus", "Bus", "A communication channel that lets the components of an electronic system exchange data by transmitting and receiving signals: the set of lines that carries a datum.", [
@@ -78,7 +78,7 @@ Deck({
       "Mixed: for example, serial on the byte: eight lines carry one byte at a time",
       "Accessing a bus means reading from it or writing to it; buses come in very different physical sizes",
       "Inside a chip buses are parallel; between chips and between machines they are today almost always serial",
-    ], "USB, SATA, PCI Express, HDMI and Ethernet are all serial: at very high speeds it is easier to keep one fast line clean than to keep thirty-two lines in step.", { img: "pcb.jpg", cap: "Bus lines on a printed circuit board" }),
+    ], "USB, SATA, PCI Express, HDMI and Ethernet are all serial: at very high speeds it is easier to keep one fast line clean than to keep thirty-two lines in step.", { img: "pcb.jpg", cap: "Copper tracks on a printed circuit board" }),
     D("From bus to register, and from register to bus", (s, h) => {
       const y = h.TOP + 0.5;
       h.line(s, h.MX + 0.3, y, 6.3, y, P.amber, 6); h.tx(s, "bus A", { x: h.MX + 0.3, y: y - 0.45, w: 2, h: 0.3, fontSize: 15, bold: true, color: P.amber });
@@ -187,7 +187,7 @@ Deck({
       ["sound amplifier", "serial, I2S", "bit clock, word select, data", "audio samples, 22,050 per second"],
       ["joystick and buttons", "one wire per button", "one input pin each", "a decoded representation: one line per button"],
       ["USB to the laptop", "serial, differential pair", "two data wires", "the firmware and the debug console"],
-    ], "From the hardware description of the PRG32 repository (docs/hardware). Chip select is the CS of the small memory on the previous slide: several devices can share the same serial bus because only the selected one listens.", { widths: [2.8, 2.3, 3.6, 3.5] }),
+    ], "From the hardware description of the PRG32 repository (docs/hardware). Chip select is the CS of the small memory of the lecture deck: several devices can share the same serial bus because only the selected one listens.", { widths: [2.8, 2.3, 3.6, 3.5] }),
     T("Shifts in RISC-V: a shift register in one instruction", [
       "slli and srli move all the bits of a register by a given number of positions, filling with zeros",
       "srai fills with copies of the sign bit (Lecture 05)",

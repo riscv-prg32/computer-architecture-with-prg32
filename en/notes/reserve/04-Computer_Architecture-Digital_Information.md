@@ -2,6 +2,10 @@
 
 *Notes of the slides of the specification that are in neither deck (decks/plan.js, drop): their content is in the textbook.*
 
+## Fundamental concepts: the flow of data
+
+Every computation has the same shape. Data enter from the world; a program, which is an algorithm made concrete, transforms them; results leave; and somebody uses them, which is what turns information into knowledge. On PRG32 you already know the four boxes by name: the buttons are read by `prg32_input_read`, your `update` function processes, your `draw` function produces the output, and the player reacts. Keep this picture: every program you will ever write is an instance of it.
+
 ## Numbers: naturals, integers, reals
 
 A preview of the next two lectures. Natural numbers are the positional pattern itself: with n bits, from 0 to 2 to the n minus 1. Signed integers use *two's complement*, the subject of Lecture 05. Real numbers use fixed point or the floating point of the IEEE 754 standard, the subject of Lecture 06, in which the bits are divided into a sign, an exponent and a fraction. You are not asked to understand the formats today: only to see that numbers, too, need a convention.
@@ -22,10 +26,6 @@ A graphics processor, or GPU, has thousands of simple cores designed to apply th
 
 *Data mining* is the set of techniques for extracting information and knowledge from large quantities of data. The slide names three families: decision trees, which classify by a sequence of questions; rule learning and Bayesian methods, which reason with probabilities; and neural networks, which recognise patterns. They are subjects of later courses. Here it is enough to know that they exist and that they are algorithms like any other.
 
-## Deterministic and non-deterministic algorithms
+## Five properties of an algorithm
 
-In a *deterministic* algorithm the same input always produces the same sequence of steps and the same result: `first_update` always adds one. A *non-deterministic* algorithm can behave differently at each run with the same input. There are two common reasons: it uses random numbers on purpose, like a game that places an enemy at random, or it depends on the timing of several things that happen together. The first kind is useful; the second is a frequent source of bugs.
-
-## Machine learning
-
-A classical program is a function written by a person: y = f(x). In *machine learning* the function is not written: it is built automatically from examples. Today's generative models are this idea at an enormous scale, with billions of learned numbers. Two remarks connect it to this course. Those numbers are bits in memory, multiplied and added by processors. And a model can be wrong with great confidence: only someone who knows the fundamentals can check what it says.
+Five properties make a procedure an algorithm. Its steps are *atomic*: they cannot be broken down further. They are *unambiguous*: the executor can interpret each in one way only. The algorithm is *finite* in steps and in data, it *terminates* in a finite time, and it is *effective*: it leads to one well-defined result. A RISC-V instruction is a good model of an atomic, unambiguous step: its meaning is fixed by the specification, bit by bit.

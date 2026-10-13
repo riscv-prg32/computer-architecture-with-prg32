@@ -8,7 +8,7 @@ La lezione precedente trattava la memoria che dimentica quando manca la corrente
 
 ## Slide 2: Che cosa saprete fare alla fine
 
-Sei obiettivi. Nominare le unità funzionali di un calcolatore e trovarle su una scheda madre e sul kit. Distinguere ROM, PROM, EPROM, EEPROM e flash, e dire che cos'è il firmware. Spiegare perché una cache rende più veloce un calcolatore, e che cos'è un miss. Descrivere tracce, settori e blocchi di un disco magnetico e le componenti del suo tempo di accesso. Spiegare come un disco ottico memorizza i bit. E collocare flash, dischi a stato solido, dischi rigidi e nastri in un sistema di memoria a più livelli.
+Sei obiettivi. Nominare le unità funzionali di un calcolatore e trovarle su una scheda madre e sul kit. Distinguere ROM, PROM, EPROM, EEPROM e flash, e dire che cos'è il firmware. Spiegare perché una cache rende più veloce un calcolatore, e che cos'è un miss. Descrivere tracce, settori e blocchi di un disco magnetico e le componenti del suo tempo di accesso. Spiegare come un disco ottico memorizza i bit, e come si legge un compact disc. E collocare flash, dischi a stato solido, dischi rigidi e nastri in un sistema di memoria a più livelli.
 
 ## Slide 3: Unità funzionali di un calcolatore
 

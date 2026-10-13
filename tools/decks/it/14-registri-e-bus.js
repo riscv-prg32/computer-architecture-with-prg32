@@ -61,7 +61,7 @@ Deck({
       ["Esempio: il 74273, un registro a 8 bit in un chip", ["otto flip-flop D; un clock e un clear; ingressi da D0 a D7, uscite da Q0 a Q7"]],
       "Caricare un registro: il dato ai suoi ingressi viene memorizzato quando il segnale di caricamento è attivo, di solito in sincronia con il clock",
       "In RISC-V ciascuno dei registri da x1 a x31 è fatto di trentadue flip-flop di questo tipo",
-    ], "Datasheet: ti.com/lit/ds/symlink/sn74ls273.pdf. Il 7474 contiene due flip-flop D con preset e clear. Per il flip-flop si veda la Lezione 13.", { img: "chip_74273.jpg", cap: "SN74LS273: otto flip-flop D con un clock comune" }),
+    ], "Datasheet: ti.com/lit/ds/symlink/sn74ls273.pdf. Il 7474 contiene due flip-flop D con preset e clear. Per il flip-flop si veda la Lezione 13.", { img: "chip_74273.jpg", cap: "Un 74LS273 su una scheda: otto flip-flop D con un clock comune" }),
 
     H("Bus", "Come viaggiano i dati tra i registri."),
     DEF("Trasferimenti di dati e bus", "Bus", "Un canale di comunicazione che permette ai componenti di un sistema elettronico di scambiarsi dati trasmettendo e ricevendo segnali: l'insieme delle linee che trasporta un dato.", [
@@ -79,7 +79,7 @@ Deck({
       "Misto: per esempio seriale sul byte: otto linee portano un byte alla volta",
       "Accedere a un bus significa leggerlo o scriverlo; i bus hanno dimensioni fisiche molto diverse",
       "Dentro un chip i bus sono paralleli; tra chip e tra macchine oggi sono quasi sempre seriali",
-    ], "USB, SATA, PCI Express, HDMI ed Ethernet sono tutti seriali: ad altissima velocità è più facile tenere pulita una linea veloce che tenere al passo trentadue linee.", { img: "pcb.jpg", cap: "Linee di bus su un circuito stampato" }),
+    ], "USB, SATA, PCI Express, HDMI ed Ethernet sono tutti seriali: ad altissima velocità è più facile tenere pulita una linea veloce che tenere al passo trentadue linee.", { img: "pcb.jpg", cap: "Piste di rame su un circuito stampato" }),
     D("Da bus a registro, e da registro a bus", (s, h) => {
       const y = h.TOP + 0.5;
       h.line(s, h.MX + 0.3, y, 6.3, y, P.amber, 6); h.tx(s, "bus A", { x: h.MX + 0.3, y: y - 0.45, w: 2, h: 0.3, fontSize: 15, bold: true, color: P.amber });
@@ -188,7 +188,7 @@ Deck({
       ["amplificatore audio", "seriale, I2S", "clock di bit, selezione di parola, dati", "campioni audio, 22.050 al secondo"],
       ["joystick e pulsanti", "un filo per pulsante", "un piedino di ingresso ciascuno", "una rappresentazione decodificata: una linea per pulsante"],
       ["USB verso il portatile", "seriale, coppia differenziale", "due fili di dati", "il firmware e la console di debug"],
-    ], "Dalla descrizione hardware del repository di PRG32 (docs/hardware). Chip select è il CS della piccola memoria della slide precedente: più dispositivi possono condividere lo stesso bus seriale perché ascolta solo quello selezionato.", { widths: [2.8, 2.3, 3.6, 3.5] }),
+    ], "Dalla descrizione hardware del repository di PRG32 (docs/hardware). Chip select è il CS della piccola memoria della presentazione della lezione: più dispositivi possono condividere lo stesso bus seriale perché ascolta solo quello selezionato.", { widths: [2.8, 2.3, 3.6, 3.5] }),
     T("Scorrimenti in RISC-V: uno shift register in un'istruzione", [
       "slli e srli spostano tutti i bit di un registro di un dato numero di posizioni, riempiendo di zeri",
       "srai riempie con copie del bit di segno (Lezione 05)",

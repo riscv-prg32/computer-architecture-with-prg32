@@ -6,10 +6,6 @@
 
 Due pipeline affiancate. Leggete la tabella per righe: ogni riga è un'istruzione, ogni colonna un ciclo. Le istruzioni entrano a coppie: `i1` e `i2` vengono prelevate insieme, poi `i3` e `i4`, poi `i5` e `i6`. Sei istruzioni terminano in sette cicli; a una pipeline singola ne servirebbero dieci. È il caso ideale, in cui le istruzioni non dipendono l'una dall'altra.
 
-## RISC-V diventa superscalare
-
-Processori RISC-V di questo tipo esistono. La prima riga è il core del vostro kit: in ordine, un'istruzione per ciclo. Gli altri sono core fuori ordine: BOOM di Berkeley e XiangShan dell'Accademia Cinese delle Scienze, entrambi open source; il C910, il P550, Veyron, di aziende. Poiché l'insieme di istruzioni è aperto, chiunque può costruire un core simile, e alcuni sono pubblicati come codice sorgente che potreste leggere.
-
 ## La tassonomia di Flynn
 
 La tassonomia di Flynn classifica le macchine con due domande: un flusso di istruzioni o molti, un flusso di dati o molti. SISD è il kit: un core, un dato alla volta. SIMD è un'istruzione applicata a molti dati insieme: le istruzioni vettoriali e, grosso modo, le GPU. MISD è rara. MIMD sono molti processori ciascuno con i propri dati: chip multicore, cluster, supercalcolatori.
@@ -33,6 +29,10 @@ Come un programma usa una GPU, in quattro passi. Il programma sulla CPU, l'*host
 ## Quando ripaga una GPU?
 
 Quando ripaga una GPU? Quando la stessa operazione si applica a moltissimi dati in modo indipendente: immagini, matrici, le griglie di una simulazione, reti neurali. Quando i dati possono restare sulla GPU per molti passi invece di viaggiare ogni volta. Non quando il lavoro è una catena di decisioni, ciascuna dipendente dalla precedente. E vale di nuovo Amdahl: ciò che resta sulla CPU fissa il limite.
+
+## Una tabella di look-up è una tabella di verità in memoria
+
+Una tabella di look-up è una tabella di verità tenuta in memoria. Gli ingressi `a` e `b` sono l'indirizzo; i bit memorizzati sono le uscite. Leggete le tre colonne di destra: con i bit 0, 0, 0, 1 la tabella è una AND; con 0, 1, 1, 0 una XOR; con 1, 1, 0, 0 è NOT a. Cambiare i bit memorizzati cambia la porta. È la ROM che realizza qualunque funzione, dalla Lezione 11, in miniatura.
 
 ## Dalla descrizione al circuito
 

@@ -54,25 +54,25 @@ Il progetto ha quattro parti e una pubblicazione, e ogni parte viene dopo il blo
 
 Il calendario del corso, a blocchi. Dopo tre lezioni di avvio ci sono quattro blocchi di quattro lezioni: *Informazione* (che cosa significa un bit), *Logica* (come i bit si combinano), *Stato e memoria* (come i bit si ricordano) e *La macchina* (il processore e i suoi dispositivi). Dopo ogni blocco viene una parte di Verm1. La Lezione 23 pubblica il gioco e la Lezione 24 guarda a macchine più grandi. I numeri delle lezioni su questa slide sono quelli usati ovunque nel materiale: quando una slide dice «Lezione 13», questa è la tabella che vi dice dove si trova.
 
-## Slide 14: Programma
-
-Il programma in sei riquadri: l'organizzazione di un calcolatore; l'algebra di Boole e le reti logiche; la rappresentazione dei dati; la struttura di CPU, memoria e ingresso/uscita; l'assembly RISC-V; e il progetto. Confrontatelo con la mappa dei blocchi: il contenuto è lo stesso, ordinato qui per materia e là per ordine di apprendimento. Quando preparate l'esame, questa è la lista da spuntare; la versione dettagliata è nel file Syllabus su Esse3 e sul portale e-learning.
-
-## Slide 15: Risultati di apprendimento
-
-I risultati di apprendimento dicono che cosa saprete fare, in cinque gradini di autonomia crescente: conoscere il sistema binario, la logica digitale e il funzionamento di un calcolatore; applicare tutto questo a esercizi e programmi assembly; giudicare quale rappresentazione e quale struttura di controllo convengono a un problema; comunicare in un gruppo con i termini tecnici corretti; continuare a imparare da soli su fonti affidabili. Rileggete il primo riquadro: non si presuppongono conoscenze informatiche, quindi ciascuno di questi risultati si raggiunge partendo da zero.
-
-## Slide 16: Orario: da settembre a dicembre 2026
+## Slide 14: Orario: da settembre a dicembre 2026
 
 Quattro incontri a settimana da settembre a dicembre, tutti in Aula 1: lunedì pomeriggio e mercoledì mattina con il prof. Montella, martedì e venerdì mattina con la prof.ssa Staffa. Lezioni e laboratorio non si alternano sempre in modo rigido: un calendario interno, condiviso con la classe, dà la distribuzione effettiva settimana per settimana. Consultate quel calendario, e non solo questa tabella, prima di decidere quale materiale preparare per un certo giorno.
 
-## Slide 17: Una sola prova intercorso
+## Slide 15: Una sola prova intercorso
 
 La prova intercorso è una sola: dieci domande a risposta multipla e due esercizi, su carta, in circa 45 minuti. Portate un documento d'identità e una penna, e dovete conoscere l'indirizzo e-mail istituzionale e la matricola. La prova misura due cose insieme: come state andando voi, e come sta andando il corso. La preparazione migliore è già dentro le lezioni: ognuna finisce con domande esattamente di questo tipo. Rispondere settimana per settimana costa pochi minuti; lasciarle tutte alla sera prima non funziona.
 
-## Slide 18: Valutazione
+## Slide 16: Niente tecnologia. Niente GPT.
+
+La regola per la prova intercorso e per l'esame è breve: nessun dispositivo e nessun aiuto, umano o artificiale, di alcun tipo. Sono compresi ChatGPT, gli altri modelli linguistici e ogni forma di IA generativa. Chi copia vede annullata subito la propria prova. La regola non nasce da ostilità verso la tecnologia, che in questo corso userete ogni giorno: discende da ciò a cui serve la prova. Una prova misura ciò che sapete *voi*; una risposta prodotta da qualcos'altro non misura nulla e non aiuta nessuno, voi per primi.
+
+## Slide 17: Valutazione
 
 L'esame ha due parti e vanno superate entrambe: la teoria, un orale con domande su tutto il programma, alcune delle quali richiedono uno schema o un calcolo alla lavagna; e la pratica, l'esame di laboratorio con la prof.ssa Staffa. Ciascuna vale metà, e il voto finale è la media delle due. Notate che l'orale può anche abbassare il voto ottenuto nella prova intercorso: la prova è un risultato vero, non una garanzia. Come la prova intercorso entra nel voto di teoria viene spiegato in aula.
+
+## Slide 18: Appelli e verbalizzazione
+
+Per verbalizzare il voto finale serve un risultato positivo in entrambe le parti, e la verbalizzazione avviene solo durante un appello di teoria; l'esame di laboratorio è di solito una settimana prima. Prenotate entrambi su Esse3. Le due domande frequenti hanno la stessa risposta: sì, si può sostenere la teoria prima della pratica, e il risultato vale per l'anno accademico, ma non si verbalizza nulla finché non sono superate tutte e due le parti. Pianificate i due esami insieme, non uno alla volta.
 
 ## Slide 19: Materiale didattico
 

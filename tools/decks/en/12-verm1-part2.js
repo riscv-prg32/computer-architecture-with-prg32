@@ -39,7 +39,7 @@ Deck({
       "New colour: RED, for the food",
       "Each button is one bit of a word: a mask selects it",
       "A direction is a number from 0 to 3: two bits",
-      "The codes are not arbitrary: see the next slide",
+      "The codes are not arbitrary: see the lecture deck",
     ], "Add the lines from RED and from BTN_LEFT to DIR_UP to the constants of Part 1."),
     G("A code chosen with care: the four directions", ["Direction", "Code", "Bit 1", "Bit 0", "dx", "dy", "Opposite"], [
       ["RIGHT", "0", "0", "0", "+1", "0", "LEFT = 2"],

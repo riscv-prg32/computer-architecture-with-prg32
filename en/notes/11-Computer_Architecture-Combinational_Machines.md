@@ -8,7 +8,7 @@ The previous lectures gave you gates and a method to combine them. This one is a
 
 ## Slide 2: What you will be able to do by the end
 
-Six objectives. Tell a combinational machine from a sequential one. Compute how many bits a code needs and recognise incomplete and redundant codes. Design a decoder and an encoder, and compose small decoders into larger ones. Explain multiplexers and demultiplexers and build them from gates. Build a comparator and a parity network, knowing what a parity check can and cannot detect. And point to each of these machines inside the processor.
+Six objectives. Tell a combinational machine from a sequential one. Compute how many bits a code needs and recognise incomplete and redundant codes. Design a decoder and an encoder, and say what a transcoder does. Explain multiplexers and demultiplexers and build them from gates. Build a comparator and a parity network, knowing what a parity check can and cannot detect. And point to each of these machines inside the processor.
 
 ## Slide 3: A taxonomy of digital circuits
 
@@ -84,4 +84,4 @@ Twelve terms. *Enable* is the input that switches a block on or off. *Code word*
 
 ## Slide 20: Conclusions and reading
 
-Five conclusions. Information is an attribute, a type and a value, and a code writes the value as a string. A fixed-length binary code needs the logarithm of N bits, rounded up; a redundant code spends more to detect errors. Encoding, decoding and transcoding are done by combinational machines. Multiplexers select a source, demultiplexers a destination, comparators and parity networks check. And the processor uses all of them. What these machines lack is memory: after Part 2 of Verm1, Lecture 13 adds it.
+Five conclusions. A code writes each element of a set as a string of symbols over an alphabet, its code word. A fixed-length binary code needs the logarithm of N bits, rounded up; a redundant code spends more to detect errors. Encoding, decoding and transcoding are done by combinational machines. Multiplexers select a source, demultiplexers a destination, comparators and parity networks check. And the processor uses all of them. What these machines lack is memory: after Part 2 of Verm1, Lecture 13 adds it.

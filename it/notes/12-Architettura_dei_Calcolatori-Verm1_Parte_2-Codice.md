@@ -16,7 +16,7 @@ Gli stessi due comandi della Parte 1: compilare la cartuccia, poi caricarla su P
 
 ## Slide 4: MODIFICATO Costanti: pulsanti e direzioni
 
-Aggiungete queste righe alle costanti della Parte 1. `RED` è il colore del cibo. Le quattro costanti `BTN_` sono maschere: ognuna ha un solo bit a 1, il bit di quel pulsante nella parola restituita dal runtime. Le quattro costanti `DIR_` sono i codici delle direzioni, numeri da 0 a 3, cioè due bit. I commenti dicono che cosa significa ciascuno dei due bit, e la slide successiva spiega perché i codici sono stati scelti così.
+Aggiungete queste righe alle costanti della Parte 1. `RED` è il colore del cibo. Le quattro costanti `BTN_` sono maschere: ognuna ha un solo bit a 1, il bit di quel pulsante nella parola restituita dal runtime. Le quattro costanti `DIR_` sono i codici delle direzioni, numeri da 0 a 3, cioè due bit. I commenti dicono che cosa significa ciascuno dei due bit, e la presentazione della lezione, nella slide «Un codice scelto con cura», spiega perché i codici sono stati scelti così.
 
 ## Slide 5: MODIFICATO Dati: due tabelle e cinque variabili nuove
 

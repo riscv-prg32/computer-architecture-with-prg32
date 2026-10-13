@@ -86,7 +86,7 @@ value: .word 0x12345678`, [
       "On a laptop or a phone: chips soldered close to the processor",
       "On the PRG32 kit: nothing to see. The SRAM is inside the ESP32-C6 itself, and the flash is a small chip beside it",
       ["Two characteristic parameters", ["size: the number of cells, today gigabytes on a PC and kilobytes on a microcontroller", "access time: the delay after which the datum is available, tens of nanoseconds for DRAM"]],
-    ], "1 ns = 10^-9 s. At 160 MHz one clock period of the ESP32-C6 is 6.25 ns.", { img: "ram_on_board.jpg", cap: "Inserting a memory module in its slot" }),
+    ], "1 ns = 10^-9 s. At 160 MHz one clock period of the ESP32-C6 is 6.25 ns.", { img: "ram_on_board.jpg", cap: "Memory modules in their slots" }),
 
     H("The main memory", "An array of words with addresses."),
     T("Words and addresses", [

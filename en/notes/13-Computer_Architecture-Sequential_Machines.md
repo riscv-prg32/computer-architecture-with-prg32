@@ -42,25 +42,25 @@ The *SR latch*: two NOR gates, each with its output connected to an input of the
 
 The latch in time. S goes to 1, and after the delay of the gates Q becomes 1. Then S returns to 0 and nothing happens: the feedback keeps Q at 1. This flat stretch is the memory. Later R goes to 1, Q returns to 0, and it stays there when R returns to 0. Follow the four marked instants on the drawing with the circuit of the previous slide in front of you, working out the output of each gate.
 
-## Slide 11: Synchronous latches: adding a clock
+## Slide 11: Why S = R = 1 is not allowed
+
+With S and R both at 1, both NOR gates output 0, so Q and its complement are no longer complementary. Worse: if the two inputs then return to 0 together, the gates race against each other, and the final state depends on which is faster. The result is unpredictable, and the latch may even oscillate. Whoever uses an SR latch must guarantee that S and R are never 1 together. The JK and D elements were invented to remove this problem at the root.
+
+## Slide 12: Synchronous latches: adding a clock
 
 In an asynchronous circuit the outputs may change whenever an input changes. In a synchronous one the clock decides when. To make the SR latch synchronous, S and R pass through two AND gates together with the clock. When the clock is 0 both gates give 0 and the latch cannot change; when the clock is 1 it behaves like the plain latch. The clock decides when the inputs are listened to.
 
-## Slide 12: The JK and D latches
+## Slide 13: The JK and D latches
 
 Two improvements of the latch. In the *JK* latch the outputs are fed back to the input gates, so that the internal set and reset can never be 1 together; the combination J = K = 1, instead of being forbidden, inverts the output: it toggles. The *D* latch has a single input: D goes to set and its negation to reset, so the output simply takes the value of D while the clock is active. D stands for delay, or data.
 
-## Slide 13: The master-slave flip-flop
+## Slide 14: The master-slave flip-flop
 
 The *master-slave* flip-flop is made of two latches in series, controlled by opposite levels of the clock. When the clock is 0 the master is open and follows the input, while the slave is closed. When the clock passes to 1 the master closes, keeping what it had, and the slave opens and shows it. The two are never transparent together, so the input can never run straight through to the output. The effect is that the output changes only at the rising edge: the flip-flop is *edge-triggered*.
 
-## Slide 14: Latch or flip-flop? Watch the output
+## Slide 15: Latch or flip-flop? Watch the output
 
 The difference, seen on the waveforms. The clock and the input D are the same for both. The output of the latch follows D for the whole high phase of the clock: it changes in the middle of a phase. The output of the flip-flop changes only at the rising edges, taking the value that D has at that instant; short pulses of D between two edges are ignored. The flip-flop's output is steady for a whole period, which is exactly what a state register needs.
-
-## Slide 15: Memory elements: a summary
-
-A summary of the memory elements. The column *next state* gives the rule in compact form, where Q+ is the state after the change; the last column says when the change can happen: at any time for the plain latch, during the active level for clocked latches, on the edge for flip-flops. The T flip-flop, which toggles when T is 1, is a JK with its two inputs joined. Keep in mind the row of the D flip-flop: it is the memory element of today's processors.
 
 ## Slide 16: A register is a row of flip-flops
 

@@ -25,14 +25,14 @@ const lab = (src, keys, see, prefix) => ({ src, prefix: prefix || src, keys, see
 const NONE = { en: "nothing: the program runs by itself", it: "niente: il programma va da solo" };
 
 module.exports = {
-  "00": { drop: [4, 11, 12, 19, 20, 28, 29, 31, 32, 35, 37, 38],
+  "00": { drop: [4, 11, 12, 19, 20, 23, 24, 28, 32, 35, 37, 38],
     lab: lab("l00", NONE, { it: "la parola ARC12 in bianco su uno schermo blu, e sotto HELLO, RISC-V." }) },
   "01": { code: [12, 13, 14, 17, 28, 29],
     lab: lab("l01", NONE, { it: "quattro barre verticali, rossa, verde, blu e bianca, e le parole PRG32 OK." }) },
   "02": { lab: lab("l02", NONE, { it: "HELLO PRG32 e, sotto, una barra verde che cresce di un pixel per frame e ricomincia a 256." }, "first") },
-  "03": { drop: [5, 20, 22],
+  "03": { drop: [5, 20],
     lab: lab("l03", NONE, { it: "una riga di 32 lampade che mostra 0x00130313, il codice macchina di addi t1, t1, 1, e un quadrato verde: la parola letta è quella attesa." }) },
-  "04": { drop: [11, 21, 22, 23, 24, 27, 29],
+  "04": { drop: [4, 11, 21, 22, 23, 24, 26],
     lab: lab("l04", NONE, { it: "quattro barre orizzontali, una per elemento dell'array (32, 11, 34, 22, quattro pixel per unità); l'elemento 2, quello che il listato carica, è giallo." }) },
   "05": { drop: [11, 23], code: [26, 27],
     lab: lab("l05", { en: "hold LEFT for a few frames", it: "tenete premuto LEFT per qualche frame" },
@@ -55,7 +55,7 @@ module.exports = {
   "12": { code: [27], lab: { verm1: 2, shot: "verm1_p2.png", keys: { en: "steer with the joystick; a U-turn is refused", it: "guidate con il joystick; l'inversione a U è rifiutata" },
     see: { en: "a head that you steer, a red cell of food that moves when it is eaten, a note, and one mark per point next to VERM1.",
       it: "una testa che guidate, una cella rossa di cibo che si sposta quando viene mangiata, una nota, e una tacca per punto accanto a VERM1." } } },
-  "13": { drop: [6, 7, 14, 16, 19, 22, 25, 33], code: [17, 32, 34],
+  "13": { drop: [6, 7, 14, 16, 19, 25, 29, 33], code: [17, 32, 34],
     lab: lab("l13", { en: "press A", it: "premete A" },
       { it: "un colore per stato. Blu è TITLE: premete A e lo schermo diventa verde, PLAY. (OVER, rosso, si raggiunge solo quando una partita finisce: questo riscaldamento non ha ancora un gioco.)" }) },
   "14": { code: [24],
@@ -81,6 +81,6 @@ module.exports = {
   "23": { lab: { store: true, shot: "verm1_icon.png", keys: { en: "A starts a game; steer with the joystick", it: "A avvia una partita; guidate con il joystick" },
     see: { en: "Verm1, started from the files of the bundle: on each host the title, the icon and the credits are those of the manifest.",
       it: "Verm1, avviato dai file del bundle: su ogni host il titolo, l'icona e i crediti sono quelli del manifesto." } } },
-  "24": { drop: [9, 14, 17, 22, 24, 27, 30, 32, 37, 38], code: [41],
+  "24": { drop: [9, 17, 22, 24, 27, 30, 32, 35, 37, 38], code: [41],
     lab: lab("l24", NONE, { it: "un quadrato verde: i 960 byte della mappa, riempiti di uni da init, sono stati tutti posti a zero dal ciclo di quattro istruzioni della lezione. Un quadrato rosso vorrebbe dire che qualche byte è sopravvissuto." }) },
 };

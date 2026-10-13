@@ -30,37 +30,37 @@ L'esecuzione fuori ordine, in quattro tappe. Le istruzioni vengono prelevate e d
 
 Un processore largo incontra un salto ogni poche istruzioni e non può aspettare di conoscerne l'esito. Quindi *predice*: indovina la direzione dalla storia di quel salto e prosegue lungo l'ipotesi. Se l'ipotesi era giusta, non si perde nulla; se era sbagliata, il lavoro speculativo viene buttato via. Il ciclo del riscaldamento salta all'indietro 959 volte e prosegue una volta: un predittore lo impara subito. I predittori moderni hanno ragione ben più di nove volte su dieci.
 
-## Slide 8: Un'architettura, molte microarchitetture
+## Slide 8: RISC-V diventa superscalare
+
+Processori RISC-V di questo tipo esistono. La prima riga è il core del vostro kit: in ordine, un'istruzione per ciclo. Gli altri sono core fuori ordine: BOOM di Berkeley e XiangShan dell'Accademia Cinese delle Scienze, entrambi open source; il C910, il P550, Veyron, di aziende. Poiché l'insieme di istruzioni è aperto, chiunque può costruire un core simile, e alcuni sono pubblicati come codice sorgente che potreste leggere.
+
+## Slide 9: Un'architettura, molte microarchitetture
 
 Una distinzione che organizza l'intero corso. L'*architettura* è il contratto: le istruzioni, i registri, che cosa fa ogni istruzione. La *microarchitettura* è un modo di rispettare il contratto: stadi, larghezza, predittori, cache. La `add` che avete scritto per un microcontrollore è la stessa `add` di un core da server. Verm1 girerebbe senza modifiche su qualunque core della slide precedente. Per questo un insieme di istruzioni, una volta imparato, è una conoscenza che dura.
 
-## Slide 9: Che cos'è un supercalcolatore?
+## Slide 10: Che cos'è un supercalcolatore?
 
-Un supercalcolatore non è un unico processore enorme: sono migliaia di calcolatori normali, i *nodi*, che lavorano allo stesso problema. Ogni nodo ha uno o due processori con decine di core, spesso più GPU, e molta memoria. Una rete molto veloce unisce i nodi, e un file system parallelo li serve tutti. La velocità si misura in operazioni in virgola mobile al secondo su un problema standard, e la lista TOP500 classifica le macchine più veloci dal 1993. La foto è un piccolo cluster con la stessa struttura.
+Un supercalcolatore non è un unico processore enorme: sono migliaia di calcolatori normali, i *nodi*, che lavorano allo stesso problema. Ogni nodo ha uno o due processori con decine di core, spesso più GPU, e molta memoria. Una rete molto veloce unisce i nodi, e un file system parallelo li serve tutti. La velocità si misura in operazioni in virgola mobile al secondo su un problema standard, e la lista TOP500 classifica le macchine più veloci dal 1993. La foto mostra armadi di nodi delle Research Computing Facilities dell'Ateneo.
 
-## Slide 10: La legge di Amdahl
+## Slide 11: La legge di Amdahl
 
 La legge di Amdahl dice quanto può dare il parallelismo. Se una frazione p del lavoro si può svolgere in parallelo e il resto no, con n processori lo speed-up è 1 diviso la parte seriale più la parte parallela divisa per n. La parte seriale non si riduce per quanti processori si aggiungano. Con p uguale a 0,9 lo speed-up non può mai superare 10. La lezione pratica: prima di comprare processori, misurate p.
 
-## Slide 11: Due modi di dividere il lavoro
+## Slide 12: Due modi di dividere il lavoro
 
 Due modi di dividere il lavoro. Con la *memoria condivisa*, più core dello stesso nodo vedono la stessa memoria, e il programma gira come thread che leggono e scrivono le stesse variabili; è facile cominciare, e il pericolo sono due thread che scrivono la stessa variabile. Con la *memoria distribuita* ogni nodo ha la propria memoria, e il programma gira come processi che si scambiano messaggi, con lo standard MPI; scala fino a un milione di core, a spese del programmatore. Le applicazioni reali usano entrambi.
 
-## Slide 12: Il limite è l'energia
+## Slide 13: Il limite è l'energia
 
 Il limite è l'energia. Una macchina exascale assorbe circa venti megawatt, il consumo di una piccola città, e l'elettricità della sua vita utile costa quanto la macchina. Quindi la cifra che conta sono le operazioni per watt, che hanno una classifica propria, la Green500. La guida l'hardware specializzato, perché fa di più con ogni joule. La stessa ragione, all'altro estremo della scala, mette un piccolo core RISC-V nel vostro kit.
 
-## Slide 13: Due modi di spendere i transistor
+## Slide 14: Due modi di spendere i transistor
 
 Due modi di spendere gli stessi transistor. Una CPU ha pochi core grandi, ciascuno fuori ordine, con predittori e grandi cache: è costruita per finire un compito il prima possibile, ed è a suo agio con salti e dati irregolari. Una GPU ha migliaia di core piccoli e semplici che eseguono lo stesso codice su dati diversi: è costruita per finire moltissimi compiti al secondo, ed è a suo agio con array regolari. Buoi e polli: la risposta dipende dal campo.
 
-## Slide 14: Un chip che diventa il circuito che descrivete
+## Slide 15: Un chip che diventa il circuito che descrivete
 
 Una FPGA, field-programmable gate array, è un chip che diventa il circuito che descrivete. Dentro c'è un mare di piccoli blocchi: tabelle di look-up, ciascuna capace di essere qualunque funzione di pochi ingressi; un flip-flop accanto a ogni tabella; e fili con interruttori che possono collegare ogni blocco a ogni altro. Un file di configurazione, il *bitstream*, imposta ogni tabella e ogni interruttore. Caricate un altro bitstream e lo stesso chip è un circuito diverso. Non esegue un programma: è un circuito.
-
-## Slide 15: Una tabella di look-up è una tabella di verità in memoria
-
-Una tabella di look-up è una tabella di verità tenuta in memoria. Gli ingressi `a` e `b` sono l'indirizzo; i bit memorizzati sono le uscite. Leggete le tre colonne di destra: con i bit 0, 0, 0, 1 la tabella è una AND; con 0, 1, 1, 0 una XOR; con 1, 1, 0, 0 è NOT a. Cambiare i bit memorizzati cambia la porta. È la ROM che realizza qualunque funzione, dalla Lezione 11, in miniatura.
 
 ## Slide 16: Quattro modi di calcolare
 

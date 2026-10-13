@@ -32,7 +32,7 @@ Deck({
       "Distinguere ROM, PROM, EPROM, EEPROM e flash, e dire che cos'è il firmware",
       "Spiegare perché una cache rende più veloce un calcolatore, e che cos'è un cache miss",
       "Descrivere tracce, settori e blocchi di un disco magnetico e le componenti del suo tempo di accesso",
-      "Spiegare come un disco ottico memorizza i bit, e confrontare CD e DVD",
+      "Spiegare come un disco ottico memorizza i bit, e come si legge un compact disc",
       "Collocare flash, dischi a stato solido, dischi rigidi e nastri in un sistema di memoria a più livelli",
     ]),
 
@@ -72,7 +72,7 @@ game_update:
       "Connessioni per la memoria di massa (Serial ATA, M.2) e per il mondo esterno (USB, Ethernet, audio)",
       "Un chip flash con il firmware che avvia la macchina",
       "Dal punto di vista architetturale una scheda del 2002 e una di oggi hanno molto in comune",
-    ], "Esempio nella presentazione originale: la scheda per workstation a doppio zoccolo ASUS WS C621E SAGE. Le fotografie annotate di una scheda del 2002 non sono riutilizzate.", { img: "workstation_board.jpg", cap: "Una scheda madre per workstation a due processori", wide: true }),
+    ], "Esempio nella presentazione originale: la scheda per workstation a doppio zoccolo ASUS WS C621E SAGE. Le fotografie annotate di una scheda del 2002 non sono riutilizzate.", { img: "workstation_board.jpg", cap: "Una scheda madre per server a due processori", wide: true }),
     T("Il firmware: il BIOS e i suoi eredi", [
       "Il BIOS è un programma in un chip non volatile specifico di una data scheda madre, usato dal processore all'accensione",
       ["Le sue istruzioni e i suoi dati si dividono in", ["POST, power-on self test: controlla che i dispositivi funzionino", "SETUP: configurazione dei dispositivi", "BOOT: avvia il sistema operativo", "DRIVERS: funzioni di base di basso livello per tastiera, dischi e altri dispositivi"]],
@@ -133,7 +133,7 @@ game_update:
       "Accesso più lento: alcuni ordini di grandezza più lento della memoria centrale",
       "L'informazione è organizzata in blocchi, di solito di un kilobyte o più, non in byte singoli",
       "Alcuni supporti permettono l'accesso diretto a qualunque blocco; altri solo l'accesso sequenziale",
-    ], "La memoria secondaria memorizza e conserva tutti i programmi e i dati del calcolatore; la memoria centrale contiene i programmi in esecuzione e i dati che servono loro.", { img: "hard_disk.jpg", cap: "Un disco rigido da 6 TB" }),
+    ], "La memoria secondaria memorizza e conserva tutti i programmi e i dati del calcolatore; la memoria centrale contiene i programmi in esecuzione e i dati che servono loro.", { img: "hard_disk.jpg", cap: "Un disco rigido aperto: piatto, braccio e testina" }),
     D("Dischi magnetici: tracce, settori, blocchi", async (s, h) => {
       h.card(s, h.MX, h.TOP, 5.5, h.BOT - h.TOP);
       await h.svg(s, diskSvg(), h.MX + 0.15, h.TOP + 0.3, 5.2, h.BOT - h.TOP - 0.6);
@@ -163,7 +163,7 @@ game_update:
       ["0 e 1 non sono pit e land", ["1 è un cambiamento, da pit a land o da land a pit", "0 è nessun cambiamento"]],
       "Di solito scritti una volta sola, perché le modifiche fisiche sono irreversibili: usati per distribuire programmi e come archivi da non modificare",
       "CD registrabile: la registrazione brucia dei punti in uno strato di colorante; i dischi riscrivibili usano un materiale che può tornare indietro",
-    ], "Codificare un 1 come transizione è un'idea autosincronizzante, usata anche in molti collegamenti seriali.", { img: "pit_land.jpg", cap: "Pit e land, e la luce che vede il sensore" }),
+    ], "Codificare un 1 come transizione è un'idea autosincronizzante, usata anche in molti collegamenti seriali.", { img: "pit_land.jpg", cap: "Pit e land di un CD-ROM stampato, al microscopio elettronico" }),
     T("Il compact disc", [
       "L'informazione è memorizzata su un'unica traccia a spirale, con densità di registrazione costante",
       "La distanza tra due spire successive, il passo della traccia, è di 1,6 micrometri",
@@ -191,7 +191,7 @@ game_update:
       "Libreria a nastri|robot che montano nastri: il costo più basso per byte, per gli archivi",
     ], "Un sistema di calcolo moderno ha più livelli di memoria permanente, spesso gestiti in automatico: i dati usati spesso migrano verso i livelli veloci, il resto scende verso quelli economici.",
       "La stessa idea della cache, applicata alla memoria di massa. Lo storage HPC del Dipartimento funziona così (visita alla fine del corso)."),
-    I("La memoria di massa su grande scala", [["storage_racks.jpg", "Librerie di dischi e di nastri in un centro di calcolo"], ["ssd.jpg", "Un disco a stato solido: memoria flash in forma di disco"], ["dvd_drive.jpg", "L'interno di un lettore DVD"]],
+    I("La memoria di massa su grande scala", [["storage_racks.jpg", "Una libreria di nastri in un centro di calcolo"], ["ssd.jpg", "Un disco a stato solido: memoria flash in forma di disco"], ["dvd_drive.jpg", "L'interno di un lettore DVD"]],
       "Immagini dalla presentazione originale.", "Da un chip di pochi megabyte sul kit a stanze di petabyte: la stessa gerarchia, a ogni scala."),
 
     Q("Quale memoria si può cancellare elettricamente, a blocchi, senza rimuoverla dalla scheda?", ["ROM", "PROM", "EPROM", "Flash"], 3, "La flash è l'evoluzione a blocchi della EEPROM. Alla EPROM serve la luce ultravioletta; ROM e PROM non si possono cancellare."),

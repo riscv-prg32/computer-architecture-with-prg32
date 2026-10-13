@@ -16,7 +16,7 @@ The same two commands as in Part 1: build the cartridge, then upload it to PRG32
 
 ## Slide 4: CHANGED Constants: buttons and directions
 
-Add these lines to the constants of Part 1. `RED` is the colour of the food. The four `BTN_` constants are masks: each has a single bit at 1, the bit of that button in the word returned by the runtime. The four `DIR_` constants are the codes of the directions, numbers from 0 to 3, that is two bits. The comments say what each of the two bits means, and the next slide explains why the codes were chosen in this way.
+Add these lines to the constants of Part 1. `RED` is the colour of the food. The four `BTN_` constants are masks: each has a single bit at 1, the bit of that button in the word returned by the runtime. The four `DIR_` constants are the codes of the directions, numbers from 0 to 3, that is two bits. The comments say what each of the two bits means, and the lecture deck, in the slide "A code chosen with care", explains why the codes were chosen in this way.
 
 ## Slide 5: CHANGED Data: two tables and five new variables
 

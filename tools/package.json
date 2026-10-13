@@ -3,6 +3,6 @@
   "version": "2026.27.0",
   "private": true,
   "description": "Generator for the ARC12 Computer Architecture lecture decks (English and Italian, PRG32 / RISC-V first)",
-  "scripts": { "build": "node build.js", "notes": "node notes.js", "textbook": "node textbook/export_listings.js en && node textbook/export_listings.js it && node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py && node textbook/check_decks.js && python3 textbook/check_editions.py" },
+  "scripts": { "build": "node build.js", "notes": "node notes.js", "textbook": "node textbook/export_listings.js en && node textbook/export_listings.js it && node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py && python3 textbook/gen_credits.py && node textbook/check_decks.js && python3 textbook/check_editions.py" },
   "dependencies": { "pptxgenjs": "^3.12.0", "sharp": "^0.33.0" }
 }

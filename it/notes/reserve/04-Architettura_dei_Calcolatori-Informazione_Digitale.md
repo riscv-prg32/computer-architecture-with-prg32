@@ -2,6 +2,10 @@
 
 *Note delle slide della specifica che non sono in nessuna delle due presentazioni (decks/plan.js, drop): il loro contenuto è nel libro di testo.*
 
+## Concetti fondamentali: il flusso dei dati
+
+Ogni calcolo ha la stessa forma. I dati entrano dal mondo; un programma, che è un algoritmo reso concreto, li trasforma; i risultati escono; e qualcuno li usa, ed è questo a trasformare l'informazione in conoscenza. Su PRG32 conoscete già per nome i quattro riquadri: i pulsanti sono letti da `prg32_input_read`, la vostra funzione `update` elabora, la vostra funzione `draw` produce l'uscita, e il giocatore reagisce. Tenete questa figura: ogni programma che scriverete ne è un caso particolare.
+
 ## Numeri: naturali, interi, reali
 
 Un'anteprima delle due lezioni successive. I numeri naturali sono la configurazione posizionale stessa: con n bit, da 0 a 2 alla n meno 1. Gli interi con segno usano il *complemento a due*, argomento della Lezione 05. I numeri reali usano la virgola fissa o la virgola mobile dello standard IEEE 754, argomento della Lezione 06, in cui i bit si dividono in segno, esponente e frazione. Oggi non vi si chiede di capire i formati: solo di vedere che anche i numeri hanno bisogno di una convenzione.
@@ -22,10 +26,6 @@ Un processore grafico, o GPU, ha migliaia di core semplici progettati per applic
 
 Il *data mining* è l'insieme delle tecniche per estrarre informazione e conoscenza da grandi quantità di dati. La slide nomina tre famiglie: gli alberi di decisione, che classificano con una sequenza di domande; l'apprendimento di regole e i metodi bayesiani, che ragionano con le probabilità; e le reti neurali, che riconoscono schemi. Sono argomenti di corsi successivi. Qui basta sapere che esistono e che sono algoritmi come gli altri.
 
-## Algoritmi deterministici e non deterministici
+## Cinque proprietà di un algoritmo
 
-In un algoritmo *deterministico* lo stesso ingresso produce sempre la stessa sequenza di passi e lo stesso risultato: `first_update` somma sempre uno. Un algoritmo *non deterministico* può comportarsi in modo diverso a ogni esecuzione con lo stesso ingresso. Le ragioni comuni sono due: usa di proposito numeri casuali, come un gioco che piazza un nemico a caso, oppure dipende dai tempi di più cose che accadono insieme. Il primo tipo è utile; il secondo è una fonte frequente di bug.
-
-## Machine learning
-
-Un programma classico è una funzione scritta da una persona: y = f(x). Nel *machine learning* la funzione non viene scritta: è costruita automaticamente a partire da esempi. I modelli generativi di oggi sono questa idea su scala enorme, con miliardi di numeri appresi. Due osservazioni la collegano a questo corso. Quei numeri sono bit in memoria, moltiplicati e sommati da processori. E un modello può sbagliare con grande sicurezza: solo chi conosce i fondamenti può controllare ciò che dice.
+Cinque proprietà fanno di una procedura un algoritmo. I suoi passi sono *atomici*: non si possono scomporre oltre. Sono *non ambigui*: l'esecutore può interpretarli in un solo modo. L'algoritmo è *finito* nei passi e nei dati, *termina* in un tempo finito, ed è *efficace*: porta a un risultato unico e ben definito. Un'istruzione RISC-V è un buon modello di passo atomico e non ambiguo: il suo significato è fissato dalla specifica, bit per bit.

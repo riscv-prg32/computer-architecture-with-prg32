@@ -40,7 +40,7 @@ Deck({
       "Nuovo colore: RED, per il cibo",
       "Ogni pulsante è un bit di una parola: una maschera lo seleziona",
       "Una direzione è un numero da 0 a 3: due bit",
-      "I codici non sono arbitrari: si veda la slide successiva",
+      "I codici non sono arbitrari: si veda la lezione",
     ], "Aggiungete alle costanti della Parte 1 la riga di RED e quelle da BTN_LEFT a DIR_UP."),
     G("Un codice scelto con cura: le quattro direzioni", ["Direzione", "Codice", "Bit 1", "Bit 0", "dx", "dy", "Opposta"], [
       ["RIGHT", "0", "0", "0", "+1", "0", "LEFT = 2"],

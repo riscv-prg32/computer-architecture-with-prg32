@@ -76,7 +76,7 @@ Of the four stubs only one is left: `play_update`, which still does nothing. The
 
 ## Slide 19: Run it: a worm that stands still
 
-Run it and press A: a worm of three cells in row 12, with the brighter head on the right, and the food in a random cell. Now look at memory with the debugger. At the address of `body_x` the first bytes are 03 04 05. In the map, at row 12 times 40 plus 3, there are three bytes at 01 in a sea of zeros. You are looking at the two structures of slide 7 and slide 8, filled.
+Run it and press A: a worm of three cells in row 12, with the brighter head on the right, and the food in a random cell. Now look at memory with the debugger. At the address of `body_x` the first bytes are 03 04 05. In the map, at row 12 times 40 plus 3, there are three bytes at 01 in a sea of zeros. You are looking at the two structures of the lecture deck, the ring and the map, filled.
 
 ## Slide 20: CHANGED play_update: your update of Part 2
 

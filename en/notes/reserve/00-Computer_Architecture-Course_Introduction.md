@@ -22,17 +22,17 @@ Four screenshots of the same file at four moments of the semester: a green squar
 
 A tutorial lecture has four properties. It is self-contained: the slides show the whole program, and every line is marked as new, changed or unchanged, so you never have to guess what the file contains. It proceeds step by step, and after each step you build, run and compare with an expected result. It includes a session with the debugger, with a precise thing to look at. And it ends with changes that are yours to make. If your program is broken at the start of a tutorial, you start from the reference file of the previous part: nobody is left behind by a bug.
 
+## Syllabus
+
+The syllabus in six cards: the organisation of a computer; Boolean algebra and logic networks; the representation of data; the structure of CPU, memory and input/output; RISC-V assembly; and the project. Compare it with the map of the blocks: the content is the same, arranged by subject here and by learning order there. When you prepare for the exam, this slide is the list to tick off; the detailed version is in the Syllabus file on Esse3 and on the e-learning portal.
+
+## Learning outcomes
+
+The learning outcomes say what you will be able to do, in five steps of growing autonomy: know the binary system, digital logic and how a computer operates; apply this to exercises and assembly programs; judge which representation and which control structure suit a problem; communicate inside a team with the correct technical terms; and keep learning on your own from reliable sources. Read the first card again: no previous computing background is assumed, so every one of these outcomes is reached starting from zero.
+
 ## What the midterm covers
 
 The midterm covers the first three blocks: Information (Lectures 03 to 06), Logic (08 to 11), and State and memory (13 to 16). The last row, highlighted, is what it does not cover: the processor, instructions and interrupts, the video card and input/output belong to the oral exam. Examples in the test may use RISC-V instructions, so the first-contact material of Lecture 02 is assumed, and the code of Verm1, parts 1 to 3, is a natural source of questions. Use the middle column as your revision plan.
-
-## No tech. No GPT.
-
-The rule for the midterm and the exam is short: no devices and no help, human or artificial, of any kind. This includes ChatGPT, other language models and every form of generative AI. Copying cancels your test immediately. The rule is not hostility towards technology, which you will use every day in this course: it follows from what the test is for. A test measures what *you* know; an answer produced by something else measures nothing and helps nobody, least of all you.
-
-## Exam sessions and finalisation
-
-To record the final mark you need a positive result in both parts, and the recording happens only during a theory session; the laboratory exam is usually a week earlier. Book both on Esse3. The two frequent questions have the same answer: yes, you may take the theory before the practice, and your result is kept for the academic year, but nothing is recorded until both parts are passed. Plan the two exams together rather than one at a time.
 
 ## Midterm week and the closing event
 

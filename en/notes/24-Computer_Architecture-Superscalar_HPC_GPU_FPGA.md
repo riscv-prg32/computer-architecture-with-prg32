@@ -30,37 +30,37 @@ Out-of-order execution, in four stages. Instructions are fetched and decoded in 
 
 A wide processor meets a branch every few instructions and cannot wait to know its outcome. So it *predicts*: it guesses the direction from the history of that branch and continues along the guess. If the guess was right, nothing is lost; if it was wrong, the speculative work is thrown away. The loop of the warm-up jumps back 959 times and falls through once: a predictor learns it at once. Modern predictors are right far more than nine times out of ten.
 
-## Slide 8: One architecture, many microarchitectures
+## Slide 8: RISC-V goes superscalar
+
+RISC-V processors of this kind exist. The first row is the core of your kit: in order, one instruction per cycle. The others are out-of-order cores: BOOM from Berkeley and XiangShan from the Chinese Academy of Sciences, both open source; the C910, the P550, Veyron, from companies. Because the instruction set is open, anyone may build such a core, and some are published as source code that you could read.
+
+## Slide 9: One architecture, many microarchitectures
 
 A distinction that organises the whole course. The *architecture* is the contract: the instructions, the registers, what each instruction does. The *microarchitecture* is one way of honouring the contract: stages, width, predictors, caches. The `add` you wrote for a microcontroller is the same `add` on a server core. Verm1 would run unchanged on any core of the previous slide. This is why an instruction set, once learned, is knowledge that lasts.
 
-## Slide 9: What is a supercomputer?
+## Slide 10: What is a supercomputer?
 
-A supercomputer is not one enormous processor: it is thousands of ordinary computers, the *nodes*, working on the same problem. Each node has one or two processors with tens of cores, often several GPUs, and much memory. A very fast network joins the nodes, and a parallel file system serves them all. Speed is measured in floating-point operations per second on a standard problem, and the TOP500 list has ranked the fastest machines since 1993. The picture is a small cluster with the same structure.
+A supercomputer is not one enormous processor: it is thousands of ordinary computers, the *nodes*, working on the same problem. Each node has one or two processors with tens of cores, often several GPUs, and much memory. A very fast network joins the nodes, and a parallel file system serves them all. Speed is measured in floating-point operations per second on a standard problem, and the TOP500 list has ranked the fastest machines since 1993. The picture shows racks of nodes of the Research Computing Facilities of the University.
 
-## Slide 10: Amdahl's law
+## Slide 11: Amdahl's law
 
 Amdahl's law says how much parallelism can give. If a fraction p of the work can be done in parallel and the rest cannot, with n processors the speed-up is 1 divided by the serial part plus the parallel part divided by n. The serial part does not shrink however many processors are added. With p equal to 0.9 the speed-up can never exceed 10. The practical lesson: before buying processors, measure p.
 
-## Slide 11: Two ways to share the work
+## Slide 12: Two ways to share the work
 
 Two ways to share the work. With *shared memory*, several cores of the same node see the same memory, and the program runs as threads that read and write the same variables; it is easy to start, and the danger is two threads writing the same variable. With *distributed memory* each node has its own memory, and the program runs as processes that exchange messages, with the MPI standard; it scales to a million cores, at the programmer's expense. Real applications use both.
 
-## Slide 12: The limit is energy
+## Slide 13: The limit is energy
 
 The limit is energy. An exascale machine draws about twenty megawatts, the consumption of a small town, and the electricity of its lifetime costs as much as the machine. So the figure that matters is operations per watt, which has its own ranking, the Green500. Specialised hardware leads it, because it does more with each joule. The same reason, at the other end of the scale, puts a small RISC-V core in your kit.
 
-## Slide 13: Two ways to spend transistors
+## Slide 14: Two ways to spend transistors
 
 Two ways of spending the same transistors. A CPU has a few large cores, each out of order, with predictors and big caches: it is built to finish one task as soon as possible, and is at ease with branches and irregular data. A GPU has thousands of small simple cores that execute the same code on different data: it is built to finish a great many tasks per second, and is at ease with regular arrays. Oxen and chickens: the answer depends on the field.
 
-## Slide 14: A chip that becomes the circuit you describe
+## Slide 15: A chip that becomes the circuit you describe
 
 An FPGA, field-programmable gate array, is a chip that becomes the circuit you describe. Inside there is a sea of small blocks: look-up tables, each able to be any function of a few inputs; a flip-flop beside each table; and wires with switches that can connect any block to any other. A configuration file, the *bitstream*, sets every table and every switch. Load another bitstream and the same chip is a different circuit. It does not execute a program: it is a circuit.
-
-## Slide 15: A look-up table is a truth table in memory
-
-A look-up table is a truth table kept in memory. The inputs `a` and `b` are the address; the stored bits are the outputs. Read the three columns on the right: with the bits 0, 0, 0, 1 the table is an AND; with 0, 1, 1, 0 an XOR; with 1, 1, 0, 0 it is NOT a. Changing the stored bits changes the gate. It is the ROM that implements any function, from Lecture 11, in miniature.
 
 ## Slide 16: Four ways to compute
 

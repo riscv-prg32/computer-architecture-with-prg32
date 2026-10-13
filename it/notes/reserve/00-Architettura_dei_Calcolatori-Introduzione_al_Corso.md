@@ -22,17 +22,17 @@ Quattro schermate dello stesso file in quattro momenti del semestre: un quadrato
 
 Una lezione tutorial ha quattro proprietà. È autosufficiente: le slide mostrano l'intero programma, e ogni riga è indicata come nuova, modificata o invariata, così non dovete mai indovinare che cosa contiene il file. Procede passo per passo, e dopo ogni passo si compila, si esegue e si confronta con un risultato atteso. Comprende una sessione con il debugger, con una cosa precisa da guardare. E finisce con modifiche che spetta a voi fare. Se all'inizio di un tutorial il vostro programma è rotto, ripartite dal file di riferimento della parte precedente: un bug non lascia indietro nessuno.
 
+## Programma
+
+Il programma in sei riquadri: l'organizzazione di un calcolatore; l'algebra di Boole e le reti logiche; la rappresentazione dei dati; la struttura di CPU, memoria e ingresso/uscita; l'assembly RISC-V; e il progetto. Confrontatelo con la mappa dei blocchi: il contenuto è lo stesso, ordinato qui per materia e là per ordine di apprendimento. Quando preparate l'esame, questa è la lista da spuntare; la versione dettagliata è nel file Syllabus su Esse3 e sul portale e-learning.
+
+## Risultati di apprendimento
+
+I risultati di apprendimento dicono che cosa saprete fare, in cinque gradini di autonomia crescente: conoscere il sistema binario, la logica digitale e il funzionamento di un calcolatore; applicare tutto questo a esercizi e programmi assembly; giudicare quale rappresentazione e quale struttura di controllo convengono a un problema; comunicare in un gruppo con i termini tecnici corretti; continuare a imparare da soli su fonti affidabili. Rileggete il primo riquadro: non si presuppongono conoscenze informatiche, quindi ciascuno di questi risultati si raggiunge partendo da zero.
+
 ## Che cosa copre la prova intercorso
 
 La prova intercorso copre i primi tre blocchi: Informazione (Lezioni da 03 a 06), Logica (da 08 a 11), Stato e memoria (da 13 a 16). L'ultima riga, evidenziata, è ciò che non copre: processore, istruzioni e interruzioni, scheda video e ingresso/uscita appartengono all'orale. Gli esempi della prova possono usare istruzioni RISC-V, quindi il materiale di primo contatto della Lezione 02 si dà per acquisito, e il codice di Verm1, parti da 1 a 3, è una fonte naturale di domande. Usate la colonna centrale come piano di ripasso.
-
-## Niente tecnologia. Niente GPT.
-
-La regola per la prova intercorso e per l'esame è breve: nessun dispositivo e nessun aiuto, umano o artificiale, di alcun tipo. Sono compresi ChatGPT, gli altri modelli linguistici e ogni forma di IA generativa. Chi copia vede annullata subito la propria prova. La regola non nasce da ostilità verso la tecnologia, che in questo corso userete ogni giorno: discende da ciò a cui serve la prova. Una prova misura ciò che sapete *voi*; una risposta prodotta da qualcos'altro non misura nulla e non aiuta nessuno, voi per primi.
-
-## Appelli e verbalizzazione
-
-Per verbalizzare il voto finale serve un risultato positivo in entrambe le parti, e la verbalizzazione avviene solo durante un appello di teoria; l'esame di laboratorio è di solito una settimana prima. Prenotate entrambi su Esse3. Le due domande frequenti hanno la stessa risposta: sì, si può sostenere la teoria prima della pratica, e il risultato vale per l'anno accademico, ma non si verbalizza nulla finché non sono superate tutte e due le parti. Pianificate i due esami insieme, non uno alla volta.
 
 ## La settimana della prova e l'evento finale
 

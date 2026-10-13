@@ -18,10 +18,12 @@ const STR = {
   en: {
     suffix: "-Code", title: (t) => `${t}: the code`, short: (s) => `${s} (code)`,
     sub: "Code deck: every listing explained, the complete program, and how to test it on PRG32-QT, on QEMU and on the board",
+    pairMain: (f) => `Lecture deck. The listings, the complete program and how to test it are in the code deck:\n${f}.pptx`,
+    pairCode: (f) => `Code deck. The concepts, the figures and the questions are in the lecture deck:\n${f}.pptx`,
     secListings: "The listings", secProgram: "The complete program", secTest: "Run it and test it", secEx: "Exercises",
     intro: "In this deck",
     introItems: (n, l) => [
-      n ? `The ${n} listing${n > 1 ? "s" : ""} of Lecture ${l.n}, one per slide: read the code, then the numbered remarks beside it` : `No listing in Lecture ${l.n}: this deck gives you the program to run`,
+      n ? (n > 1 ? `The ${n} listings of Lecture ${l.n}, one per slide: read the code, then the numbered remarks beside it` : `The listing of Lecture ${l.n}: read the code, then the numbered remarks beside it`) : `No listing in Lecture ${l.n}: this deck gives you the program to run`,
       l.prog, "What you should see when it runs, checked on the PRG32-QT headless runner",
       "How to test it, step by step: on PRG32-QT, on QEMU, on the board", "The exercises: change the program, predict, run",
     ],
@@ -60,6 +62,8 @@ const STR = {
   it: {
     suffix: "-Codice", title: (t) => `${t}: il codice`, short: (s) => `${s} (codice)`,
     sub: "Presentazione del codice: ogni listato spiegato, il programma completo, e come provarlo su PRG32-QT, su QEMU e sulla scheda",
+    pairMain: (f) => `Presentazione della lezione. I listati, il programma completo e come provarlo sono nella presentazione del codice:\n${f}.pptx`,
+    pairCode: (f) => `Presentazione del codice. I concetti, le figure e le domande sono nella presentazione della lezione:\n${f}.pptx`,
     secListings: "I listati", secProgram: "Il programma completo", secTest: "Eseguire e provare", secEx: "Esercizi",
     intro: "In questa presentazione",
     introItems: (n, l) => [
@@ -219,7 +223,7 @@ function split(d, lang) {
   d.slides.forEach((s, i) => {
     const k = i + 2;
     if (drop.has(k)) return;
-    if (s.t === "section") { main.push({ t: "mark", a: s.a, src: [] }); return; }
+    if (s.t === "section") { main.push({ t: "mark", a: s.a, src: [] }); moved.push({ t: "mark", a: s.a, src: [] }); return; }
     if (isCodeType(s) || toCode.has(k)) (s.t === "exercise" && firstQuiz >= 0 && i > firstQuiz ? tail : moved).push(Object.assign({}, s, { src: [k] }));
     else main.push(Object.assign({}, s, { src: [k] }));
   });
@@ -239,7 +243,8 @@ function split(d, lang) {
   for (const k of Object.keys(c)) c[k] = c[k].replace(/\n(# \d\. )/g, "\n\n$1");   // a blank line before each numbered step
   const nList = moved.filter(hasCode).length;
   code.push(mk("ordered", "intro", L.intro, L.introItems(nList, l), L.introNote(l)));
-  if (moved.length) code.push({ t: "mark", a: [L.secListings] }, ...moved);
+  // the listings keep the sections of the lecture ("Warm-up on the machine", ...): a mark with no slide after it opens nothing
+  if (moved.some((s) => s.t !== "mark")) code.push({ t: "mark", a: [L.secListings] }, ...moved);
   if (l.pages) {
     code.push({ t: "mark", a: [L.secProgram] });
     l.pages.forEach((pg, i) => code.push(mk("code", "page", L.page(l, i + 1, l.pages.length), pg, null, L.pageNote(l), "asm", { wide: true })));
@@ -255,8 +260,8 @@ function split(d, lang) {
 
   const base = { n: d.n, lecture: d, lab: l };
   return [
-    Object.assign({}, d, base, { kind: "main", slides: grouped }),
-    Object.assign({}, d, base, { kind: "code", file: d.file + L.suffix, title: L.title(d.title), short: L.short(d.short || d.title), sub: L.sub, quote: null, notes: null, slides: code }),
+    Object.assign({}, d, base, { kind: "main", pair: L.pairMain(d.file + L.suffix), slides: grouped }),
+    Object.assign({}, d, base, { kind: "code", pair: L.pairCode(d.file), file: d.file + L.suffix, title: L.title(d.title), short: L.short(d.short || d.title), sub: L.sub, quote: null, notes: null, slides: code }),
   ];
 }
 

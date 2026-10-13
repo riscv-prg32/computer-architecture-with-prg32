@@ -22,13 +22,13 @@ The same transitions as a Moore machine. The output no longer depends on the inp
 
 A circuit that can store one bit is a *bistable*: it has two stable states, 0 and 1, and stays in one of them until something changes it. There are two families, latches and flip-flops, and both have two outputs, Q and its complement. The idea is older than the transistor: the first electronic flip-flop was built in 1918 with two vacuum tubes, and the same circuit was at the heart of Colossus.
 
-## Why S = R = 1 is not allowed
-
-With S and R both at 1, both NOR gates output 0, so Q and its complement are no longer complementary. Worse: if the two inputs then return to 0 together, the gates race against each other, and the final state depends on which is faster. The result is unpredictable, and the latch may even oscillate. Whoever uses an SR latch must guarantee that S and R are never 1 together. The JK and D elements were invented to remove this problem at the root.
-
 ## Level triggering and its problem
 
 A latch is *level-triggered*: for the whole time the clock is at its active level it is transparent, and every change of the inputs passes to the outputs. So within one clock cycle the state may change several times. In a machine with feedback this is fatal: the new state travels round the loop and changes the state again in the same cycle. A JK latch with both inputs at 1 keeps toggling as long as the clock is high. We need an element that changes at most once per cycle.
+
+## Memory elements: a summary
+
+A summary of the memory elements. The column *next state* gives the rule in compact form, where Q+ is the state after the change; the last column says when the change can happen: at any time for the plain latch, during the active level for clocked latches, on the edge for flip-flops. The T flip-flop, which toggles when T is 1, is a JK with its two inputs joined. Keep in mind the row of the D flip-flop: it is the memory element of today's processors.
 
 ## Synthesis example: a two-bit counter
 

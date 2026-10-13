@@ -43,6 +43,7 @@ const P = {
 };
 const TINTS = [P.teal, P.amber, P.violet, P.green, P.red, P.steel];
 const HEAD = "Cambria", BODY = "Calibri", MONO = "Courier New";
+const CREDITS = Object.fromEntries(require("./assets/credits.json").map((c) => [c.file, c]));
 const W = 13.333, H = 7.5, MX = 0.6, TOP = 1.55, BOT = 6.75, CW = W - 2 * MX;
 const COURSE = L.course, YEAR = L.year;
 
@@ -168,13 +169,16 @@ async function build(deck) {
     flipH: x2 < x1, flipV: y2 < y1, line: { color: color || P.mute, width: width || 1.5, endArrowType: "triangle" } });
   const line = (s, x1, y1, x2, y2, color, width, dash) => s.addShape(pres.ShapeType.line, { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1),
     flipH: x2 < x1, flipV: y2 < y1, line: { color: color || P.mute, width: width || 1.25, dashType: dash || "solid" } });
-  const img = (s, file, x, y, w, h, align) => s.addImage(contain(file, x, y, w, h, align));
+  // A picture taken from Wikimedia Commons is credited in the notes of its slide (assets/credits.json).
+  const pics = new Map();
+  const img = (s, file, x, y, w, h, align) => { if (CREDITS[file]) pics.set(file, CREDITS[file]); return s.addImage(contain(file, x, y, w, h, align)); };
   // Notes pane: the tutorial note of ../<lang>/notes (if the deck has them), then the lecturer's remarks.
   const tutorial = readNotes(global.LANG, deck);
   const notes = (s, n) => {
     const t = tutorial && tutorial[count];
     if (tutorial && !t) throw new Error(`${WHERE}: no note for slide ${count} in ${global.LANG}/notes`);
-    const text = [t, n ? (t ? `${L.lecturer}: ${n}` : n) : null].filter(Boolean).join("\n\n");
+    const cr = [...pics.values()].map((c) => `${c.title}, ${c.author}, ${c.licence}, Wikimedia Commons`); pics.clear();
+    const text = [t, n ? (t ? `${L.lecturer}: ${n}` : n) : null, cr.length ? `${L.pictures}: ${cr.join("; ")}.` : null].filter(Boolean).join("\n\n");
     if (text) s.addNotes(text);
   };
 
@@ -514,7 +518,7 @@ async function build(deck) {
     const s = dark();
     pixels(s, MX, 0.7, 0.24, [ACC, P.amber, null, null, ACC, P.amber, ACC, null, null]);
     tx(s, `${COURSE.toUpperCase()}  ·  ${L.lecture.toUpperCase()} ${deck.n}`, { x: MX, y: 1.75, w: CW, h: 0.4, fontSize: 16, bold: true, color: P.amber, charSpacing: 3 });
-    tx(s, deck.title, { x: MX, y: 2.2, w: CW - 1.5, h: 1.7, fontFace: HEAD, fontSize: fit(deck.title, CW - 1.5, 1.7, 48, 30, false, true), bold: true, color: P.white, valign: "middle" });
+    tx(s, deck.title.replace(/RISC-V/g, "RISC\u2011V"), { x: MX, y: 2.2, w: CW - 1.5, h: 1.7, fontFace: HEAD, fontSize: fit(deck.title, CW - 1.5, 1.7, 48, 30, false, true), bold: true, color: P.white, valign: "middle" });
     if (deck.sub) tx(s, deck.sub, { x: MX, y: 3.95, w: CW - 1.5, h: 0.6, fontSize: fit(deck.sub, CW - 1.5, 0.6, 22, 15), color: P.ice, valign: "middle" });
     if (deck.quote) {
       tx(s, [{ text: `“${deck.quote[0]}”`, options: { italic: true, color: P.white, fontSize: fit(deck.quote[0], 8.6, 0.75, 19, 13), breakLine: true } },
@@ -524,6 +528,7 @@ async function build(deck) {
       { text: L.university + "  ·  " + YEAR, options: { color: P.ice, fontSize: 14, breakLine: true } },
       { text: "raffaelemontella.it  ·  raffaele.montella@uniparthenope.it", options: { color: P.ice, fontSize: 13 } }], { x: MX, y: 6.0, w: 9, h: 1.0 });
     if (deck.credit) tx(s, deck.credit, { x: MX, y: 7.02, w: 9, h: 0.3, fontSize: 12, italic: true, color: P.ice });
+    if (deck.pair) tx(s, deck.pair, { x: W - MX - 7.6, y: 0.62, w: 7.6, h: 0.7, fontSize: fit(deck.pair, 7.6, 0.7, 13, 10), color: P.ice, align: "right", valign: "top" });
     if (deck.cover) { card(s, W - MX - 3.3, 4.55, 3.3, 2.2, "000000"); img(s, deck.cover, W - MX - 3.2, 4.65, 3.1, 2.0); }
     notes(s, deck.notes);
   }

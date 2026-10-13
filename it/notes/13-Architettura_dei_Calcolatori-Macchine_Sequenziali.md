@@ -42,25 +42,25 @@ Il *latch SR*: due porte NOR, ciascuna con l'uscita collegata a un ingresso dell
 
 Il latch nel tempo. S va a 1, e dopo il ritardo delle porte Q diventa 1. Poi S torna a 0 e non accade nulla: la retroazione tiene Q a 1. Questo tratto piatto è la memoria. Più tardi R va a 1, Q torna a 0, e vi resta quando R torna a 0. Seguite sul disegno i quattro istanti segnati tenendo davanti il circuito della slide precedente, e ricavate l'uscita di ogni porta.
 
-## Slide 11: Latch sincroni: si aggiunge un clock
+## Slide 11: Perché S = R = 1 non è ammesso
+
+Con S e R entrambi a 1, entrambe le porte NOR danno 0, quindi Q e il suo complemento non sono più complementari. Peggio: se poi i due ingressi tornano a 0 insieme, le porte fanno a gara, e lo stato finale dipende da quale è più veloce. Il risultato è imprevedibile, e il latch può perfino oscillare. Chi usa un latch SR deve garantire che S e R non siano mai a 1 insieme. Gli elementi JK e D sono stati inventati per eliminare il problema alla radice.
+
+## Slide 12: Latch sincroni: si aggiunge un clock
 
 In un circuito asincrono le uscite possono cambiare ogni volta che cambia un ingresso. In uno sincrono è il clock a decidere quando. Per rendere sincrono il latch SR, S e R passano per due porte AND insieme al clock. Quando il clock vale 0 entrambe le porte danno 0 e il latch non può cambiare; quando vale 1 si comporta come il latch semplice. Il clock decide quando gli ingressi vengono ascoltati.
 
-## Slide 12: I latch JK e D
+## Slide 13: I latch JK e D
 
 Due miglioramenti del latch. Nel latch *JK* le uscite sono riportate alle porte di ingresso, così che set e reset interni non possano mai valere 1 insieme; la combinazione J = K = 1, invece di essere vietata, inverte l'uscita: la fa commutare. Il latch *D* ha un solo ingresso: D va al set e la sua negazione al reset, quindi l'uscita prende semplicemente il valore di D finché il clock è attivo. D sta per delay, ritardo, o per dato.
 
-## Slide 13: Il flip-flop master-slave
+## Slide 14: Il flip-flop master-slave
 
 Il flip-flop *master-slave* è fatto di due latch in serie, controllati da livelli opposti del clock. Quando il clock vale 0 il master è aperto e segue l'ingresso, mentre lo slave è chiuso. Quando il clock passa a 1 il master si chiude, conservando ciò che aveva, e lo slave si apre e lo mostra. I due non sono mai trasparenti insieme, quindi l'ingresso non può mai correre dritto fino all'uscita. L'effetto è che l'uscita cambia solo sul fronte di salita: il flip-flop è *sensibile al fronte*.
 
-## Slide 14: Latch o flip-flop? Guardate l'uscita
+## Slide 15: Latch o flip-flop? Guardate l'uscita
 
 La differenza, vista sulle forme d'onda. Il clock e l'ingresso D sono gli stessi per entrambi. L'uscita del latch segue D per tutta la fase alta del clock: cambia a metà di una fase. L'uscita del flip-flop cambia solo sui fronti di salita, prendendo il valore che D ha in quell'istante; gli impulsi brevi di D tra due fronti sono ignorati. L'uscita del flip-flop è ferma per un intero periodo, che è esattamente ciò che serve a un registro di stato.
-
-## Slide 15: Elementi di memoria: un riepilogo
-
-Un riepilogo degli elementi di memoria. La colonna *stato prossimo* dà la regola in forma compatta, dove Q+ è lo stato dopo il cambio; l'ultima colonna dice quando il cambio può avvenire: in ogni momento per il latch semplice, durante il livello attivo per i latch sincroni, sul fronte per i flip-flop. Il flip-flop T, che commuta quando T vale 1, è un JK con i due ingressi uniti. Tenete a mente la riga del flip-flop D: è l'elemento di memoria dei processori di oggi.
 
 ## Slide 16: Un registro è una fila di flip-flop
 

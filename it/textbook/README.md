@@ -4,7 +4,7 @@ Libro di testo di ARC12, *Architettura dei Calcolatori e Laboratorio di Architet
 dei Calcolatori*, Università degli Studi di Napoli "Parthenope", A.A. 2026/27.
 Edizione italiana di *Computer Architecture: Program First, Formalise Later*
 (`../../en/textbook`), che resta l'edizione di riferimento. Sorgente LaTeX, pronto per
-Overleaf. 464 pagine.
+Overleaf. 466 pagine.
 
 Il libro segue una a una le 25 lezioni: **il Capitolo N è la Lezione N** (i capitoli sono
 numerati da 0, come le lezioni). Ogni lezione ha due presentazioni in `../slides`, quella

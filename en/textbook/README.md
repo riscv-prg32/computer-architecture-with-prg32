@@ -6,7 +6,7 @@ University of Naples "Parthenope", A.Y. 2026/27. LaTeX source, ready for Overlea
 The book follows the 25 lectures one to one: **Chapter N is Lecture N** (chapters are
 numbered from 0, like the lectures). Each lecture has two decks in `../slides`, the
 lecture deck (at most 20 slides) and the code deck; the chapter is the long form of
-both, and holds what the 20 slides have no room for. 456 pages.
+both, and holds what the 20 slides have no room for. 458 pages.
 
 Author: Raffaele Montella. The reference implementation of Verm1, the course-long
 project (the four programs of Appendix D), was contributed by Giuseppe Coviello.

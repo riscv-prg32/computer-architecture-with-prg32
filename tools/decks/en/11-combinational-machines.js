@@ -56,7 +56,7 @@ Deck({
     O("What you will be able to do by the end", [
       "Tell a combinational machine from a sequential one",
       "Compute how many bits a fixed-length code needs, and recognise incomplete and redundant codes",
-      "Design a decoder and an encoder, and compose small decoders into larger ones",
+      "Design a decoder and an encoder, and say what a transcoder does",
       "Explain what a multiplexer and a demultiplexer do, and build them from gates",
       "Build a comparator and a parity network, and say what a parity check can and cannot detect",
       "Point to each of these machines inside a RISC-V processor",
@@ -365,7 +365,7 @@ palette: .word 0xf800, 0x07e0, 0x001f, 0xffe0`, [
       ["redundant code", "codice ridondante", "parity bit", "bit di parità"],
     ], null, { widths: [3, 3.2, 3.2, 3.4] }),
     T("Conclusions and reading", [
-      "Information is an attribute, a type and a value; a code writes the value as a string over an alphabet",
+      "A code writes each element of a set as a string of symbols over an alphabet: its code word",
       "Fixed-length codes need ceil(log2 N) bits; redundant codes spend more to detect errors",
       "Encoding, decoding and transcoding are done by combinational machines",
       "Multiplexers select a source, demultiplexers a destination; comparators and parity networks check",

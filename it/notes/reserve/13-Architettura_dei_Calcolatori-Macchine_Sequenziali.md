@@ -22,13 +22,13 @@ Le stesse transizioni come macchina di Moore. L'uscita non dipende più dall'ing
 
 Un circuito che può memorizzare un bit è un *bistabile*: ha due stati stabili, 0 e 1, e resta in uno dei due finché qualcosa non lo cambia. Le famiglie sono due, latch e flip-flop, ed entrambe hanno due uscite, Q e il suo complemento. L'idea è più vecchia del transistor: il primo flip-flop elettronico fu costruito nel 1918 con due valvole, e lo stesso circuito era al cuore di Colossus.
 
-## Perché S = R = 1 non è ammesso
-
-Con S e R entrambi a 1, entrambe le porte NOR danno 0, quindi Q e il suo complemento non sono più complementari. Peggio: se poi i due ingressi tornano a 0 insieme, le porte fanno a gara, e lo stato finale dipende da quale è più veloce. Il risultato è imprevedibile, e il latch può perfino oscillare. Chi usa un latch SR deve garantire che S e R non siano mai a 1 insieme. Gli elementi JK e D sono stati inventati per eliminare il problema alla radice.
-
 ## La sensibilità al livello e il suo problema
 
 Un latch è *sensibile al livello*: per tutto il tempo in cui il clock è al livello attivo è trasparente, e ogni variazione degli ingressi passa alle uscite. Quindi in un ciclo di clock lo stato può cambiare più volte. In una macchina con retroazione questo è fatale: il nuovo stato fa il giro dell'anello e cambia di nuovo lo stato nello stesso ciclo. Un latch JK con entrambi gli ingressi a 1 continua a commutare finché il clock è alto. Serve un elemento che cambi al più una volta per ciclo.
+
+## Elementi di memoria: un riepilogo
+
+Un riepilogo degli elementi di memoria. La colonna *stato prossimo* dà la regola in forma compatta, dove Q+ è lo stato dopo il cambio; l'ultima colonna dice quando il cambio può avvenire: in ogni momento per il latch semplice, durante il livello attivo per i latch sincroni, sul fronte per i flip-flop. Il flip-flop T, che commuta quando T vale 1, è un JK con i due ingressi uniti. Tenete a mente la riga del flip-flop D: è l'elemento di memoria dei processori di oggi.
 
 ## Esempio di sintesi: un contatore a due bit
 

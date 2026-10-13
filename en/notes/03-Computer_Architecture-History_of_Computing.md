@@ -12,7 +12,7 @@ Five objectives. The first is a definition: what informatics is, and why it is n
 
 ## Slide 3: A definition
 
-The definition has three parts worth weighing. *Applied science*: it uses the results of the basic sciences to solve problems. *Treatment of information*: the object is information, not the machine. *Automated procedures*: the treatment is done by procedures that can be carried out without human judgement. The Italian word *informatica* says it directly, from the French *information automatique*. English prefers *computer science*, which puts the instrument in the name and creates the misunderstanding that the next slide corrects.
+The definition has three parts worth weighing. *Applied science*: it uses the results of the basic sciences to solve problems. *Treatment of information*: the object is information, not the machine. *Automated procedures*: the treatment is done by procedures that can be carried out without human judgement. The Italian word *informatica* says it directly, from the French *information automatique*. English prefers *computer science*, which puts the instrument in the name and creates a misunderstanding. A remark attributed to Edsger Dijkstra corrects it: computer science is no more about computers than astronomy is about telescopes.
 
 ## Slide 4: Two souls, one discipline
 
@@ -58,24 +58,28 @@ In 1971 the Intel 4004 had 2,300 transistors; a laptop processor today has tens 
 
 A comparison across forty years. The Commodore 64 had an 8-bit processor with three registers, a clock of about 1 MHz and 64 KB of memory; the ESP32-C6 has 32 bits, thirty-two registers, 160 MHz and an address space of 4 GB. Yet the screen is the same size, 320 by 200 pixels, and so is the spirit: a machine small enough for one person to understand entirely. The difference that matters to you is in the row of the instruction set: proprietary then, an open standard now.
 
-## Slide 15: High-performance computing at Parthenope
+## Slide 15: Where informatics sits
 
-The pictures show a teaching cluster of the University and the page of its research computing facilities. A cluster is many computers that work together on one problem. The ideas are those you practise on the kit: registers, memory, instructions, only in far greater number and with the added problem of making the parts cooperate. The last lecture of the course returns to these machines, and the closing event includes a visit to them.
+Follow a storm from left to right. It is first a natural phenomenon. Physics and mathematics describe it with equations. Informatics turns the equations into algorithms and simulations. Engineering provides the supercomputers, networks and sensors that run them reliably. The economy receives forecasts and services that have value for people. Informatics is the link in the middle: without it the equations stay on paper. The example is real: the weather and sea forecasts of the Department are computed every day in this way.
 
-## Slide 16: Check your understanding: Which idea is the heart of the von Neumann architecture? / What makes RISC-V different from x86 and ARM?
+## Slide 16: High-performance computing at Parthenope
+
+The pictures show the racks of the Research Computing Facilities of the University, what they produce every day, the weather forecasts of meteo@uniparthenope, and the page that lists the machines. A cluster is many computers that work together on one problem. The ideas are those you practise on the kit: registers, memory, instructions, only in far greater number and with the added problem of making the parts cooperate. The last lecture of the course returns to these machines, and the closing event includes a visit to them.
+
+## Slide 17: Check your understanding: Which idea is the heart of the von Neumann architecture? / What makes RISC-V different from x86 and ARM?
 
 Look for the idea, not for a detail. The number of registers and the duration of an instruction vary from one processor to another, and input and output are one of the four units, not an option. What defines the architecture is that instructions are kept in the same memory as data, and are fetched and executed one after another.
 
 Speed is a property of a particular chip, not of an instruction set, and RISC-V was not the first RISC: Berkeley RISC, MIPS and ARM came before. Nor is it limited to microcontrollers. What is new is the licence: the instruction set is an open standard that anyone may implement.
 
-## Slide 17: Check your understanding: Who is regarded as the first programmer in history?
+## Slide 18: Check your understanding: Who is regarded as the first programmer in history?
 
 All four names belong to the story, with different roles. Babbage designed the machine. Turing defined computation, a century later. Zuse built the first working programmable computer. The person who wrote a procedure for a machine, and published it in 1843, is Ada Lovelace.
 
-## Slide 18: Glossary: English and Italian
+## Slide 19: Glossary: English and Italian
 
 Ten terms. Note that Italian has two words for the machine, *calcolatore* and *elaboratore*, both older than the borrowed *computer*. *Stored program* is the idea of von Neumann. The *control unit* and the *arithmetic logic unit*, ALU, are two of the four units, and you will meet them again in the lectures on the processor. *High-performance computing*, HPC, is the field of the clusters you have just seen.
 
-## Slide 19: Conclusions and reading
+## Slide 20: Conclusions and reading
 
 Four conclusions. Computing is older than electronics: representation and procedure came first. The stored-program computer of 1945 is the machine we still program. RISC made processors simple enough to be understood whole, and RISC-V made them open. And informatics is everywhere, because information belongs to every field. The readings give the same story at greater length. The next lecture takes the first formal step: how information becomes bits.

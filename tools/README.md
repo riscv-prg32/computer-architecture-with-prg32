@@ -50,8 +50,19 @@ of the previous editions appears only as a historical counterpart in comparison 
 | **Outlook** | | | |
 | `24-...-Superscalar_HPC_GPU_FPGA` | 20 | 21 | `l24.S`, and the vector listings |
 
-Fifty decks per language: 455 slides in the lecture decks and 461 in the code decks. The file names above
+Fifty decks per language: 456 slides in the lecture decks and 461 in the code decks. The file names above
 are the English ones; the Italian decks are `NN-Architettura_dei_Calcolatori-*`.
+
+## Pictures: `assets/` and their credits
+
+`assets/` holds the pictures of the decks. A picture is either made for the course (the frames written by
+the tests, the drawings, the photographs of the Department) or taken from Wikimedia Commons under a free
+licence (public domain, CC0, CC BY, CC BY-SA): nothing else goes in. `assets/CREDITS.md` and
+`assets/credits.json` give title, author, licence and source of every Commons picture; `build.js` copies
+the credit into the notes of the slide that shows the picture, and `textbook/gen_credits.py` writes the
+list printed in the colophon of the two books. To add a picture: put the file in `assets/`, add its entry
+to `credits.json` and to `CREDITS.md`, and copy it to `../<lang>/textbook/figures` if a chapter uses it.
+`textbook/draw_gpgpu_sum.js` draws `gpgpu_sum.png`.
 
 ## How a lecture is split: `decks/plan.js`
 
@@ -63,7 +74,7 @@ which is the same for both languages, says what goes where; `lib/lab.js` applies
 | `K`, `WK` (a listing), `T` with a listing at its side, `X` (exercises, "Run it") | the code deck |
 | a slide listed under `code:` in the plan (traces, the debugger, "back to the machine") | the code deck |
 | a slide listed under `drop:` | neither deck: its content is in the textbook chapter, its note in `../<lang>/notes/reserve` |
-| `H` (a section title) | no slide: it names a section of the PowerPoint file |
+| `H` (a section title) | no slide: it names a section of the PowerPoint file, in the lecture deck and, for the listings that follow it, in the code deck ("Warm-up on the machine", "Back to the machine", the steps of a tutorial) |
 | `Q` (a question) | the lecture deck, two questions per slide |
 | everything else | the lecture deck |
 
@@ -76,7 +87,13 @@ the board), and a troubleshooting table. The lecture's entry in the plan (`lab:`
 gives, in each language, what appears on the screen and what to press.
 
 A way to teach with the two decks: open with the warm-up listing of the code deck, give the lecture with
-the lecture deck, and close on the code deck, with the program running and the exercises.
+the lecture deck, and close on the code deck, with the program running and the exercises. The cover of
+each deck names the file of the other one, and the lecture deck calls "the warm-up" the listing that opens
+the code deck, in the section of that name.
+
+After a change of `drop:` or `code:` the slides of a lecture deck are renumbered: `node notes.js` checks
+that every slide has a note, not that the note is the right one. Move the notes of the slides that
+changed place (`../<lang>/notes`, and `reserve/` for the dropped ones) before running it.
 
 ## The programs of the lectures: `../code`
 
