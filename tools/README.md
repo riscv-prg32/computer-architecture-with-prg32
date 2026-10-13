@@ -1,63 +1,98 @@
 # ARC12 Computer Architecture: the slide decks and their generator (A.Y. 2026/27)
 
-English and Italian decks, generated from the specifications in `decks/en` and `decks/it`
-into `../en/slides` and `../it/slides`: the same slides in the same order in both languages
-(code listings, and the Verm1 sources with their comments, are in English in both). They are
-modernised versions of the Italian lecture decks of the previous editions (not in this repository),
-reorganised around the PRG32 didactics: students program RISC-V assembly from
-the first days, and each formal topic then explains something their own program
-has already shown them. RISC-V (RV32IMAC, as on the ESP32-C6 of the PRG32 kit) is
-the reference processor throughout. The old decks used the Motorola 68000 in
-the memory, processor and interrupt lectures; it now appears only as a
-historical counterpart in comparison tables.
+Two decks per lecture, in English and in Italian, generated from the specifications in `decks/en` and
+`decks/it` into `../en/slides` and `../it/slides`:
 
-| Deck | From (Italian deck) | Slides |
-| --- | --- | --- |
-| `00-...-Course_Introduction` | `00-...-Introduzione_al_corso`, plus PRG32 philosophy and the project | 39 |
-| `01-...-PRG32_and_PRG32-QT_Setup` | new: the platform in detail, installation on Windows, macOS, Linux | 41 |
-| `02-...-First_Contact_with_RISC-V_Assembly` | new | 28 |
-| **Information** | | |
-| `03-...-History_of_Computing` | `01-...-Storia_della_Computazione` | 29 |
-| `04-...-Digital_Information` | `02-...-Introduzione_alla_rappresentazione...` | 36 |
-| `05-...-Number_Representation_Integers` | `03-...-Rappresentazione_Numeri` | 37 |
-| `06-...-Number_Representation_Reals` | `04-...-Rappresentazione_Numeri` | 33 |
-| `07-...-Verm1_Part_1` | new: project tutorial | 30 |
-| **Logic** | | |
-| `08-...-Boolean_Algebra_1` | `05-...-Algebra_di_Boole` | 32 |
-| `09-...-Boolean_Algebra_2` | `06-...-Algebra_di_Boole` | 34 |
-| `10-...-Electronics` | new | 34 |
-| `11-...-Combinational_Machines` | `09`, `10-...-Macchine_trattamento_codici` | 42 |
-| `12-...-Verm1_Part_2` | new: project tutorial | 37 |
-| **State and memory** | | |
-| `13-...-Sequential_Machines` | `08-...-Macchine_sequenziali`, `11-...-latch_flip_flop_SR`, `12-...-flip_flop_JK_D` | 41 |
-| `14-...-Registers_and_Buses` | `13-...-Macchine_elementari_per_architettura` | 31 |
-| `15-...-Memory` | `14-...-Memoria` | 35 |
-| `16-...-Permanent_Memory` | `15-...-Memoria-Permanente` | 34 |
-| `17-...-Verm1_Part_3` | new: project tutorial | 51 |
-| **The machine** | | |
-| `18-...-Processor` | `18-...-Processore` | 36 |
-| `19-...-Instructions_and_Interrupts` | `19-...-Istruzioni_e_Interruzioni` | 36 |
-| `20-...-Video_Card` | `16-...-Scheda-Video` | 29 |
-| `21-...-Input_Output` | `17-...-Input-Output-Video-Tastiera-Mouse-Stampante` | 29 |
-| `22-...-Verm1_Part_4` | new: project tutorial | 56 |
-| `23-...-Verm1_On_The_Cartridge_Store` | new: project tutorial | 29 |
-| **Outlook** | | |
-| `24-...-Superscalar_HPC_GPU_FPGA` | new: superscalar RISC-V, vectors, HPC, GPU and FPGA accelerators | 48 |
+- the **lecture deck**, of at most 20 slides: the concepts;
+- the **code deck** (`...-Code.pptx`, in Italian `...-Codice.pptx`): every listing of the lecture with
+  its explanation, the complete program of the lecture, what it shows when it runs, a step-by-step guide
+  for testing it on PRG32-QT, on QEMU and on the board, and the exercises.
 
-Twenty-five decks, 907 slides per language. The file names above are the English ones; the Italian
-decks are `NN-Architettura_dei_Calcolatori-*`. The decks are numbered consecutively in teaching order; the numbers do not match the Italian
-files, which keep their old names. Compared with the Italian order, the processor and the instructions
-come before the video card and input/output: the devices are explained after the machine that drives them.
+The two languages have the same slides in the same order (code listings, and the Verm1 sources with their
+comments, are in English in both). **English is the primary language**: a change is made in English
+first and then carried to the Italian material.
+
+The course is organised around the PRG32 didactics: students program RISC-V assembly from the first
+days, and each formal topic then explains something their own program has already shown them. RISC-V
+(RV32IMAC, as on the ESP32-C6 of the PRG32 kit) is the reference processor throughout; the Motorola 68000
+of the previous editions appears only as a historical counterpart in comparison tables.
+
+| Lecture | Lecture deck | Code deck | Program |
+| --- | ---: | ---: | --- |
+| `00-...-Course_Introduction` | 20 | 10 | `l00.S` |
+| `01-...-PRG32_and_PRG32-QT_Setup` | 16 | 28 | `l01.S` |
+| `02-...-First_Contact_with_RISC-V_Assembly` | 17 | 16 | `l02.S` |
+| **Information** | | | |
+| `03-...-History_of_Computing` | 19 | 13 | `l03.S` |
+| `04-...-Digital_Information` | 20 | 13 | `l04.S` |
+| `05-...-Number_Representation_Integers` | 20 | 20 | `l05.S` |
+| `06-...-Number_Representation_Reals` | 20 | 14 | `l06.S` |
+| `07-...-Verm1_Part_1` | 13 | 18 | Verm1, part 1 |
+| **Logic** | | | |
+| `08-...-Boolean_Algebra_1` | 19 | 20 | `l08.S` |
+| `09-...-Boolean_Algebra_2` | 20 | 16 | `l09.S` |
+| `10-...-Electronics` | 20 | 14 | `l10.S` |
+| `11-...-Combinational_Machines` | 20 | 16 | `l11.S` |
+| `12-...-Verm1_Part_2` | 13 | 25 | Verm1, part 2 |
+| **State and memory** | | | |
+| `13-...-Sequential_Machines` | 20 | 15 | `l13.S` |
+| `14-...-Registers_and_Buses` | 20 | 17 | `l14.S` |
+| `15-...-Memory` | 20 | 17 | `l15.S` |
+| `16-...-Permanent_Memory` | 20 | 13 | `l16.S` |
+| `17-...-Verm1_Part_3` | 13 | 37 | Verm1, part 3 |
+| **The machine** | | | |
+| `18-...-Processor` | 20 | 15 | `l18.S` |
+| `19-...-Instructions_and_Interrupts` | 20 | 19 | `l19.S` |
+| `20-...-Video_Card` | 20 | 11 | `l20.S` |
+| `21-...-Input_Output` | 20 | 12 | `l21.S` |
+| `22-...-Verm1_Part_4` | 12 | 44 | Verm1, part 4 |
+| `23-...-Verm1_On_The_Cartridge_Store` | 13 | 17 | the Store bundle |
+| **Outlook** | | | |
+| `24-...-Superscalar_HPC_GPU_FPGA` | 20 | 21 | `l24.S`, and the vector listings |
+
+Fifty decks per language: 455 slides in the lecture decks and 461 in the code decks. The file names above
+are the English ones; the Italian decks are `NN-Architettura_dei_Calcolatori-*`.
+
+## How a lecture is split: `decks/plan.js`
+
+A specification, `decks/<lang>/NN-*.js`, lists the slides of a lecture in teaching order. `decks/plan.js`,
+which is the same for both languages, says what goes where; `lib/lab.js` applies it.
+
+| Slide of the specification | Where it goes |
+| --- | --- |
+| `K`, `WK` (a listing), `T` with a listing at its side, `X` (exercises, "Run it") | the code deck |
+| a slide listed under `code:` in the plan (traces, the debugger, "back to the machine") | the code deck |
+| a slide listed under `drop:` | neither deck: its content is in the textbook chapter, its note in `../<lang>/notes/reserve` |
+| `H` (a section title) | no slide: it names a section of the PowerPoint file |
+| `Q` (a question) | the lecture deck, two questions per slide |
+| everything else | the lecture deck |
+
+The build fails if a lecture deck would exceed 20 slides: move a slide to `code:` or to `drop:`.
+
+The code deck is completed by slides that are generated, not written in the specification: an index, the
+complete program of the lecture (`../code/lNN.S`, a page of at most 24 lines per slide), "what you should
+see" with the frame written by the automatic test, one slide of commands for each host (PRG32-QT, QEMU,
+the board), and a troubleshooting table. The lecture's entry in the plan (`lab:`) names the program and
+gives, in each language, what appears on the screen and what to press.
+
+A way to teach with the two decks: open with the warm-up listing of the code deck, give the lecture with
+the lecture deck, and close on the code deck, with the program running and the exercises.
+
+## The programs of the lectures: `../code`
+
+`../code/lNN.S` is one complete, commented cartridge per lecture: the listings of the lecture put
+together in a program that draws something a test can check. See `../code/README.md`. The four parts of
+the course project, Verm1, are in `../verm1`.
 
 ## The course project: Verm1
 
 PRG32 is used both for exercises and as a place to make things. The course-long project is **Verm1**
 (read "vermone"), a tribute to Snake written from scratch in RISC-V assembly. After every block of four
-lectures a tutorial deck adds a part of the game, using what the block has taught. The reference
+lectures a tutorial lecture adds a part of the game, using what the block has taught. The reference
 implementation of Verm1 (`../verm1/verm1_partN.S`) was contributed by **Giuseppe Coviello**; the credit is
 printed on the cover of every Verm1 deck, in the header of the sources and in the colophon of the Store bundle.
 
-| Deck | Verm1 gains | Uses |
+| Lecture | Verm1 gains | Uses |
 | --- | --- | --- |
 | 07 Part 1 | a grid, a head that moves by itself, wrap-around | colours, shifts, comparisons, fixed point |
 | 12 Part 2 | steering, food, a score, a sound | masks, XOR, lookup tables, comparator |
@@ -65,9 +100,9 @@ printed on the cover of every Verm1 deck, in the header of the sources and in th
 | 22 Part 4 | digits, levels, two sounds, incremental drawing | calling convention, `divu`/`remu`, the processor cycle, frame buffer |
 | 23 The Store | manifest, icon, colophon, bundle for two architectures | the `prg32 cartridge` and `prg32 store` tools |
 
-The tutorial decks are step by step and self-contained: every line of the program is on a slide marked
-NEW, CHANGED or UNCHANGED, each step ends with a "Run it" slide and its expected result, and each deck
-has a session with the PRG32-QT debugger.
+In a tutorial lecture the lecture deck holds the design (the plan, the data structures, the state diagram,
+the session with the PRG32-QT debugger) and the code deck holds the program: every line is on a slide
+marked NEW, CHANGED or UNCHANGED, and each step ends with a "Run it" slide and its expected result.
 
 - `../verm1/verm1_partN.S` are the reference programs. A line `#@ name` starts a region; the decks read
   the code from these files (`lib/verm1.js`), and the build fails if a region is not shown exactly
@@ -75,63 +110,53 @@ has a session with the PRG32-QT debugger.
 - `../verm1/steps/` holds the temporary code of the intermediate "Run it" checkpoints.
 - `../verm1/store/` holds the manifest, metadata, colophon and icon of the bundle of Lecture 23.
 
-## Shape of every topical deck
-
-1. **Warm-up on the machine**: a few lines of RISC-V on PRG32 that raise the question.
-2. **The formal treatment**: the content of the original deck, translated and checked.
-3. **Back to the machine**: the same rules as RISC-V implements them.
-4. **Check your understanding**: multiple-choice questions in the style of the midterm test (answers in the speaker notes).
-5. **Exercises** (paper first, then PRG32), an English/Italian **glossary**, conclusions and reading.
-
-Speaker notes carry quiz answers, teaching tips, the source of every listing and
-every correction made to the original slides.
-
 ## Consistency rules
 
-- Cross-references between decks are written `Lecture NN` with the two-digit number of the deck. After
-  inserting or moving a deck, renumber them and check every one against the table above: the numbers in
-  speaker notes are as visible to a lecturer as those on the slides.
-- In a tutorial deck the steps are numbered in the section titles (`Step N: ...`); notes and "Run it"
-  slides refer to those numbers. The last numbered step of each tutorial is the session with the debugger.
-- Every slide has a note in `../<lang>/notes/<deck file>.md` (one section `## Slide N` per slide).
-  `node notes.js` checks that no slide is without its note and rewrites the headings from the deck
-  titles; `build.js` copies each note into the notes pane of its slide.
-- The textbook in `../en/textbook` follows the decks one to one (Chapter N is Lecture N), and
+- Cross-references between lectures are written `Lecture NN` with the two-digit number. After inserting or
+  moving a lecture, renumber them and check every one against the table above: the numbers in the notes
+  are as visible to a lecturer as those on the slides.
+- In a tutorial the steps are numbered in the section titles (`Step N: ...`); notes and "Run it" slides
+  refer to those numbers.
+- Every slide of every deck has a note in `../<lang>/notes/<deck file>.md` (one section `## Slide N` per
+  slide; the notes of a code deck are in `<deck file>-Code.md`). `node notes.js` checks that no slide is
+  without its note and rewrites the headings from the titles of the slides; the notes of the generated
+  slides of a code deck are generated too. `build.js` copies each note into the notes pane of its slide.
+- The textbook in `../en/textbook` follows the lectures one to one (Chapter N is Lecture N), and
   `../it/textbook` is its Italian edition. A change of content here is a change there: see their READMEs.
-- English is the primary language. A change is made in `decks/en` first and then carried to `decks/it`,
-  to the notes and to the two books; `python3 textbook/check_editions.py` fails if the Italian book has
-  lost a label, a listing, a figure or a reference of the English one, or if a quiz or a glossary of a
-  chapter no longer matches its deck.
+- `node textbook/check_decks.js` fails if a lecture deck has more than 20 slides or if an Italian deck
+  differs from the English one in the kind of a slide, in a listing, in a picture or in a right answer.
+  `python3 textbook/check_editions.py` does the same job for the two editions of the book. Both run with
+  `npm run textbook`.
 
 ## Rebuilding
-
-The decks are generated, in the same way and with the same look as the
-presentations of the PRG32 textbook.
 
 ```bash
 cd tools
 npm ci               # node_modules is not in the repository
-node build.js        # all decks, English and Italian
+node build.js        # all the decks, English and Italian
 node build.js it     # only the Italian decks
-node build.js en 05  # only lecture 05, in English
+node build.js en 05  # the two decks of lecture 05, in English
 node notes.js        # check the slide notes of both languages
+npm run textbook     # listings and programs for the books, answers, glossary, and the checks
 ```
 
-- `build.js` is the layout engine (pptxgenjs). It measures text before
-  placing it and fails the build if a slide's text cannot fit at a readable size.
-- `decks/<lang>/*.js` hold the content, one specification per deck; `lib/lang.js` holds what depends
-  on the language (the fixed strings of the layout, the reading of the notes).
+- `build.js` is the layout engine (pptxgenjs). It measures text before placing it and fails the build if
+  a slide's text cannot fit at a readable size.
+- `decks/<lang>/*.js` hold the content, one specification per lecture; `decks/plan.js` splits each into
+  its two decks; `lib/lab.js` generates the slides of the code deck that come from the program;
+  `lib/lang.js` holds what depends on the language (the fixed strings of the layout, the reading of the notes).
 - `lib/gates.js` draws logic gates and circuits, `lib/draw.js` timing diagrams and state diagrams,
   `lib/circuit.js` electronic schematics (SVG, rasterised with sharp).
 - `lib/verm1.js` reads the Verm1 sources for the tutorial decks.
 - `tests/` holds the checks of the assembly shown on the slides: encodings, a QEMU test of the
-  listings, cartridges run on the PRG32-QT headless runner, the vector listings of lecture 24, the four parts of Verm1 played by a scripted
-  player (which also writes the screenshots used in the decks), the intermediate steps of the tutorials
-  and the packaging of the Store bundle (see its README).
-- `textbook/` holds the scripts that export the listings, regenerate the generated appendices of the
-  two books and check one edition against the other (see `../en/textbook/README.md`).
-- `assets/` holds the pictures: the photographs of the original decks and
-  screenshots from the PRG32 repository and textbook.
+  listings, the programs of the lectures run on the PRG32-QT headless runner (which also writes the
+  pictures `assets/lab_lNN.png` used in the code decks), the vector listings of lecture 24, the four parts
+  of Verm1 played by a scripted player, the intermediate steps of the tutorials and the packaging of the
+  Store bundle (see its README).
+- `textbook/` holds the scripts that export the listings and the programs to the two books, regenerate
+  their generated appendices and check one language against the other.
+- `assets/` holds the pictures: the photographs of the original decks, screenshots from the PRG32
+  repository and textbook, and the frames written by the tests.
 
-Edit the specification, rebuild, and the `.pptx` in `../<lang>/slides` is replaced.
+Edit the specification or the plan, rebuild, and the `.pptx` files in `../<lang>/slides` are replaced.
 Changes made by hand in PowerPoint are lost at the next build.

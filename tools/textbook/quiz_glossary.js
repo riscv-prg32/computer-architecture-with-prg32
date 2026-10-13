@@ -7,7 +7,7 @@ const lang = process.argv[2];
 if (!lang) {
   for (const l of LANGS) require("child_process").spawnSync(process.execPath, [__filename, l], { stdio: "inherit" });
 } else {
-  const out = loadDecks(lang).map((d) => ({ n: Number(d.n), title: d.title,
+  const out = loadDecks(lang, { raw: true }).map((d) => ({ n: Number(d.n), title: d.title,
     quiz: d.slides.filter((s) => s.t === "quiz").map((s) => ({ q: s.a[0], opts: s.a[1], ans: s.a[2], why: s.a[3] || "" })),
     gloss: d.slides.filter((s) => s.t === "table" && /^Gloss/.test(s.a[0])).flatMap((s) => s.a[2].flatMap((r) => [[r[0], r[1]], [r[2], r[3]]])).filter((p) => p[0]) }));
   const f = path.resolve(__dirname, `quiz_glossary.${lang}.json`);

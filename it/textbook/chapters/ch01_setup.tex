@@ -249,7 +249,7 @@ programma si compila da sorgente (Listato~\ref{lst:setup:qtlinux}). Su
 Raspberry Pi OS usate il pacchetto ARM64, oppure lo script
 \fname{scripts/build-raspbian.sh}.
 
-\shfile[caption={\prgqt su Linux.},label=lst:setup:qtlinux]{code/l01/s15.sh}
+\shfile[caption={\prgqt su Linux.},label=lst:setup:qtlinux]{code/l01/c06.sh}
 
 \begin{prgtry}[Eseguite: la vostra prima cartuccia, dallo Store]
 \begin{enumerate}[nosep]
@@ -310,7 +310,7 @@ con spazi o lettere accentate nel percorso. Chi preferisce un editor può usare
 Visual Studio Code con l'estensione Espressif ESP-IDF, che installa la stessa
 toolchain.
 
-\shfile[caption={La toolchain su Windows.},label=lst:setup:win]{code/l01/s20.sh}
+\shfile[caption={La toolchain su Windows.},label=lst:setup:win]{code/l01/c09.sh}
 
 \subsection{macOS}
 
@@ -321,7 +321,7 @@ installare gli strumenti a riga di comando di Xcode. Il clone ricorsivo e
 di \fname{export.sh} conta, perché fa sì che lo script modifichi \emph{questo}
 terminale. La procedura funziona su Apple Silicon e su Intel.
 
-\shfile[caption={La toolchain su macOS.},label=lst:setup:mac]{code/l01/s21.sh}
+\shfile[caption={La toolchain su macOS.},label=lst:setup:mac]{code/l01/c10.sh}
 
 \subsection{Linux (Debian, Ubuntu)}
 
@@ -332,7 +332,7 @@ l'utente deve appartenere al gruppo \code{dialout}, che dà accesso alla porta
 seriale della scheda: \code{sudo usermod -aG dialout \$USER}, poi si esce e si
 rientra nella sessione.
 
-\shfile[caption={La toolchain su Linux.},label=lst:setup:linux]{code/l01/s22.sh}
+\shfile[caption={La toolchain su Linux.},label=lst:setup:linux]{code/l01/c11.sh}
 
 \subsection{A ogni nuovo terminale: accendere ESP-IDF}
 
@@ -341,7 +341,7 @@ Una nuova finestra è un nuovo terminale, e va attivata di nuovo. Due alias
 risparmiano battute (Listato~\ref{lst:setup:activate}); sono una comodità, non
 un obbligo. I comandi \code{prg32} si eseguono dalla cartella di \prg.
 
-\shfile[caption={Attivare ESP-IDF in un nuovo terminale.},label=lst:setup:activate]{code/l01/s23.sh}
+\shfile[caption={Attivare ESP-IDF in un nuovo terminale.},label=lst:setup:activate]{code/l01/c12.sh}
 
 \begin{prgtry}[Vedete l'errore una volta, di proposito]
 Chiudete il terminale, apritene uno nuovo ed eseguite \code{python3 -m prg32
@@ -359,7 +359,7 @@ quattro slot per le cartucce, da \code{cart0} a \code{cart3}, sono regioni
 della memoria flash della scheda, di 131\,072 byte ciascuna. Ogni riga marcata
 \code{ERROR} dice che cosa fare. Se il doctor passa, il livello~2 è fatto.
 
-\txtfile[caption={Il doctor (messaggi di ottobre 2026).},label=lst:setup:doctor]{code/l01/s24.sh}
+\txtfile[caption={Il doctor (messaggi di ottobre 2026).},label=lst:setup:doctor]{code/l01/c13.sh}
 
 % ----------------------------------------------------------------------------
 \section{Passo 3: la vostra prima compilazione}\label{sec:setup:build}
@@ -370,7 +370,7 @@ Il repository contiene giochi completi. Compilarne uno dimostra che il
 compilatore funziona prima ancora di aver scritto una sola riga
 (Listato~\ref{lst:setup:build}).
 
-\txtfile[caption={Compilare Pong, in C, dagli esempi.},label=lst:setup:build]{code/l01/s26.sh}
+\txtfile[caption={Compilare Pong, in C, dagli esempi.},label=lst:setup:build]{code/l01/c14.sh}
 
 Il comando \code{cartridge build} prende un sorgente e produce un file
 \fname{.prg32}. L'opzione \code{-{}-entry-prefix} dà il nome che nel sorgente
@@ -393,7 +393,7 @@ importando il file \fname{pong.prg32} e scegliendo \emph{Run Cartridge}; con
 \code{-{}-url http://192.168.4.1} lo stesso comando invia il gioco a una scheda
 vera.
 
-\txtfile[caption={Inviare la cartuccia a \prgqt, in esecuzione sullo stesso calcolatore.},label=lst:setup:send]{code/l01/s27.sh}
+\txtfile[caption={Inviare la cartuccia a \prgqt, in esecuzione sullo stesso calcolatore.},label=lst:setup:send]{code/l01/c15.sh}
 
 \subsection{Guardare dentro: il debugger}
 
@@ -445,7 +445,7 @@ nuovo. Da ottobre 2026 il firmware parte per impostazione predefinita dal menu
 slot \code{cart0}. Questa procedura viene dalla documentazione di \prg
 (\fname{docs/usage/qemu.md}) e non è stata eseguita per questo libro.
 
-\shfile[caption={Livello 3: l'emulatore QEMU.},label=lst:setup:qemu]{code/l01/s31.sh}
+\shfile[caption={Livello 3: l'emulatore QEMU.},label=lst:setup:qemu]{code/l01/c18.sh}
 
 \subsection{Livello 4: il kit}
 
@@ -459,7 +459,7 @@ significa di solito che è stato scritto il firmware per QEMU invece di quello
 per la scheda. Anche questa procedura viene dalla documentazione e non è stata
 eseguita per questo libro.
 
-\shfile[caption={Livello 4: il kit.},label=lst:setup:kit]{code/l01/s32.sh}
+\shfile[caption={Livello 4: il kit.},label=lst:setup:kit]{code/l01/c19.sh}
 
 % ----------------------------------------------------------------------------
 \section{Quando qualcosa non funziona}
@@ -504,6 +504,9 @@ Cinque controlli, e l'officina è pronta.
 \item \code{upload-and-run} lo avvia in \prgqt (passo~3).
 \item In modalità debug, \key{Pause} e \key{Step} funzionano (passo~3).
 \end{enumerate}
+
+% ----------------------------------------------------------------------------
+\input{code/l01/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

@@ -22,7 +22,7 @@ By the end of this chapter you will be able to
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={The same memory read as a word and as bytes.},label=lst:mem:warm]{code/l15/s04.S}
+\asmfile[caption={The same memory read as a word and as bytes.},label=lst:mem:warm]{code/l15/c03.S}
 
 In Listing~\ref{lst:mem:warm} a word of thirty-two bits occupies four
 consecutive addresses: memory is addressed byte by byte. The byte at the
@@ -238,7 +238,7 @@ aligns the data declared with \code{.word}, and the directive
 \code{.balign 4} forces alignment after a string or a byte
 (Listing~\ref{lst:mem:align}). Instructions must always be aligned.
 
-\asmfile[caption={Forcing the alignment of a word.},label=lst:mem:align,numbers=none]{code/l15/s19.S}
+\asmfile[caption={Forcing the alignment of a word.},label=lst:mem:align,numbers=none]{code/l15/c04.S}
 
 \subsection{Parameters of a memory}
 
@@ -394,6 +394,9 @@ If several units share the bus and can access the memory directly, a DMA
 controller arbitrates among them. On the ESP32-C6 the SPI and I2S peripherals
 use DMA to send the frame buffer to the display and the audio samples to the
 amplifier: the processor does not copy the pixels one by one.
+
+% ----------------------------------------------------------------------------
+\input{code/l15/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

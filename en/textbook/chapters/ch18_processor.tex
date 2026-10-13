@@ -27,7 +27,7 @@ has a name that the reader already knows.
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={One line of a high-level language: \code{z = x + y}.},label=lst:cpu:sum]{code/l18/s04.S}
+\asmfile[caption={One line of a high-level language: \code{z = x + y}.},label=lst:cpu:sum]{code/l18/c03.S}
 
 Seven lines for one sum (Listing~\ref{lst:cpu:sum}). Memory is touched only
 by \ins{lw} and \ins{sw}, and the arithmetic happens only between registers:
@@ -477,6 +477,9 @@ On the same chip & Wi-Fi 6, Bluetooth, Thread and Zigbee radios; SPI, I2S, GPIO 
 The chip of Table~\ref{tab:cpu:c6} is a complete computer on a few square
 millimetres that costs about two euros: processor, memory and input/output
 are all there, as in the model with which the chapter began.
+
+% ----------------------------------------------------------------------------
+\input{code/l18/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

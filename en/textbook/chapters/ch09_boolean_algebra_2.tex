@@ -25,7 +25,7 @@ Two registers hold one bit each, 0 or 1. Their sum can be 0, 1 or 2, and
 therefore needs two bits. Listing~\ref{lst:b2:warm} computes it without any
 arithmetic instruction.
 
-\asmfile[caption={One-bit addition without \ins{add}.},label=lst:b2:warm]{code/l09/s04.S}
+\asmfile[caption={One-bit addition without \ins{add}.},label=lst:b2:warm]{code/l09/c03.S}
 
 Two logic instructions add two bits. The comment of the listing is a truth
 table with two outputs, and the pair of gates that it describes is called a
@@ -442,7 +442,7 @@ faster schemes for the carry, such as carry look-ahead
 
 \subsection{A full adder, one gate per instruction}
 
-\asmfile[caption={The full adder as a program.},label=lst:b2:fa]{code/l09/s27.S}
+\asmfile[caption={The full adder as a program.},label=lst:b2:fa]{code/l09/c04.S}
 
 Five instructions, five gates: Listing~\ref{lst:b2:fa} is the schematic of
 Figure~\ref{fig:b2:fa}, read from left to right. Single-stepping it in \prgqt
@@ -450,6 +450,9 @@ and filling in the truth table is \emph{analysis}; deriving these gates from
 the table with the method of this chapter was \emph{synthesis}. And with
 whole registers as inputs, the same five lines work on all thirty-two bit
 positions at once.
+
+% ----------------------------------------------------------------------------
+\input{code/l09/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

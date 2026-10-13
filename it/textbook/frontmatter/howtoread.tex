@@ -4,11 +4,23 @@
 
 Il libro ha venticinque capitoli, numerati da~0 a~24 come le lezioni del corso,
 e come quasi tutto il resto in questo libro: bit, registri, righe e colonne
-partono tutti da zero. Il Capitolo~$N$ segue la presentazione della
-Lezione~$N$: l'ordine delle sezioni è l'ordine delle slide, i listati sono gli
-stessi file, le domande alla fine sono quelle mostrate in aula. Chi ha seguito
-la lezione trova qui le frasi per cui in una slide non c'è spazio; chi l'ha
-persa trova la lezione.
+partono tutti da zero. Il Capitolo~$N$ segue la Lezione~$N$, che ha due
+presentazioni. La \emph{presentazione della lezione}, di al più venti slide,
+contiene i concetti; la \emph{presentazione del codice} contiene tutto ciò che
+si scrive e si esegue: ogni listato con la sua spiegazione, il programma
+completo della lezione, che cosa mostra, e il modo di provarlo su \prgqt, su
+QEMU e sulla scheda. Il capitolo è la forma estesa di entrambe: l'ordine dei
+paragrafi è l'ordine delle slide, i listati sono gli stessi file, le domande
+alla fine sono quelle mostrate in aula, e ciò per cui in venti slide non c'è
+spazio è qui. Chi ha seguito la lezione trova le frasi che una slide non può
+contenere; chi l'ha persa trova la lezione.
+
+La maggior parte dei capitoli termina con un paragrafo, \emph{Il programma di
+questo capitolo}, che stampa per intero il programma da cui sono tratti i
+listati del capitolo, mostra il frame che esso produce e dà i comandi per
+eseguirlo. I programmi sono nella cartella \fname{code} del repository del
+corso, uno per lezione, e ciascuno è compilato ed eseguito dai test automatici;
+il Paragrafo~\ref{sec:prg:testing} è la guida passo per passo per i tre host.
 
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}lP{0.36\textwidth}L@{}}

@@ -79,7 +79,7 @@ the first. A digit $d$ becomes a character by adding 48.
 
 \subsection{\texttt{to\_decimal}}
 
-\asmfile[caption={Step 1 \textbf{(new)}: \code{to\_decimal}.},label=lst:v4:dec]{code/l22/s08.S}
+\asmfile[caption={Step 1 \textbf{(new)}: \code{to\_decimal}.},label=lst:v4:dec]{code/l22/c04.S}
 
 The contract of Listing~\ref{lst:v4:dec} is: $\reg{a0}=\text{value}$,
 $\reg{a1}=\text{where the three characters go}$. \ins{remu} gives the digit
@@ -92,7 +92,7 @@ small processor; ten of them per step of the worm are nothing.
 
 \subsection{\texttt{draw\_score}: two numbers, two texts}
 
-\asmfile[caption={Step 1 \textbf{(changed)}: \code{draw\_score}.},label=lst:v4:score]{code/l22/s09.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{draw\_score}.},label=lst:v4:score]{code/l22/c05.S}
 
 Replace \code{draw\_score} of Part~3 with Listing~\ref{lst:v4:score}: the
 marks go. The digits are written into a string in RAM, and then the string is
@@ -103,7 +103,7 @@ clearing.
 
 \subsection{The variables of Part 4}
 
-\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}.},label=lst:v4:data]{code/l22/s10.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}.},label=lst:v4:data]{code/l22/c06.S}
 
 Replace the \code{.data} of Part~3 with Listing~\ref{lst:v4:data}, and type
 all of it now. The two strings \code{score\_txt} and \code{best\_txt} are in
@@ -127,13 +127,13 @@ step~3.
 
 The speed becomes a function of the score.
 
-\asmfile[caption={Step 2 \textbf{(changed)}: constants. Only the two \code{SPEED} lines differ from Part~3.},label=lst:v4:const]{code/l22/s13.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: constants. Only the two \code{SPEED} lines differ from Part~3.},label=lst:v4:const]{code/l22/c08.S}
 
 \code{SPEED\_Q8} is replaced by a minimum and a maximum
 (Listing~\ref{lst:v4:const}): $32/256$, one step every 8 frames, at the
 start, and $96/256$, three steps every 8 frames, at most.
 
-\asmfile[caption={Step 2 \textbf{(changed)}: the timer at the end of \code{play\_update}.},label=lst:v4:speed]{code/l22/s14.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: the timer at the end of \code{play\_update}.},label=lst:v4:speed]{code/l22/c09.S}
 
 The speed is $32+4\times\mathit{score}$: a shift and an add
 (Listing~\ref{lst:v4:speed}). Then \ins{ble} and \ins{mv} take the smaller of
@@ -181,7 +181,7 @@ step~4.
 
 \subsection{\texttt{play\_note}: one function, any note}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{play\_note} replaces \code{eat\_sound}.},label=lst:v4:note]{code/l22/s18.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{play\_note} replaces \code{eat\_sound}.},label=lst:v4:note]{code/l22/c11.S}
 
 The caller chooses the note and the duration, in \reg{a2} and \reg{a4}; the
 function fills in the other three arguments
@@ -193,27 +193,27 @@ saves moves.
 
 The function \code{step} of Part~3 is changed in five places.
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} remembers the old head.},label=lst:v4:s1]{code/l22/s19.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} remembers the old head.},label=lst:v4:s1]{code/l22/c12.S}
 
 Two stores are added (Listing~\ref{lst:v4:s1}): \code{old\_x} and
 \code{old\_y}, the cell that the head is leaving, which \code{draw} will
 repaint in the colour of the body.
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{step}, when the worm eats.},label=lst:v4:s2]{code/l22/s20.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step}, when the worm eats.},label=lst:v4:s2]{code/l22/c13.S}
 
 When the worm eats, the tail stays and there is nothing to erase:
 $\code{erase\_on}=0$ says so to \code{draw} (Listing~\ref{lst:v4:s2}).
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} notes the tail, and calls the end.},label=lst:v4:s3]{code/l22/s21.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} notes the tail, and calls the end.},label=lst:v4:s3]{code/l22/c14.S}
 
 When it does not eat, the tail leaves a cell, and \code{step} remembers
 which: $\code{erase\_on}=1$ means that \code{draw} must paint it black
 (Listing~\ref{lst:v4:s3}). The end of this fragment is shorter than in
 Part~3, because the collision is now one call, to \code{game\_is\_over}.
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} writes the new head (as in Part~3).},label=lst:v4:s4]{code/l22/s22.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{step} writes the new head (as in Part~3).},label=lst:v4:s4]{code/l22/c15.S}
 
-\asmfile[caption={Step 3 \textbf{(new)}: the end of \code{step}.},label=lst:v4:s5]{code/l22/s23.S}
+\asmfile[caption={Step 3 \textbf{(new)}: the end of \code{step}.},label=lst:v4:s5]{code/l22/c16.S}
 
 At the end (Listing~\ref{lst:v4:s5}) $\code{dirty}=1$ records that a step
 has happened and that \code{draw} has work to do. A meal is a point, new food
@@ -222,7 +222,7 @@ through the new function.
 
 \subsection{\texttt{game\_is\_over}: the transition, in one place}
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{game\_is\_over}.},label=lst:v4:over]{code/l22/s24.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{game\_is\_over}.},label=lst:v4:over]{code/l22/c17.S}
 
 A transition of the state machine deserves a function of its own
 (Listing~\ref{lst:v4:over}): the state, the outputs and the sound are in one
@@ -264,7 +264,7 @@ choice.
 
 \subsection{\texttt{draw}: nothing, a little, or everything}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v4:draw]{code/l22/s28.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v4:draw]{code/l22/c19.S}
 
 The variable \code{dirty} has three values (Listing~\ref{lst:v4:draw}). With
 0 the function returns at once, with no frame and no call: the common case,
@@ -274,7 +274,7 @@ everything is drawn. The flag is cleared as soon as it is read.
 
 \subsection{\texttt{draw\_changes}: three cells and the score}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_changes}.},label=lst:v4:changes]{code/l22/s29.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_changes}.},label=lst:v4:changes]{code/l22/c20.S}
 
 The order matters (Listing~\ref{lst:v4:changes}): first the cell that the
 tail has left, if any, in black; then the old head, in the colour of the
@@ -284,9 +284,9 @@ afterwards gives the right picture.
 
 \subsection{\texttt{draw\_full}: a whole screen}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, first half.},label=lst:v4:full1]{code/l22/s30.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, first half.},label=lst:v4:full1]{code/l22/c21.S}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, \texttt{PLAY} and \texttt{OVER}.},label=lst:v4:full2]{code/l22/s31.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_full}, \texttt{PLAY} and \texttt{OVER}.},label=lst:v4:full2]{code/l22/c22.S}
 
 \code{draw\_full} is the body of the old \code{verm1\_draw}, and is called
 once for each change of state (Listings \ref{lst:v4:full1}
@@ -294,22 +294,22 @@ and~\ref{lst:v4:full2}). The score is drawn on the title screen too.
 
 \subsection{Three small functions}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_head}.},label=lst:v4:head]{code/l22/s32.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_head}.},label=lst:v4:head]{code/l22/c23.S}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_food}.},label=lst:v4:food]{code/l22/s33.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{draw\_food}.},label=lst:v4:food]{code/l22/c24.S}
 
-\asmfile[caption={Step 4: \code{draw\_text}, the helper of Part~3.},label=lst:v4:text]{code/l22/s34.S}
+\asmfile[caption={Step 4: \code{draw\_text}, the helper of Part~3.},label=lst:v4:text]{code/l22/c25.S}
 
 \subsection{Every transition asks for a screen}
 
 Three small additions complete the mechanism: wherever the state changes,
 \code{dirty} becomes 2.
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_init} asks for the first screen.},label=lst:v4:init]{code/l22/s35.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_init} asks for the first screen.},label=lst:v4:init]{code/l22/c26.S}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_update}, from \texttt{OVER} to \texttt{TITLE}.},label=lst:v4:upd]{code/l22/s36.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{verm1\_update}, from \texttt{OVER} to \texttt{TITLE}.},label=lst:v4:upd]{code/l22/c27.S}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: the end of \code{new\_game}, from \texttt{TITLE} to \texttt{PLAY}.},label=lst:v4:new]{code/l22/s37.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: the end of \code{new\_game}, from \texttt{TITLE} to \texttt{PLAY}.},label=lst:v4:new]{code/l22/c28.S}
 
 \begin{prgwarn}
 Every transition of the machine asks for a full drawing; every step asks for
@@ -427,14 +427,14 @@ frame counter in \code{.data}; the table is read like \code{dx}.)}
 Eight parts of the file are those of Part~3 and are kept as they are. They
 are reprinted here so that this chapter contains the whole program.
 
-\asmfile[caption={\textbf{Unchanged}: \code{verm1\_update}, buttons and edges.},label=lst:v4:u1]{code/l22/s48.S}
-\asmfile[caption={\textbf{Unchanged}: \code{new\_game}, the map and the worm.},label=lst:v4:u2]{code/l22/s49.S}
-\asmfile[caption={\textbf{Unchanged}: \code{play\_update}, the steering.},label=lst:v4:u3]{code/l22/s50.S}
-\asmfile[caption={\textbf{Unchanged}: \code{step}, the table lookup.},label=lst:v4:u4]{code/l22/s51.S}
-\asmfile[caption={\textbf{Unchanged}: \code{place\_food}.},label=lst:v4:u5]{code/l22/s52.S}
-\asmfile[caption={\textbf{Unchanged}: \code{draw\_worm}, used by \code{draw\_full} only.},label=lst:v4:u6]{code/l22/s53.S}
-\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v4:u7]{code/l22/s54.S}
-\asmfile[caption={\textbf{Unchanged}: \code{.rodata}.},label=lst:v4:u8]{code/l22/s55.S}
+\asmfile[caption={\textbf{Unchanged}: \code{verm1\_update}, buttons and edges.},label=lst:v4:u1]{code/l22/c31.S}
+\asmfile[caption={\textbf{Unchanged}: \code{new\_game}, the map and the worm.},label=lst:v4:u2]{code/l22/c32.S}
+\asmfile[caption={\textbf{Unchanged}: \code{play\_update}, the steering.},label=lst:v4:u3]{code/l22/c33.S}
+\asmfile[caption={\textbf{Unchanged}: \code{step}, the table lookup.},label=lst:v4:u4]{code/l22/c34.S}
+\asmfile[caption={\textbf{Unchanged}: \code{place\_food}.},label=lst:v4:u5]{code/l22/c35.S}
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_worm}, used by \code{draw\_full} only.},label=lst:v4:u6]{code/l22/c36.S}
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v4:u7]{code/l22/c37.S}
+\asmfile[caption={\textbf{Unchanged}: \code{.rodata}.},label=lst:v4:u8]{code/l22/c38.S}
 
 \section{Where we are, and what comes next}
 

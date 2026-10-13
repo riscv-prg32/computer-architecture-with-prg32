@@ -25,7 +25,7 @@ Due registri contengono un bit ciascuno, 0 o 1. La loro somma può essere 0, 1
 o 2, e richiede quindi due bit. Il Listato~\ref{lst:b2:warm} la calcola senza
 alcuna istruzione aritmetica.
 
-\asmfile[caption={Somma di un bit senza \ins{add}.},label=lst:b2:warm]{code/l09/s04.S}
+\asmfile[caption={Somma di un bit senza \ins{add}.},label=lst:b2:warm]{code/l09/c03.S}
 
 Due istruzioni logiche sommano due bit. Il commento del listato è una tabella
 di verità con due uscite, e la coppia di porte che essa descrive si chiama
@@ -451,7 +451,7 @@ usano schemi più veloci per il riporto, come il carry look-ahead
 
 \subsection{Un sommatore completo, una porta per istruzione}
 
-\asmfile[caption={Il sommatore completo come programma.},label=lst:b2:fa]{code/l09/s27.S}
+\asmfile[caption={Il sommatore completo come programma.},label=lst:b2:fa]{code/l09/c04.S}
 
 Cinque istruzioni, cinque porte: il Listato~\ref{lst:b2:fa} è lo schema della
 Figura~\ref{fig:b2:fa}, letto da sinistra a destra. Eseguirlo passo-passo in
@@ -459,6 +459,9 @@ Figura~\ref{fig:b2:fa}, letto da sinistra a destra. Eseguirlo passo-passo in
 dalla tabella con il metodo di questo capitolo era \emph{sintesi}. E con
 registri interi come ingressi, le stesse cinque righe lavorano su tutte le
 trentadue posizioni di bit insieme.
+
+% ----------------------------------------------------------------------------
+\input{code/l09/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

@@ -28,7 +28,7 @@ posizione a ogni frame (Listato~\ref{lst:int:warm}); la funzione \code{draw}
 stampa la posizione in esadecimale con \code{prg32\_console\_hex32}.
 
 \asmfile[caption={Tenete premuto \key{LEFT} e guardate il numero (adattato dal laboratorio
-su stato e ingresso del libro di \prg).},label=lst:int:warm]{code/l05/s04.S}
+su stato e ingresso del libro di \prg).},label=lst:int:warm]{code/l05/c03.S}
 
 \begin{prgtry}
 Tenete premuto \key{LEFT}. Il valore mostrato fa \texttt{00000002},
@@ -223,7 +223,7 @@ usano ogni volta che possono (Listato~\ref{lst:int:shifts}). L'istruzione
 indice per quattro. Gli scorrimenti sono anche la base dell'aritmetica in
 virgola fissa (Capitolo~\ref{ch:reals}).
 
-\asmfile[caption={Gli scorrimenti come moltiplicazioni e divisioni.},label=lst:int:shifts]{code/l05/s13.S}
+\asmfile[caption={Gli scorrimenti come moltiplicazioni e divisioni.},label=lst:int:shifts]{code/l05/c04.S}
 
 \subsection{Overflow}
 
@@ -448,7 +448,7 @@ Cambiare di segno due volte restituisce il numero originale, con un'eccezione:
 il numero più negativo, $-2^{n-1}$, non ha un compagno positivo, e il suo
 cambio di segno va in overflow e restituisce il numero stesso.
 
-\asmfile[caption={Il cambio di segno in \riscv.},label=lst:int:neg]{code/l05/s22.S}
+\asmfile[caption={Il cambio di segno in \riscv.},label=lst:int:neg]{code/l05/c05.S}
 
 \begin{prgconcept}[La sottrazione è un'addizione]
 $y - x = y + (2^{n}-x) \pmod{2^{n}}$. Un sommatore e un complementatore sono
@@ -550,7 +550,7 @@ La decisione che mancava è presa nel Listato~\ref{lst:int:clamp}: dopo lo
 spostamento, la posizione viene \term{limitata} (clamp) all'intervallo
 $[0, 304]$.
 
-\asmfile[caption={Limitare la posizione (laboratorio su stato e ingresso, passo 3).},label=lst:int:clamp]{code/l05/s28.S}
+\asmfile[caption={Limitare la posizione (laboratorio su stato e ingresso, passo 3).},label=lst:int:clamp]{code/l05/c08.S}
 
 \ins{bgez} legge \reg{t2} come numero con segno: esamina il bit di segno. Anche
 \ins{ble} è un confronto con segno: $-1$ è minore di 304, mentre con \ins{bleu}
@@ -574,7 +574,7 @@ somma più piccola, e sommarne uno non negativo no. Sulla ruota, \ins{sltu}
 rileva l'attraversamento della cima e il test con segno l'attraversamento del
 fondo.
 
-\asmfile[caption={I due test di overflow suggeriti dalla specifica \riscv.},label=lst:int:ovf]{code/l05/s29.S}
+\asmfile[caption={I due test di overflow suggeriti dalla specifica \riscv.},label=lst:int:ovf]{code/l05/c09.S}
 
 \subsection{Estensione del segno: lo stesso numero su più bit}
 
@@ -604,6 +604,9 @@ L'estensione con zeri trasformerebbe \texttt{1111} ($-1$) in
 in dodici bit, e il processore ne estende il segno a trentadue prima di
 sommare. \ins{lb} estende il segno del byte che carica, \ins{lbu} riempie con
 zeri: la scelta dipende da che cosa significa il byte.
+
+% ----------------------------------------------------------------------------
+\input{code/l05/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

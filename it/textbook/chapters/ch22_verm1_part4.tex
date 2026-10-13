@@ -80,7 +80,7 @@ Una cifra $d$ diventa un carattere sommando 48.
 
 \subsection{\texttt{to\_decimal}}
 
-\asmfile[caption={Passo 1 \textbf{(nuovo)}: \code{to\_decimal}.},label=lst:v4:dec]{code/l22/s08.S}
+\asmfile[caption={Passo 1 \textbf{(nuovo)}: \code{to\_decimal}.},label=lst:v4:dec]{code/l22/c04.S}
 
 Il contratto del Listato~\ref{lst:v4:dec} è: $\reg{a0}=\text{valore}$,
 $\reg{a1}=\text{dove vanno i tre caratteri}$. \ins{remu} dà la cifra e
@@ -94,7 +94,7 @@ niente.
 
 \subsection{\texttt{draw\_score}: due numeri, due testi}
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{draw\_score}.},label=lst:v4:score]{code/l22/s09.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{draw\_score}.},label=lst:v4:score]{code/l22/c05.S}
 
 Sostituite la \code{draw\_score} della parte~3 con il
 Listato~\ref{lst:v4:score}: le tacche spariscono. Le cifre vengono scritte in
@@ -105,7 +105,7 @@ le nuove cifre coprono le vecchie senza alcuna cancellazione.
 
 \subsection{Le variabili della parte 4}
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.data}.},label=lst:v4:data]{code/l22/s10.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.data}.},label=lst:v4:data]{code/l22/c06.S}
 
 Sostituite la \code{.data} della parte~3 con il Listato~\ref{lst:v4:data}, e
 scrivetela tutta ora. Le due stringhe \code{score\_txt} e \code{best\_txt}
@@ -130,13 +130,13 @@ passo~3.
 
 La velocità diventa una funzione del punteggio.
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: le costanti. Solo le due righe \code{SPEED} differiscono dalla parte~3.},label=lst:v4:const]{code/l22/s13.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: le costanti. Solo le due righe \code{SPEED} differiscono dalla parte~3.},label=lst:v4:const]{code/l22/c08.S}
 
 \code{SPEED\_Q8} è sostituita da un minimo e un massimo
 (Listato~\ref{lst:v4:const}): $32/256$, un passo ogni 8 frame, all'inizio, e
 $96/256$, tre passi ogni 8 frame, al massimo.
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: il timer alla fine di \code{play\_update}.},label=lst:v4:speed]{code/l22/s14.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: il timer alla fine di \code{play\_update}.},label=lst:v4:speed]{code/l22/c09.S}
 
 La velocità è $32+4\times\mathit{score}$: uno scorrimento e una somma
 (Listato~\ref{lst:v4:speed}). Poi \ins{ble} e \ins{mv} prendono il minore tra
@@ -184,7 +184,7 @@ nel passo~4.
 
 \subsection{\texttt{play\_note}: una funzione, qualsiasi nota}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{play\_note} sostituisce \code{eat\_sound}.},label=lst:v4:note]{code/l22/s18.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{play\_note} sostituisce \code{eat\_sound}.},label=lst:v4:note]{code/l22/c11.S}
 
 Il chiamante sceglie la nota e la durata, in \reg{a2} e \reg{a4}; la funzione
 riempie gli altri tre argomenti (Listato~\ref{lst:v4:note}). Gli argomenti
@@ -195,18 +195,18 @@ un contratto attorno al chiamato fa risparmiare spostamenti.
 
 La funzione \code{step} della parte~3 viene modificata in cinque punti.
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} ricorda la vecchia testa.},label=lst:v4:s1]{code/l22/s19.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} ricorda la vecchia testa.},label=lst:v4:s1]{code/l22/c12.S}
 
 Si aggiungono due store (Listato~\ref{lst:v4:s1}): \code{old\_x} e
 \code{old\_y}, la cella che la testa sta lasciando, che \code{draw} ridipingerà
 nel colore del corpo.
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step}, quando il verme mangia.},label=lst:v4:s2]{code/l22/s20.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step}, quando il verme mangia.},label=lst:v4:s2]{code/l22/c13.S}
 
 Quando il verme mangia, la coda resta e non c'è niente da cancellare:
 $\code{erase\_on}=0$ lo dice a \code{draw} (Listato~\ref{lst:v4:s2}).
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} annota la coda, e chiama la fine.},label=lst:v4:s3]{code/l22/s21.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} annota la coda, e chiama la fine.},label=lst:v4:s3]{code/l22/c14.S}
 
 Quando non mangia, la coda lascia una cella, e \code{step} ricorda quale:
 $\code{erase\_on}=1$ significa che \code{draw} deve dipingerla di nero
@@ -214,9 +214,9 @@ $\code{erase\_on}=1$ significa che \code{draw} deve dipingerla di nero
 parte~3, perché la collisione è ora una sola chiamata, a
 \code{game\_is\_over}.
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} scrive la nuova testa (come nella parte~3).},label=lst:v4:s4]{code/l22/s22.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{step} scrive la nuova testa (come nella parte~3).},label=lst:v4:s4]{code/l22/c15.S}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: la fine di \code{step}.},label=lst:v4:s5]{code/l22/s23.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: la fine di \code{step}.},label=lst:v4:s5]{code/l22/c16.S}
 
 Alla fine (Listato~\ref{lst:v4:s5}) $\code{dirty}=1$ registra che è avvenuto
 un passo e che \code{draw} ha del lavoro da fare. Un pasto è un punto, nuovo
@@ -225,7 +225,7 @@ parte~2 attraverso la nuova funzione.
 
 \subsection{\texttt{game\_is\_over}: la transizione, in un solo posto}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{game\_is\_over}.},label=lst:v4:over]{code/l22/s24.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{game\_is\_over}.},label=lst:v4:over]{code/l22/c17.S}
 
 Una transizione della macchina a stati merita una funzione tutta sua
 (Listato~\ref{lst:v4:over}): lo stato, le uscite e il suono stanno in un solo
@@ -269,7 +269,7 @@ avevano scelta.
 
 \subsection{\texttt{draw}: niente, poco, o tutto}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_draw}.},label=lst:v4:draw]{code/l22/s28.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_draw}.},label=lst:v4:draw]{code/l22/c19.S}
 
 La variabile \code{dirty} ha tre valori (Listato~\ref{lst:v4:draw}). Con 0 la
 funzione ritorna subito, senza frame e senza chiamate: il caso comune, in cui
@@ -279,7 +279,7 @@ disegna tutto. L'indicatore viene azzerato appena è stato letto.
 
 \subsection{\texttt{draw\_changes}: tre celle e il punteggio}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_changes}.},label=lst:v4:changes]{code/l22/s29.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_changes}.},label=lst:v4:changes]{code/l22/c20.S}
 
 L'ordine conta (Listato~\ref{lst:v4:changes}): prima la cella che la coda ha
 lasciato, se c'è, in nero; poi la vecchia testa, nel colore del corpo; poi la
@@ -289,9 +289,9 @@ l'immagine giusta.
 
 \subsection{\texttt{draw\_full}: un'intera schermata}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_full}, prima metà.},label=lst:v4:full1]{code/l22/s30.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_full}, prima metà.},label=lst:v4:full1]{code/l22/c21.S}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_full}, \texttt{PLAY} e \texttt{OVER}.},label=lst:v4:full2]{code/l22/s31.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_full}, \texttt{PLAY} e \texttt{OVER}.},label=lst:v4:full2]{code/l22/c22.S}
 
 \code{draw\_full} è il corpo della vecchia \code{verm1\_draw}, ed è chiamata
 una volta per ogni cambio di stato (Listati \ref{lst:v4:full1}
@@ -300,22 +300,22 @@ titolo.
 
 \subsection{Tre piccole funzioni}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_head}.},label=lst:v4:head]{code/l22/s32.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_head}.},label=lst:v4:head]{code/l22/c23.S}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_food}.},label=lst:v4:food]{code/l22/s33.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{draw\_food}.},label=lst:v4:food]{code/l22/c24.S}
 
-\asmfile[caption={Passo 4: \code{draw\_text}, la funzione di servizio della parte~3.},label=lst:v4:text]{code/l22/s34.S}
+\asmfile[caption={Passo 4: \code{draw\_text}, la funzione di servizio della parte~3.},label=lst:v4:text]{code/l22/c25.S}
 
 \subsection{Ogni transizione chiede una schermata}
 
 Tre piccole aggiunte completano il meccanismo: dovunque cambi lo stato,
 \code{dirty} diventa 2.
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_init} chiede la prima schermata.},label=lst:v4:init]{code/l22/s35.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_init} chiede la prima schermata.},label=lst:v4:init]{code/l22/c26.S}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_update}, da \texttt{OVER} a \texttt{TITLE}.},label=lst:v4:upd]{code/l22/s36.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{verm1\_update}, da \texttt{OVER} a \texttt{TITLE}.},label=lst:v4:upd]{code/l22/c27.S}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: la fine di \code{new\_game}, da \texttt{TITLE} a \texttt{PLAY}.},label=lst:v4:new]{code/l22/s37.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: la fine di \code{new\_game}, da \texttt{TITLE} a \texttt{PLAY}.},label=lst:v4:new]{code/l22/c28.S}
 
 \begin{prgwarn}
 Ogni transizione della macchina chiede un disegno completo; ogni passo ne
@@ -434,14 +434,14 @@ un indice e un contatore di frame in \code{.data}; la tabella si legge come
 Otto parti del file sono quelle della parte~3 e restano come sono. Sono
 ristampate qui perché questo capitolo contenga l'intero programma.
 
-\asmfile[caption={\textbf{Invariato}: \code{verm1\_update}, pulsanti e fronti.},label=lst:v4:u1]{code/l22/s48.S}
-\asmfile[caption={\textbf{Invariato}: \code{new\_game}, la mappa e il verme.},label=lst:v4:u2]{code/l22/s49.S}
-\asmfile[caption={\textbf{Invariato}: \code{play\_update}, la guida.},label=lst:v4:u3]{code/l22/s50.S}
-\asmfile[caption={\textbf{Invariato}: \code{step}, la ricerca nella tabella.},label=lst:v4:u4]{code/l22/s51.S}
-\asmfile[caption={\textbf{Invariato}: \code{place\_food}.},label=lst:v4:u5]{code/l22/s52.S}
-\asmfile[caption={\textbf{Invariato}: \code{draw\_worm}, usata solo da \code{draw\_full}.},label=lst:v4:u6]{code/l22/s53.S}
-\asmfile[caption={\textbf{Invariato}: \code{draw\_cell}.},label=lst:v4:u7]{code/l22/s54.S}
-\asmfile[caption={\textbf{Invariato}: \code{.rodata}.},label=lst:v4:u8]{code/l22/s55.S}
+\asmfile[caption={\textbf{Invariato}: \code{verm1\_update}, pulsanti e fronti.},label=lst:v4:u1]{code/l22/c31.S}
+\asmfile[caption={\textbf{Invariato}: \code{new\_game}, la mappa e il verme.},label=lst:v4:u2]{code/l22/c32.S}
+\asmfile[caption={\textbf{Invariato}: \code{play\_update}, la guida.},label=lst:v4:u3]{code/l22/c33.S}
+\asmfile[caption={\textbf{Invariato}: \code{step}, la ricerca nella tabella.},label=lst:v4:u4]{code/l22/c34.S}
+\asmfile[caption={\textbf{Invariato}: \code{place\_food}.},label=lst:v4:u5]{code/l22/c35.S}
+\asmfile[caption={\textbf{Invariato}: \code{draw\_worm}, usata solo da \code{draw\_full}.},label=lst:v4:u6]{code/l22/c36.S}
+\asmfile[caption={\textbf{Invariato}: \code{draw\_cell}.},label=lst:v4:u7]{code/l22/c37.S}
+\asmfile[caption={\textbf{Invariato}: \code{.rodata}.},label=lst:v4:u8]{code/l22/c38.S}
 
 \section{Dove siamo, e che cosa viene dopo}
 

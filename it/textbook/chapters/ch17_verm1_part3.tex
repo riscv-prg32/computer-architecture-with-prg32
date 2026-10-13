@@ -147,17 +147,17 @@ saltare il titolo: ciò che serve è un fronte, non un livello.
 Sostituite le costanti, la \code{.rodata} e la \code{.data} della parte~2 con i
 Listati \ref{lst:v3:const}, \ref{lst:v3:ro} e~\ref{lst:v3:data}.
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v3:const]{code/l17/s11.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v3:const]{code/l17/c04.S}
 
 C'è un verde più scuro, \hex{03e0}, per il corpo; \code{BTN\_A} è il bit~4
 della parola dei pulsanti; gli stati sono numeri, 0, 1 e 2.
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.rodata}, ciò che resta nel file.},label=lst:v3:ro]{code/l17/s12.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.rodata}, ciò che resta nel file.},label=lst:v3:ro]{code/l17/c05.S}
 
 Tre stringhe e le due tabelle della parte~2: dati di sola lettura, nei quali il
 programma non scrive mai, e che sulla scheda potrebbero restare in flash.
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.data}, ciò che vive in RAM.},label=lst:v3:data]{code/l17/s13.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: \code{.data}, ciò che vive in RAM.},label=lst:v3:data]{code/l17/c06.S}
 
 \code{head\_x} e \code{head\_y} sono sparite: la testa è nell'anello. La
 direttiva \code{.space} riserva dei byte senza nominarli uno per uno:
@@ -179,14 +179,14 @@ dal file \code{verm1\_update}, \code{step} e \code{verm1\_draw} della parte~2:
 i prossimi listati le sostituiscono. Tenete \code{place\_food},
 \code{eat\_sound} e \code{draw\_cell}.
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/s15.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/c07.S}
 
 \code{init} sceglie soltanto il primo stato; la partita vera e propria è
 preparata da \code{new\_game}.
 
 \subsection{\texttt{update}: i pulsanti, e i loro fronti}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, prima metà.},label=lst:v3:edge]{code/l17/s16.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, prima metà.},label=lst:v3:edge]{code/l17/c08.S}
 
 Nel Listato~\ref{lst:v3:edge} \reg{s0} contiene i pulsanti di ora e
 \code{prev\_btn} i pulsanti di un frame fa. La variabile \code{prev\_btn} è un
@@ -200,7 +200,7 @@ alle chiamate, e sono salvati nel frame.
 
 \subsection{\texttt{update}: un ramo per stato}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, seconda metà.},label=lst:v3:states]{code/l17/s17.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_update}, seconda metà.},label=lst:v3:states]{code/l17/c09.S}
 
 Il Listato~\ref{lst:v3:states} è la tabella delle transizioni, riga per riga.
 Lo stato viene letto per primo: decide chi guarda gli ingressi. \texttt{TITLE}
@@ -212,7 +212,7 @@ stessa \texttt{PLAY}.
 
 \subsection{\texttt{draw}: che cosa mostrare in ogni stato}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_draw}, prima metà.},label=lst:v3:draw1]{code/l17/s18.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_draw}, prima metà.},label=lst:v3:draw1]{code/l17/c10.S}
 
 La riga del titolo è sempre disegnata (Listato~\ref{lst:v3:draw1}). In
 \texttt{TITLE} si aggiunge solo l'invito \texttt{PRESS A}, a $x=132$, che
@@ -220,7 +220,7 @@ centra 7 caratteri di 8 pixel; in \texttt{PLAY} e \texttt{OVER} il punteggio,
 il verme e il cibo. L'uscita dipende solo dallo stato e dalla memoria:
 \code{draw} non cambia niente. È una macchina di Moore.
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: la fine di \code{verm1\_draw}, e \code{draw\_text}.},label=lst:v3:draw2]{code/l17/s19.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: la fine di \code{verm1\_draw}, e \code{draw\_text}.},label=lst:v3:draw2]{code/l17/c11.S}
 
 \texttt{OVER} aggiunge due parole sopra la scena
 (Listato~\ref{lst:v3:draw2}). La funzione di servizio \code{draw\_text} scrive
@@ -229,7 +229,7 @@ bianco su nero: riempie \reg{a3} e \reg{a4} e lascia passare da \reg{a0} ad
 
 \subsection{Quattro funzioni che non fanno niente}
 
-\asmfile[caption={Passo 2: stub provvisori.},label=lst:v3:stubs]{code/l17/s20.S}
+\asmfile[caption={Passo 2: stub provvisori.},label=lst:v3:stubs]{code/l17/c12.S}
 
 Gli stub del Listato~\ref{lst:v3:stubs} fanno esistere i nomi, così che il
 programma si compili; \code{new\_game} cambia soltanto lo stato. I passi 3 e 4
@@ -260,7 +260,7 @@ poi aggiungere una cosa alla volta.
 Sostituite lo stub di \code{new\_game} con i Listati \ref{lst:v3:new1}
 e~\ref{lst:v3:new2}.
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, prima metà.},label=lst:v3:new1]{code/l17/s23.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, prima metà.},label=lst:v3:new1]{code/l17/c14.S}
 
 I 960 byte della mappa vengono posti a zero, una \ins{sb} alla volta. Poi tre
 segmenti vengono posati nelle colonne 3, 4 e 5 della riga 12, e ciascuno è
@@ -269,7 +269,7 @@ scritto due volte: nell'anello e nella mappa. L'espressione
 della riga 12. \ins{sb} memorizza un byte; l'indice è sommato all'indirizzo di
 base senza scorrimento, perché ogni elemento è un byte.
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, seconda metà.},label=lst:v3:new2]{code/l17/s24.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{new\_game}, seconda metà.},label=lst:v3:new2]{code/l17/c15.S}
 
 $\code{head\_i}=2$ e $\code{length}=3$ descrivono il verme; direzione, timer e
 punteggio partono da zero. Lo stato è memorizzato per ultimo: la transizione da
@@ -277,7 +277,7 @@ punteggio partono da zero. Lo stato è memorizzato per ultimo: la transizione da
 
 \subsection{\texttt{draw\_worm}: percorrere l'anello all'indietro}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/s25.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/c16.S}
 
 Il segmento $i$ è l'elemento $(\code{head\_i}-i)$ AND 255
 (Listato~\ref{lst:v3:worm}). \ins{lbu} carica un byte come numero senza segno,
@@ -288,13 +288,13 @@ si intende. Il segmento 0 è la testa, in un verde più brillante.
 
 \subsection{\texttt{draw\_score}}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/s26.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/c17.S}
 
 È il ciclo che stava dentro \code{verm1\_draw} nella parte~2, ora una funzione
 (Listato~\ref{lst:v3:score}). Usa \reg{s0}, quindi lo salva e lo ripristina.
 Resta uno stub (Listato~\ref{lst:v3:stub2}): il verme esiste, e sta fermo.
 
-\asmfile[caption={Passo 3: l'ultimo stub.},label=lst:v3:stub2]{code/l17/s27.S}
+\asmfile[caption={Passo 3: l'ultimo stub.},label=lst:v3:stub2]{code/l17/c18.S}
 
 \begin{prgcheck}[Eseguite: un verme che sta fermo]
 \begin{enumerate}[nosep]
@@ -324,13 +324,13 @@ e~\ref{lst:v3:play2}. Sono il corpo della vecchia \code{verm1\_update} sotto un
 nuovo nome; i pulsanti arrivano in \reg{a0}, così che non c'è alcuna chiamata
 per leggerli.
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, la guida.},label=lst:v3:play1]{code/l17/s30.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, la guida.},label=lst:v3:play1]{code/l17/c20.S}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, il timer.},label=lst:v3:play2]{code/l17/s31.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{play\_update}, il timer.},label=lst:v3:play2]{code/l17/c21.S}
 
 \subsection{\texttt{step}: tre registri da conservare}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, l'inizio.},label=lst:v3:s1]{code/l17/s32.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, l'inizio.},label=lst:v3:s1]{code/l17/c22.S}
 
 A \code{step} servono tre valori che devono sopravvivere a una chiamata a
 \code{place\_food}: la cella della nuova testa, in \reg{s0} e \reg{s1}, e un
@@ -341,7 +341,7 @@ della parte~2.
 
 \subsection{\texttt{step}: dove sarà la testa?}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la nuova cella.},label=lst:v3:s2]{code/l17/s33.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la nuova cella.},label=lst:v3:s2]{code/l17/c23.S}
 
 La testa attuale è l'elemento \code{head\_i} dell'anello: un byte ciascuno per
 colonna e riga, caricati con \ins{lbu}. Si sommano \code{dx} e \code{dy} e il
@@ -351,7 +351,7 @@ deve guardare.
 
 \subsection{\texttt{step}: mangiare, o spostare la coda}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la coda.},label=lst:v3:s3]{code/l17/s34.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{step}, la coda.},label=lst:v3:s3]{code/l17/c24.S}
 
 Il comparatore della parte~2 lascia il suo risultato in \reg{s2}
 (Listato~\ref{lst:v3:s3}). Se il verme mangia, la lunghezza cresce di uno e la
@@ -366,7 +366,7 @@ Snake.
 
 \subsection{\texttt{step}: liberare la coda, esaminare la testa}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{step}, la collisione.},label=lst:v3:s4]{code/l17/s35.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: \code{step}, la collisione.},label=lst:v3:s4]{code/l17/c25.S}
 
 Il numero di un byte della mappa è
 $\mathit{riga}\times 40+\mathit{colonna}$: una \ins{mul} e una \ins{add}
@@ -379,7 +379,7 @@ propria coda, come nel gioco originale. Se la cella è occupata lo stato diventa
 
 \subsection{\texttt{step}: scrivere la nuova testa}
 
-\asmfile[caption={Passo 4 \textbf{(nuovo)}: la fine di \code{step}.},label=lst:v3:s5]{code/l17/s36.S}
+\asmfile[caption={Passo 4 \textbf{(nuovo)}: la fine di \code{step}.},label=lst:v3:s5]{code/l17/c26.S}
 
 La cella è segnata nella mappa, mentre \reg{t0} punta ancora a essa; l'indice
 \code{head\_i} diventa $(\code{head\_i}+1)$ AND 255, e l'anello si chiude;
@@ -390,7 +390,7 @@ niente, e lo schermo mostra il verme com'era prima del passo fatale.
 
 \subsection{\texttt{place\_food}: non sul verme}
 
-\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{place\_food}.},label=lst:v3:food]{code/l17/s37.S}
+\asmfile[caption={Passo 4 \textbf{(modificato)}: \code{place\_food}.},label=lst:v3:food]{code/l17/c27.S}
 
 Si estrae a caso una cella, e poi si consulta la mappa: se la cella è occupata
 se ne estrae un'altra, finché ne arriva una libera
@@ -529,9 +529,9 @@ sono. Sono ristampate qui perché questo capitolo contenga l'intero programma:
 il file completo è la somma dei listati segnati nuovo e modificato, più questi
 due.
 
-\asmfile[caption={\textbf{Invariato}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/s49.S}
+\asmfile[caption={\textbf{Invariato}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/c30.S}
 
-\asmfile[caption={\textbf{Invariato}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/s50.S}
+\asmfile[caption={\textbf{Invariato}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/c31.S}
 
 \section{Dove siamo, e che cosa viene dopo}
 

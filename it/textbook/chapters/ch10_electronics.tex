@@ -28,7 +28,7 @@ datasheet dell'ESP32-C6 \citep{esp32c6trm} e dalla documentazione hardware di
 % ----------------------------------------------------------------------------
 \section{Riscaldamento sulla macchina}
 
-\asmfile[caption={Un pulsante, un bit.},label=lst:el:button]{code/l10/s04.S}
+\asmfile[caption={Un pulsante, un bit.},label=lst:el:button]{code/l10/c03.S}
 
 Fin dai primi capitoli un pulsante premuto è un 1 in un registro
 (Listato~\ref{lst:el:button}). Sulla scheda il pulsante è un pezzo di metallo
@@ -544,6 +544,9 @@ Un piedino dell'ESP32-C6 può fornire alcune decine di milliampere: a un LED
 serve la sua resistenza in serie. Non unite mai direttamente a massa un piedino
 pilotato alto.
 \end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\input{code/l10/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

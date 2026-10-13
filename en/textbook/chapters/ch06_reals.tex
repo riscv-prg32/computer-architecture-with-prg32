@@ -28,7 +28,7 @@ pixels per frame is not a movement. The ball needs something in between:
 integer instructions only, and no floating point at all.
 Listing~\ref{lst:real:ball} solves the problem with a trick.
 
-\asmfile[caption={Three-eighths of a pixel per frame, with integers only.},label=lst:real:ball]{code/l06/s04.S}
+\asmfile[caption={Three-eighths of a pixel per frame, with integers only.},label=lst:real:ball]{code/l06/c03.S}
 
 The position is stored \emph{multiplied by 256}, and is divided by 256 only
 when the ball is drawn. In units of $1/256$ of a pixel the speed is
@@ -402,7 +402,7 @@ arithmetic on such numbers obeys laws that are not those of the real field
   right tool.
 \end{itemize}
 
-\cfile[caption={The most famous sum in computing.},label=lst:real:c,numbers=none]{code/l06/s22.c}
+\cfile[caption={The most famous sum in computing.},label=lst:real:c,numbers=none]{code/l06/c05.c}
 
 \subsection{Beyond single and double}
 
@@ -457,6 +457,9 @@ D & double precision & IEEE 754 double-precision instructions & no\\
 A microcontroller picks the extensions that it needs. This is one reason why
 the same architecture scales from a chip that costs two euros to a
 supercomputer.
+
+% ----------------------------------------------------------------------------
+\input{code/l06/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

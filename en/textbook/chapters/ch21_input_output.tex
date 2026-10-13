@@ -21,7 +21,7 @@ By the end of this chapter you will be able to
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={Read the world, once per frame.},label=lst:io:warm]{code/l21/s04.S}
+\asmfile[caption={Read the world, once per frame.},label=lst:io:warm]{code/l21/c03.S}
 
 The reader has read the joystick since the first chapters
 (Listing~\ref{lst:io:warm}). Each button is a switch on one input pin of the
@@ -309,6 +309,9 @@ On the kit all three are at work at the same time: the game polls the
 joystick, the timer that paces the frames interrupts, and the display and the
 sound are fed by DMA.
 \end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\input{code/l21/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

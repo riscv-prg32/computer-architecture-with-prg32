@@ -521,10 +521,17 @@ published on the \prg Cartridge Store, as Chapter~\ref{ch:store} shows.
 \section{Material}
 
 \begin{description}[style=nextline,leftmargin=1.5em]
-\item[Slides.] The slide decks that this book follows are always available in
-  a shared Google Drive folder and are periodically published on
+\item[Slides.] Each lecture has two slide decks: the lecture deck, of at most
+  twenty slides, for the concepts, and the code deck, with every listing, the
+  complete program of the lecture and the guide for testing it on \prgqt, on
+  QEMU and on the board. They are always available in a shared Google Drive
+  folder and are periodically published on
   \url{https://elearning.uniparthenope.it}. They are generated from source:
   corrections and new exercises are welcome as contributions.
+\item[Programs.] The program of each lecture is in the folder \fname{code} of
+  the repository of the course,
+  \url{https://github.com/riscv-prg32/computer-architecture-with-prg32}, with
+  the decks, this book and the tests that run every listing.
 \item[Platform.] \prg, free and open source, at
   \url{https://github.com/riscv-prg32/PRG32}, with its own textbook,
   \emph{Playing with RISC-V: Assembly, C, and Retro Games on the PRG32
@@ -603,3 +610,7 @@ and Linux. It goes faster if the long downloads are already done.
 \expected{You begin Chapter~\ref{ch:setup} with the downloads done. In two
 hours you have \prgqt running and a cartridge built on your own laptop.}
 \end{exercise}
+
+% ----------------------------------------------------------------------------
+\input{code/l00/lab}
+

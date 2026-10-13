@@ -565,6 +565,126 @@ Errors & ``instruction budget exhausted'' (a frame that does not end); ``unsuppo
 \end{table}
 
 % ----------------------------------------------------------------------------
+\section{Testing a program on the three hosts}\label{sec:prg:testing}
+
+The same source file gives a cartridge for each host. This section is the
+step-by-step guide that the code deck of every lecture repeats with the name
+of its own program; here the program is \fname{code/l05.S} of
+Chapter~\ref{ch:integers}, whose entry prefix is \code{l05}. The repository of
+the course is assumed to be in \fname{\textasciitilde/arc12}
+(\code{git clone https://github.com/riscv-prg32/computer-architecture-with-prg32 \textasciitilde/arc12}),
+and every command is given from the folder of the \prg repository, in a
+terminal in which ESP-IDF is active (Chapter~\ref{ch:setup}).
+
+\begin{table}[htb]
+\centering\small
+\caption{How each host is covered by the automatic tests of the course material.}\label{tab:prg:tested}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Host} & \textbf{What the tests do}\\
+\midrule
+\prgqt & every program is built, run on the headless runner with scripted input, and the pixels of its frame are checked\\
+QEMU & every program is built for the architecture \code{qemu} and staged into the flash image of the emulator; the picture is not checked, because the emulator needs its window\\
+the board & every program is built for the architecture \code{esp32c6}; it is not run: there is no board on the test machine\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{On PRG32-QT}
+
+\begin{enumerate}
+\item Start \prgqt on the computer. It listens on port 8080, like a board; its
+  \emph{Setup} screen shows the address to use if \code{localhost} does not
+  answer.
+\item Build the cartridge.
+\item Send it to \prgqt and start it.
+\item Look at the screen and press the keys: arrows or \key{W A S D} for the
+  joystick, \key{Z} or \key{J} for A, \key{X} or \key{K} for B, \key{Enter}
+  for Start, \key{Escape} to go back to Setup.
+\item To look inside, enable \emph{Run cartridges in RISC-V debug mode} in
+  \emph{Settings} and run the cartridge again.
+\end{enumerate}
+
+\begin{shell}[caption={Steps 2 and 3 on \prgqt.},label=lst:prg:test:qt]
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --out l05.prg32
+python3 -m prg32 esp32c6 upload-and-run l05.prg32 \
+    --url http://localhost:8080 --slot cart0
+\end{shell}
+
+Without the toolchain, a cartridge that somebody else has built is imported in
+\prgqt as a file and started with \emph{Run Cartridge}.
+
+\subsection{On QEMU}
+
+\begin{enumerate}
+\item Once: build the firmware for the emulator. It takes several minutes.
+\item Build the cartridge for the architecture \code{qemu}.
+\item With QEMU closed, stage the cartridge into the flash image.
+\item Start the emulator. It opens on the \emph{Setup} menu: choose \emph{Run
+  Cartridge}, then \code{cart0}.
+\item Type in the \emph{terminal} that launched QEMU, not in the window with
+  the picture: arrows or \key{W A S D}, \key{Z} or \key{J} for A, \key{X} or
+  \key{K} for B, \key{Enter} or \key{Space} for Select.
+\end{enumerate}
+
+\begin{shell}[caption={Steps 1 to 4 on QEMU.},label=lst:prg:test:qemu]
+python3 -m prg32 qemu build
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --architecture qemu --out l05-qemu.prg32
+python3 -m prg32 qemu upload l05-qemu.prg32
+python3 -m prg32 qemu run
+\end{shell}
+
+\subsection{On the board}
+
+\begin{enumerate}
+\item Once per board: connect it with a USB cable and write the firmware.
+\item The board creates the Wi-Fi network \code{PRG32} (password
+  \code{prg32game}) and answers at \code{192.168.4.1}: join the network with
+  the computer.
+\item Build the cartridge for the architecture \code{esp32c6}.
+\item Send it over Wi-Fi and start it.
+\item Use the joystick and the buttons of the kit.
+\end{enumerate}
+
+\begin{shell}[caption={Steps 1, 3 and 4 on the board.},label=lst:prg:test:board]
+python3 -m prg32 esp32c6 build-and-flash
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --architecture esp32c6 \
+    --out l05-esp32c6.prg32
+python3 -m prg32 esp32c6 upload-and-run l05-esp32c6.prg32 \
+    --url http://192.168.4.1 --slot cart0
+\end{shell}
+
+\subsection{The programs of the lectures}
+
+Table~\ref{tab:prg:programs} lists the programs in the folder \fname{code}.
+The tutorial chapters have no program of their own there: their program is
+\vermone, in the folder \fname{verm1} (Appendix~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{The program of each lecture, and its entry prefix.}\label{tab:prg:programs}
+\begin{tabularx}{\textwidth}{@{}llL@{\qquad}llL@{}}
+\toprule
+\textbf{Ch.} & \textbf{File} & \textbf{It shows} & \textbf{Ch.} & \textbf{File} & \textbf{It shows}\\
+\midrule
+\ref{ch:intro} & \fname{l00.S} & a first program & \ref{ch:combinational} & \fname{l11.S} & a multiplexer in software\\
+\ref{ch:setup} & \fname{l01.S} & a test pattern & \ref{ch:sequential} & \fname{l13.S} & a state machine\\
+\ref{ch:firstcontact} & \fname{l02.S} (\code{first}) & load, modify, store & \ref{ch:registers} & \fname{l14.S} & serial and parallel\\
+\ref{ch:history} & \fname{l03.S} & the stored program & \ref{ch:memory} & \fname{l15.S} & bytes and words\\
+\ref{ch:information} & \fname{l04.S} & an array & \ref{ch:storage} & \fname{l16.S} & what survives a restart\\
+\ref{ch:integers} & \fname{l05.S} & two's complement & \ref{ch:processor} & \fname{l18.S} & load, compute, store\\
+\ref{ch:reals} & \fname{l06.S} & fixed point & \ref{ch:instructions} & \fname{l19.S} & instructions as numbers\\
+\ref{ch:boole1} & \fname{l08.S} & masks and De Morgan & \ref{ch:video} & \fname{l20.S} & one pixel\\
+\ref{ch:boole2} & \fname{l09.S} & the full adder & \ref{ch:io} & \fname{l21.S} & polling the joystick\\
+\ref{ch:electronics} & \fname{l10.S} & one button, one bit & \ref{ch:beyond} & \fname{l24.S} & the loop on the map\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
 \section{The Cartridge Store}
 
 The Store is a service that catalogues, reviews and distributes cartridges;

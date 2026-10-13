@@ -22,7 +22,7 @@ By the end of this chapter you will be able to
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={Choose one of four colours.},label=lst:cm:palette]{code/l11/s04.S}
+\asmfile[caption={Choose one of four colours.},label=lst:cm:palette]{code/l11/c03.S}
 
 Listing~\ref{lst:cm:palette} is the array access of
 Chapter~\ref{ch:information}, used as a selection. The same selector always
@@ -555,7 +555,7 @@ bits, locate and correct a single error.
 
 \subsection{A parity network in seven instructions}
 
-\asmfile[caption={The parity of a byte.},label=lst:cm:parity]{code/l11/s32.S}
+\asmfile[caption={The parity of a byte.},label=lst:cm:parity]{code/l11/c06.S}
 
 Each \ins{xor} of Listing~\ref{lst:cm:parity} combines the upper half of the
 bits with the lower half: three levels for eight bits, the software version of
@@ -623,6 +623,9 @@ multiplexer of the ALU.
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% ----------------------------------------------------------------------------
+\input{code/l11/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

@@ -28,7 +28,7 @@ mezzo: 0,375 pixel per frame. Ma il processore del kit è RV32IMAC: ha solo
 istruzioni intere, e nessuna virgola mobile. Il Listato~\ref{lst:real:ball}
 risolve il problema con un trucco.
 
-\asmfile[caption={Tre ottavi di pixel per frame, con i soli interi.},label=lst:real:ball]{code/l06/s04.S}
+\asmfile[caption={Tre ottavi di pixel per frame, con i soli interi.},label=lst:real:ball]{code/l06/c03.S}
 
 La posizione è memorizzata \emph{moltiplicata per 256}, e viene divisa per 256
 solo quando la palla viene disegnata. In unità di $1/256$ di pixel la velocità
@@ -409,7 +409,7 @@ reale \citep{goldberg1991}.
   spesso lo strumento giusto.
 \end{itemize}
 
-\cfile[caption={La somma più famosa dell'informatica.},label=lst:real:c,numbers=none]{code/l06/s22.c}
+\cfile[caption={La somma più famosa dell'informatica.},label=lst:real:c,numbers=none]{code/l06/c05.c}
 
 \subsection{Oltre la singola e la doppia}
 
@@ -465,6 +465,9 @@ D & precisione doppia & istruzioni IEEE 754 a precisione doppia & no\\
 Un microcontrollore sceglie le estensioni che gli servono. È una delle ragioni
 per cui la stessa architettura scala da un chip che costa due euro a un
 supercalcolatore.
+
+% ----------------------------------------------------------------------------
+\input{code/l06/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

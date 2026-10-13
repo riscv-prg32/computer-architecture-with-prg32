@@ -22,7 +22,7 @@ By the end of this chapter you will be able to
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\txtfile[caption={Four words in memory.},label=lst:ins:words]{code/l19/s04.txt}
+\txtfile[caption={Four words in memory.},label=lst:ins:words]{code/l19/c03.txt}
 
 Listing~\ref{lst:ins:words} is the function \code{first\_update} of
 Chapter~\ref{ch:firstcontact} as it sits in memory: four numbers, four
@@ -476,7 +476,7 @@ $\mathit{base}+4\times 7$.
 
 \subsection{A trap handler, in outline}
 
-\asmfile[caption={The outline of a trap handler.},label=lst:ins:handler]{code/l19/s27.S}
+\asmfile[caption={The outline of a trap handler.},label=lst:ins:handler]{code/l19/c07.S}
 
 The interrupted program must not notice anything: every register that the
 handler touches is saved and restored (Listing~\ref{lst:ins:handler}). Read
@@ -545,6 +545,9 @@ on the kit.
 \end{itemize}
 
 In \prgqt a breakpoint is the exception with code 3.
+
+% ----------------------------------------------------------------------------
+\input{code/l19/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

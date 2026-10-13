@@ -30,7 +30,7 @@ liste TOP500 dal 2022 al 2025.
 % ----------------------------------------------------------------------------
 \section{Riscaldamento sulla macchina}
 
-\asmfile[caption={Il ciclo che svuota la mappa, dalla \code{new\_game} di \vermone.},label=lst:by:loop]{code/l24/s04.S}
+\asmfile[caption={Il ciclo che svuota la mappa, dalla \code{new\_game} di \vermone.},label=lst:by:loop]{code/l24/c03.S}
 
 Il Listato~\ref{lst:by:loop} pone a zero 960 byte: quattro istruzioni per byte,
 3\,840 istruzioni in tutto, un byte alla volta e un'istruzione alla volta. Nel
@@ -119,7 +119,7 @@ $i_6$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{pr
 
 \subsection{Che cosa si mette di mezzo: le dipendenze}
 
-\asmfile[caption={Dipendenze tra istruzioni vicine.},label=lst:by:dep]{code/l24/s10.S}
+\asmfile[caption={Dipendenze tra istruzioni vicine.},label=lst:by:dep]{code/l24/c04.S}
 
 Questo è il caso ideale, ed è raro. Nel Listato~\ref{lst:by:dep} l'istruzione
 $i_2$ non può essere eseguita accanto a $i_1$, perché ne usa il risultato: una
@@ -151,7 +151,7 @@ istruzioni.
 
 \subsection{La ridenominazione dei registri: trentadue nomi, molti registri}
 
-\asmfile[caption={Lo stesso codice come è scritto, e come è eseguito dopo la ridenominazione.},label=lst:by:rename]{code/l24/s12.S}
+\asmfile[caption={Lo stesso codice come è scritto, e come è eseguito dopo la ridenominazione.},label=lst:by:rename]{code/l24/c05.S}
 
 Nel Listato~\ref{lst:by:rename} la seconda metà riusa il \emph{nome}
 \reg{t0}, non il suo valore: una \term{falsa dipendenza}. Una volta
@@ -239,7 +239,7 @@ il primo vocabolario del calcolo parallelo.
 
 \subsection{Lo stesso ciclo, con i vettori}
 
-\asmfile[caption={Svuotare la mappa con l'estensione vettoriale.},label=lst:by:vec]{code/l24/s18.S}
+\asmfile[caption={Svuotare la mappa con l'estensione vettoriale.},label=lst:by:vec]{code/l24/c06.S}
 
 L'estensione V di \riscv, ratificata nel 2021, aggiunge i \term{registri
 vettoriali}, larghi molti byte (Listato~\ref{lst:by:vec}). L'istruzione
@@ -255,7 +255,7 @@ listato è stato provato su QEMU con registri di 128, 256, 512 e 1\,024 bit.
 
 \subsection{Una somma, corsia per corsia}
 
-\asmfile[caption={La somma di sedici parole con i vettori.},label=lst:by:vsum]{code/l24/s19.S}
+\asmfile[caption={La somma di sedici parole con i vettori.},label=lst:by:vsum]{code/l24/c07.S}
 
 Il Listato~\ref{lst:by:vsum} è la somma parallela dei Capitoli
 \ref{ch:information} e~\ref{ch:video}, in \riscv. \ins{vle32.v} carica più
@@ -419,7 +419,7 @@ dati e comandi attraverso un driver. I modelli di programmazione sono CUDA,
 OpenCL e SYCL, e direttive come OpenACC e l'offload di OpenMP.
 
 \cfile[caption={La mappa di \vermone con un thread per cella (CUDA C, nella
-sua forma usuale da libro di testo; non compilato per questo libro).},label=lst:by:cuda]{code/l24/s31.c}
+sua forma usuale da libro di testo; non compilato per questo libro).},label=lst:by:cuda]{code/l24/c08.c}
 
 Nel Listato~\ref{lst:by:cuda} non c'è alcun ciclo: ci sono 960 thread. Ogni
 thread calcola il proprio indice e fa uno store. I thread arrivano a blocchi,
@@ -478,7 +478,7 @@ Una FPGA è questo libro, ripetuto centomila volte su un chip.
 
 \subsection{La regola dell'inversione a U di Verm1, come hardware}
 
-\lstinputlisting[style=verilog,caption={La regola dell'inversione a U in Verilog (non sintetizzata per questo libro).},label=lst:by:verilog]{code/l24/s36.v}
+\lstinputlisting[style=verilog,caption={La regola dell'inversione a U in Verilog (non sintetizzata per questo libro).},label=lst:by:verilog]{code/l24/c09.v}
 
 Verilog, come VHDL, è un \term{linguaggio di descrizione dell'hardware}:
 descrive circuiti, non passi (Listato~\ref{lst:by:verilog}). L'istruzione
@@ -582,6 +582,9 @@ euro e quattro righe di assembly; all'ultima serve un progetto hardware.
 La domanda dell'ingegnere non è mai quale macchina sia la più veloce, ma quale
 basti.
 \end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\input{code/l24/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

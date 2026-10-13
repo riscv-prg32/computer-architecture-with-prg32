@@ -22,7 +22,7 @@ Alla fine di questo capitolo saprete
 % ----------------------------------------------------------------------------
 \section{Riscaldamento sulla macchina}
 
-\txtfile[caption={Quattro parole in memoria.},label=lst:ins:words]{code/l19/s04.txt}
+\txtfile[caption={Quattro parole in memoria.},label=lst:ins:words]{code/l19/c03.txt}
 
 Il Listato~\ref{lst:ins:words} è la funzione \code{first\_update} del
 Capitolo~\ref{ch:firstcontact} così come sta in memoria: quattro numeri, a
@@ -484,7 +484,7 @@ entra a $\mathit{base}+4\times 7$.
 
 \subsection{Un gestore delle trap, in schema}
 
-\asmfile[caption={Lo schema di un gestore delle trap.},label=lst:ins:handler]{code/l19/s27.S}
+\asmfile[caption={Lo schema di un gestore delle trap.},label=lst:ins:handler]{code/l19/c07.S}
 
 Il programma interrotto non deve accorgersi di niente: ogni registro che il
 gestore tocca viene salvato e ripristinato (Listato~\ref{lst:ins:handler}).
@@ -556,6 +556,9 @@ sul kit.
 \end{itemize}
 
 In \prgqt un breakpoint è l'eccezione con codice 3.
+
+% ----------------------------------------------------------------------------
+\input{code/l19/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

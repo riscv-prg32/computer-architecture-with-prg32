@@ -28,7 +28,7 @@ documentation of \prg.
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={One button, one bit.},label=lst:el:button]{code/l10/s04.S}
+\asmfile[caption={One button, one bit.},label=lst:el:button]{code/l10/c03.S}
 
 Since the first chapters a pressed button has been a 1 in a register
 (Listing~\ref{lst:el:button}). On the board the button is a piece of metal
@@ -536,6 +536,9 @@ an LED through a resistor; an input pin only listens.
 A pin of the ESP32-C6 can supply some tens of milliamperes: an LED needs its
 series resistor. Never join a pin that is driven high directly to ground.
 \end{prgwarn}
+
+% ----------------------------------------------------------------------------
+\input{code/l10/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

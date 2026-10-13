@@ -27,7 +27,7 @@ A game has a title screen, a screen on which one plays, and a screen that says
 ``game over''. Listing~\ref{lst:seq:fsm} is the part of its \code{update}
 that passes from one to another.
 
-\asmfile[caption={A game is a state machine.},label=lst:seq:fsm]{code/l13/s04.S}
+\asmfile[caption={A game is a state machine.},label=lst:seq:fsm]{code/l13/c03.S}
 
 Pressing \key{A} starts the game from the title screen and returns to the
 title from the game-over screen: \emph{the same button has different effects},
@@ -658,6 +658,9 @@ large finite-state machine, one clock edge at a time. Single-stepping in
 
 This is the bridge to Part~V: the datapath (the combinational part and the
 registers) and the control, which is itself a finite-state machine.
+
+% ----------------------------------------------------------------------------
+\input{code/l13/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

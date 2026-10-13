@@ -26,7 +26,7 @@ non da trentadue. Una parola deve quindi viaggiare un bit dopo l'altro: un
 trasferimento \term{seriale}. Il Listato~\ref{lst:rb:serial} invia un byte in
 questo modo.
 
-\asmfile[caption={Inviare un byte un bit alla volta, il bit più significativo per primo.},label=lst:rb:serial]{code/l14/s04.S}
+\asmfile[caption={Inviare un byte un bit alla volta, il bit più significativo per primo.},label=lst:rb:serial]{code/l14/c03.S}
 
 Il ciclo è un registro a scorrimento in software: scorrere, prendere un bit,
 ripetere. (Le due righe omesse scriverebbero nei registri del chip che ne
@@ -396,7 +396,7 @@ segno (Capitolo~\ref{ch:integers}); \ins{sll}, \ins{srl} e \ins{sra} prendono
 la quantità da un secondo registro. Con esse le due conversioni sono due
 istruzioni ciascuna (Listato~\ref{lst:rb:shift}).
 
-\asmfile[caption={Da parallelo a seriale, e da seriale a parallelo.},label=lst:rb:shift]{code/l14/s25.S}
+\asmfile[caption={Da parallelo a seriale, e da seriale a parallelo.},label=lst:rb:shift]{code/l14/c05.S}
 
 A un vero registro a scorrimento servono $n$ impulsi di clock per scorrere di
 $n$ posizioni. Il processore non funziona così: in hardware uno scorrimento di
@@ -404,6 +404,9 @@ una quantità qualsiasi in un solo passo è fatto da un \term{barrel shifter},
 che è fatto di strati di multiplexer, non di una catena di flip-flop. È
 combinatorio, fa il suo lavoro entro un periodo di clock, ed è una delle unità
 della ALU del Capitolo~\ref{ch:combinational}.
+
+% ----------------------------------------------------------------------------
+\input{code/l14/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

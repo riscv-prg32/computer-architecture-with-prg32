@@ -143,17 +143,17 @@ title: what is wanted is an edge, not a level.
 Replace the constants, the \code{.rodata} and the \code{.data} of Part~2 with
 Listings \ref{lst:v3:const}, \ref{lst:v3:ro} and~\ref{lst:v3:data}.
 
-\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v3:const]{code/l17/s11.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v3:const]{code/l17/c04.S}
 
 There is a darker green, \hex{03e0}, for the body; \code{BTN\_A} is bit~4 of
 the word of buttons; the states are numbers, 0, 1 and 2.
 
-\asmfile[caption={Step 1 \textbf{(changed)}: \code{.rodata}, what stays in the file.},label=lst:v3:ro]{code/l17/s12.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.rodata}, what stays in the file.},label=lst:v3:ro]{code/l17/c05.S}
 
 Three strings and the two tables of Part~2: read-only data, to which the
 program never writes, and which on the board could stay in flash.
 
-\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}, what lives in RAM.},label=lst:v3:data]{code/l17/s13.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: \code{.data}, what lives in RAM.},label=lst:v3:data]{code/l17/c06.S}
 
 \code{head\_x} and \code{head\_y} are gone: the head is in the ring. The
 directive \code{.space} reserves bytes without naming each one:
@@ -174,14 +174,14 @@ the file \code{verm1\_update}, \code{step} and \code{verm1\_draw} of Part~2:
 the next listings replace them. Keep \code{place\_food}, \code{eat\_sound}
 and \code{draw\_cell}.
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/s15.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v3:init]{code/l17/c07.S}
 
 \code{init} only chooses the first state; the game itself is prepared by
 \code{new\_game}.
 
 \subsection{\texttt{update}: buttons, and their edges}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, first half.},label=lst:v3:edge]{code/l17/s16.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, first half.},label=lst:v3:edge]{code/l17/c08.S}
 
 In Listing~\ref{lst:v3:edge} \reg{s0} holds the buttons now and
 \code{prev\_btn} the buttons one frame ago. The variable \code{prev\_btn} is
@@ -195,7 +195,7 @@ and are saved in the frame.
 
 \subsection{\texttt{update}: one branch per state}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, second half.},label=lst:v3:states]{code/l17/s17.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_update}, second half.},label=lst:v3:states]{code/l17/c09.S}
 
 Listing~\ref{lst:v3:states} is the transition table, line by line. The state
 is read first: it decides who looks at the inputs. \texttt{TITLE} and
@@ -207,7 +207,7 @@ buttons that are held to \code{play\_update}. The transition from
 
 \subsection{\texttt{draw}: what to show in each state}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}, first half.},label=lst:v3:draw1]{code/l17/s18.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}, first half.},label=lst:v3:draw1]{code/l17/c10.S}
 
 The title line is always drawn (Listing~\ref{lst:v3:draw1}). In
 \texttt{TITLE} only the invitation \texttt{PRESS A} is added, at $x=132$,
@@ -215,7 +215,7 @@ which centres 7 characters of 8 pixels; in \texttt{PLAY} and \texttt{OVER}
 the score, the worm and the food. The output depends only on the state and on
 the memory: \code{draw} changes nothing. It is a Moore machine.
 
-\asmfile[caption={Step 2 \textbf{(changed)}: the end of \code{verm1\_draw}, and \code{draw\_text}.},label=lst:v3:draw2]{code/l17/s19.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: the end of \code{verm1\_draw}, and \code{draw\_text}.},label=lst:v3:draw2]{code/l17/c11.S}
 
 \texttt{OVER} adds two words on top of the scene
 (Listing~\ref{lst:v3:draw2}). The helper \code{draw\_text} writes white on
@@ -224,7 +224,7 @@ through, removing two lines from every call that writes text.
 
 \subsection{Four functions that do nothing}
 
-\asmfile[caption={Step 2: temporary stubs.},label=lst:v3:stubs]{code/l17/s20.S}
+\asmfile[caption={Step 2: temporary stubs.},label=lst:v3:stubs]{code/l17/c12.S}
 
 The stubs of Listing~\ref{lst:v3:stubs} make the names exist, so that the
 program builds; \code{new\_game} only changes the state. Steps 3 and 4
@@ -254,7 +254,7 @@ one thing at a time.
 Replace the stub of \code{new\_game} with Listings \ref{lst:v3:new1}
 and~\ref{lst:v3:new2}.
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, first half.},label=lst:v3:new1]{code/l17/s23.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, first half.},label=lst:v3:new1]{code/l17/c14.S}
 
 The 960 bytes of the map are set to zero, one \ins{sb} at a time. Then three
 segments are laid in columns 3, 4 and 5 of row 12, and each is written twice:
@@ -263,7 +263,7 @@ the assembler: it is the address of the first byte of row 12. \ins{sb}
 stores one byte; the index is added to the base address with no shift,
 because each entry is one byte.
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, second half.},label=lst:v3:new2]{code/l17/s24.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{new\_game}, second half.},label=lst:v3:new2]{code/l17/c15.S}
 
 $\code{head\_i}=2$ and $\code{length}=3$ describe the worm; direction, timer
 and score start from zero. The state is stored last: the transition from
@@ -271,7 +271,7 @@ and score start from zero. The state is stored last: the transition from
 
 \subsection{\texttt{draw\_worm}: walk the ring backwards}
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/s25.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_worm}.},label=lst:v3:worm]{code/l17/c16.S}
 
 Segment $i$ is the entry $(\code{head\_i}-i)$ AND 255
 (Listing~\ref{lst:v3:worm}). \ins{lbu} loads one byte as an unsigned number,
@@ -282,14 +282,14 @@ Segment 0 is the head, in a brighter green.
 
 \subsection{\texttt{draw\_score}}
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/s26.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_score}.},label=lst:v3:score]{code/l17/c17.S}
 
 This is the loop that was inside \code{verm1\_draw} in Part~2, now a function
 (Listing~\ref{lst:v3:score}). It uses \reg{s0}, so it saves it and restores
 it. One stub is left (Listing~\ref{lst:v3:stub2}): the worm exists, and
 stands still.
 
-\asmfile[caption={Step 3: the last stub.},label=lst:v3:stub2]{code/l17/s27.S}
+\asmfile[caption={Step 3: the last stub.},label=lst:v3:stub2]{code/l17/c18.S}
 
 \begin{prgcheck}[Run it: a worm that stands still]
 \begin{enumerate}[nosep]
@@ -319,13 +319,13 @@ and~\ref{lst:v3:play2}. They are the body of the old \code{verm1\_update}
 under a new name; the buttons arrive in \reg{a0}, so that there is no call to
 read them.
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the steering.},label=lst:v3:play1]{code/l17/s30.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the steering.},label=lst:v3:play1]{code/l17/c20.S}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the timer.},label=lst:v3:play2]{code/l17/s31.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{play\_update}, the timer.},label=lst:v3:play2]{code/l17/c21.S}
 
 \subsection{\texttt{step}: three registers to keep}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the beginning.},label=lst:v3:s1]{code/l17/s32.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the beginning.},label=lst:v3:s1]{code/l17/c22.S}
 
 \code{step} needs three values that must survive a call to
 \code{place\_food}: the cell of the new head, in \reg{s0} and \reg{s1}, and a
@@ -336,7 +336,7 @@ Part~2.
 
 \subsection{\texttt{step}: where will the head be?}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the new cell.},label=lst:v3:s2]{code/l17/s33.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the new cell.},label=lst:v3:s2]{code/l17/c23.S}
 
 The present head is the entry \code{head\_i} of the ring: one byte each for
 column and row, loaded with \ins{lbu}. \code{dx} and \code{dy} are added and
@@ -345,7 +345,7 @@ written yet: first the program must look.
 
 \subsection{\texttt{step}: eat, or move the tail}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the tail.},label=lst:v3:s3]{code/l17/s34.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{step}, the tail.},label=lst:v3:s3]{code/l17/c24.S}
 
 The comparator of Part~2 leaves its result in \reg{s2}
 (Listing~\ref{lst:v3:s3}). If the worm eats, the length grows by one and the
@@ -360,7 +360,7 @@ Snake.
 
 \subsection{\texttt{step}: free the tail, test the head}
 
-\asmfile[caption={Step 4 \textbf{(new)}: \code{step}, the collision.},label=lst:v3:s4]{code/l17/s35.S}
+\asmfile[caption={Step 4 \textbf{(new)}: \code{step}, the collision.},label=lst:v3:s4]{code/l17/c25.S}
 
 The number of a byte of the map is $\mathit{row}\times 40+\mathit{column}$:
 one \ins{mul} and one \ins{add} (Listing~\ref{lst:v3:s4}); \ins{mul} belongs
@@ -372,7 +372,7 @@ occupied the state becomes \texttt{OVER}, and \code{best} is updated.
 
 \subsection{\texttt{step}: write the new head}
 
-\asmfile[caption={Step 4 \textbf{(new)}: the end of \code{step}.},label=lst:v3:s5]{code/l17/s36.S}
+\asmfile[caption={Step 4 \textbf{(new)}: the end of \code{step}.},label=lst:v3:s5]{code/l17/c26.S}
 
 The cell is marked in the map, while \reg{t0} still points to it; the index
 \code{head\_i} becomes $(\code{head\_i}+1)$ AND 255, and the ring closes;
@@ -383,7 +383,7 @@ screen shows the worm as it was before the fatal step.
 
 \subsection{\texttt{place\_food}: not on the worm}
 
-\asmfile[caption={Step 4 \textbf{(changed)}: \code{place\_food}.},label=lst:v3:food]{code/l17/s37.S}
+\asmfile[caption={Step 4 \textbf{(changed)}: \code{place\_food}.},label=lst:v3:food]{code/l17/c27.S}
 
 A cell is drawn at random, and then the map is consulted: if the cell is
 occupied another is drawn, until a free one comes
@@ -519,9 +519,9 @@ they are. They are reprinted here so that this chapter contains the whole
 program: the complete file is the sum of the listings marked new and changed,
 plus these two.
 
-\asmfile[caption={\textbf{Unchanged}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/s49.S}
+\asmfile[caption={\textbf{Unchanged}: \code{eat\_sound}.},label=lst:v3:sound]{code/l17/c30.S}
 
-\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/s50.S}
+\asmfile[caption={\textbf{Unchanged}: \code{draw\_cell}.},label=lst:v3:cell]{code/l17/c31.S}
 
 \section{Where we are, and what comes next}
 

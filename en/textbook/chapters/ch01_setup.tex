@@ -241,7 +241,7 @@ Ubuntu~25.04 provide; on older systems (Ubuntu~24.04 has Qt~6.4) the program
 is built from source (Listing~\ref{lst:setup:qtlinux}). On Raspberry Pi OS use
 the ARM64 package, or the script \fname{scripts/build-raspbian.sh}.
 
-\shfile[caption={\prgqt on Linux.},label=lst:setup:qtlinux]{code/l01/s15.sh}
+\shfile[caption={\prgqt on Linux.},label=lst:setup:qtlinux]{code/l01/c06.sh}
 
 \begin{prgtry}[Run it: your first cartridge, from the Store]
 \begin{enumerate}[nosep]
@@ -302,7 +302,7 @@ folders with spaces or accented letters in their path. Those who prefer an
 editor may use Visual Studio Code with the Espressif ESP-IDF extension, which
 installs the same toolchain.
 
-\shfile[caption={The toolchain on Windows.},label=lst:setup:win]{code/l01/s20.sh}
+\shfile[caption={The toolchain on Windows.},label=lst:setup:win]{code/l01/c09.sh}
 
 \subsection{macOS}
 
@@ -313,7 +313,7 @@ install the Xcode command line tools. The recursive clone and
 \fname{export.sh} matters, because it makes the script change \emph{this}
 terminal. The procedure works on Apple Silicon and on Intel.
 
-\shfile[caption={The toolchain on macOS.},label=lst:setup:mac]{code/l01/s21.sh}
+\shfile[caption={The toolchain on macOS.},label=lst:setup:mac]{code/l01/c10.sh}
 
 \subsection{Linux (Debian, Ubuntu)}
 
@@ -324,7 +324,7 @@ user must belong to the group \code{dialout}, which gives access to the serial
 port of the board: \code{sudo usermod -aG dialout \$USER}, then log out and in
 again.
 
-\shfile[caption={The toolchain on Linux.},label=lst:setup:linux]{code/l01/s22.sh}
+\shfile[caption={The toolchain on Linux.},label=lst:setup:linux]{code/l01/c11.sh}
 
 \subsection{Every new terminal: switch ESP-IDF on}
 
@@ -333,7 +333,7 @@ A new window is a new terminal, and must be activated again. Two aliases save
 typing (Listing~\ref{lst:setup:activate}); they are a convenience, not a
 requirement. The \code{prg32} commands are run from the \prg folder.
 
-\shfile[caption={Activating ESP-IDF in a new terminal.},label=lst:setup:activate]{code/l01/s23.sh}
+\shfile[caption={Activating ESP-IDF in a new terminal.},label=lst:setup:activate]{code/l01/c12.sh}
 
 \begin{prgtry}[See the error once, on purpose]
 Close the terminal, open a new one and run \code{python3 -m prg32 doctor}
@@ -351,7 +351,7 @@ complete. The four cartridge slots, \code{cart0} to \code{cart3}, are regions
 of the flash memory of the board, of 131\,072 bytes each. Any line marked
 \code{ERROR} says what to do. If the doctor passes, level~2 is done.
 
-\txtfile[caption={The doctor (messages of October 2026).},label=lst:setup:doctor]{code/l01/s24.sh}
+\txtfile[caption={The doctor (messages of October 2026).},label=lst:setup:doctor]{code/l01/c13.sh}
 
 % ----------------------------------------------------------------------------
 \section{Step 3: your first build}\label{sec:setup:build}
@@ -362,7 +362,7 @@ The repository contains complete games. Building one of them proves that the
 compiler works before a single line has been typed
 (Listing~\ref{lst:setup:build}).
 
-\txtfile[caption={Building Pong, in C, from the examples.},label=lst:setup:build]{code/l01/s26.sh}
+\txtfile[caption={Building Pong, in C, from the examples.},label=lst:setup:build]{code/l01/c14.sh}
 
 The command \code{cartridge build} takes a source and produces a
 \fname{.prg32} file. The option \code{-{}-entry-prefix} gives the name that
@@ -386,7 +386,7 @@ Without the tools, the same result is obtained in \prgqt by importing the file
 \code{-{}-url http://192.168.4.1} the same command sends the game to a real
 board.
 
-\txtfile[caption={Sending the cartridge to \prgqt, running on the same computer.},label=lst:setup:send]{code/l01/s27.sh}
+\txtfile[caption={Sending the cartridge to \prgqt, running on the same computer.},label=lst:setup:send]{code/l01/c15.sh}
 
 \subsection{Look inside: the debugger}
 
@@ -438,7 +438,7 @@ board: choose \emph{Run Cartridge}, then the slot \code{cart0}. This procedure c
 the documentation of \prg (\fname{docs/usage/qemu.md}) and was not run for
 this book.
 
-\shfile[caption={Level 3: the QEMU emulator.},label=lst:setup:qemu]{code/l01/s31.sh}
+\shfile[caption={Level 3: the QEMU emulator.},label=lst:setup:qemu]{code/l01/c18.sh}
 
 \subsection{Level 4: the kit}
 
@@ -452,7 +452,7 @@ means that the firmware for QEMU was flashed instead of the one for the board.
 This procedure, too, comes from the documentation and was not run for this
 book.
 
-\shfile[caption={Level 4: the kit.},label=lst:setup:kit]{code/l01/s32.sh}
+\shfile[caption={Level 4: the kit.},label=lst:setup:kit]{code/l01/c19.sh}
 
 % ----------------------------------------------------------------------------
 \section{When something does not work}
@@ -496,6 +496,9 @@ Five checks, and the workshop is ready.
 \item \code{upload-and-run} starts it in \prgqt (step~3).
 \item In debug mode, \key{Pause} and \key{Step} work (step~3).
 \end{enumerate}
+
+% ----------------------------------------------------------------------------
+\input{code/l01/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

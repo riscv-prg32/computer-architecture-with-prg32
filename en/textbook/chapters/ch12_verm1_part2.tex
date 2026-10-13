@@ -60,7 +60,7 @@ the constants of Part~1 (Listing~\ref{lst:v2:const}). There is a new colour,
 red, for the food. Each button is one bit of a word, and a mask selects it. A
 direction is a number from 0 to 3: two bits.
 
-\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v2:const]{code/l12/s07.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: constants.},label=lst:v2:const]{code/l12/c04.S}
 
 \subsection{A code chosen with care}
 
@@ -98,7 +98,7 @@ constants, and therefore live in \code{.rodata}. The variable \code{dir} is
 the direction of the last step, \code{want} the one asked for by the player;
 \code{score}, \code{food\_x} and \code{food\_y} are used in step~3.
 
-\asmfile[caption={Step 1 \textbf{(changed)}: data.},label=lst:v2:data]{code/l12/s09.S}
+\asmfile[caption={Step 1 \textbf{(changed)}: data.},label=lst:v2:data]{code/l12/c05.S}
 
 % ----------------------------------------------------------------------------
 \section{Step 2: steering}
@@ -118,7 +118,7 @@ the board, on QEMU and on \prgqt.
 
 \subsection{\texttt{update}: from buttons to a wish}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: the beginning of \code{verm1\_update}.},label=lst:v2:wish]{code/l12/s12.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: the beginning of \code{verm1\_update}.},label=lst:v2:wish]{code/l12/c06.S}
 
 Listing~\ref{lst:v2:wish} replaces the beginning of \code{verm1\_update},
 which now calls a function and therefore needs a stack frame. \ins{andi}
@@ -157,7 +157,7 @@ encoding the rule would need four comparisons.
 
 \subsection{\texttt{update}: the timer calls \texttt{step}}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: the rest of \code{verm1\_update}.},label=lst:v2:timer]{code/l12/s14.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: the rest of \code{verm1\_update}.},label=lst:v2:timer]{code/l12/c07.S}
 
 The fixed-point timer of Part~1 is unchanged (Listing~\ref{lst:v2:timer}).
 The lines that moved \code{head\_x} are gone: moving is now a function of its
@@ -166,7 +166,7 @@ used above.
 
 \subsection{\texttt{step}: look the movement up}
 
-\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, first half.},label=lst:v2:step1]{code/l12/s15.S}
+\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, first half.},label=lst:v2:step1]{code/l12/c08.S}
 
 The wish becomes the direction, once per step
 (Listing~\ref{lst:v2:step1}). Then the direction selects the movement: a word
@@ -179,7 +179,7 @@ means changing data, not code.
 
 \subsection{\texttt{step}: move and wrap, both ways}
 
-\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, second half.},label=lst:v2:step2]{code/l12/s16.S}
+\asmfile[caption={Step 2 \textbf{(new)}: \code{step}, second half.},label=lst:v2:step2]{code/l12/c09.S}
 
 In Part~1 only the right edge existed. Now \code{dx} can be $-1$ and the
 column can go below 0: a negative column is a signed number, and \ins{bgez}
@@ -191,7 +191,7 @@ For the moment the function is closed with the three lines of
 Listing~\ref{lst:v2:end}, which restore \reg{ra} and return. Step~3 will put
 the test for the food before them.
 
-\asmfile[caption={Step 2: a temporary ending for \code{step}.},label=lst:v2:end]{code/l12/s17.S}
+\asmfile[caption={Step 2: a temporary ending for \code{step}.},label=lst:v2:end]{code/l12/c10.S}
 
 \begin{prgcheck}[Run it: you are driving]
 \begin{enumerate}[nosep]
@@ -215,7 +215,7 @@ been pressed. (Both were checked on the headless runner of \prgqt.)
 
 \subsection{\texttt{init}: a complete start}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/s20.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/c12.S}
 
 Every variable now receives its starting value
 (Listing~\ref{lst:v2:init}). \code{init} calls a function, to place the first
@@ -223,7 +223,7 @@ food, and so it needs a stack frame.
 
 \subsection{\texttt{place\_food}: a random cell}
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{place\_food}.},label=lst:v2:food]{code/l12/s21.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{place\_food}.},label=lst:v2:food]{code/l12/c13.S}
 
 The function \code{prg32\_random\_number(min, max)} returns a number between
 its two arguments, both included; the arguments go in \reg{a0} and \reg{a1}
@@ -234,7 +234,7 @@ head; Part~3 fixes it.
 
 \subsection{\texttt{step}: is the head on the food?}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: the end of \code{step}.},label=lst:v2:eat]{code/l12/s22.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: the end of \code{step}.},label=lst:v2:eat]{code/l12/c14.S}
 
 Replace the temporary ending with Listing~\ref{lst:v2:eat}. A comparator for
 equality is a row of XOR gates followed by an OR
@@ -247,7 +247,7 @@ safe to keep them in temporaries.
 
 \subsection{\texttt{eat\_sound}: one note}
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/s23.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/c15.S}
 
 The signature is
 \begin{center}\code{prg32\_audio\_note(channel, instrument, note, volume, milliseconds)}\end{center}
@@ -257,7 +257,7 @@ the amplifier and its speaker. Sound comes last: the game worked without it.
 
 \subsection{\texttt{draw}: the score as marks}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: the beginning of \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/s24.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: the beginning of \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/c16.S}
 
 Listing~\ref{lst:v2:marks} draws one small rectangle per point, 4 pixels
 apart, in a loop that ends when the counter reaches the score. The counter is
@@ -270,13 +270,13 @@ available.
 
 \subsection{\texttt{draw}: food and head}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: the rest of \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/s25.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: the rest of \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/c17.S}
 
 The same three lines appear twice, for column, row and colour
 (Listing~\ref{lst:v2:draw}); the conversion to pixels is left to a function.
 The head is drawn last, so that it covers the food.
 
-\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/s26.S}
+\asmfile[caption={Step 3 \textbf{(new)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/c18.S}
 
 \code{draw\_cell} is the arithmetic of Part~1, written once
 (Listing~\ref{lst:v2:cell}). It is a function with a contract:

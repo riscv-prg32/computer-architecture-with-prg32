@@ -3,8 +3,10 @@
 Textbook of ARC12, *Computer Architecture and Computer Architecture Laboratory*,
 University of Naples "Parthenope", A.Y. 2026/27. LaTeX source, ready for Overleaf.
 
-The book follows the 25 English slide decks in `../slides` one to one: **Chapter N is
-Lecture N** (chapters are numbered from 0, like the lectures). 408 pages.
+The book follows the 25 lectures one to one: **Chapter N is Lecture N** (chapters are
+numbered from 0, like the lectures). Each lecture has two decks in `../slides`, the
+lecture deck (at most 20 slides) and the code deck; the chapter is the long form of
+both, and holds what the 20 slides have no room for. 456 pages.
 
 Author: Raffaele Montella. The reference implementation of Verm1, the course-long
 project (the four programs of Appendix D), was contributed by Giuseppe Coviello.
@@ -51,7 +53,9 @@ appendices/
   app_answers.tex        E  answers to the 90 multiple-choice questions   (generated)
   app_glossary.tex       F  English-Italian glossary, 207 entries          (generated)
 figures/                 photographs and screenshots used by the chapters
-code/lNN/sKK.*           the listing of slide KK of lecture NN, exported from the deck
+code/lNN/cKK.*           the listing of slide KK of the code deck of lecture NN (exported)
+code/lNN/program.S       the complete program of the lecture, ../../code/lNN.S (exported)
+code/lNN/lab.tex         the section "The program of this chapter" (generated)
 code/verm1/              the Verm1 reference programs and the Store bundle files
 ```
 
@@ -62,8 +66,12 @@ The scripts that re-export the listings and regenerate appendices E and F are in
 
 - **Text.** Written from the deck specifications in `../../tools/decks/en/*.js`: slide
   content, speaker notes, quiz answers. Section order follows slide order.
-- **Listings.** Not typed into the text. `code/lNN/sKK.*` are exported verbatim from the
-  decks, so they are the files checked by `../../tools/tests`. `code/verm1/verm1_partN.S`
+- **Listings.** Not typed into the text. `code/lNN/cKK.*` are exported verbatim from the
+  code decks, so they are the files checked by `../../tools/tests`. Twenty chapters end with
+  the section *The program of this chapter*: `code/lNN/lab.tex`, generated from
+  `../../tools/decks/plan.js`, prints the complete program of the lecture, the frame that
+  its test wrote (`figures/lab_lNN.png`) and the commands to run it. Section B of the
+  appendices has the step-by-step guide for PRG32-QT, QEMU and the board. `code/verm1/verm1_partN.S`
   are the tested reference programs with the `#@ region` marker lines removed.
 - **Figures.** Photographs and screenshots are the assets of the decks. Diagrams
   (gates, CMOS circuits, Karnaugh maps, timing and state diagrams, instruction formats)
@@ -73,7 +81,7 @@ The scripts that re-export the listings and regenerate appendices E and F are in
 
   ```bash
   cd ../../tools
-  node textbook/export_listings.js en                         # code/lNN/sKK.*
+  node textbook/export_listings.js en                         # code/lNN/cKK.*, program.S, lab.tex
   for i in 1 2 3 4; do grep -v '^#@' ../verm1/verm1_part$i.S > ../en/textbook/code/verm1/verm1_part$i.S; done
   cp ../verm1/store/*.json ../en/textbook/code/verm1/store/
   node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py en
@@ -84,7 +92,10 @@ The scripts that re-export the listings and regenerate appendices E and F are in
 
 ## Keeping the book in step with the decks
 
-When a deck changes, re-export its listings into `code/lNN/` and revise the chapter.
+When a deck changes, re-export its listings into `code/lNN/` and revise the chapter. The
+names `cKK` follow the slide numbers of the code deck: if a listing moves, the export
+renames its file and the `\asmfile` line of the chapter must follow (LaTeX stops on a
+missing file, so a forgotten reference cannot go unnoticed).
 In the generated answers "Lecture NN" becomes "Chapter N" automatically.
 Renumbering the lectures means renaming `chapters/chNN_*` and `code/lNN`; cross-references
 in the text use labels (`\ref{ch:integers}`), not numbers, so they follow automatically.

@@ -88,7 +88,7 @@ should not be published for that target.
 % ----------------------------------------------------------------------------
 \section{Step 1: one source, two cartridges}
 
-\shfile[caption={Building for the kit and for QEMU.},label=lst:sto:build]{code/l23/s07.sh}
+\shfile[caption={Building for the kit and for QEMU.},label=lst:sto:build]{code/l23/c03.sh}
 
 Listing~\ref{lst:sto:build} is the command of every chapter with one more
 option: \code{-{}-architecture} names the target of the file. The names
@@ -96,7 +96,7 @@ follow a rule, \fname{game-architecture.prg32}. The builder answers with the
 name, the load address \hex{40800000} and the size of the code: the finished
 \vermone is about 6 kilobytes (6\,216 bytes for the reference game).
 
-\txtfile[caption={Is it portable?},label=lst:sto:summary]{code/l23/s08.sh}
+\txtfile[caption={Is it portable?},label=lst:sto:summary]{code/l23/c04.sh}
 
 The command \code{summary} prints what the file declares about itself
 (Listing~\ref{lst:sto:summary}). The value \code{abi-table} of
@@ -117,7 +117,7 @@ Create the file of Listing~\ref{lst:sto:manifest} in
 the listing; the complete file of the reference game is in
 Appendix~\ref{app:verm1}.)
 
-\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/s10.json}
+\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/c05.json}
 
 The line \code{abi} says which version of the metadata format this is. The
 other fields are commitments (Table~\ref{tab:st:fields}).
@@ -165,7 +165,7 @@ icon taken from the web is somebody else's work: draw your own.
 
 \subsection{\texttt{colophon.json}: credits and controls}
 
-\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/s13.json}
+\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/c06.json}
 
 \emph{Colophon} is the printers' word for the note at the end of a book that
 says who made it. Here it is the credits page of the cartridge
@@ -194,7 +194,7 @@ Your name goes on it. Publish only what you would sign.
 % ----------------------------------------------------------------------------
 \section{Step 3: the cartridge carries its papers}
 
-\shfile[caption={\fname{metadata.json}, and attaching it.},label=lst:sto:attach]{code/l23/s16.sh}
+\shfile[caption={\fname{metadata.json}, and attaching it.},label=lst:sto:attach]{code/l23/c07.sh}
 
 The file \fname{metadata.json} is a copy of the manifest without the two
 entries \code{assets} and \code{architectures}. The command
@@ -210,7 +210,7 @@ Giving the full manifest to \code{-{}-metadata} makes the tool fail, because
 of the entry \code{assets}.
 \end{prgwarn}
 
-\txtfile[caption={Reading the metadata back (output abridged).},label=lst:sto:inspect]{code/l23/s17.sh}
+\txtfile[caption={Reading the metadata back (output abridged).},label=lst:sto:inspect]{code/l23/c08.sh}
 
 \begin{prgconcept}
 Never trust a write that you have not read back. It is the habit of the
@@ -224,7 +224,7 @@ are in the file. Then run the cartridge once more: it must still work.
 % ----------------------------------------------------------------------------
 \section{Step 4: the bundle}
 
-\txtfile[caption={Packing the bundle (real output for the reference game).},label=lst:sto:pack]{code/l23/s19.sh}
+\txtfile[caption={Packing the bundle (real output for the reference game).},label=lst:sto:pack]{code/l23/c09.sh}
 
 The tool reads the manifest and collects the files that it names
 (Listing~\ref{lst:sto:pack}), which must be in the same folder as the
@@ -252,7 +252,7 @@ bundle built before the last fix.
 % ----------------------------------------------------------------------------
 \section{Step 5: publication}
 
-\shfile[caption={Publishing: a token and one command.},label=lst:sto:publish]{code/l23/s22.sh}
+\shfile[caption={Publishing: a token and one command.},label=lst:sto:publish]{code/l23/c11.sh}
 
 To publish, the author signs in to the Store, creates a \term{token} on the
 \emph{Tokens} page, keeps it in the environment of the shell and submits the

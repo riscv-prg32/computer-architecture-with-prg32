@@ -104,12 +104,12 @@ indirizzo nella schermata Setup: usate quell'indirizzo se \code{localhost} non
 risponde. La stessa cartuccia gira su QEMU (\code{qemu upload}, poi
 \code{qemu run}) e sulla scheda (\code{-{}-url http://192.168.4.1}).
 
-\shfile[caption={Compilare ed eseguire: modificare, compilare, eseguire, guardare.},label=lst:v1:build]{code/l07/s08.sh}
+\shfile[caption={Compilare ed eseguire: modificare, compilare, eseguire, guardare.},label=lst:v1:build]{code/l07/c03.sh}
 
 % ----------------------------------------------------------------------------
 \section{Passo 1: tre funzioni che ritornano}
 
-\asmfile[caption={Passo 1 \textbf{(nuovo)}: lo scheletro.},label=lst:v1:skel]{code/l07/s09.S}
+\asmfile[caption={Passo 1 \textbf{(nuovo)}: lo scheletro.},label=lst:v1:skel]{code/l07/c04.S}
 
 È lo scheletro del Capitolo~\ref{ch:firstcontact} con un altro prefisso:
 \code{verm1} è il nome passato a \code{-{}-entry-prefix}. \code{init} viene
@@ -130,7 +130,7 @@ guardate. Mai due cose insieme.
 Sostituite le prime righe dello scheletro con quelle del
 Listato~\ref{lst:v1:const}.
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: l'inizio del file.},label=lst:v1:const]{code/l07/s11.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: l'inizio del file.},label=lst:v1:const]{code/l07/c05.S}
 
 I colori sono numeri RGB565: \hex{07e0} è verde puro. Lo schermo è largo 320
 pixel e una cella è larga 8 pixel, il che fa 40 colonne. Gli 8 pixel in alto
@@ -178,11 +178,11 @@ sezione \code{.data} contiene le variabili, una parola di 32 bit ciascuna. I
 loro valori iniziali sono solo un punto di partenza: \code{init} li imposterà
 di nuovo.
 
-\asmfile[caption={Passo 2 \textbf{(nuovo)}: i dati, alla fine del file.},label=lst:v1:data]{code/l07/s13.S}
+\asmfile[caption={Passo 2 \textbf{(nuovo)}: i dati, alla fine del file.},label=lst:v1:data]{code/l07/c06.S}
 
 \subsection{\texttt{init}: mettere la testa al suo posto}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v1:init]{code/l07/s14.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v1:init]{code/l07/c07.S}
 
 \ins{la} prende un \emph{indirizzo}, \ins{sw} vi memorizza un \emph{valore}. La
 funzione imposta la partenza in modo esplicito: un programma non dovrebbe mai
@@ -192,7 +192,7 @@ stack frame.
 
 \subsection{\texttt{draw}: il titolo e la testa}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_draw}.},label=lst:v1:draw]{code/l07/s15.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: \code{verm1\_draw}.},label=lst:v1:draw]{code/l07/c08.S}
 
 Cancellare lo schermo, scrivere il titolo, disegnare un rettangolo: tre
 chiamate, con gli argomenti che viaggiano da \reg{a0} ad \reg{a4}, in ordine.
@@ -237,7 +237,7 @@ esattamente 40 passi.
 
 \subsection{\texttt{update}: accumulare, fare un passo, rientrare}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{verm1\_update}.},label=lst:v1:update]{code/l07/s19.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{verm1\_update}.},label=lst:v1:update]{code/l07/c10.S}
 
 La velocità viene sommata alla frazione; sotto 256, la funzione aspetta. A 256
 sottrae 256, conserva il resto, e sposta la testa di una cella a destra. La
@@ -317,7 +317,7 @@ esegua un frame intero.
 Il debugger non mostra il file sorgente: mostra il codice come l'assemblatore
 lo ha lasciato (Listato~\ref{lst:v1:dis}).
 
-\txtfile[caption={\code{verm1\_update}, disassemblata (ridotta; gli offset esatti dipendono dalla compilazione).},label=lst:v1:dis]{code/l07/s24.txt}
+\txtfile[caption={\code{verm1\_update}, disassemblata (ridotta; gli offset esatti dipendono dalla compilazione).},label=lst:v1:dis]{code/l07/c12.txt}
 
 \begin{itemize}
 \item I nomi sono spariti: le etichette sono diventate indirizzi, e le costanti

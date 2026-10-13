@@ -25,7 +25,7 @@ State facendo algebra di Boole fin dai primi giorni. Il
 Listato~\ref{lst:b1:left} è il modo in cui ogni gioco \prg chiede se una
 direzione è premuta.
 
-\asmfile[caption={\key{LEFT} è premuto?},label=lst:b1:left]{code/l08/s04.S}
+\asmfile[caption={\key{LEFT} è premuto?},label=lst:b1:left]{code/l08/c03.S}
 
 La funzione \code{prg32\_input\_read} restituisce tutti i pulsanti insieme, un
 bit per pulsante (Tabella~\ref{tab:b1:buttons}). Tenere premuti insieme
@@ -370,7 +370,7 @@ codifica come immediato $-17$.
 Il verme è «fermo» quando né \key{LEFT} né \key{RIGHT} è premuto. Il
 Listato~\ref{lst:b1:demorgan} scrive il test in due modi.
 
-\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, come due programmi.},label=lst:b1:demorgan]{code/l08/s24.S}
+\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, come due programmi.},label=lst:b1:demorgan]{code/l08/c07.S}
 
 Una maschera con due bit esamina due pulsanti in una sola istruzione: il
 risultato è zero solo se entrambi i bit sono zero, cioè quando $\nott{L+R}$ è
@@ -386,7 +386,10 @@ corpo è il Listato~\ref{lst:b1:lamp}. Per leggere il bit numero $n$ di una
 parola, si fa scorrere la parola a destra di $n$ e si maschera con 1: è
 l'idioma standard.
 
-\asmfile[caption={Lettura del bit numero \reg{s0} della maschera dei pulsanti.},label=lst:b1:lamp]{code/l08/s25.S}
+\asmfile[caption={Lettura del bit numero \reg{s0} della maschera dei pulsanti.},label=lst:b1:lamp]{code/l08/c08.S}
+
+% ----------------------------------------------------------------------------
+\input{code/l08/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

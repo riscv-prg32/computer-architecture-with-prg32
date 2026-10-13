@@ -88,7 +88,7 @@ un bersaglio non dovrebbe essere pubblicata per quel bersaglio.
 % ----------------------------------------------------------------------------
 \section{Passo 1: un sorgente, due cartucce}
 
-\shfile[caption={Compilare per il kit e per QEMU.},label=lst:sto:build]{code/l23/s07.sh}
+\shfile[caption={Compilare per il kit e per QEMU.},label=lst:sto:build]{code/l23/c03.sh}
 
 Il Listato~\ref{lst:sto:build} è il comando di ogni capitolo con un'opzione in
 più: \code{-{}-architecture} nomina il bersaglio del file. I nomi seguono una
@@ -97,7 +97,7 @@ con il nome, l'indirizzo di caricamento \hex{40800000} e la dimensione del
 codice: \vermone finito è di circa 6 kilobyte (6\,216 byte per il gioco di
 riferimento).
 
-\txtfile[caption={È portabile?},label=lst:sto:summary]{code/l23/s08.sh}
+\txtfile[caption={È portabile?},label=lst:sto:summary]{code/l23/c04.sh}
 
 Il comando \code{summary} stampa ciò che il file dichiara di sé
 (Listato~\ref{lst:sto:summary}). Il valore \code{abi-table} di
@@ -119,7 +119,7 @@ Create il file del Listato~\ref{lst:sto:manifest} in
 descrizione è tagliata; il file completo del gioco di riferimento è
 nell'Appendice~\ref{app:verm1}.)
 
-\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/s10.json}
+\jsonfile[caption={\fname{manifest.json}.},label=lst:sto:manifest]{code/l23/c05.json}
 
 La riga \code{abi} dice quale versione del formato dei metadati è questa. Gli
 altri campi sono impegni (Tabella~\ref{tab:st:fields}).
@@ -168,7 +168,7 @@ lavoro di qualcun altro: disegnate la vostra.
 
 \subsection{\texttt{colophon.json}: crediti e comandi}
 
-\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/s13.json}
+\jsonfile[caption={\fname{colophon.json}.},label=lst:sto:colophon]{code/l23/c06.json}
 
 \emph{Colophon} è la parola dei tipografi per la nota alla fine di un libro che
 dice chi lo ha fatto. Qui è la pagina dei crediti della cartuccia
@@ -198,7 +198,7 @@ Sopra c'è il vostro nome. Pubblicate solo ciò che firmereste.
 % ----------------------------------------------------------------------------
 \section{Passo 3: la cartuccia porta con sé i suoi documenti}
 
-\shfile[caption={\fname{metadata.json}, e come allegarlo.},label=lst:sto:attach]{code/l23/s16.sh}
+\shfile[caption={\fname{metadata.json}, e come allegarlo.},label=lst:sto:attach]{code/l23/c07.sh}
 
 Il file \fname{metadata.json} è una copia del manifesto senza le due voci
 \code{assets} e \code{architectures}. Il comando \code{attach-metadata} scrive
@@ -213,7 +213,7 @@ Dare il manifesto completo a \code{-{}-metadata} fa fallire lo strumento, a
 causa della voce \code{assets}.
 \end{prgwarn}
 
-\txtfile[caption={Rileggere i metadati (uscita ridotta).},label=lst:sto:inspect]{code/l23/s17.sh}
+\txtfile[caption={Rileggere i metadati (uscita ridotta).},label=lst:sto:inspect]{code/l23/c08.sh}
 
 \begin{prgconcept}
 Non fidatevi mai di una scrittura che non avete riletto. È l'abitudine di tutto
@@ -228,7 +228,7 @@ ancora.
 % ----------------------------------------------------------------------------
 \section{Passo 4: il bundle}
 
-\txtfile[caption={Impacchettare il bundle (uscita reale per il gioco di riferimento).},label=lst:sto:pack]{code/l23/s19.sh}
+\txtfile[caption={Impacchettare il bundle (uscita reale per il gioco di riferimento).},label=lst:sto:pack]{code/l23/c09.sh}
 
 Lo strumento legge il manifesto e raccoglie i file che esso nomina
 (Listato~\ref{lst:sto:pack}), che devono essere nella stessa cartella del
@@ -256,7 +256,7 @@ costruito prima dell'ultima correzione.
 % ----------------------------------------------------------------------------
 \section{Passo 5: la pubblicazione}
 
-\shfile[caption={Pubblicare: un token e un comando.},label=lst:sto:publish]{code/l23/s22.sh}
+\shfile[caption={Pubblicare: un token e un comando.},label=lst:sto:publish]{code/l23/c11.sh}
 
 Per pubblicare, l'autore accede allo Store, crea un \term{token} nella pagina
 \emph{Tokens}, lo tiene nell'ambiente della shell e sottopone il bundle

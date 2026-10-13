@@ -21,7 +21,7 @@ Alla fine di questo capitolo saprete
 % ----------------------------------------------------------------------------
 \section{Riscaldamento sulla macchina}
 
-\asmfile[caption={Leggere il mondo, una volta per frame.},label=lst:io:warm]{code/l21/s04.S}
+\asmfile[caption={Leggere il mondo, una volta per frame.},label=lst:io:warm]{code/l21/c03.S}
 
 Leggete il joystick fin dai primi capitoli (Listato~\ref{lst:io:warm}). Ogni
 pulsante è un interruttore su un piedino di ingresso del chip: premuto o
@@ -315,6 +315,9 @@ Sul kit tutti e tre sono al lavoro nello stesso momento: il gioco interroga il
 joystick, il timer che scandisce i frame interrompe, e il display e il suono
 sono alimentati dal DMA.
 \end{prgmachine}
+
+% ----------------------------------------------------------------------------
+\input{code/l21/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

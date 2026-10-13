@@ -6,8 +6,10 @@
  *   node build.js it                    # only the Italian decks
  *   node build.js en 03                 # only lecture 03, in English
  *
- * Deck content lives in decks/<lang>/*.js as compact slide specifications; this file
- * turns each specification into a 16:9 .pptx with pptxgenjs.  The look is the
+ * Deck content lives in decks/<lang>/*.js as compact slide specifications, one per lecture.
+ * Two decks are built from each: the lecture deck, of at most 20 slides, and the code deck
+ * (decks/plan.js says which slide goes where, lib/lab.js adds the program of the lecture and
+ * the test guides).  This file turns each deck into a 16:9 .pptx with pptxgenjs.  The look is the
  * one of the "Playing with RISC-V" (PRG32 textbook) decks, so course slides and
  * lab slides read as one family.  Text is measured before it is placed: a slide
  * whose text cannot fit at a readable size fails the build instead of shipping
@@ -64,7 +66,7 @@ const api = {
   F: mk("flow"),      // F(title, ["Head|sub", ...], caption?, note?)
   D: mk("draw"),      // D(title, async (s, h) => {...}, note?)       bespoke diagram
 };
-const decks = [];
+let decks = [];
 api.Deck = (d) => { decks.push(d); return d; };
 Object.assign(global, api, { P });
 
@@ -139,17 +141,20 @@ async function build(deck) {
 
   let section = L.opening;
   pres.addSection({ title: section });
-  let secNo = 0, count = 0;
+  let secNo = 0, count = 0, pendingSection = null;
+  // A section of the PowerPoint file begins with the first slide that follows its mark.
+  const openSection = () => { if (pendingSection) { section = pendingSection; pres.addSection({ title: section }); pendingSection = null; } };
   const pending = [];
 
   const tx = (s, text, o) => s.addText(text, Object.assign({ isTextBox: true, margin: 0, fontFace: BODY, color: P.ink, valign: "top" }, o));
   const light = (title) => {
+    openSection();
     const s = pres.addSlide({ masterName: "LIGHT", sectionTitle: section });
     if (title.length > 60) throw new Error(`${WHERE}: title too long (${title.length}): ${title}`);
     s.addText(title, { placeholder: "title", fontSize: title.length > 46 ? 27 : 32 });
     count++; return s;
   };
-  const dark = () => { count++; return pres.addSlide({ masterName: "DARK", sectionTitle: section }); };
+  const dark = () => { openSection(); count++; return pres.addSlide({ masterName: "DARK", sectionTitle: section }); };
   const rect = (s, x, y, w, h, fill, line) => s.addShape(pres.ShapeType.rect, { x, y, w, h, fill: { color: fill }, line: { color: line || fill, width: line ? 0.75 : 0 } });
   const pixels = (s, x, y, sz, cols) => cols.forEach((c, i) => c && rect(s, x + (i % 3) * sz, y + Math.floor(i / 3) * sz, sz * 0.92, sz * 0.92, c));
   const badge = (s, x, y, d, label, color) => s.addText(String(label), { isTextBox: true, shape: pres.ShapeType.roundRect, rectRadius: 0.08,
@@ -440,6 +445,24 @@ async function build(deck) {
       });
       notes(s, `${L.answer}: ${"ABCDEF"[answer]}. ${why || ""}`);
     },
+    mark([title]) { pendingSection = title; },
+    // Two questions on one slide.
+    quiz2([pair]) {
+      const s = light(L.quiz), half = (BOT - TOP - 0.15) / 2, qh = 0.72, g = 0.14, cw = (CW - 0.3) / 2;
+      pair.forEach(([question, options], j) => {
+        const y0 = TOP + j * (half + 0.15), rws = Math.ceil(options.length / 2), oh = (half - qh - 0.08 - g * (rws - 1)) / rws;
+        badge(s, MX, y0 + qh / 2 - 0.2, 0.4, j + 1, ACC);
+        tx(s, question, { x: MX + 0.55, y: y0, w: CW - 0.55, h: qh, fontFace: HEAD, bold: true, color: P.ink, fontSize: fit(question, CW - 0.55, qh, 20, 12, false, true), valign: "middle" });
+        const of = Math.min(...options.map((o) => fit(o, cw - 0.85, oh - 0.12, 17, 10)));
+        options.forEach((o, i) => {
+          const x = MX + (i % 2) * (cw + 0.3), y = y0 + qh + 0.08 + Math.floor(i / 2) * (oh + g);
+          card(s, x, y, cw, oh);
+          badge(s, x + 0.15, y + oh / 2 - 0.18, 0.36, "ABCDEF"[i], P.steel);
+          tx(s, o, { x: x + 0.68, y: y + 0.06, w: cw - 0.85, h: oh - 0.12, fontSize: of, valign: "middle" });
+        });
+      });
+      notes(s, pair.map(([, , answer, why], j) => `${j + 1}. ${L.answer}: ${"ABCDEF"[answer]}. ${why || ""}`).join("\n"));
+    },
     section([title, sub]) {
       secNo++; section = title; pres.addSection({ title });
       const s = dark();
@@ -505,8 +528,8 @@ async function build(deck) {
     notes(s, deck.notes);
   }
 
-  deck.slides.forEach((sl, i) => {
-    WHERE = `L${deck.n} slide ${i + 2} "${typeof sl.a[0] === "string" ? sl.a[0] : sl.t}"`;
+  deck.slides.forEach((sl) => {
+    WHERE = `L${deck.n}${deck.kind === "code" ? " code deck" : ""} slide ${count + 1} "${typeof sl.a[0] === "string" ? sl.a[0] : sl.t}"`;
     if (!R[sl.t]) throw new Error(`${WHERE}: unknown slide type ${sl.t}`);
     R[sl.t](sl.a);
   });
@@ -525,6 +548,8 @@ async function build(deck) {
   await loadDims();
   const dir = path.join(__dirname, "decks", LANG);
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".js")).sort()) require(path.join(dir, f));
+  try { decks = decks.flatMap((d) => require("./lib/lab").split(d, LANG)); }
+  catch (e) { console.error(`FAILED: ${e.message}`); process.exit(1); }
   const only = process.argv[3];
   let failed = 0, built = 0;
   for (const d of decks) {

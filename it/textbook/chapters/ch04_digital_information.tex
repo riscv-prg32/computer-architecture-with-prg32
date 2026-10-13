@@ -406,7 +406,7 @@ vettore è un indirizzo di base seguito da elementi di uguale dimensione;
 l'elemento $i$ di un vettore di parole sta all'indirizzo $\mathit{base}+4i$,
 perché una parola sono quattro byte.
 
-\asmfile[caption={Leggere \code{scores[2]}.},label=lst:info:array]{code/l04/s19.S}
+\asmfile[caption={Leggere \code{scores[2]}.},label=lst:info:array]{code/l04/c03.S}
 
 L'istruzione \ins{slli} fa scorrere a sinistra i bit di un registro; uno
 scorrimento di due posizioni moltiplica per quattro, come in decimale uno
@@ -520,7 +520,7 @@ il test di Miller--Rabin, che ne chiude le falle.) Il secondo è una passeggiata
 aleatoria, che dà un risultato diverso a ogni esecuzione: le simulazioni ne
 fanno la media su molte.
 
-\txtfile[caption={Due algoritmi probabilistici.},label=lst:info:prob]{code/l04/s28.txt}
+\txtfile[caption={Due algoritmi probabilistici.},label=lst:info:prob]{code/l04/c04.txt}
 
 \subsection{L'apprendimento automatico}
 
@@ -538,6 +538,9 @@ l'argomento di questo libro. E un modello può sbagliare con grande sicurezza,
 quindi per controllarlo servono i fondamenti. È la ragione della regola
 enunciata nel Capitolo~\ref{ch:intro}: l'esame verifica che i fondamenti stiano
 nella testa dello studente.
+
+% ----------------------------------------------------------------------------
+\input{code/l04/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

@@ -111,7 +111,7 @@ Il Listato~\ref{lst:fc:step1} è una cartuccia completa. Create una cartella,
 scrivete il programma in un file chiamato \fname{step1\_skeleton.S}, e
 resistete alla tentazione di copiarlo: imparano anche le dita.
 
-\asmfile[caption={Passo 1: tre funzioni che non fanno nulla, correttamente.},label=lst:fc:step1]{code/l02/s08.S}
+\asmfile[caption={Passo 1: tre funzioni che non fanno nulla, correttamente.},label=lst:fc:step1]{code/l02/c03.S}
 
 Le righe che cominciano con un punto sono \term{direttive}: ordini per
 l'assemblatore, non istruzioni per il processore. \code{.option norelax}
@@ -127,7 +127,7 @@ Capitolo~\ref{ch:setup} (Listato~\ref{lst:fc:build}); il file della cartuccia è
 identico byte per byte per QEMU, per la scheda e per \prgqt, dove l'indirizzo è
 \code{http://localhost:8080}.
 
-\shfile[caption={Compilare ed eseguire una cartuccia.},label=lst:fc:build]{code/l02/s09.sh}
+\shfile[caption={Compilare ed eseguire una cartuccia.},label=lst:fc:build]{code/l02/c04.sh}
 
 \begin{prgcheck}[Eseguite]
 Il risultato atteso è uno schermo nero. Il risultato è reale lo stesso: il
@@ -144,7 +144,7 @@ framework: \code{prg32\_gfx\_clear}, che riempie lo schermo con un colore, e
 direttive \code{.equ} danno un nome a due costanti:
 \code{.equ BLACK, 0x0000} e \code{.equ WHITE, 0xffff}.
 
-\asmfile[caption={Passo 2: la nuova \code{first\_draw}.},label=lst:fc:step2]{code/l02/s10.S}
+\asmfile[caption={Passo 2: la nuova \code{first\_draw}.},label=lst:fc:step2]{code/l02/c05.S}
 
 \begin{figure}[htb]
 \centering
@@ -209,7 +209,7 @@ I registri non conservano i loro valori tra una chiamata di \code{update} e la
 successiva: nel frattempo li usa il firmware. Ciò che deve durare deve vivere
 in memoria (Listato~\ref{lst:fc:step3}).
 
-\asmfile[caption={Passo 3: la nuova \code{first\_update} e la sua variabile.},label=lst:fc:step3]{code/l02/s12.S}
+\asmfile[caption={Passo 3: la nuova \code{first\_update} e la sua variabile.},label=lst:fc:step3]{code/l02/c06.S}
 
 \code{counter} è un'etichetta: dà un nome a una locazione di memoria, nella
 sezione \code{.data}, che contiene una parola di 32 bit, inizialmente zero.
@@ -265,7 +265,7 @@ disegnano una barra verde la cui larghezza è il contatore
 (Listato~\ref{lst:fc:step4}, Figura~\ref{fig:fc:bar}). La costante \code{GREEN}
 è definita in cima al file con \code{.equ GREEN, 0x07e0}.
 
-\asmfile[caption={Passo 4: le righe aggiunte a \code{first\_draw}.},label=lst:fc:step4]{code/l02/s14.S}
+\asmfile[caption={Passo 4: le righe aggiunte a \code{first\_draw}.},label=lst:fc:step4]{code/l02/c07.S}
 
 \begin{figure}[htb]
 \centering
@@ -424,6 +424,9 @@ tre funzioni e un rettangolo & Se ne può fare un gioco intero? & \vermone: Capi
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% ----------------------------------------------------------------------------
+\input{code/l02/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

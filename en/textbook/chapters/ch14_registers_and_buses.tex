@@ -26,7 +26,7 @@ few wires, not by thirty-two. A word must therefore travel one bit after
 another: a \term{serial} transfer. Listing~\ref{lst:rb:serial} sends a byte
 in this way.
 
-\asmfile[caption={Send a byte one bit at a time, most significant bit first.},label=lst:rb:serial]{code/l14/s04.S}
+\asmfile[caption={Send a byte one bit at a time, most significant bit first.},label=lst:rb:serial]{code/l14/c03.S}
 
 The loop is a shift register in software: shift, take one bit, repeat. (The
 two lines left out would write to registers of the chip that control its
@@ -390,7 +390,7 @@ bit (Chapter~\ref{ch:integers}); \ins{sll}, \ins{srl} and \ins{sra} take the
 amount from a second register. With them the two conversions are two
 instructions each (Listing~\ref{lst:rb:shift}).
 
-\asmfile[caption={Parallel to serial, and serial to parallel.},label=lst:rb:shift]{code/l14/s25.S}
+\asmfile[caption={Parallel to serial, and serial to parallel.},label=lst:rb:shift]{code/l14/c05.S}
 
 A true shift register needs $n$ clock pulses to shift by $n$ positions. The
 processor does not work in that way: in hardware a shift by any amount in one
@@ -398,6 +398,9 @@ step is done by a \term{barrel shifter}, which is made of layers of
 multiplexers, not of a chain of flip-flops. It is combinational, it does its
 work within one clock period, and it is one of the units of the ALU of
 Chapter~\ref{ch:combinational}.
+
+% ----------------------------------------------------------------------------
+\input{code/l14/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

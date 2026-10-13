@@ -60,7 +60,7 @@ Aggiungete alle costanti della parte~1 le righe di \code{RED} e quelle da
 nuovo, il rosso, per il cibo. Ogni pulsante è un bit di una parola, e una
 maschera lo seleziona. Una direzione è un numero da 0 a 3: due bit.
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v2:const]{code/l12/s07.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: le costanti.},label=lst:v2:const]{code/l12/c04.S}
 
 \subsection{Un codice scelto con cura}
 
@@ -98,7 +98,7 @@ costanti, e perciò stanno in \code{.rodata}. La variabile \code{dir} è la
 direzione dell'ultimo passo, \code{want} quella chiesta dal giocatore;
 \code{score}, \code{food\_x} e \code{food\_y} si usano nel passo~3.
 
-\asmfile[caption={Passo 1 \textbf{(modificato)}: i dati.},label=lst:v2:data]{code/l12/s09.S}
+\asmfile[caption={Passo 1 \textbf{(modificato)}: i dati.},label=lst:v2:data]{code/l12/c05.S}
 
 % ----------------------------------------------------------------------------
 \section{Passo 2: la guida}
@@ -118,7 +118,7 @@ sulla scheda, su QEMU e su \prgqt.
 
 \subsection{\texttt{update}: dai pulsanti a un desiderio}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: l'inizio di \code{verm1\_update}.},label=lst:v2:wish]{code/l12/s12.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: l'inizio di \code{verm1\_update}.},label=lst:v2:wish]{code/l12/c06.S}
 
 Il Listato~\ref{lst:v2:wish} sostituisce l'inizio di \code{verm1\_update}, che
 ora chiama una funzione e quindi ha bisogno di uno stack frame. \ins{andi}
@@ -157,7 +157,7 @@ la regola richiederebbe quattro confronti.
 
 \subsection{\texttt{update}: il timer chiama \texttt{step}}
 
-\asmfile[caption={Passo 2 \textbf{(modificato)}: il resto di \code{verm1\_update}.},label=lst:v2:timer]{code/l12/s14.S}
+\asmfile[caption={Passo 2 \textbf{(modificato)}: il resto di \code{verm1\_update}.},label=lst:v2:timer]{code/l12/c07.S}
 
 Il timer in virgola fissa della parte~1 è invariato
 (Listato~\ref{lst:v2:timer}). Le righe che spostavano \code{head\_x} sono
@@ -166,7 +166,7 @@ sono 6 e 7 perché i numeri da 1 a 5 sono usati sopra.
 
 \subsection{\texttt{step}: cercare il movimento}
 
-\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, prima metà.},label=lst:v2:step1]{code/l12/s15.S}
+\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, prima metà.},label=lst:v2:step1]{code/l12/c08.S}
 
 Il desiderio diventa la direzione, una volta per passo
 (Listato~\ref{lst:v2:step1}). Poi la direzione seleziona il movimento: una
@@ -179,7 +179,7 @@ corta, e cambiare le regole significa cambiare dati, non codice.
 
 \subsection{\texttt{step}: muoversi e rientrare, nei due versi}
 
-\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, seconda metà.},label=lst:v2:step2]{code/l12/s16.S}
+\asmfile[caption={Passo 2 \textbf{(nuovo)}: \code{step}, seconda metà.},label=lst:v2:step2]{code/l12/c09.S}
 
 Nella parte~1 esisteva solo il bordo destro. Ora \code{dx} può essere $-1$ e la
 colonna può scendere sotto 0: una colonna negativa è un numero con segno, e
@@ -192,7 +192,7 @@ Per il momento la funzione si chiude con le tre righe del
 Listato~\ref{lst:v2:end}, che ripristinano \reg{ra} e ritornano. Il passo~3
 metterà prima di esse il test per il cibo.
 
-\asmfile[caption={Passo 2: una fine provvisoria per \code{step}.},label=lst:v2:end]{code/l12/s17.S}
+\asmfile[caption={Passo 2: una fine provvisoria per \code{step}.},label=lst:v2:end]{code/l12/c10.S}
 
 \begin{prgcheck}[Eseguite: state guidando]
 \begin{enumerate}[nosep]
@@ -217,7 +217,7 @@ sull'esecutore senza interfaccia di \prgqt.)
 
 \subsection{\texttt{init}: una partenza completa}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/s20.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: \code{verm1\_init}.},label=lst:v2:init]{code/l12/c12.S}
 
 Ogni variabile riceve ora il suo valore di partenza
 (Listato~\ref{lst:v2:init}). \code{init} chiama una funzione, per collocare il
@@ -225,7 +225,7 @@ primo cibo, e quindi ha bisogno di uno stack frame.
 
 \subsection{\texttt{place\_food}: una cella casuale}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{place\_food}.},label=lst:v2:food]{code/l12/s21.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{place\_food}.},label=lst:v2:food]{code/l12/c13.S}
 
 La funzione \code{prg32\_random\_number(min, max)} restituisce un numero
 compreso tra i suoi due argomenti, estremi inclusi; gli argomenti vanno in
@@ -236,7 +236,7 @@ diverse. Il cibo può cadere sulla testa; la parte~3 lo corregge.
 
 \subsection{\texttt{step}: la testa è sul cibo?}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: la fine di \code{step}.},label=lst:v2:eat]{code/l12/s22.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: la fine di \code{step}.},label=lst:v2:eat]{code/l12/c14.S}
 
 Sostituite la fine provvisoria con il Listato~\ref{lst:v2:eat}. Un comparatore
 di uguaglianza è una fila di porte XOR seguita da un OR
@@ -249,7 +249,7 @@ questo che tenerli in registri temporanei è sicuro.
 
 \subsection{\texttt{eat\_sound}: una nota}
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/s23.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{eat\_sound}.},label=lst:v2:sound]{code/l12/c15.S}
 
 La firma è
 \begin{center}\code{prg32\_audio\_note(canale, strumento, nota, volume, millisecondi)}\end{center}
@@ -260,7 +260,7 @@ gioco funzionava anche senza.
 
 \subsection{\texttt{draw}: il punteggio come tacche}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: l'inizio di \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/s24.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: l'inizio di \code{verm1\_draw}.},label=lst:v2:marks]{code/l12/c16.S}
 
 Il Listato~\ref{lst:v2:marks} disegna un piccolo rettangolo per punto, a 4
 pixel di distanza, in un ciclo che termina quando il contatore raggiunge il
@@ -274,13 +274,13 @@ quando sarà disponibile la divisione.
 
 \subsection{\texttt{draw}: il cibo e la testa}
 
-\asmfile[caption={Passo 3 \textbf{(modificato)}: il resto di \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/s25.S}
+\asmfile[caption={Passo 3 \textbf{(modificato)}: il resto di \code{verm1\_draw}.},label=lst:v2:draw]{code/l12/c17.S}
 
 Le stesse tre righe compaiono due volte, per colonna, riga e colore
 (Listato~\ref{lst:v2:draw}); la conversione in pixel è lasciata a una funzione.
 La testa è disegnata per ultima, così che copra il cibo.
 
-\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/s26.S}
+\asmfile[caption={Passo 3 \textbf{(nuovo)}: \code{draw\_cell}.},label=lst:v2:cell]{code/l12/c18.S}
 
 \code{draw\_cell} è l'aritmetica della parte~1, scritta una volta sola
 (Listato~\ref{lst:v2:cell}). È una funzione con un contratto:

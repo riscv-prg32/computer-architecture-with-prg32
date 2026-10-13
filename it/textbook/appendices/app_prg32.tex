@@ -571,6 +571,128 @@ Errori & «instruction budget exhausted» (un frame che non finisce); «unsuppor
 \end{table}
 
 % ----------------------------------------------------------------------------
+\section{Provare un programma sui tre host}\label{sec:prg:testing}
+
+Lo stesso file sorgente dà una cartuccia per ogni host. Questo paragrafo è la
+guida passo per passo che la presentazione del codice di ogni lezione ripete
+con il nome del proprio programma; qui il programma è \fname{code/l05.S} del
+Capitolo~\ref{ch:integers}, il cui prefisso di ingresso è \code{l05}. Si
+suppone che il repository del corso sia in \fname{\textasciitilde/arc12}
+(\code{git clone https://github.com/riscv-prg32/computer-architecture-with-prg32 \textasciitilde/arc12}),
+e ogni comando va dato dalla cartella del repository di \prg, in un terminale
+in cui ESP-IDF è attivo (Capitolo~\ref{ch:setup}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Come ogni host è coperto dai test automatici del materiale del corso.}\label{tab:prg:tested}
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Host} & \textbf{Che cosa fanno i test}\\
+\midrule
+\prgqt & ogni programma è compilato, eseguito sull'esecutore senza interfaccia con ingressi programmati, e i pixel del suo frame sono controllati\\
+QEMU & ogni programma è compilato per l'architettura \code{qemu} e caricato nell'immagine flash dell'emulatore; l'immagine non è controllata, perché l'emulatore ha bisogno della sua finestra\\
+la scheda & ogni programma è compilato per l'architettura \code{esp32c6}; non è eseguito: sulla macchina di prova non c'è una scheda\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Su PRG32-QT}
+
+\begin{enumerate}
+\item Avviate \prgqt sul computer. Ascolta sulla porta 8080, come una scheda;
+  la sua schermata \emph{Setup} mostra l'indirizzo da usare se
+  \code{localhost} non risponde.
+\item Compilate la cartuccia.
+\item Inviatela a \prgqt e avviatela.
+\item Guardate lo schermo e premete i tasti: frecce o \key{W A S D} per il
+  joystick, \key{Z} o \key{J} per A, \key{X} o \key{K} per B, \key{Enter} per
+  Start, \key{Escape} per tornare a Setup.
+\item Per guardare dentro, abilitate \emph{Run cartridges in RISC-V debug
+  mode} in \emph{Settings} ed eseguite di nuovo la cartuccia.
+\end{enumerate}
+
+\begin{shell}[caption={I passi 2 e 3 su \prgqt.},label=lst:prg:test:qt]
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --out l05.prg32
+python3 -m prg32 esp32c6 upload-and-run l05.prg32 \
+    --url http://localhost:8080 --slot cart0
+\end{shell}
+
+Senza la toolchain, una cartuccia compilata da qualcun altro si importa in
+\prgqt come file e si avvia con \emph{Run Cartridge}.
+
+\subsection{Su QEMU}
+
+\begin{enumerate}
+\item Una volta: compilate il firmware per l'emulatore. Richiede alcuni
+  minuti.
+\item Compilate la cartuccia per l'architettura \code{qemu}.
+\item Con QEMU chiuso, caricate la cartuccia nell'immagine flash.
+\item Avviate l'emulatore. Si apre sul menu \emph{Setup}: scegliete \emph{Run
+  Cartridge}, poi \code{cart0}.
+\item Scrivete nel \emph{terminale} che ha lanciato QEMU, non nella finestra
+  con l'immagine: frecce o \key{W A S D}, \key{Z} o \key{J} per A, \key{X} o
+  \key{K} per B, \key{Enter} o \key{Space} per Select.
+\end{enumerate}
+
+\begin{shell}[caption={I passi da 1 a 4 su QEMU.},label=lst:prg:test:qemu]
+python3 -m prg32 qemu build
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --architecture qemu --out l05-qemu.prg32
+python3 -m prg32 qemu upload l05-qemu.prg32
+python3 -m prg32 qemu run
+\end{shell}
+
+\subsection{Sulla scheda}
+
+\begin{enumerate}
+\item Una volta per scheda: collegatela con un cavo USB e scrivete il
+  firmware.
+\item La scheda crea la rete Wi-Fi \code{PRG32} (password \code{prg32game}) e
+  risponde a \code{192.168.4.1}: collegate il computer a quella rete.
+\item Compilate la cartuccia per l'architettura \code{esp32c6}.
+\item Inviatela sul Wi-Fi e avviatela.
+\item Usate il joystick e i pulsanti del kit.
+\end{enumerate}
+
+\begin{shell}[caption={I passi 1, 3 e 4 sulla scheda.},label=lst:prg:test:board]
+python3 -m prg32 esp32c6 build-and-flash
+python3 -m prg32 cartridge build ~/arc12/code/l05.S --portable \
+    --entry-prefix l05 --name l05 --architecture esp32c6 \
+    --out l05-esp32c6.prg32
+python3 -m prg32 esp32c6 upload-and-run l05-esp32c6.prg32 \
+    --url http://192.168.4.1 --slot cart0
+\end{shell}
+
+\subsection{I programmi delle lezioni}
+
+La Tabella~\ref{tab:prg:programs} elenca i programmi della cartella
+\fname{code}. I capitoli tutorial non vi hanno un programma proprio: il loro
+programma è \vermone, nella cartella \fname{verm1}
+(Appendice~\ref{app:verm1}).
+
+\begin{table}[htb]
+\centering\small
+\caption{Il programma di ogni lezione, e il suo prefisso di ingresso.}\label{tab:prg:programs}
+\begin{tabularx}{\textwidth}{@{}llL@{\qquad}llL@{}}
+\toprule
+\textbf{Cap.} & \textbf{File} & \textbf{Mostra} & \textbf{Cap.} & \textbf{File} & \textbf{Mostra}\\
+\midrule
+\ref{ch:intro} & \fname{l00.S} & un primo programma & \ref{ch:combinational} & \fname{l11.S} & un multiplexer in software\\
+\ref{ch:setup} & \fname{l01.S} & un'immagine di prova & \ref{ch:sequential} & \fname{l13.S} & una macchina a stati\\
+\ref{ch:firstcontact} & \fname{l02.S} (\code{first}) & caricare, modificare, memorizzare & \ref{ch:registers} & \fname{l14.S} & seriale e parallelo\\
+\ref{ch:history} & \fname{l03.S} & il programma memorizzato & \ref{ch:memory} & \fname{l15.S} & byte e parole\\
+\ref{ch:information} & \fname{l04.S} & un array & \ref{ch:storage} & \fname{l16.S} & ciò che sopravvive a un riavvio\\
+\ref{ch:integers} & \fname{l05.S} & il complemento a due & \ref{ch:processor} & \fname{l18.S} & caricare, calcolare, memorizzare\\
+\ref{ch:reals} & \fname{l06.S} & la virgola fissa & \ref{ch:instructions} & \fname{l19.S} & le istruzioni come numeri\\
+\ref{ch:boole1} & \fname{l08.S} & maschere e De Morgan & \ref{ch:video} & \fname{l20.S} & un pixel\\
+\ref{ch:boole2} & \fname{l09.S} & il sommatore completo & \ref{ch:io} & \fname{l21.S} & il polling del joystick\\
+\ref{ch:electronics} & \fname{l10.S} & un pulsante, un bit & \ref{ch:beyond} & \fname{l24.S} & il ciclo sulla mappa\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ----------------------------------------------------------------------------
 \section{Il Cartridge Store}
 
 Lo Store è un servizio che cataloga, rivede e distribuisce cartucce; l'istanza

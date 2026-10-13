@@ -22,7 +22,7 @@ Alla fine di questo capitolo saprete
 % ----------------------------------------------------------------------------
 \section{Riscaldamento sulla macchina}
 
-\asmfile[caption={Scegliere uno di quattro colori.},label=lst:cm:palette]{code/l11/s04.S}
+\asmfile[caption={Scegliere uno di quattro colori.},label=lst:cm:palette]{code/l11/c03.S}
 
 Il Listato~\ref{lst:cm:palette} è l'accesso a un array del
 Capitolo~\ref{ch:information}, usato come selezione. Lo stesso selettore dà
@@ -570,7 +570,7 @@ gruppi di bit che si sovrappongono, localizzano e correggono un errore singolo.
 
 \subsection{Una rete di parità in sette istruzioni}
 
-\asmfile[caption={La parità di un byte.},label=lst:cm:parity]{code/l11/s32.S}
+\asmfile[caption={La parità di un byte.},label=lst:cm:parity]{code/l11/c06.S}
 
 Ogni \ins{xor} del Listato~\ref{lst:cm:parity} combina la metà superiore dei
 bit con la metà inferiore: tre livelli per otto bit, la versione software di un
@@ -638,6 +638,9 @@ multiplexer della ALU.
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% ----------------------------------------------------------------------------
+\input{code/l11/lab}
 
 % ----------------------------------------------------------------------------
 \section{Verificate di aver capito}

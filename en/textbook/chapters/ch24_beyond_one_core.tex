@@ -30,7 +30,7 @@ to 2025.
 % ----------------------------------------------------------------------------
 \section{Warm-up on the machine}
 
-\asmfile[caption={The loop that empties the map, from \code{new\_game} of \vermone.},label=lst:by:loop]{code/l24/s04.S}
+\asmfile[caption={The loop that empties the map, from \code{new\_game} of \vermone.},label=lst:by:loop]{code/l24/c03.S}
 
 Listing~\ref{lst:by:loop} sets 960 bytes to zero: four instructions per byte,
 3\,840 instructions in all, one byte at a time and one instruction at a time.
@@ -118,7 +118,7 @@ $i_6$ &&& \cellcolor{prgaccent!20}IF & \cellcolor{prgamber!25}ID & \cellcolor{pr
 
 \subsection{What gets in the way: dependences}
 
-\asmfile[caption={Dependences between neighbouring instructions.},label=lst:by:dep]{code/l24/s10.S}
+\asmfile[caption={Dependences between neighbouring instructions.},label=lst:by:dep]{code/l24/c04.S}
 
 This is the ideal case, and it is rare. In Listing~\ref{lst:by:dep} the
 instruction $i_2$ cannot run beside $i_1$, because it uses its result: a
@@ -148,7 +148,7 @@ exactly: this is the contract of the instruction set.
 
 \subsection{Register renaming: thirty-two names, many registers}
 
-\asmfile[caption={The same code as written, and as executed after renaming.},label=lst:by:rename]{code/l24/s12.S}
+\asmfile[caption={The same code as written, and as executed after renaming.},label=lst:by:rename]{code/l24/c05.S}
 
 In Listing~\ref{lst:by:rename} the second half reuses the \emph{name}
 \reg{t0}, not its value: a \term{false dependence}. Once renamed, the two
@@ -235,7 +235,7 @@ first vocabulary of parallel computing.
 
 \subsection{The same loop, with vectors}
 
-\asmfile[caption={Emptying the map with the vector extension.},label=lst:by:vec]{code/l24/s18.S}
+\asmfile[caption={Emptying the map with the vector extension.},label=lst:by:vec]{code/l24/c06.S}
 
 The V extension of \riscv, ratified in 2021, adds \term{vector registers},
 many bytes wide (Listing~\ref{lst:by:vec}). The instruction \ins{vsetvli}
@@ -251,7 +251,7 @@ QEMU with registers of 128, 256, 512 and 1\,024 bits.
 
 \subsection{A sum, lane by lane}
 
-\asmfile[caption={The sum of sixteen words with vectors.},label=lst:by:vsum]{code/l24/s19.S}
+\asmfile[caption={The sum of sixteen words with vectors.},label=lst:by:vsum]{code/l24/c07.S}
 
 Listing~\ref{lst:by:vsum} is the parallel sum of Chapters
 \ref{ch:information} and~\ref{ch:video}, in \riscv. \ins{vle32.v} loads
@@ -415,7 +415,7 @@ and commands through a driver. The programming models are CUDA, OpenCL and
 SYCL, and directives such as OpenACC and OpenMP offload.
 
 \cfile[caption={The map of \vermone with one thread per cell (CUDA C, in its
-usual textbook form; not compiled for this book).},label=lst:by:cuda]{code/l24/s31.c}
+usual textbook form; not compiled for this book).},label=lst:by:cuda]{code/l24/c08.c}
 
 In Listing~\ref{lst:by:cuda} there is no loop: there are 960 threads. Each
 thread computes its own index and does one store. Threads come in blocks,
@@ -473,7 +473,7 @@ repeated a hundred thousand times on one chip.
 
 \subsection{The U-turn rule of Verm1, as hardware}
 
-\lstinputlisting[style=verilog,caption={The U-turn rule in Verilog (not synthesised for this book).},label=lst:by:verilog]{code/l24/s36.v}
+\lstinputlisting[style=verilog,caption={The U-turn rule in Verilog (not synthesised for this book).},label=lst:by:verilog]{code/l24/c09.v}
 
 Verilog, like VHDL, is a \term{hardware description language}: it describes
 circuits, not steps (Listing~\ref{lst:by:verilog}). The statement
@@ -575,6 +575,9 @@ assembly; the last needs a hardware design.
 The engineer's question is never which machine is fastest, but which is
 enough.
 \end{prgconcept}
+
+% ----------------------------------------------------------------------------
+\input{code/l24/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

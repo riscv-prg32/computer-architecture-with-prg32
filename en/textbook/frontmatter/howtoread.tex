@@ -4,11 +4,23 @@
 
 The book has twenty-five chapters, numbered from~0 to~24 as the lectures of the
 course are, and as almost everything else in this book is: bits, registers,
-rows and columns all start from zero. Chapter~$N$ follows the slide deck of
-Lecture~$N$: the order of the sections is the order of the slides, the
-listings are the same files, the questions at the end are those shown in class.
-A reader who has attended the lecture finds here the sentences that a slide has
-no room for; a reader who has missed it finds the lecture.
+rows and columns all start from zero. Chapter~$N$ follows Lecture~$N$, which
+has two slide decks. The \emph{lecture deck}, of at most twenty slides, holds
+the concepts; the \emph{code deck} holds everything that is typed and run:
+each listing with its explanation, the complete program of the lecture, what
+it shows, and the way to test it on \prgqt, on QEMU and on the board. The
+chapter is the long form of both: the order of the sections is the order of
+the slides, the listings are the same files, the questions at the end are
+those shown in class, and what twenty slides have no room for is here. A
+reader who has attended the lecture finds the sentences that a slide cannot
+hold; a reader who has missed it finds the lecture.
+
+Most chapters end with a section, \emph{The program of this chapter}, that
+prints in full the program from which the listings of the chapter are taken,
+shows the frame that it produces and gives the commands to run it. The
+programs are in the folder \fname{code} of the repository of the course, one
+per lecture, and every one of them is built and run by the automatic tests;
+Section~\ref{sec:prg:testing} is the step-by-step guide for the three hosts.
 
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}lP{0.36\textwidth}L@{}}

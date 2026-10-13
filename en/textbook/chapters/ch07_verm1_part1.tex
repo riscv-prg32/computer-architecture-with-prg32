@@ -102,12 +102,12 @@ address on the Setup screen: use that address if \code{localhost} does not
 answer. The same cartridge runs on QEMU (\code{qemu upload}, then
 \code{qemu run}) and on the board (\code{-{}-url http://192.168.4.1}).
 
-\shfile[caption={Build and run: edit, build, run, look.},label=lst:v1:build]{code/l07/s08.sh}
+\shfile[caption={Build and run: edit, build, run, look.},label=lst:v1:build]{code/l07/c03.sh}
 
 % ----------------------------------------------------------------------------
 \section{Step 1: three functions that return}
 
-\asmfile[caption={Step 1 \textbf{(new)}: the skeleton.},label=lst:v1:skel]{code/l07/s09.S}
+\asmfile[caption={Step 1 \textbf{(new)}: the skeleton.},label=lst:v1:skel]{code/l07/c04.S}
 
 This is the skeleton of Chapter~\ref{ch:firstcontact} with another prefix:
 \code{verm1} is the name passed to \code{-{}-entry-prefix}. \code{init} runs
@@ -127,7 +127,7 @@ going on. From now on, add one thing, run, look. Never two things at once.
 Replace the first lines of the skeleton with those of
 Listing~\ref{lst:v1:const}.
 
-\asmfile[caption={Step 2 \textbf{(changed)}: the head of the file.},label=lst:v1:const]{code/l07/s11.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: the head of the file.},label=lst:v1:const]{code/l07/c05.S}
 
 Colours are RGB565 numbers: \hex{07e0} is pure green. The screen is 320
 pixels across and a cell is 8 pixels wide, which makes 40 columns. The top 8
@@ -173,11 +173,11 @@ Put Listing~\ref{lst:v1:data} at the end of the file. The section
 \code{.data} holds variables, one 32-bit word each. Their initial values are
 only a start: \code{init} will set them again.
 
-\asmfile[caption={Step 2 \textbf{(new)}: data, at the end of the file.},label=lst:v1:data]{code/l07/s13.S}
+\asmfile[caption={Step 2 \textbf{(new)}: data, at the end of the file.},label=lst:v1:data]{code/l07/c06.S}
 
 \subsection{\texttt{init}: put the head in its place}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v1:init]{code/l07/s14.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_init}.},label=lst:v1:init]{code/l07/c07.S}
 
 \ins{la} takes an \emph{address}, \ins{sw} stores a \emph{value} there. The
 function sets the start explicitly: a program should never trust what memory
@@ -186,7 +186,7 @@ leaf: it makes no calls, so it needs no stack frame.
 
 \subsection{\texttt{draw}: title and head}
 
-\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v1:draw]{code/l07/s15.S}
+\asmfile[caption={Step 2 \textbf{(changed)}: \code{verm1\_draw}.},label=lst:v1:draw]{code/l07/c08.S}
 
 Clear the screen, write the title, draw one rectangle: three calls, with the
 arguments travelling in \reg{a0} to \reg{a4}, in order. The signatures are
@@ -229,7 +229,7 @@ steps.
 
 \subsection{\texttt{update}: accumulate, step, wrap}
 
-\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_update}.},label=lst:v1:update]{code/l07/s19.S}
+\asmfile[caption={Step 3 \textbf{(changed)}: \code{verm1\_update}.},label=lst:v1:update]{code/l07/c10.S}
 
 The speed is added to the fraction; below 256, the function waits. At 256 it
 subtracts 256, keeps the rest, and moves the head one cell to the right.
@@ -309,7 +309,7 @@ whole frame.
 The debugger does not show the source file: it shows the code as the
 assembler left it (Listing~\ref{lst:v1:dis}).
 
-\txtfile[caption={\code{verm1\_update}, disassembled (abridged; the exact offsets depend on the build).},label=lst:v1:dis]{code/l07/s24.txt}
+\txtfile[caption={\code{verm1\_update}, disassembled (abridged; the exact offsets depend on the build).},label=lst:v1:dis]{code/l07/c12.txt}
 
 \begin{itemize}
 \item Names are gone: labels have become addresses, and constants have become

@@ -397,7 +397,7 @@ For the array the rule is arithmetic (Listing~\ref{lst:info:array}). An array
 is a base address followed by elements of equal size; element $i$ of an array
 of words is at address $\mathit{base}+4i$, because a word is four bytes.
 
-\asmfile[caption={Reading \code{scores[2]}.},label=lst:info:array]{code/l04/s19.S}
+\asmfile[caption={Reading \code{scores[2]}.},label=lst:info:array]{code/l04/c03.S}
 
 The instruction \ins{slli} shifts the bits of a register to the left; a shift
 by two places multiplies by four, as a shift by one place in decimal
@@ -507,7 +507,7 @@ simplest; real libraries use the Miller--Rabin test, which closes its
 loopholes.) The second is a random walk, which gives a different result at
 every run: simulations average many of them.
 
-\txtfile[caption={Two probabilistic algorithms.},label=lst:info:prob]{code/l04/s28.txt}
+\txtfile[caption={Two probabilistic algorithms.},label=lst:info:prob]{code/l04/c04.txt}
 
 \subsection{Machine learning}
 
@@ -524,6 +524,9 @@ subject of this book. And a model can be wrong with great confidence, so that
 the fundamentals are needed to check it. This is the reason for the rule
 stated in Chapter~\ref{ch:intro}: the examination verifies that the
 fundamentals are in the student's head.
+
+% ----------------------------------------------------------------------------
+\input{code/l04/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

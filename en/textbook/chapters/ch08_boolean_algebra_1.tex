@@ -25,7 +25,7 @@ The reader has been doing Boolean algebra since the first days.
 Listing~\ref{lst:b1:left} is the way in which every \prg game asks whether a
 direction is pressed.
 
-\asmfile[caption={Is \key{LEFT} pressed?},label=lst:b1:left]{code/l08/s04.S}
+\asmfile[caption={Is \key{LEFT} pressed?},label=lst:b1:left]{code/l08/c03.S}
 
 The function \code{prg32\_input\_read} returns all the buttons at once, one
 bit per button (Table~\ref{tab:b1:buttons}). Holding \key{RIGHT} and \key{A}
@@ -366,7 +366,7 @@ encodes as the immediate $-17$.
 The worm is ``idle'' when neither \key{LEFT} nor \key{RIGHT} is pressed.
 Listing~\ref{lst:b1:demorgan} writes the test in two ways.
 
-\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, as two programs.},label=lst:b1:demorgan]{code/l08/s24.S}
+\asmfile[caption={$\nott{L+R}=\nott{L}\cdot\nott{R}$, as two programs.},label=lst:b1:demorgan]{code/l08/c07.S}
 
 A mask with two bits tests two buttons in one instruction: the result is zero
 only if both bits are zero, that is, when $\nott{L+R}$ is true. By De Morgan
@@ -380,7 +380,10 @@ The lamps of Figure~\ref{fig:b1:lamps} are drawn by a loop whose body is
 Listing~\ref{lst:b1:lamp}. To read bit number $n$ of a word, shift the word
 to the right by $n$ and mask with 1: it is the standard idiom.
 
-\asmfile[caption={Reading bit number \reg{s0} of the button mask.},label=lst:b1:lamp]{code/l08/s25.S}
+\asmfile[caption={Reading bit number \reg{s0} of the button mask.},label=lst:b1:lamp]{code/l08/c08.S}
+
+% ----------------------------------------------------------------------------
+\input{code/l08/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

@@ -29,7 +29,7 @@ from the position at every frame (Listing~\ref{lst:int:warm}); the function
 \code{prg32\_console\_hex32}.
 
 \asmfile[caption={Hold \key{LEFT} and watch the number (adapted from the laboratory
-on state and input of the \prg textbook).},label=lst:int:warm]{code/l05/s04.S}
+on state and input of the \prg textbook).},label=lst:int:warm]{code/l05/c03.S}
 
 \begin{prgtry}
 Hold \key{LEFT}. The value shown goes \texttt{00000002}, \texttt{00000001},
@@ -225,7 +225,7 @@ they can (Listing~\ref{lst:int:shifts}). The instruction
 four in this way. Shifts are also the basis of fixed-point arithmetic
 (Chapter~\ref{ch:reals}).
 
-\asmfile[caption={Shifts as multiplications and divisions.},label=lst:int:shifts]{code/l05/s13.S}
+\asmfile[caption={Shifts as multiplications and divisions.},label=lst:int:shifts]{code/l05/c04.S}
 
 \subsection{Overflow}
 
@@ -449,7 +449,7 @@ Negating twice returns the original number, with one exception: the most
 negative number, $-2^{n-1}$, has no positive partner, and its negation
 overflows and returns the number itself.
 
-\asmfile[caption={Negation in \riscv.},label=lst:int:neg]{code/l05/s22.S}
+\asmfile[caption={Negation in \riscv.},label=lst:int:neg]{code/l05/c05.S}
 
 \begin{prgconcept}[Subtraction is addition]
 $y - x = y + (2^{n}-x) \pmod{2^{n}}$. An adder and a complementer are the
@@ -547,7 +547,7 @@ divide, remainder & \ins{div}, \ins{rem} & \ins{divu}, \ins{remu} & magnitudes a
 The decision that was missing is taken in Listing~\ref{lst:int:clamp}: after
 moving, the position is \term{clamped} to the interval $[0, 304]$.
 
-\asmfile[caption={Clamping the position (laboratory on state and input, step 3).},label=lst:int:clamp]{code/l05/s28.S}
+\asmfile[caption={Clamping the position (laboratory on state and input, step 3).},label=lst:int:clamp]{code/l05/c08.S}
 
 \ins{bgez} reads \reg{t2} as a signed number: it tests the sign bit.
 \ins{ble} is a signed comparison too: $-1$ is less than 304, whereas with
@@ -570,7 +570,7 @@ negative number must make the sum smaller, and adding a non-negative one must
 not. On the wheel, \ins{sltu} detects the crossing of the top and the signed
 test the crossing of the bottom.
 
-\asmfile[caption={The two overflow tests suggested by the \riscv specification.},label=lst:int:ovf]{code/l05/s29.S}
+\asmfile[caption={The two overflow tests suggested by the \riscv specification.},label=lst:int:ovf]{code/l05/c09.S}
 
 \subsection{Sign extension: the same number on more bits}
 
@@ -599,6 +599,9 @@ Extending with zeros would turn \texttt{1111} ($-1$) into \texttt{0000\,1111}
 and the processor sign-extends it to thirty-two before adding. \ins{lb}
 sign-extends the byte that it loads, \ins{lbu} fills with zeros: the choice
 depends on what the byte means.
+
+% ----------------------------------------------------------------------------
+\input{code/l05/lab}
 
 % ----------------------------------------------------------------------------
 \section{Check your understanding}

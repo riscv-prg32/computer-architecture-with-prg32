@@ -535,10 +535,17 @@ il Capitolo~\ref{ch:store}.
 \section{Materiale}
 
 \begin{description}[style=nextline,leftmargin=1.5em]
-\item[Slide.] Le presentazioni che questo libro segue sono sempre disponibili
-  in una cartella condivisa di Google Drive e vengono pubblicate periodicamente
-  su \url{https://elearning.uniparthenope.it}. Sono generate da sorgente:
+\item[Slide.] Ogni lezione ha due presentazioni: la presentazione della
+  lezione, di al più venti slide, per i concetti, e la presentazione del
+  codice, con ogni listato, il programma completo della lezione e la guida per
+  provarlo su \prgqt, su QEMU e sulla scheda. Sono sempre disponibili in una
+  cartella condivisa di Google Drive e vengono pubblicate periodicamente su
+  \url{https://elearning.uniparthenope.it}. Sono generate da sorgente:
   correzioni e nuovi esercizi sono benvenuti come contributi.
+\item[Programmi.] Il programma di ogni lezione è nella cartella \fname{code}
+  del repository del corso,
+  \url{https://github.com/riscv-prg32/computer-architecture-with-prg32}, con
+  le presentazioni, questo libro e i test che eseguono ogni listato.
 \item[Piattaforma.] \prg, libero e open source, su
   \url{https://github.com/riscv-prg32/PRG32}, con il suo libro di testo,
   \emph{Playing with RISC-V: Assembly, C, and Retro Games on the PRG32
@@ -621,3 +628,7 @@ e Linux. Si va più in fretta se i download lunghi sono già fatti.
 \expected{Cominciate il Capitolo~\ref{ch:setup} con i download fatti. In due
 ore avete \prgqt in funzione e una cartuccia compilata sul vostro portatile.}
 \end{exercise}
+
+% ----------------------------------------------------------------------------
+\input{code/l00/lab}
+
