@@ -24,6 +24,35 @@ Deck({
       ["4", "il kit: una scheda ESP32-C6", "eseguire su hardware reale", "facoltativo"],
     ], "Il livello 1 richiede cinque minuti. Il livello 2 è uno scaricamento corposo e richiede da mezz'ora a un'ora: a casa, con una buona connessione. I livelli 3 e 4 sono per i curiosi, e per il laboratorio.", { widths: [1.1, 4.0, 5.2, 2.9], caption: "Il corso si può seguire con i soli livelli 1 e 2. Non serve alcuna scheda." }),
 
+    H("Prima di cominciare: le parole di oggi", "Che cos'è un programma, chi lo esegue, e come si parla a un computer per iscritto."),
+    T("Che cos'è un programma", [
+      "Un processore fa una sola cosa, velocissimo: esegue istruzioni, piccoli ordini come somma due numeri o copia un valore",
+      "Un programma è un elenco di istruzioni, conservato in memoria sotto forma di numeri: questa forma si chiama codice macchina",
+      "Nessuno scrive quei numeri a mano: si scrive il codice sorgente, un file di testo in un linguaggio di programmazione come l'assembly o il C",
+      "Un traduttore trasforma il sorgente in codice macchina: l'assemblatore per l'assembly, il compilatore per il C",
+      "La toolchain è l'insieme di questi traduttori e dei loro aiutanti: installarla è il passo 2 di oggi",
+    ], "L'assembly è il linguaggio più vicino alla macchina: una riga di assembly diventa un'istruzione. Per questo il corso lo usa: ciò che scrivete è ciò che il processore fa.", { box: "Voi scrivete, come codice sorgente:\naddi a0, a0, 1\n\nIl processore legge, come codice macchina:\n0x00150513", head: "Un'istruzione, scritta due volte" }),
+    T("Firmware, runtime, host: chi esegue il vostro programma", [
+      "Il vostro gioco non è mai solo sulla macchina: un altro programma parte per primo, resta in memoria ed esegue il vostro",
+      "Sul kit quel programma è il firmware, conservato nella memoria flash del chip: gestisce lo schermo, i pulsanti e il suono",
+      "Il runtime è la parte del firmware con cui il gioco dialoga: chiama il vostro codice a ogni frame e gli presta funzioni per disegnare e per suonare",
+      "Un host è qualsiasi macchina che offre questo runtime: la scheda, l'emulatore QEMU o l'applicazione PRG32-QT",
+      "Un emulatore, o un interprete, è un programma che imita un processore via software: il portatile finge di essere il chip",
+    ], "Un frame è un'immagine sullo schermo; un gioco ne disegna trenta o più al secondo, e il runtime chiama il vostro codice una volta per ciascuna. La Lezione 02 mostra le tre funzioni che chiama."),
+    G("Il terminale: parlare al computer per iscritto", ["Per", "macOS e Linux", "Windows PowerShell"], [
+      ["vedere in quale cartella siete", "pwd", "pwd"],
+      ["elencare i file della cartella", "ls", "dir"],
+      ["entrare nella cartella PRG32", "cd PRG32", "cd PRG32"],
+      ["risalire di una cartella", "cd ..", "cd .."],
+      ["tornare alla cartella personale", "cd ~", "cd ~"],
+      ["fermare il programma in esecuzione", "Ctrl+C", "Ctrl+C"],
+    ], "Il terminale è una finestra in cui si scrivono comandi invece di fare clic. Mostra un prompt, che termina con $ o >, e attende: scrivete il comando e premete Invio. Il tasto Tab completa il nome di un file; la freccia in su richiama il comando precedente. Su macOS è l'applicazione Terminale; su Windows, PowerShell; su Linux, Terminale o Konsole.", { widths: [5.6, 3.6, 3.6], mono: [1, 2], caption: "Scrivete il comando dopo il prompt e premete Invio. Ogni comando di questa lezione si dà così." }),
+    T("Leggere ciò che il computer risponde", [
+      "Un percorso nomina un file attraverso le cartelle che vi conducono: ~/PRG32/examples/pong.S, dove ~ è la cartella personale",
+      "Un repository è una cartella di codice sorgente di cui git conserva la storia; git clone ne copia uno da Internet al portatile",
+      "Un comando riuscito spesso stampa poco o nulla; uno fallito stampa un messaggio: leggetelo tutto prima di fare qualsiasi cosa",
+      ["Quattro messaggi che incontrerete questa settimana", ["command not found: il programma non è installato, o non è attivo in questo terminale", "No such file or directory: cartella o nome sbagliati; controllate con pwd e ls", "Permission denied: mancano i permessi; su Linux un'installazione richiede sudo", "Connection refused: il programma a cui vi rivolgete, come PRG32-QT, non è in esecuzione"]],
+    ], "La prima riga che dice error di solito nomina la causa; le righe successive ne sono spesso le conseguenze. Quando chiedete aiuto, copiate il comando e il messaggio intero, come testo.", { box: "$ python3 -m prg32 doctor\nbash: python3: command not found", head: "Un comando, e la risposta" }),
     H("La piattaforma, in dettaglio", "Di che cosa è fatto PRG32, prima di installarlo."),
     T("PRG32: runtime, formato di file, insieme di strumenti", [
       "Una piattaforma open source per insegnare l'assembly RISC-V e il C, sviluppata alla Parthenope",
@@ -314,6 +343,7 @@ python3 -m prg32 wifi set --ssid "NAME" --password "PASSWORD" --mode sta`, [
     Q("In un nuovo terminale, python3 -m prg32 doctor dice: idf.py missing. Qual è la causa più probabile?", ["ESP-IDF va installato di nuovo", "ESP-IDF non è attivo in questo terminale", "PRG32-QT non è in esecuzione", "la scheda non è collegata"], 1, "L'attivazione dura quanto il terminale: eseguite export.sh, oppure aprite ESP-IDF PowerShell."),
     Q("Quale host permette di eseguire una cartuccia e farne il debug senza installare un compilatore?", ["la scheda ESP32-C6", "QEMU", "PRG32-QT", "nessuno"], 2, "PRG32-QT interpreta la cartuccia e ha un debugger integrato; il compilatore serve solo per compilare le cartucce."),
     Q("Perché lo stesso pong.prg32 gira sulla scheda, su QEMU e su PRG32-QT?", ["viene ricompilato a ogni avvio", "contiene tre programmi", "chiama il runtime attraverso la stessa tabella di funzioni su ogni host", "PRG32-QT lo traduce in C"], 2, "Una cartuccia portabile dipende soltanto dall'ABI, la tabella di funzioni del runtime, che ogni host fornisce."),
+    Q("Che cosa fa un assemblatore?", ["esegue il programma sul processore", "traduce il sorgente assembly in codice macchina", "invia la cartuccia a un host", "mostra i registri"], 1, "L'assembly è testo per le persone; il processore legge numeri. L'assemblatore traduce il primo nei secondi; il runtime di un host esegue poi il risultato."),
     X("Prima della prossima lezione", [
       "Completate sul vostro portatile le cinque verifiche della slide «Pronti»",
       "Scaricate tre cartucce dallo Store, e in ognuna trovate con il debugger la prima istruzione di update",

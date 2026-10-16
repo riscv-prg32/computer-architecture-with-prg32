@@ -60,6 +60,94 @@ richiede da mezz'ora a un'ora: conviene farlo a casa, con una buona
 connessione. I livelli 3 e 4 sono per i curiosi, e per il laboratorio.
 
 % ----------------------------------------------------------------------------
+\section{Prima di cominciare: le parole di oggi}
+
+La maggior parte dei lettori di questo capitolo non ha mai scritto un
+programma, e l'installazione che segue usa alcune parole fin dal primo
+comando. Questa sezione le spiega; il capitolo \emph{Partire da zero}, a
+pagina~\pageref{ch:zero}, dice lo stesso più per esteso.
+
+\subsection{Che cos'è un programma}
+
+Un \term{processore} fa una sola cosa, velocissimo: esegue \term{istruzioni},
+piccoli ordini come ``somma due numeri'' o ``copia un valore''. Un
+\term{programma} è un elenco di istruzioni, conservato in memoria sotto forma
+di numeri; questa forma numerica si chiama \term{codice macchina}. Nessuno
+scrive quei numeri a mano. Si scrive \term{codice sorgente}, un file di testo in
+un linguaggio di programmazione come l'assembly o il C, e un traduttore lo
+trasforma in codice macchina: l'\term{assemblatore} per l'assembly, il
+\term{compilatore} per il C. La \term{toolchain} è l'insieme di questi
+traduttori e dei loro aiutanti, e installarla è il passo~2 di questo capitolo.
+L'assembly è il linguaggio più vicino alla macchina, una riga per un'istruzione,
+ed è per questo che il corso lo usa: ciò che scrivete è ciò che il processore
+fa.
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Voi scrivete, come codice sorgente} & \textbf{Il processore legge, come codice macchina}\\
+\midrule
+\texttt{addi a0, a0, 1} & \hex{00150513}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Firmware, runtime, host: chi esegue il vostro programma}
+
+Un gioco non è mai solo sulla macchina. Sul kit un altro programma, il
+\term{firmware}, parte per primo, resta in memoria e gestisce lo schermo, i
+pulsanti e il suono; è conservato nella memoria \term{flash} del chip, che
+mantiene il contenuto anche senza alimentazione. Il \term{runtime} è la parte
+del firmware con cui il gioco dialoga: chiama il gioco a ogni \term{frame}, ogni
+nuova immagine sullo schermo, e gli presta funzioni per disegnare e per suonare.
+Un \term{host} è qualsiasi macchina che offre questo runtime: la scheda,
+l'\term{emulatore} QEMU o l'applicazione \prgqt. Un emulatore, o un
+\term{interprete}, è un programma che imita un processore via software: il
+portatile finge di essere il chip.
+
+\subsection{Il terminale: parlare al computer per iscritto}
+
+Il \term{terminale} è una finestra in cui si scrivono comandi invece di fare
+clic: su macOS l'applicazione Terminale, su Windows PowerShell, su Linux
+Terminale o Konsole. Mostra un \term{prompt}, che termina con \texttt{\$} o
+\texttt{>}, e attende; si scrive un comando e si preme Invio. In ogni momento il
+terminale si trova in una cartella, e i comandi agiscono sui file che contiene.
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Per} & \textbf{macOS e Linux} & \textbf{Windows PowerShell}\\
+\midrule
+vedere in quale cartella siete & \texttt{pwd} & \texttt{pwd}\\
+elencare i file della cartella & \texttt{ls} & \texttt{dir}\\
+entrare nella cartella PRG32 & \texttt{cd PRG32} & \texttt{cd PRG32}\\
+risalire di una cartella & \texttt{cd ..} & \texttt{cd ..}\\
+tornare alla cartella personale & \texttt{cd \textasciitilde} & \texttt{cd \textasciitilde}\\
+fermare il programma in esecuzione & Ctrl+C & Ctrl+C\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Il tasto Tab completa un nome; la freccia in su richiama il comando
+precedente.
+
+\subsection{Leggere ciò che il computer risponde}
+
+Un \term{percorso} nomina un file attraverso le cartelle che vi conducono, come
+\fname{\textasciitilde/PRG32/}\allowbreak\fname{examples/pong.S}, dove \fname{\textasciitilde} è la
+cartella personale. Un \term{repository} è una cartella di codice sorgente di
+cui \texttt{git} conserva la storia; \texttt{git clone} ne copia uno da Internet
+al portatile. Un comando che funziona spesso stampa poco o nulla; uno che
+fallisce stampa un messaggio, da leggere per intero prima di cambiare qualsiasi
+cosa, perché la prima riga che dice \emph{error} di solito nomina la causa.
+Quattro messaggi coprono la maggior parte dei problemi di questo capitolo:
+\emph{command not found} (il programma non è installato, o non è attivo in
+questo terminale), \emph{No such file or directory} (cartella o nome sbagliati:
+controllate con \texttt{pwd} e \texttt{ls}), \emph{Permission denied} (mancano i
+permessi; su Linux un'installazione richiede \texttt{sudo}) e \emph{Connection
+refused} (il programma a cui ci si rivolge, come \prgqt, non è in esecuzione).
+Quando si chiede aiuto si copiano il comando e il messaggio intero, come testo.
+
 \section{La piattaforma, in dettaglio}
 
 \subsection{Un runtime, un formato di file, un insieme di strumenti}
@@ -532,6 +620,13 @@ Cinque controlli, e l'officina è pronta.
 \item contiene tre programmi
 \item chiama il runtime attraverso la stessa tabella di funzioni su ogni host
 \item \prgqt lo traduce in C
+\end{quiz}
+
+\begin{quiz}{Che cosa fa un assemblatore?}
+\item esegue il programma sul processore
+\item traduce il sorgente assembly in codice macchina
+\item invia la cartuccia a un host
+\item mostra i registri
 \end{quiz}
 
 \section{Esercizi}

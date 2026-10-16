@@ -42,7 +42,7 @@ La tabella completa dei registri RISC-V, con numeri, nomi e ruoli. La maggior pa
 
 ## Slide 10: I flag: il registro di stato, e la sua assenza
 
-Molti processori hanno un registro di stato i cui bit, i *flag*, registrano l'esito dell'ultima operazione: zero, negativo, overflow, riporto. Un'istruzione li imposta e un successivo salto condizionato li verifica. RISC-V non ne ha. Un salto confronta due registri e salta, in una sola istruzione; `slt` scrive il risultato di un confronto in un registro ordinario; riporto e overflow si calcolano quando servono, come nella Lezione 05. Meno stato nascosto significa un processore più semplice, una pipeline più semplice e una gestione delle interruzioni più semplice, perché non c'è stato implicito da salvare.
+Molti processori hanno un registro di stato i cui bit, i *flag*, registrano l'esito dell'ultima operazione: zero, negativo, overflow, riporto. Un'istruzione li imposta e un successivo salto condizionato li verifica. RISC-V non ne ha. Un salto confronta due registri e salta, in una sola istruzione; `slt` scrive il risultato di un confronto in un registro ordinario; riporto e overflow si calcolano quando servono, come nella Lezione 05. Meno stato nascosto significa un processore più semplice, una pipeline più semplice (la sovrapposizione delle fasi di istruzioni successive, come in una catena di montaggio) e una gestione delle interruzioni più semplice, perché non c'è stato implicito da salvare.
 
 ## Slide 11: Registri speciali di RISC-V: i CSR
 

@@ -9,8 +9,8 @@ Slide numbers are those of the specification (`decks/plan.js`: the cover is 1). 
 | Lecture | Slides with a badge | Understand now | Use now | Understand later (→ lecture) | Open issues |
 | --- | ---: | --- | --- | --- | --- |
 | 00 Course introduction | 12 | `course.spiral`, `course.rules` | `prg32.program` (operational), `tool.prg32-cli` (operational) | `prg32.platform` → 01, `isa.risc` → 03, `verm1.project` → 07 | - |
-| 01 PRG32 setup | 23 | `prg32.platform` | `tool.prg32-cli` (operational), `tool.debugger` (operational), `prg32.program` (operational) | `prg32.contract` → 02, `asm.register` → 02 | - |
-| 02 First contact with RISC-V assembly | 16 | `asm.machine-model`, `asm.register`, `prg32.contract`, `abi.call-args`, `abi.return-address`, `mem.load-store`, `asm.instructions`, `asm.pseudo`, `isa.instruction-is-data`, `skill.trace` | `abi.calling-convention` → 18, `asm.directives` (operational), `tool.prg32-cli` (operational), `prg32.api` (operational), `logic.bitmask` → 08, `tool.debugger` (operational), `prg32.program` (operational) | `arch.stack` → 18, `isa.addressing-modes` → 19, `isa.formats` → 19, `num.hex` → 04, `num.twos-complement` → 05, `num.fixed-point` → 06, `logic.boolean-algebra` → 08, `logic.adder` → 09, `elec.logic-levels` → 10, `seq.latch-ff` → 13, `cpu.cycle` → 19, `verm1.project` → 07 | - |
+| 01 PRG32 setup | 27 | `prog.program`, `prg32.platform` | `tool.terminal` (operational), `tool.prg32-cli` (operational), `tool.debugger` (operational), `prg32.program` (operational) | `prg32.contract` → 02, `asm.register` → 02 | - |
+| 02 First contact with RISC-V assembly | 19 | `asm.machine-model`, `asm.register`, `prog.function`, `prg32.contract`, `asm.line`, `abi.call-args`, `abi.return-address`, `mem.load-store`, `asm.instructions`, `asm.pseudo`, `isa.instruction-is-data`, `skill.trace` | `num.hex` → 04, `info.bit-byte-word` → 04, `abi.calling-convention` → 18, `asm.directives` (operational), `tool.prg32-cli` (operational), `prg32.api` (operational), `logic.bitmask` → 08, `tool.debugger` (operational), `prg32.program` (operational) | `arch.stack` → 18, `isa.addressing-modes` → 19, `isa.formats` → 19, `num.twos-complement` → 05, `num.fixed-point` → 06, `logic.boolean-algebra` → 08, `logic.adder` → 09, `elec.logic-levels` → 10, `seq.latch-ff` → 13, `cpu.cycle` → 19, `verm1.project` → 07 | - |
 | 03 History of computing | 5 | `info.informatics`, `arch.von-neumann`, `isa.risc` | `prg32.program` (operational), `tool.prg32-cli` (operational) | `logic.boolean-algebra` → 08 | - |
 | 04 Digital information | 15 | `info.analog-digital`, `info.bit-byte-word`, `num.hex`, `num.positional`, `info.rgb565`, `info.text`, `mem.endianness`, `data.structures`, `data.array`, `algo.algorithms` | `num.shift-multiply` → 05, `prg32.program` (operational), `tool.prg32-cli` (operational) | - | - |
 | 05 Number representation (integers) | 21 | `num.twos-complement`, `num.base-conversion`, `num.natural-overflow`, `num.shift-multiply`, `num.sign-magnitude`, `num.signed-unsigned`, `num.sign-extension` | `prg32.api` (operational), `prg32.program` (operational), `tool.prg32-cli` (operational) | - | - |
@@ -43,7 +43,7 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `course.spiral` | the program-first method | il metodo: prima il programma | 00 | 00 | 00 | 00 now | **none** |
 | `course.rules` | the rules of the course | le regole del corso | 00 | 00 | 00 | 00 now | **none** |
-| `prg32.platform` | the pieces of PRG32 | i componenti di PRG32 | 00 | 01 | 01 | 00 later · 01 now | 01:37, 01:38 |
+| `prg32.platform` | the pieces of PRG32 | i componenti di PRG32 | 00 | 01 | 01 | 00 later · 01 now | 01:42, 01:43 |
 | `prg32.contract` | the init, update, draw contract | contratto init/update/draw | 01 | 02 | 02 | 01 later · 02 now · 07 now | **none** |
 | `prg32.api` | the PRG32 runtime calls | le chiamate del runtime PRG32 | 02 | 02 | never | 02 use · 05 use · 12 use | - |
 | `prg32.program` | the complete program | il programma completo | 00 | 00 | never | 00 use · 01 use · 02 use · 03 use · 04 use · 05 use · 06 use · 08 use · 09 use · 10 use · 11 use · 13 use · 14 use · 15 use · 16 use · 18 use · 19 use · 20 use · 21 use · 24 use | - |
@@ -51,28 +51,28 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 | `tool.prg32-cli` | the PRG32 tools | gli strumenti di PRG32 | 00 | 00 | never | 00 use · 01 use · 02 use · 03 use · 04 use · 05 use · 06 use · 07 use · 08 use · 09 use · 10 use · 11 use · 12 use · 13 use · 14 use · 15 use · 16 use · 17 use · 18 use · 19 use · 20 use · 21 use · 22 use · 23 use · 24 use | - |
 | `tool.debugger` | the PRG32-QT debugger | il debugger di PRG32-QT | 01 | 01 | never | 01 use · 02 use · 07 use · 12 use · 17 use · 22 use | - |
 | `asm.machine-model` | registers, compute, move, jump | registri, calcolo, trasferimento, salto | 02 | 02 | 02 | 02 now | **none** |
-| `asm.register` | registers | i registri | 01 | 02 | 02 | 01 later · 02 now | 02:26 |
-| `asm.instructions` | the base instructions | le istruzioni di base | 02 | 02 | 02 | 02 now | 02:26 |
+| `asm.register` | registers | i registri | 01 | 02 | 02 | 01 later · 02 now | 02:30 |
+| `asm.instructions` | the base instructions | le istruzioni di base | 02 | 02 | 02 | 02 now | 02:30 |
 | `asm.pseudo` | pseudo-instructions | le pseudo-istruzioni | 02 | 02 | 02 | 02 now · 07 now | **none** |
 | `asm.directives` | the assembler directives | le direttive dell'assemblatore | 02 | 02 | never | 02 use | - |
-| `abi.call-args` | arguments in a0 to a7 | gli argomenti in a0 ... a7 | 02 | 02 | 02 | 02 now · 12 now | 02:26 |
-| `abi.return-address` | why ra is saved | perché si salva ra | 02 | 02 | 02 | 02 now · 07 now | 02:24, 07:28 |
+| `abi.call-args` | arguments in a0 to a7 | gli argomenti in a0 ... a7 | 02 | 02 | 02 | 02 now · 12 now | 02:30 |
+| `abi.return-address` | why ra is saved | perché si salva ra | 02 | 02 | 02 | 02 now · 07 now | 02:27, 07:28 |
 | `abi.calling-convention` | the calling convention | la convenzione di chiamata | 02 | 02 | 18 | 02 use · 12 use · 17 use · 18 now · 22 now | 18:34, 22:45 |
 | `arch.stack` | the stack | la pila | 02 | 18 | 18 | 02 later · 18 now | 18:32 |
-| `mem.load-store` | address, value, load, store | indirizzo, valore, load, store | 02 | 02 | 02 | 02 now · 07 now | 02:23 |
+| `mem.load-store` | address, value, load, store | indirizzo, valore, load, store | 02 | 02 | 02 | 02 now · 07 now | 02:26 |
 | `isa.instruction-is-data` | an instruction is a number | un'istruzione è un numero | 02 | 02 | 02 | 02 now | **none** |
 | `isa.formats` | instruction formats | formati delle istruzioni | 02 | 19 | 19 | 02 later · 07 later · 19 now | 19:30 |
 | `isa.addressing-modes` | addressing modes | i modi di indirizzamento | 02 | 19 | 19 | 02 later · 19 now | **none** |
 | `isa.risc` | RISC and an open ISA | RISC e un ISA aperto | 00 | 03 | 03 | 00 later · 03 now | 03:25, 18:31 |
 | `isa.extensions` | the name RV32IMAC | il nome RV32IMAC | 06 | 06 | 06 | 06 now | **none** |
-| `skill.trace` | tracing by hand | seguire a mano l'esecuzione | 02 | 02 | 02 | 02 now | 02:26 |
+| `skill.trace` | tracing by hand | seguire a mano l'esecuzione | 02 | 02 | 02 | 02 now | 02:30 |
 | `verm1.project` | the Verm1 project | il progetto Verm1 | 00 | 07 | 07 | 00 later · 02 later · 07 now | 07:29 |
 | `info.informatics` | what informatics is | che cos'è l'informatica | 03 | 03 | 03 | 03 now | **none** |
 | `arch.von-neumann` | the von Neumann architecture | l'architettura di von Neumann | 03 | 03 | 03 | 03 now · 08 now · 16 now | 03:24 |
 | `info.analog-digital` | analog and digital | analogico e digitale | 04 | 04 | 04 | 04 now | **none** |
-| `info.bit-byte-word` | bit, byte, word | bit, byte, parola | 04 | 04 | 04 | 04 now | 04:30 |
+| `info.bit-byte-word` | bit, byte, word | bit, byte, parola | 02 | 02 | 04 | 02 use · 04 now | 04:30 |
 | `num.positional` | positional notation | la notazione posizionale | 04 | 04 | 04 | 04 now | 04:34 |
-| `num.hex` | hexadecimal | l'esadecimale | 02 | 04 | 04 | 02 later · 04 now | 04:34 |
+| `num.hex` | hexadecimal | l'esadecimale | 02 | 02 | 04 | 02 use+later · 04 now | 04:34 |
 | `info.rgb565` | a colour is a number | un colore è un numero | 04 | 04 | 04 | 04 now · 07 now | 04:31 |
 | `info.text` | characters and strings | caratteri e stringhe | 04 | 04 | 04 | 04 now · 22 now | 04:32 |
 | `mem.endianness` | little-endian byte order | l'ordine little-endian | 04 | 04 | 04 | 04 now · 07 now · 15 now | 04:33, 15:30 |
@@ -143,6 +143,10 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 | `perf.vector` | vector instructions | le istruzioni vettoriali | 24 | 24 | 24 | 24 now | 24:44 |
 | `perf.hpc` | HPC and Amdahl's law | HPC e legge di Amdahl | 24 | 24 | 24 | 24 now | 24:42 |
 | `perf.accelerators` | GPU and FPGA accelerators | acceleratori GPU e FPGA | 24 | 24 | 24 | 24 now | 24:45 |
+| `prog.program` | program, source and machine code | programma, sorgente, codice macchina | 01 | 01 | 01 | 01 now | 01:44 |
+| `tool.terminal` | the terminal | il terminale | 01 | 01 | never | 01 use | - |
+| `prog.function` | functions, call and return | funzioni, chiamata e ritorno | 02 | 02 | 02 | 02 now | 02:27 |
+| `asm.line` | reading a line of assembly | leggere una riga di assembly | 02 | 02 | 02 | 02 now | **none** |
 
 ## Concepts that the course uses and does not study
 
@@ -151,6 +155,7 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 - `tool.prg32-cli`: An operational skill: python3 -m prg32, ESP-IDF, QEMU and PRG32-QT are used in every lecture and never studied. What a portable cartridge is, is explained in Lecture 23 (concept prg32.cartridge-format).
 - `tool.debugger`: A tool, used in every tutorial with a precise procedure; it observes the machine that the lectures explain, and is not itself a subject.
 - `asm.directives`: .section, .global and .option norelax are conventions of the assembler and of PRG32. The sections are explained as a concept of their own (mem.sections, Lecture 07, and Lecture 16 for where they live); .equ is explained where it is used (Lecture 07, slide 11); linker relaxation is not part of the course.
+- `tool.terminal`: An operational skill: a handful of commands (pwd, ls, cd) and the habit of reading error messages, taught in Lecture 01 and used in every lecture; the shell itself is not a subject of the course.
 
 ## Needs review
 
@@ -159,7 +164,7 @@ Issues found by the audit, left to the author: nothing below has been changed in
 
 ## Concepts understood without a question or an exercise
 
-`course.spiral` (00), `course.rules` (00), `prg32.contract` (02), `asm.machine-model` (02), `asm.pseudo` (02), `isa.instruction-is-data` (02), `isa.addressing-modes` (19), `isa.extensions` (06), `info.informatics` (03), `info.analog-digital` (04), `data.structures` (04), `algo.algorithms` (04), `num.sign-extension` (05), `mem.sections` (07), `logic.circuits` (08), `elec.transistor` (10), `elec.logic-levels` (10), `comb.machines` (11), `comb.alu` (11), `seq.clock` (13), `mem.cpu-interface` (15), `cpu.datapath` (18), `io.controllers` (20), `io.video` (20), `io.printer` (21), `perf.equation` (24).
+`course.spiral` (00), `course.rules` (00), `prg32.contract` (02), `asm.machine-model` (02), `asm.pseudo` (02), `isa.instruction-is-data` (02), `isa.addressing-modes` (19), `isa.extensions` (06), `info.informatics` (03), `info.analog-digital` (04), `data.structures` (04), `algo.algorithms` (04), `num.sign-extension` (05), `mem.sections` (07), `logic.circuits` (08), `elec.transistor` (10), `elec.logic-levels` (10), `comb.machines` (11), `comb.alu` (11), `seq.clock` (13), `mem.cpu-interface` (15), `cpu.datapath` (18), `io.controllers` (20), `io.video` (20), `io.printer` (21), `perf.equation` (24), `asm.line` (02).
 
 ## Contrast of the badges
 
@@ -169,4 +174,4 @@ Issues found by the audit, left to the author: nothing below has been changed in
 | use-now | 6.37:1 | 4.51:1 | 5.02:1 | 13.93:1 |
 | understand-later | 7.39:1 | 5.92:1 | 6.98:1 | 13.15:1 |
 
-Built decks checked: 100; slides with a badge in them: 1336.
+Built decks checked: 100; slides with a badge in them: 1350.

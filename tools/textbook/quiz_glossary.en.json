@@ -41,6 +41,17 @@
     ],
     "ans": 2,
     "why": "A portable cartridge depends only on the ABI, the table of functions of the runtime, which every host provides."
+   },
+   {
+    "q": "What does an assembler do?",
+    "opts": [
+     "it runs the program on the processor",
+     "it translates assembly source code into machine code",
+     "it sends the cartridge to a host",
+     "it shows the registers"
+    ],
+    "ans": 1,
+    "why": "Assembly is text for people; the processor reads numbers. The assembler translates the first into the second; the runtime of a host then runs the result."
    }
   ],
   "gloss": [
@@ -122,6 +133,17 @@
     ],
     "ans": 3,
     "why": "300 = 256 + 44 = 1 0010 1100 in binary. AND with 1111 1111 keeps the low eight bits: 0010 1100 = 44."
+   },
+   {
+    "q": "What number is 0x1F?",
+    "opts": [
+     "the decimal number 1F",
+     "31: one sixteen plus fifteen",
+     "the register t1F",
+     "a comment"
+    ],
+    "ans": 1,
+    "why": "0x marks a hexadecimal number. 1 means one sixteen and F means fifteen units: 16 + 15 = 31, which is 1 1111 in binary."
    }
   ],
   "gloss": [

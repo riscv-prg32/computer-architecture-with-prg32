@@ -20,8 +20,8 @@ of the previous editions appears only as a historical counterpart in comparison 
 | Lecture | Lecture deck | Code deck | Program |
 | --- | ---: | ---: | --- |
 | `00-...-Course_Introduction` | 20 | 10 | `l00.S` |
-| `01-...-PRG32_and_PRG32-QT_Setup` | 16 | 28 | `l01.S` |
-| `02-...-First_Contact_with_RISC-V_Assembly` | 17 | 16 | `l02.S` |
+| `01-...-PRG32_and_PRG32-QT_Setup` | 20 | 28 | `l01.S` |
+| `02-...-First_Contact_with_RISC-V_Assembly` | 20 | 16 | `l02.S` |
 | **Information** | | | |
 | `03-...-History_of_Computing` | 19 | 13 | `l03.S` |
 | `04-...-Digital_Information` | 20 | 13 | `l04.S` |
@@ -50,7 +50,7 @@ of the previous editions appears only as a historical counterpart in comparison 
 | **Outlook** | | | |
 | `24-...-Superscalar_HPC_GPU_FPGA` | 20 | 21 | `l24.S`, and the vector listings |
 
-Fifty decks per language: 456 slides in the lecture decks and 461 in the code decks. The file names above
+Fifty decks per language: 463 slides in the lecture decks and 461 in the code decks. The file names above
 are the English ones; the Italian decks are `NN-Architettura_dei_Calcolatori-*`.
 
 ## Pictures: `assets/` and their credits
@@ -177,8 +177,15 @@ node build.js it     # only the Italian decks
 node build.js en 05  # the two decks of lecture 05, in English
 node notes.js        # check the slide notes of both languages
 npm run textbook     # listings and programs for the books, answers, glossary, and the checks
-npm test             # the learning status: unit tests, then check_mastery.js (after node build.js)
+npm test             # the learning status and the first-use terms: unit tests, terms_test.js, then check_mastery.js (after node build.js)
 ```
+
+The course has no prerequisites, so every word that a beginner meets in the first lectures is explained where it
+first appears. `concepts/terms.json` lists those words; `tests/terms_test.js` reads the course in order (lecture by
+lecture, the lecture deck and then the code deck, slide text and note) and fails if the note of the slide where a term
+first appears does not define it, with the term in italics, `*like this*`. A slide or a note that uses a term earlier
+than its definition makes the test name the slide; move the definition there, or add the term to the list when a new
+word enters the first lectures.
 
 - `build.js` is the layout engine (pptxgenjs). It measures text before placing it and fails the build if
   a slide's text cannot fit at a readable size.

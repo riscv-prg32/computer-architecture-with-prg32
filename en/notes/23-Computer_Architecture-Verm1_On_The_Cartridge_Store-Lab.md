@@ -22,7 +22,7 @@ The build command of every lecture, with one additional option: `--architecture`
 
 ## Slide 5: manifest.json: who is this game?
 
-The manifest is a JSON file describing the game, whose fields should be read one by one. `id` is a globally unique name. `version` consists of three numbers. `title` is what the player reads. `summary` is a one-line description for the shelf, `description` a paragraph. Authors, licence and tags follow. At the end, `assets` names the icon and `architectures` states which cartridge file serves which target. The file is created with a text editor in the folder of the game.
+The manifest is a JSON file describing the game; JSON is a plain-text format for structured data, in which each value is written after its name, between braces. Its fields should be read one by one. `id` is a globally unique name. `version` consists of three numbers. `title` is what the player reads. `summary` is a one-line description for the shelf, `description` a paragraph. Authors, licence and tags follow. At the end, `assets` names the icon and `architectures` states which cartridge file serves which target. The file is created with a text editor in the folder of the game.
 
 ## Slide 6: colophon.json: credits and controls
 

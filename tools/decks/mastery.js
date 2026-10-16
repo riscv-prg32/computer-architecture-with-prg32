@@ -33,37 +33,43 @@ module.exports = {
     },
     // Setup: the platform is understood; every command is a recipe.
     "01": {
-      "5-10": "now prg32.platform",
-      "12-15": "use tool.prg32-cli",
-      "19-24": "use tool.prg32-cli",
-      26: ["use tool.prg32-cli", "later prg32.contract"],
-      27: "use tool.prg32-cli",
-      28: ["use tool.debugger", "later asm.register"],       // "A first look only: Lecture 02 explains what the registers are"
-      29: ["use tool.debugger", "later asm.register"],
-      "31-32": "use tool.prg32-cli",
-      34: "use tool.prg32-cli",
+      5: "now prog.program",
+      6: "now prg32.platform",
+      "7-8": "use tool.terminal",
+      "10-15": "now prg32.platform",
+      "17-20": "use tool.prg32-cli",
+      "24-29": "use tool.prg32-cli",
+      31: ["use tool.prg32-cli", "later prg32.contract"],
+      32: "use tool.prg32-cli",
+      33: ["use tool.debugger", "later asm.register"],       // "A first look only: Lecture 02 explains what the registers are"
+      34: ["use tool.debugger", "later asm.register"],
+      "36-37": "use tool.prg32-cli",
+      39: "use tool.prg32-cli",
       program: "use prg32.program",
     },
     // Pilot.  The objectives (slide 2) are understood; the directives, the build, the runtime calls and the
     // calling convention are used; the stack, the instruction formats, addressing modes and the questions of
-    // slide 22 are previews with a lecture each.
+    // slide 25 are previews with a lecture each.
     "02": {
-      4: "now asm.machine-model",
-      5: ["now asm.register", "use abi.calling-convention"],  // "Preserved across a call?": the convention, Lecture 18
-      6: "now prg32.contract",
-      8: "use asm.directives",
-      9: "use tool.prg32-cli",
-      10: ["now abi.call-args", "use prg32.api"],
-      11: ["now abi.return-address", "later arch.stack"],     // the stack, formally: Lecture 18, slides 20-21
-      12: "now mem.load-store",
-      13: ["now mem.load-store", "later isa.addressing-modes"], // "we return to it formally with addressing modes": Lecture 19, slide 10
-      14: "use logic.bitmask",                                // andi 255 as "modulo 256"; masks: Lecture 08
-      16: "now asm.instructions",
-      17: "now asm.pseudo",
-      18: ["now isa.instruction-is-data", "later isa.formats"], // "Do not explain the formats now": Lecture 19, slides 7-8
-      19: "use tool.debugger",
-      20: "now skill.trace",
-      22: "later num.hex,num.twos-complement,num.fixed-point,logic.boolean-algebra,logic.adder,elec.logic-levels,seq.latch-ff,cpu.cycle,verm1.project",
+      4: "use num.hex,info.bit-byte-word",                  // "Today you only need to recognise these numbers": Lecture 04
+      5: "now asm.machine-model",
+      6: ["now asm.register", "use abi.calling-convention"],  // "Preserved across a call?": the convention, Lecture 18
+      7: "now prog.function",
+      8: "now prg32.contract",
+      10: "now asm.line",
+      11: "use asm.directives",
+      12: "use tool.prg32-cli",
+      13: ["now abi.call-args", "use prg32.api"],
+      14: ["now abi.return-address", "later arch.stack"],     // the stack, formally: Lecture 18, slides 20-21
+      15: "now mem.load-store",
+      16: ["now mem.load-store", "later isa.addressing-modes"], // "we return to it formally with addressing modes": Lecture 19, slide 10
+      17: "use logic.bitmask",                                // andi 255 as "modulo 256"; masks: Lecture 08
+      19: "now asm.instructions",
+      20: "now asm.pseudo",
+      21: ["now isa.instruction-is-data", "later isa.formats"], // "Do not explain the formats now": Lecture 19, slides 7-8
+      22: "use tool.debugger",
+      23: "now skill.trace",
+      25: "later num.hex,num.twos-complement,num.fixed-point,logic.boolean-algebra,logic.adder,elec.logic-levels,seq.latch-ff,cpu.cycle,verm1.project",
       program: "use prg32.program",
     },
     // History: the definition, von Neumann and RISC are understood; the narrative is context.

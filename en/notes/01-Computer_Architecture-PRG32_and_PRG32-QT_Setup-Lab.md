@@ -2,7 +2,7 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
-Learning status of this lecture. UNDERSTAND NOW: the pieces of PRG32. USE NOW: the PRG32 tools, the PRG32-QT debugger, the complete program (used, not studied, in this course). UNDERSTAND LATER: the init, update, draw contract (Lecture 02); registers (Lecture 02). A slide without a badge is context: a story, an example, a question, an exercise.
+Learning status of this lecture. UNDERSTAND NOW: program, source and machine code; the pieces of PRG32. USE NOW: the terminal, the PRG32 tools, the PRG32-QT debugger, the complete program (used, not studied, in this course). UNDERSTAND LATER: the init, update, draw contract (Lecture 02); registers (Lecture 02). A slide without a badge is context: a story, an example, a question, an exercise.
 
 ## Slide 1: PRG32 and PRG32-QT: Setting Up Your Workshop: the code
 
@@ -14,11 +14,11 @@ The contents of the deck, in the order of the slides. The program of the lecture
 
 ## Slide 3: Download the installer for your system
 
-The student locates the row corresponding to their operating system and downloads that file from the *Releases* page of the PRG32-QT repository, always choosing the latest release. Windows is served by an installer, macOS by a disk image (one for Apple Silicon and one for Intel processors), Linux and Raspberry Pi OS by a Debian package. The version number 0.4.1 is that of October 2026; it may since have increased, but file names follow the same pattern. The slide on macOS explains how to determine which processor a Mac contains.
+The student locates the row corresponding to their operating system and downloads that file from the *Releases* page of the PRG32-QT repository, always choosing the latest release. Windows is served by an installer, macOS by a disk image (one for Apple Silicon and one for Intel processors), Linux and Raspberry Pi OS by a Debian package. All three are ways of delivering an application: a file that, once opened, copies the program into the right place on the computer. The version number 0.4.1 is that of October 2026; it may since have increased, but file names follow the same pattern. The slide on macOS explains how to determine which processor a Mac contains.
 
 ## Slide 4: PRG32-QT on Windows
 
-On Windows the installation consists of four actions: download the Setup file, run it, accept the proposed folder, and start PRG32 from the Start menu. Two warnings may appear, and both are expected. SmartScreen may display a blue dialogue because the installer does not come from the Microsoft Store; the remedy is *More info*, then *Run anyway*. The firewall may request permission, which should be granted for private networks: PRG32-QT listens on port 8080 to receive cartridges from the tools, a facility used in step 3.
+On Windows the installation consists of four actions: download the Setup file, run it, accept the proposed folder, and start PRG32 from the Start menu. Two warnings may appear, and both are expected. SmartScreen may display a blue dialogue because the installer does not come from the Microsoft Store; the remedy is *More info*, then *Run anyway*. The firewall, the part of the system that decides which programs may receive connections from the network, may request permission, which should be granted for private networks: PRG32-QT listens on port 8080 to receive cartridges from the tools, a facility used in step 3.
 
 ## Slide 5: PRG32-QT on macOS
 
@@ -26,7 +26,7 @@ On a Mac the first task is to identify the processor, from the Apple menu, *Abou
 
 ## Slide 6: PRG32-QT on Linux
 
-On Linux the upper half of the listing installs the package: `apt install` with `./` preceding the file name installs that file together with its dependencies, and the program is then available as `/usr/bin/PRG32`. The requirement to verify is Qt 6.5 or later, which Debian 13 and Ubuntu 25.04 satisfy and Ubuntu 24.04 does not. The lower half is the alternative for older systems: building from source with the script provided in the repository. Lines beginning with `#` are comments and are not to be typed.
+On Linux the upper half of the listing installs the package: `apt install` with `./` preceding the file name installs that file together with its dependencies, the other software it needs in order to run, and the program is then available as `/usr/bin/PRG32`. The requirement to verify is Qt 6.5 or later (Qt is the library of ready-made windows, buttons and graphics on which PRG32-QT is built), which Debian 13 and Ubuntu 25.04 satisfy and Ubuntu 24.04 does not. The lower half is the alternative for older systems: building from source with the script provided in the repository. Lines beginning with `#` are comments and are not to be typed.
 
 ## Slide 7: Run it: your first cartridge, from the Store
 
@@ -38,19 +38,19 @@ The three screens that should now have been seen: the *Setup* menu, the Store br
 
 ## Slide 9: The toolchain on Windows
 
-On Windows the first three steps use graphical installers: Git, Python, and the ESP-IDF Tools Installer, in which a release 5.4 or later and the targets `esp32c3` and `esp32c6` are selected. The installer creates a shortcut named *ESP-IDF PowerShell*; all work must be done in that window and never in a plain terminal, because only there is the environment activated. The five commands that follow clone the PRG32 repository, install two Python packages and run the doctor. On Windows the interpreter is invoked as `python`, not `python3`.
+On Windows the first three steps use graphical installers: Git, the program that copies and tracks repositories; Python, a programming language in which the PRG32 tools are written; and the ESP-IDF Tools Installer, in which a release 5.4 or later and the targets `esp32c3` and `esp32c6` are selected. The installer creates a shortcut named *ESP-IDF PowerShell*; all work must be done in that window and never in a plain terminal, because only there is the environment activated: the settings that tell the terminal where the compiler and its tools are. The five commands that follow clone the PRG32 repository, that is, copy it onto the laptop, install two Python packages (libraries that the tools need) and run the doctor, a command that checks the installation. On Windows the interpreter is invoked as `python`, not `python3`.
 
 ## Slide 10: The toolchain on macOS
 
-On macOS the procedure has three blocks. Homebrew installs the prerequisites. ESP-IDF is then cloned, and `install.sh` downloads the compilers for the two chips; this is the lengthy part. The line `. ./export.sh` begins with a dot followed by a space, and the dot is significant: it causes the script to modify the current shell, rather than a child process whose changes would vanish on exit. The final block clones PRG32 and runs the doctor. The same commands work on Apple Silicon and on Intel machines.
+On macOS the procedure has three blocks. Homebrew, a program that installs other programs from the terminal, installs the prerequisites. ESP-IDF is then cloned, and `install.sh` downloads the compilers for the two chips; this is the lengthy part. The line `. ./export.sh` begins with a dot followed by a space, and the dot is significant: it causes the script, a file of commands, to modify the current *shell*, the program that reads what is typed in the terminal, rather than a separate copy of it whose changes would vanish when it ends. The final block clones PRG32 and runs the doctor. The same commands work on Apple Silicon and on Intel machines.
 
 ## Slide 11: The toolchain on Linux (Debian, Ubuntu)
 
-On Debian and Ubuntu the first block is a single long `apt` command, split across three lines by backslashes, and must be copied in full. Steps 2 and 3 are identical to those for macOS. Other distributions provide the same packages under different names. The last callout concerns only owners of a kit: to reach the board's serial port the user must belong to the group `dialout`, and the change takes effect only after logging out and in again.
+On Debian and Ubuntu the first block is a single long `apt` command, split across three lines by backslashes, and must be copied in full. Steps 2 and 3 are identical to those for macOS. Other distributions provide the same packages under different names. The last callout concerns only owners of a kit: to reach the board's serial port, the connection through the USB cable, the user must belong to the group `dialout`, the list of users allowed to use it, and the change takes effect only after logging out and in again.
 
 ## Slide 12: Every new terminal: switch ESP-IDF on
 
-This slide describes the daily routine and forestalls the most common error of the first weeks. In every new terminal, before anything else, ESP-IDF is activated with `export.sh` and the working directory set to the PRG32 folder. Two aliases reduce typing: `get_idf` performs the activation, and `prg` abbreviates `python3 -m prg32`. On Windows, opening *ESP-IDF PowerShell* achieves the same. The error is worth provoking once on purpose, by running the doctor in a fresh terminal without activation: having seen the message here, one recognises it immediately thereafter.
+This slide describes the daily routine and forestalls the most common error of the first weeks. In every new terminal, before anything else, ESP-IDF is activated with `export.sh` and the working directory set to the PRG32 folder. Two aliases, short names that stand for longer commands, reduce typing: `get_idf` performs the activation, and `prg` abbreviates `python3 -m prg32`. On Windows, opening *ESP-IDF PowerShell* achieves the same. The error is worth provoking once on purpose, by running the doctor in a fresh terminal without activation: having seen the message here, one recognises it immediately thereafter.
 
 ## Slide 13: The doctor: is everything in place?
 
@@ -58,11 +58,11 @@ The doctor verifies the installation and prints one line per check. `[OK] idf.py
 
 ## Slide 14: Build a cartridge from the examples
 
-The command `cartridge build` takes a source file and produces a `.prg32` file. Three options merit understanding. `--entry-prefix pong_c` is the name that precedes `_init`, `_update` and `_draw` in the source, and thus identifies the three entry points. `--portable` produces a cartridge that runs on every host rather than on a single firmware image. `--out` names the output file. The tool reports the size of the code: a complete game of Pong occupies about three thousand bytes. The source is a C example from the repository, chosen so that the compiler can be tested before any program has been written.
+The command `cartridge build` takes a source file and produces a `.prg32` file. Three options, the words beginning with `--` that adjust what a command does, merit understanding. `--entry-prefix pong_c` is the name that precedes `_init`, `_update` and `_draw` in the source, and thus identifies the three entry points. `--portable` produces a cartridge that runs on every host rather than on a single firmware image. `--out` names the output file. The tool reports the size of the code: a complete game of Pong occupies about three thousand bytes. The source is a C example from the repository, chosen so that the compiler can be tested before any program has been written.
 
 ## Slide 15: Send it to PRG32-QT
 
-PRG32-QT must be running. The first command, `runtime`, queries its state; a reply confirms that the connection works. The second, `upload-and-run`, stores the cartridge in slot `cart0` and starts it, and the game appears in the PRG32-QT window. The command names the `esp32c6` because, from the tool's point of view, PRG32-QT behaves as a board listening on port 8080. The same command, addressed to `http://192.168.4.1`, sends the game to a physical board. Without the tools, the file can also be imported from the PRG32-QT menu.
+PRG32-QT must be running. The first command, `runtime`, queries its state; a reply confirms that the connection works. The second, `upload-and-run`, stores the cartridge in slot `cart0` and starts it, and the game appears in the PRG32-QT window. The command names the `esp32c6` because, from the tool's point of view, PRG32-QT behaves as a board listening on port 8080. The same command, addressed to `http://192.168.4.1`, the network address of the board on its own Wi-Fi network, sends the game to a physical board. Without the tools, the file can also be imported from the PRG32-QT menu.
 
 ## Slide 16: Look inside: the debugger
 

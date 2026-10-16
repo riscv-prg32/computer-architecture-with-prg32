@@ -58,7 +58,7 @@ Two inputs, four transistors. In the NAND the two nMOS are in series: the output
 
 ## Slide 14: What gates cost, in transistors
 
-The cost of circuits measured in transistors. A NOT costs 2, a NAND or a NOR 4, an AND or an OR 6, because each is a NAND or NOR followed by an inverter. This reverses the intuition suggested by the algebra: in CMOS the inverting gates are the primitive ones, and an AND is more expensive than a NAND. A full adder requires about 28 transistors, a memory cell 6, a flip-flop about 20. The purpose of minimisation now becomes concrete: fewer literals mean fewer transistors, and hence less area, less energy and less delay.
+The cost of circuits measured in transistors. A NOT costs 2, a NAND or a NOR 4, an AND or an OR 6, because each is a NAND or NOR followed by an inverter. This reverses the intuition suggested by the algebra: in CMOS the inverting gates are the primitive ones, and an AND is more expensive than a NAND. A full adder requires about 28 transistors, a memory cell 6, a flip-flop, the one-bit memory element of Lecture 13, about 20. The purpose of minimisation now becomes concrete: fewer literals mean fewer transistors, and hence less area, less energy and less delay.
 
 ## Slide 15: Switching takes time and energy
 

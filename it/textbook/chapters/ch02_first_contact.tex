@@ -31,6 +31,39 @@ verificati del primo laboratorio di assembly del libro di \prg
 % ----------------------------------------------------------------------------
 \section{La macchina}
 
+\subsection{Binario ed esadecimale: come leggere i numeri}
+
+Prima del primo programma, una parola su come sono scritti i suoi numeri,
+perché il codice assembly ne è pieno. Il computer conserva tutto come
+\term{bit}, cifre che valgono 0 o~1; un numero scritto con i bit è in
+\term{binario}, base~2, dove ogni posizione vale il doppio di quella alla sua
+destra: $1010_2 = 8 + 2 = 10$. Le lunghe file di bit si leggono male, così i
+programmatori le raggruppano quattro alla volta e scrivono ogni gruppo con una
+cifra \term{esadecimale}, base~16: da 0 a 9, poi da A a F per i valori da dieci a
+quindici. Il prefisso \texttt{0x} dice che un numero è esadecimale, quindi
+\hex{10} vale sedici e non dieci.
+
+\begin{center}\small
+\begin{tabular}{rll}
+\toprule
+\textbf{Decimale} & \textbf{Binario} & \textbf{Esadecimale}\\
+\midrule
+0 & \texttt{0000} & \hex{0}\\
+1 & \texttt{0001} & \hex{1}\\
+9 & \texttt{1001} & \hex{9}\\
+10 & \texttt{1010} & \hex{A}\\
+15 & \texttt{1111} & \hex{F}\\
+16 & \texttt{1 0000} & \hex{10}\\
+255 & \texttt{1111 1111} & \hex{FF}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Una cifra esadecimale corrisponde esattamente a quattro bit:
+\hex{07E0}, il verde di \prg, è \texttt{0000 0111 1110 0000}. Oggi basta
+riconoscere queste notazioni; il Capitolo~\ref{ch:information} le spiega, con
+le conversioni nei due sensi.
+
 \subsection{I registri, e tre tipi di istruzione}
 
 Un processore \riscv, visto dal programmatore, è una cosa molto piccola.
@@ -79,6 +112,21 @@ nell'Appendice~\ref{app:riscv}.}\label{tab:fc:regs}
 \end{tabularx}
 \end{table}
 
+\subsection{Le funzioni: un pezzo di programma con un nome}
+
+Una \term{funzione} è una sequenza di istruzioni che svolge un compito, come
+cancellare lo schermo, e comincia a un'etichetta, che le dà il nome.
+\term{Chiamare} una funzione significa saltare alla sua prima istruzione dopo
+aver annotato dove tornare: l'istruzione \ins{call} fa entrambe le cose. Finito
+il compito, la funzione \term{ritorna}: \ins{ret} salta all'istruzione che segue
+la chiamata. Gli \term{argomenti} sono i valori di cui la funzione ha bisogno;
+in \riscv viaggiano nei registri da \reg{a0} ad \reg{a7}. Il codice che chiama è
+il \term{chiamante}, la funzione chiamata è il \term{chiamato}, e il punto a cui
+tornare è conservato nel registro \reg{ra}, l'indirizzo di ritorno: per questo
+il passo~2 salva \reg{ra} prima delle proprie chiamate e lo ripristina prima di
+\ins{ret}. \prg offre funzioni già pronte come \code{prg32\_gfx\_clear}; voi ne
+scrivete tre, che il runtime chiama.
+
 \subsection{Il contratto: tre funzioni}
 
 Un gioco \prg sono tre funzioni che il programmatore scrive e il firmware
@@ -105,6 +153,26 @@ contratto tra un gioco e la macchina.
 
 % ----------------------------------------------------------------------------
 \section{La vostra prima cartuccia}
+
+\subsection{Come leggere una riga di assembly}
+
+Prima del primo listato, una guida per leggerlo. Una riga di assembly ha al più
+quattro parti:
+
+\begin{asm}
+first_update:   addi t1, t1, 1      # one more tick
+\end{asm}
+
+\noindent Un'\term{etichetta}, \code{first\_update:}, è un nome per questo punto
+del programma e termina con i due punti. L'\term{istruzione}, \ins{addi}, è
+l'operazione da eseguire, qui ``somma una costante''. Gli \term{operandi},
+\code{t1, t1, 1}, sono ciò su cui lavora: prima la destinazione, poi le
+sorgenti, quindi la riga si legge ``metti in \reg{t1} il valore di \reg{t1} più
+1'', l'assegnamento $t1 = t1 + 1$. Un \term{commento} va da \code{\#} a fine riga
+ed è ignorato dall'assemblatore. Una riga che comincia con un punto, come
+\code{.section .text}, è una \term{direttiva}: un ordine all'assemblatore, non
+al processore. Righe vuote e rientri contano per chi legge, non per
+l'assemblatore.
 
 \subsection{Passo 1: il più piccolo programma che gira}
 
@@ -450,6 +518,13 @@ tre funzioni e un rettangolo & Se ne può fare un gioco intero? & \vermone: Capi
 \item 255
 \item 45
 \item 44
+\end{quiz}
+
+\begin{quiz}{Quale numero è \hex{1F}?}
+\item il numero decimale 1F
+\item 31: un sedici più quindici
+\item il registro t1F
+\item un commento
 \end{quiz}
 
 \section{Esercizi}

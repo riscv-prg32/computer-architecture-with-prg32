@@ -22,7 +22,7 @@ Il comando di compilazione di ogni lezione, con un'opzione in più: `--architect
 
 ## Slide 5: manifest.json: chi è questo gioco?
 
-Il manifesto è un file JSON che descrive il gioco, e i suoi campi vanno letti uno per uno. `id` è un nome unico al mondo. `version` consiste di tre numeri. `title` è ciò che il giocatore legge. `summary` è una descrizione di una riga per lo scaffale, `description` un paragrafo. Seguono autori, licenza e tag. In fondo, `assets` nomina l'icona e `architectures` dice quale file di cartuccia serve quale target. Il file si crea con un editor di testo nella cartella del gioco.
+Il manifesto è un file JSON che descrive il gioco; JSON è un formato di testo semplice per dati strutturati, in cui ogni valore si scrive dopo il suo nome, tra parentesi graffe. I suoi campi vanno letti uno per uno. `id` è un nome unico al mondo. `version` consiste di tre numeri. `title` è ciò che il giocatore legge. `summary` è una descrizione di una riga per lo scaffale, `description` un paragrafo. Seguono autori, licenza e tag. In fondo, `assets` nomina l'icona e `architectures` dice quale file di cartuccia serve quale target. Il file si crea con un editor di testo nella cartella del gioco.
 
 ## Slide 6: colophon.json: crediti e comandi
 

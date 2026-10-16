@@ -58,7 +58,7 @@ Due ingressi, quattro transistor. Nel NAND i due nMOS sono in serie: l'uscita è
 
 ## Slide 14: Quanto costano le porte, in transistor
 
-Il costo dei circuiti misurato in transistor. Un NOT costa 2, un NAND o un NOR 4, un AND o un OR 6, perché ciascuno è un NAND o un NOR seguito da un invertitore. Questo rovescia l'intuizione suggerita dall'algebra: in CMOS le porte invertenti sono quelle primitive, e un AND costa più di un NAND. Un sommatore completo richiede circa 28 transistor, una cella di memoria 6, un flip-flop circa 20. Lo scopo della minimizzazione diventa ora concreto: meno letterali significano meno transistor, e quindi meno area, meno energia e meno ritardo.
+Il costo dei circuiti misurato in transistor. Un NOT costa 2, un NAND o un NOR 4, un AND o un OR 6, perché ciascuno è un NAND o un NOR seguito da un invertitore. Questo rovescia l'intuizione suggerita dall'algebra: in CMOS le porte invertenti sono quelle primitive, e un AND costa più di un NAND. Un sommatore completo richiede circa 28 transistor, una cella di memoria 6, un flip-flop, l'elemento di memoria da un bit della Lezione 13, circa 20. Lo scopo della minimizzazione diventa ora concreto: meno letterali significano meno transistor, e quindi meno area, meno energia e meno ritardo.
 
 ## Slide 15: Commutare costa tempo ed energia
 

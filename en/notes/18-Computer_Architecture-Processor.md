@@ -42,7 +42,7 @@ The complete table of the RISC-V registers, with numbers, names and roles. Most 
 
 ## Slide 10: Flags: the status register, and its absence
 
-Many processors have a status register whose bits, the *flags*, record the outcome of the last operation: zero, negative, overflow, carry. One instruction sets them and a later conditional branch tests them. RISC-V has none. A branch compares two registers and jumps, in a single instruction; `slt` writes the result of a comparison into an ordinary register; carry and overflow are computed when required, as in Lecture 05. Less hidden state means a simpler processor, simpler pipelining and simpler interrupt handling, since there is no implicit state to save.
+Many processors have a status register whose bits, the *flags*, record the outcome of the last operation: zero, negative, overflow, carry. One instruction sets them and a later conditional branch tests them. RISC-V has none. A branch compares two registers and jumps, in a single instruction; `slt` writes the result of a comparison into an ordinary register; carry and overflow are computed when required, as in Lecture 05. Less hidden state means a simpler processor, simpler pipelining (overlapping the steps of successive instructions, as on an assembly line) and simpler interrupt handling, since there is no implicit state to save.
 
 ## Slide 11: Special registers of RISC-V: the CSRs
 

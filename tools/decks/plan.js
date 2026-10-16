@@ -27,7 +27,7 @@ const NONE = { en: "nothing: the program runs by itself", it: "niente: il progra
 module.exports = {
   "00": { drop: [4, 11, 12, 19, 20, 23, 24, 28, 32, 35, 37, 38],
     lab: lab("l00", NONE, { it: "la parola ARC12 in bianco su uno schermo blu, e sotto HELLO, RISC-V." }) },
-  "01": { code: [12, 13, 14, 17, 28, 29],
+  "01": { code: [17, 18, 19, 22, 33, 34],
     lab: lab("l01", NONE, { it: "quattro barre verticali, rossa, verde, blu e bianca, e le parole PRG32 OK." }) },
   "02": { lab: lab("l02", NONE, { it: "HELLO PRG32 e, sotto, una barra verde che cresce di un pixel per frame e ricomincia a 256." }, "first") },
   "03": { drop: [5, 20],

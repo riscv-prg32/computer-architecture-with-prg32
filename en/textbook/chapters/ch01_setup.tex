@@ -58,6 +58,92 @@ an hour to an hour: it is best done at home, on a good connection. Levels 3
 and 4 are for the curious, and for the laboratory.
 
 % ----------------------------------------------------------------------------
+\section{Before you start: the words of today}
+
+Most readers of this chapter have never written a program, and the installation
+that follows uses a handful of words from the first command on. This section
+explains them; the chapter \emph{Starting from Zero}, on page~\pageref{ch:zero},
+says the same at more length.
+
+\subsection{What a program is}
+
+A \term{processor} does one thing, very fast: it executes \term{instructions},
+small orders such as ``add two numbers'' or ``copy a value''. A \term{program}
+is a list of instructions, kept in memory as numbers; this numeric form is
+called \term{machine code}. Nobody writes those numbers by hand. One writes
+\term{source code}, a text file in a programming language such as assembly or
+C, and a translator turns it into machine code: an \term{assembler} for
+assembly, a \term{compiler} for C. The \term{toolchain} is that set of
+translators and their helpers, and installing it is step~2 of this chapter.
+Assembly is the language closest to the machine, one line for one instruction,
+which is why the course uses it: what you write is what the processor does.
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+\textbf{You write, as source code} & \textbf{The processor reads, as machine code}\\
+\midrule
+\texttt{addi a0, a0, 1} & \hex{00150513}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Firmware, runtime, host: who runs your program}
+
+A game is never alone on the machine. On the kit another program, the
+\term{firmware}, starts first, stays in memory and owns the screen, the buttons
+and the sound; it is kept in the \term{flash} memory of the chip, which keeps
+its contents when the power is off. The \term{runtime} is the part of the
+firmware that a game talks to: it calls the game at every \term{frame}, every
+new picture on the screen, and lends it functions to draw and to play sounds.
+A \term{host} is any machine that offers this runtime: the board, the QEMU
+\term{emulator}, or the \prgqt application. An emulator, or an
+\term{interpreter}, is a program that imitates a processor in software: the
+laptop pretends to be the chip.
+
+\subsection{The terminal: talking to the computer in text}
+
+The \term{terminal} is a window in which one types commands instead of
+clicking: on macOS the application Terminal, on Windows PowerShell, on Linux
+Terminal or Konsole. It shows a \term{prompt}, ending in \texttt{\$} or
+\texttt{>}, and waits; one types a command and presses Enter. At every moment
+the terminal is in one folder, and commands act on the files there.
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+\textbf{To} & \textbf{macOS and Linux} & \textbf{Windows PowerShell}\\
+\midrule
+see which folder you are in & \texttt{pwd} & \texttt{pwd}\\
+list the files in that folder & \texttt{ls} & \texttt{dir}\\
+enter the folder PRG32 & \texttt{cd PRG32} & \texttt{cd PRG32}\\
+go back up one folder & \texttt{cd ..} & \texttt{cd ..}\\
+go to your home folder & \texttt{cd \textasciitilde} & \texttt{cd \textasciitilde}\\
+stop the program that is running & Ctrl+C & Ctrl+C\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The Tab key completes a name; the up arrow recalls the previous
+command.
+
+\subsection{Reading what the computer answers}
+
+A \term{path} names a file through the folders that lead to it, such as
+\fname{\textasciitilde/PRG32/}\allowbreak\fname{examples/pong.S}, where \fname{\textasciitilde} is
+the home folder. A \term{repository} is a folder of source code whose history is
+kept by \texttt{git}; \texttt{git clone} copies one from the Internet to the
+laptop. A command that works often prints little or nothing; one that fails
+prints a message, which should be read in full before anything is changed,
+because the first line that says \emph{error} usually names the cause. Four
+messages cover most problems of this chapter: \emph{command not found} (the
+program is not installed, or not active in this terminal), \emph{No such file or
+directory} (wrong folder or wrong name: check with \texttt{pwd} and
+\texttt{ls}), \emph{Permission denied} (the rights are missing; on Linux an
+installation needs \texttt{sudo}) and \emph{Connection refused} (the program
+addressed, such as \prgqt, is not running). When asking for help, copy the
+command and the whole message, as text.
+
 \section{The platform, in detail}
 
 \subsection{A runtime, a file format, a set of tools}
@@ -524,6 +610,13 @@ Five checks, and the workshop is ready.
 \item it contains three programs
 \item it calls the runtime through the same table of functions on every host
 \item \prgqt translates it to C
+\end{quiz}
+
+\begin{quiz}{What does an assembler do?}
+\item it runs the program on the processor
+\item it translates assembly source code into machine code
+\item it sends the cartridge to a host
+\item it shows the registers
 \end{quiz}
 
 \section{Exercises}

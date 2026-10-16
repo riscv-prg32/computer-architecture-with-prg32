@@ -23,6 +23,35 @@ Deck({
       ["4", "the kit: an ESP32-C6 board", "run on real hardware", "optional"],
     ], "Level 1 takes five minutes. Level 2 is a large download and takes from half an hour to an hour: at home, on a good connection. Levels 3 and 4 are for the curious, and for the laboratory.", { widths: [1.1, 4.0, 5.2, 2.9], caption: "The course can be followed with levels 1 and 2 only. No board is required." }),
 
+    H("Before you start: the words of today", "What a program is, who runs it, and how to talk to a computer in text."),
+    T("What a program is", [
+      "A processor does one thing, very fast: it executes instructions, small orders such as add two numbers or copy a value",
+      "A program is a list of instructions, kept in memory as numbers: this form is called machine code",
+      "Nobody writes those numbers by hand: we write source code, a text file in a programming language such as assembly or C",
+      "A translator turns source code into machine code: an assembler for assembly, a compiler for C",
+      "The toolchain is that set of translators and their helpers: installing it is step 2 of today",
+    ], "Assembly is the language closest to the machine: one line of assembly becomes one instruction. This is why the course uses it: what you write is what the processor does.", { box: "You write, as source code:\naddi a0, a0, 1\n\nThe processor reads, as machine code:\n0x00150513", head: "One instruction, written twice" }),
+    T("Firmware, runtime, host: who runs your program", [
+      "Your game is never alone on the machine: another program starts first, stays in memory, and runs yours",
+      "On the kit that program is the firmware, kept in the flash memory of the chip: it owns the screen, the buttons and the sound",
+      "The runtime is the part of the firmware that your game talks to: it calls your code at every frame and lends it functions to draw and to play sounds",
+      "A host is any machine that offers this runtime: the board, the QEMU emulator, or the PRG32-QT application",
+      "An emulator, or an interpreter, is a program that imitates a processor in software: your laptop pretends to be the chip",
+    ], "A frame is one picture on the screen; a game draws thirty or more each second, and the runtime calls your code once for each. Lecture 02 shows the three functions that it calls."),
+    G("The terminal: talking to the computer in text", ["To", "macOS and Linux", "Windows PowerShell"], [
+      ["see which folder you are in", "pwd", "pwd"],
+      ["list the files in that folder", "ls", "dir"],
+      ["enter the folder PRG32", "cd PRG32", "cd PRG32"],
+      ["go back up one folder", "cd ..", "cd .."],
+      ["go to your home folder", "cd ~", "cd ~"],
+      ["stop the program that is running", "Ctrl+C", "Ctrl+C"],
+    ], "The terminal is a window where you type commands instead of clicking. It shows a prompt, ending in $ or >, and waits: type a command and press Enter. The Tab key completes a file name; the up arrow brings back the previous command. On macOS it is the application Terminal; on Windows, PowerShell; on Linux, Terminal or Konsole.", { widths: [5.6, 3.6, 3.6], mono: [1, 2], caption: "Type the command after the prompt and press Enter. Every command of this lecture is typed this way." }),
+    T("Reading what the computer answers", [
+      "A path names a file through the folders that lead to it: ~/PRG32/examples/pong.S, where ~ is your home folder",
+      "A repository is a folder of source code whose history is kept by git; git clone copies one from the Internet to your laptop",
+      "A command that works often prints little or nothing; one that fails prints a message: read all of it before you do anything",
+      ["Four messages you will meet this week", ["command not found: the program is not installed, or not active in this terminal", "No such file or directory: wrong folder or wrong name; check with pwd and ls", "Permission denied: you lack the rights; on Linux an installation needs sudo", "Connection refused: the program you are talking to, such as PRG32-QT, is not running"]],
+    ], "The first line that says error usually names the cause; the lines after it are often its consequences. When you ask for help, copy the command and the whole message, as text.", { box: "$ python3 -m prg32 doctor\nbash: python3: command not found", head: "A command, and the answer" }),
     H("The platform, in detail", "What PRG32 is made of, before you install it."),
     T("PRG32: a runtime, a file format, a set of tools", [
       "An open-source platform for teaching RISC-V assembly and C, developed at Parthenope",
@@ -313,6 +342,7 @@ python3 -m prg32 wifi set --ssid "NAME" --password "PASSWORD" --mode sta`, [
     Q("In a new terminal, python3 -m prg32 doctor says: idf.py missing. What is the most likely cause?", ["ESP-IDF must be installed again", "ESP-IDF is not active in this terminal", "PRG32-QT is not running", "the board is not connected"], 1, "Activation lasts as long as the terminal: run export.sh, or open the ESP-IDF PowerShell."),
     Q("Which host lets you run and debug a cartridge without installing a compiler?", ["the ESP32-C6 board", "QEMU", "PRG32-QT", "none of them"], 2, "PRG32-QT interprets the cartridge and has a built-in debugger; a compiler is needed only to build cartridges."),
     Q("Why does the same pong.prg32 run on the board, on QEMU and on PRG32-QT?", ["it is recompiled at each start", "it contains three programs", "it calls the runtime through the same table of functions on every host", "PRG32-QT translates it to C"], 2, "A portable cartridge depends only on the ABI, the table of functions of the runtime, which every host provides."),
+    Q("What does an assembler do?", ["it runs the program on the processor", "it translates assembly source code into machine code", "it sends the cartridge to a host", "it shows the registers"], 1, "Assembly is text for people; the processor reads numbers. The assembler translates the first into the second; the runtime of a host then runs the result."),
     X("Before the next lecture", [
       "Finish the five checks of the Ready slide on your own laptop",
       "Download three cartridges from the Store, and find in each the first instruction of update with the debugger",

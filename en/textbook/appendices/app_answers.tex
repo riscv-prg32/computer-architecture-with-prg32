@@ -16,6 +16,7 @@ been read teaches nothing.
 \answer{1.1}{B}{\emph{ESP-IDF is not active in this terminal.} Activation lasts as long as the terminal: run export.sh, or open the ESP-IDF PowerShell.}
 \answer{1.2}{C}{\emph{PRG32-QT.} PRG32-QT interprets the cartridge and has a built-in debugger; a compiler is needed only to build cartridges.}
 \answer{1.3}{C}{\emph{it calls the runtime through the same table of functions on every host.} A portable cartridge depends only on the ABI, the table of functions of the runtime, which every host provides.}
+\answer{1.4}{B}{\emph{it translates assembly source code into machine code.} Assembly is text for people; the processor reads numbers. The assembler translates the first into the second; the runtime of a host then runs the result.}
 \end{description}
 
 \section*{Chapter 2: First Contact}
@@ -23,6 +24,7 @@ been read teaches nothing.
 \answer{2.1}{B}{\emph{The address of the counter.} la loads the address of the label; lw then reads the value stored at that address into t1.}
 \answer{2.2}{C}{\emph{ra, because call overwrites it.} call writes the return address in ra. The callee's own calls would overwrite it, so a non-leaf function saves ra on the stack and restores it before ret.}
 \answer{2.3}{D}{\emph{44.} 300 = 256 + 44 = 1 0010 1100 in binary. AND with 1111 1111 keeps the low eight bits: 0010 1100 = 44.}
+\answer{2.4}{B}{\emph{31: one sixteen plus fifteen.} 0x marks a hexadecimal number. 1 means one sixteen and F means fifteen units: 16 + 15 = 31, which is 1 1111 in binary.}
 \end{description}
 
 \section*{Chapter 3: History of Computing}

@@ -114,7 +114,7 @@ approximate and the real look in PowerPoint was not inspected).
 Four cross-references promised an explanation in the wrong place. They were reported, and on the author's
 request (2026-10-16) corrected in the specifications of both languages, in the notes and in both books:
 
-1. **Lecture 02, slide 11 (note), and Chapter 2:** the stack was said to be treated "in the lectures on memory
+1. **Lecture 02, slide 14 (note), and Chapter 2:** the stack was said to be treated "in the lectures on memory
    and on subroutines" (the chapter said Chapters 15 and 19). Now: Lecture 18 / Chapter 18, where push and pop are.
 2. **Lecture 22, slide 3, its note and Chapter 22:** `divu` and `remu` were credited to Lecture 18, which does
    not treat them. Now: Lectures 05 and 06 (the unsigned instructions, slide 27 of Lecture 05; the M of

@@ -90,6 +90,10 @@ Deck({
     ], "Tell the students explicitly that they are not expected to understand everything today. Today is for seeing; the next lectures are for explaining."),
 
     H("The machine", "Thirty-two registers and a small repertoire of instructions."),
+    G("Binary and hexadecimal: how to read the numbers", ["Decimal", "Binary", "Hexadecimal"], [
+      ["0", "0000", "0x0"], ["1", "0001", "0x1"], ["9", "1001", "0x9"], ["10", "1010", "0xA"],
+      ["15", "1111", "0xF"], ["16", "1 0000", "0x10"], ["255", "1111 1111", "0xFF"],
+    ], "A computer stores everything as bits, digits that are 0 or 1: a number written with bits is in binary, base 2. Long rows of bits are hard to read, so programmers group them four at a time and write each group as one hexadecimal digit, base 16: 0 to 9, then A to F for ten to fifteen. The prefix 0x says that a number is hexadecimal. Today you only need to recognise these numbers; Lecture 04 explains how to convert them.", { widths: [3.6, 4.6, 4.6], mono: [1, 2], caption: "One hexadecimal digit is exactly four bits: 0x07E0 is 0000 0111 1110 0000." }),
     C("The machine you are programming", [
       ["32 registers", "Each register holds one 32-bit value. The processor can compute only on values that are in registers."],
       ["Compute", "An arithmetic or logic operation between registers: add, sub, and, or, xor, and their immediate forms such as addi."],
@@ -104,6 +108,13 @@ Deck({
       ["sp", "stack pointer", "top of the stack, kept 16-byte aligned", "yes"],
       ["zero", "zero", "always reads as 0; writes are ignored", "-"],
     ], "The roles are fixed not by the hardware but by an agreement: the calling convention, or ABI. Following it is what lets your assembly and the framework's C code call each other.", { widths: [1.6, 2.2, 5.6, 3], mono: [0], caption: "The roles come from an agreement, the calling convention (ABI), not from the hardware." }),
+    T("Functions: a piece of program with a name", [
+      "A function is a sequence of instructions that does one job, such as clearing the screen, and starts at a label: its name",
+      "To call a function is to jump to its first instruction after noting where to come back: the instruction call does both",
+      "When its job is done the function returns: ret jumps back to the instruction that follows the call",
+      "Arguments are the values a function needs for its job: in RISC-V they travel in the registers a0 to a7",
+      "PRG32 offers ready-made functions such as prg32_gfx_clear; you write three of your own, which the runtime calls",
+    ], "The caller is the code that calls; the callee is the function called. The place to come back to is kept in the register ra, the return address: this is why step 2 saves ra before its own calls, and restores it before ret."),
     F("The contract: three functions that you write", [
       "init|called once, when the cartridge starts: set up your state",
       "update|called once per frame: read input, change the state",
@@ -111,6 +122,13 @@ Deck({
     ], "The firmware finds the three functions by name: a prefix that you choose, followed by _init, _update and _draw. That is the whole contract between your game and the machine."),
 
     H("Your first cartridge", "Four small steps, each one a complete program that runs."),
+    G("How to read one line of assembly", ["Part", "Example", "What it is"], [
+      ["label", "first_update:", "a name for this place in the program; it ends with a colon"],
+      ["instruction", "addi", "the operation to perform: here, add a constant"],
+      ["operands", "t1, t1, 1", "what it works on: the destination first, then the sources"],
+      ["comment", "# one more tick", "a note for people: from # to the end of the line, ignored"],
+      ["directive", ".section .text", "an order to the assembler, not to the processor; it begins with a dot"],
+    ], "Read the line addi t1, t1, 1 aloud as: put t1 plus 1 into t1. The destination comes first, as in the assignment t1 = t1 + 1. A line can hold a label, an instruction, a comment, or several of these; blank lines and indentation matter to the reader, not to the assembler.", { widths: [2.4, 3.8, 6.6], mono: [1], caption: "first_update:   addi t1, t1, 1   # one more tick" }),
     K("Step 1: the smallest program that runs", SKELETON, [
       ".option norelax keeps the layout of the cartridge predictable: every PRG32 example starts with it",
       ".section .text says that what follows is executable code",
@@ -230,6 +248,7 @@ Deck({
     Q("After la t0, counter and lw t1, 0(t0), what does t0 hold?", ["The value of the counter", "The address of the counter", "Zero, because la clears the register", "The return address"], 1, "la loads the address of the label; lw then reads the value stored at that address into t1."),
     Q("A function that calls prg32_gfx_clear must save one register before the call. Which one?", ["a0, because it carries the argument", "sp, because the stack moves", "ra, because call overwrites it", "t0, because it is temporary"], 2, "call writes the return address in ra. The callee's own calls would overwrite it, so a non-leaf function saves ra on the stack and restores it before ret."),
     Q("t1 holds 300. What does andi a2, t1, 255 leave in a2?", ["300", "255", "45", "44"], 3, "300 = 256 + 44 = 1 0010 1100 in binary. AND with 1111 1111 keeps the low eight bits: 0010 1100 = 44."),
+    Q("What number is 0x1F?", ["the decimal number 1F", "31: one sixteen plus fifteen", "the register t1F", "a comment"], 1, "0x marks a hexadecimal number. 1 means one sixteen and F means fifteen units: 16 + 15 = 31, which is 1 1111 in binary."),
     X("Exercises on PRG32", [
       "Change the title string and its colour to yellow (0xffe0); run it again",
       "Make the bar grow twice as fast, then four times as fast, changing one instruction only",

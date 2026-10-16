@@ -31,8 +31,8 @@
       "use": "01",
       "formal": "01",
       "practice": [
-        "01:37",
-        "01:38"
+        "01:42",
+        "01:43"
       ]
     },
     "prg32.contract": {
@@ -120,7 +120,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:26"
+        "02:30"
       ]
     },
     "asm.instructions": {
@@ -132,7 +132,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:26"
+        "02:30"
       ]
     },
     "asm.pseudo": {
@@ -165,7 +165,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:26"
+        "02:30"
       ]
     },
     "abi.return-address": {
@@ -177,7 +177,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:24",
+        "02:27",
         "07:28"
       ]
     },
@@ -215,7 +215,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:23"
+        "02:26"
       ]
     },
     "isa.instruction-is-data": {
@@ -282,7 +282,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:26"
+        "02:30"
       ]
     },
     "verm1.project": {
@@ -334,8 +334,8 @@
         "en": "bit, byte, word",
         "it": "bit, byte, parola"
       },
-      "intro": "04",
-      "use": "04",
+      "intro": "02",
+      "use": "02",
       "formal": "04",
       "practice": [
         "04:30"
@@ -359,7 +359,7 @@
         "it": "l'esadecimale"
       },
       "intro": "02",
-      "use": "04",
+      "use": "02",
       "formal": "04",
       "practice": [
         "04:34"
@@ -1191,6 +1191,51 @@
       "practice": [
         "24:45"
       ]
+    },
+    "prog.program": {
+      "label": {
+        "en": "program, source and machine code",
+        "it": "programma, sorgente, codice macchina"
+      },
+      "intro": "01",
+      "use": "01",
+      "formal": "01",
+      "practice": [
+        "01:44"
+      ]
+    },
+    "tool.terminal": {
+      "label": {
+        "en": "the terminal",
+        "it": "il terminale"
+      },
+      "intro": "01",
+      "use": "01",
+      "formal": null,
+      "practice": [],
+      "reason": "An operational skill: a handful of commands (pwd, ls, cd) and the habit of reading error messages, taught in Lecture 01 and used in every lecture; the shell itself is not a subject of the course."
+    },
+    "prog.function": {
+      "label": {
+        "en": "functions, call and return",
+        "it": "funzioni, chiamata e ritorno"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:27"
+      ]
+    },
+    "asm.line": {
+      "label": {
+        "en": "reading a line of assembly",
+        "it": "leggere una riga di assembly"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": []
     }
   }
 }

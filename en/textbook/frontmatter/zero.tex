@@ -1,0 +1,210 @@
+\chapter{Starting from Zero}
+\label{ch:zero}
+
+This course has no prerequisites. Most of its students have never written a
+program, and none is expected to know how a computer is built. This chapter is
+for them. It explains, in plain words, the few ideas and the few dozen words
+that the first lectures use from the very first day; everything here is taught
+again, properly, in its own chapter. Read it before Lecture~01, and come back
+to it whenever a word on a slide is unfamiliar: the small dictionary at the end
+says where each one is explained in full.
+
+\section*{What a computer does}
+
+A computer has three kinds of parts. The \term{processor} does the work. The
+\term{memory} keeps the program and the data while the computer is on. The
+\term{input and output} devices connect it to the world: a keyboard, a
+joystick, a screen, a speaker, a network.
+
+The processor does one thing, very fast: it executes \term{instructions}.
+An instruction is a small, exact order, such as ``add these two numbers'',
+``copy this value from memory'', or ``if this number is zero, continue from
+over there''. Each instruction does very little; a processor executes hundreds
+of millions of them every second, and everything a computer does, from a game
+to a video call, is a long sequence of such small steps. A \term{program} is
+the list of instructions that produces a given behaviour. Chapter~\ref{ch:history}
+tells how this idea, a program kept in memory like any other data, was born in
+1945, and why it still describes the computer on your desk.
+
+\section*{Bits, bytes and the numbers on the page}
+
+Inside a computer everything, numbers, letters, colours, instructions, is
+stored as \term{bits}: digits that can only be 0 or 1. Eight bits form a
+\term{byte}; thirty-two bits, four bytes, form a \term{word}, the size of the
+numbers that the processor of this course handles in one step.
+
+A number written with bits is in \term{binary}, base~2: each position is worth
+twice the one on its right, so $1010_2 = 8 + 2 = 10$. Binary is exact but
+long, so programmers group the bits four at a time and write each group as one
+\term{hexadecimal} digit, base~16: the digits 0 to 9 and then A to F for ten
+to fifteen. The prefix \texttt{0x} marks a hexadecimal number.
+
+\begin{center}\small
+\begin{tabular}{rll}
+\toprule
+\textbf{Decimal} & \textbf{Binary} & \textbf{Hexadecimal}\\
+\midrule
+0 & \texttt{0000} & \hex{0}\\
+1 & \texttt{0001} & \hex{1}\\
+9 & \texttt{1001} & \hex{9}\\
+10 & \texttt{1010} & \hex{A}\\
+15 & \texttt{1111} & \hex{F}\\
+16 & \texttt{1 0000} & \hex{10}\\
+255 & \texttt{1111 1111} & \hex{FF}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Because one hexadecimal digit is exactly four bits, the colour green
+of \prg, \hex{07E0}, is \texttt{0000 0111 1110 0000} in binary. For the first
+weeks it is enough to recognise these notations; Chapter~\ref{ch:information}
+explains them, with conversions in both directions.
+
+\section*{From text to machine code}
+
+The processor reads instructions as numbers. This numeric form of a program is
+called \term{machine code}. Nobody writes it by hand: people write
+\term{source code}, a text file in a \term{programming language}, and a
+translator turns it into machine code. This course uses \term{assembly}, the
+language closest to the machine, in which one line becomes one instruction; the
+translator for assembly is the \term{assembler}. For C, a language that the
+\prg examples also use, the translator is a \term{compiler}. The set of these
+translators and of their helpers is the \term{toolchain}, which Lecture~01
+installs. Here is one instruction in its two forms:
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+\textbf{You write (source code)} & \textbf{The processor reads (machine code)}\\
+\midrule
+\texttt{addi a0, a0, 1} & \hex{00150513}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent On \prg the result of the translation is a \term{cartridge}: one
+small file, ending in \fname{.prg32}, that holds the machine code of a game, its
+data and a short header, like the cartridges of the consoles of the 1980s.
+
+\section*{Who runs your program}
+
+A game never runs on an empty machine. On the \prg kit, another program, the
+\term{firmware}, starts when the board is switched on, stays in memory and owns
+the screen, the buttons and the sound. It is kept in \term{flash} memory, which,
+like a USB stick, keeps its contents when the power is off. The part of the
+firmware that a game talks to is the \term{runtime}: it calls the game once for
+every \term{frame}, every new picture on the screen, and lends it ready-made
+functions to draw and to play sounds.
+
+Any machine that offers this runtime is a \term{host}. There are three: the
+board; QEMU, an \term{emulator}, a program that imitates a processor on a
+laptop; and \prgqt, an application whose \term{interpreter} reads each
+instruction of the cartridge and carries it out in software. The same
+cartridge runs on all three. \prgqt also contains the \term{debugger} of the
+course: a tool that pauses a program, runs it one instruction at a time, and
+shows what is inside the machine at every step.
+
+\section*{The terminal, in ten minutes}
+
+Installing and building use the \term{terminal}: a window in which commands are
+typed instead of clicked. The terminal shows a \term{prompt}, a short line
+ending in \texttt{\$} or \texttt{>}, and waits. One types a command and presses
+Enter; the computer runs it and prints its answer below. At every moment the
+terminal is ``in'' a folder, the \term{current folder}, and commands act on
+the files there. A \term{path} names a file by the folders that lead to it,
+such as \fname{\textasciitilde/PRG32/}\allowbreak\fname{examples/pong.S}, where
+\fname{\textasciitilde} is your home folder.
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+\textbf{To} & \textbf{macOS and Linux} & \textbf{Windows PowerShell}\\
+\midrule
+see which folder you are in & \texttt{pwd} & \texttt{pwd}\\
+list the files in that folder & \texttt{ls} & \texttt{dir}\\
+enter the folder PRG32 & \texttt{cd PRG32} & \texttt{cd PRG32}\\
+go back up one folder & \texttt{cd ..} & \texttt{cd ..}\\
+go to your home folder & \texttt{cd \textasciitilde} & \texttt{cd \textasciitilde}\\
+stop the program that is running & Ctrl+C & Ctrl+C\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The Tab key completes a name that you have started to type, and the
+up arrow recalls the previous command. A \term{repository} is a folder of
+source code whose history is kept by a program called \texttt{git};
+\texttt{git clone} copies one from the Internet onto your laptop.
+
+A command that works often prints little or nothing. A command that fails
+prints a message, and the message almost always names the cause: read all of
+it, from the first line that says \emph{error}, before changing anything.
+Four messages cover most problems of the first week. \emph{command not found}:
+the program is not installed, or not active in this terminal. \emph{No such file
+or directory}: wrong folder or wrong name, which \texttt{pwd} and \texttt{ls}
+reveal. \emph{Permission denied}: the command needs rights that you do not
+have here. \emph{Connection refused}: the program you are talking to, such as
+\prgqt, is not running. When you ask for help, copy the command and the whole
+message as text.
+
+\section*{Reading one line of assembly}
+
+A line of assembly has at most four parts:
+
+\begin{asm}
+first_update:   addi t1, t1, 1      # one more tick
+\end{asm}
+
+\noindent \code{first\_update:} is a \term{label}, a name for this place in the
+program, ending in a colon; a label often marks the start of a
+\term{function}, a piece of program with a name that does one job.
+\ins{addi} is the \term{instruction}, here ``add a constant''. \code{t1, t1, 1}
+are the \term{operands}: the destination comes first, then the sources, so the
+line reads ``put \reg{t1} plus 1 into \reg{t1}''. Everything after \code{\#} is
+a \term{comment}, written for people and ignored by the assembler. A line that
+begins with a dot, such as \code{.section .text}, is a \term{directive}: an
+order to the assembler, not to the processor.
+
+\section*{Registers, memory, addresses}
+
+The processor computes only on its \term{registers}: thirty-two small storage
+cells inside it, each holding one word. Memory is much larger: a long row of
+cells, one byte each, numbered from zero; the number of a cell is its
+\term{address}. To work on a value kept in memory, a program first
+\term{loads} it into a register (\ins{lw}), computes on it, and then
+\term{stores} it back (\ins{sw}). The difference between an address, where a
+value lives, and the value itself is the single most important idea of the
+first weeks; Chapter~\ref{ch:firstcontact} shows it with two arrows.
+
+To use a function, a program \term{calls} it: \ins{call} jumps to the first
+instruction of the function and records where to come back in the register
+\reg{ra}; \ins{ret} returns there. The values that the function needs, its
+\term{arguments}, travel in the registers \reg{a0} to \reg{a7}.
+
+\section*{A small dictionary for the first weeks}
+
+\begin{description}\small
+\item[ABI] the agreement on how a program and the runtime call each other; Chapters~\ref{ch:setup} and~\ref{ch:processor}.
+\item[Bit, byte, word] one binary digit; eight bits; thirty-two bits; Chapter~\ref{ch:information}.
+\item[Breakpoint] a mark on an instruction where the debugger stops the program; Chapter~\ref{ch:setup}.
+\item[Clock] the signal that paces the processor; 160\,MHz means 160 million steps per second; Chapter~\ref{ch:sequential}.
+\item[Frame] one picture on the screen; a game draws thirty or more each second; Chapter~\ref{ch:firstcontact}.
+\item[Instruction set (ISA)] the list of instructions a processor understands; Chapters~\ref{ch:history} and~\ref{ch:instructions}.
+\item[Pixel] one coloured dot of the screen; Chapter~\ref{ch:information}.
+\item[Stack] an area of memory where functions keep values for a while; Chapters~\ref{ch:firstcontact} and~\ref{ch:processor}.
+\item[Two's complement] the way computers store negative integers; Chapter~\ref{ch:integers}.
+\end{description}
+
+\noindent Appendix~\ref{app:glossary} lists every term of the course, in
+English and in Italian.
+
+\section*{How to study when you start from zero}
+
+Three habits matter more than any previous knowledge. \emph{Predict before you
+run}: before executing a program, write down what you expect to see; a wrong
+prediction is the most useful thing that can happen, because it shows exactly
+what to learn next. \emph{Read the whole message}: errors are information, not
+failure, and almost every one names its cause. \emph{Ask early}: a question
+asked in the first weeks costs minutes, the same question in December costs
+days. The questions at the end of each chapter take a few minutes a week; they
+are the best preparation for the examination, and the best way to find out,
+early, what is not yet clear.

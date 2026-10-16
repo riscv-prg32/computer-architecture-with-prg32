@@ -41,6 +41,17 @@
     ],
     "ans": 2,
     "why": "Una cartuccia portabile dipende soltanto dall'ABI, la tabella di funzioni del runtime, che ogni host fornisce."
+   },
+   {
+    "q": "Che cosa fa un assemblatore?",
+    "opts": [
+     "esegue il programma sul processore",
+     "traduce il sorgente assembly in codice macchina",
+     "invia la cartuccia a un host",
+     "mostra i registri"
+    ],
+    "ans": 1,
+    "why": "L'assembly è testo per le persone; il processore legge numeri. L'assemblatore traduce il primo nei secondi; il runtime di un host esegue poi il risultato."
    }
   ],
   "gloss": [
@@ -122,6 +133,17 @@
     ],
     "ans": 3,
     "why": "300 = 256 + 44 = 1 0010 1100 in binario. AND con 1111 1111 conserva gli otto bit bassi: 0010 1100 = 44."
+   },
+   {
+    "q": "Quale numero è 0x1F?",
+    "opts": [
+     "il numero decimale 1F",
+     "31: un sedici più quindici",
+     "il registro t1F",
+     "un commento"
+    ],
+    "ans": 1,
+    "why": "0x indica un numero esadecimale. 1 vale un sedici e F vale quindici unità: 16 + 15 = 31, cioè 1 1111 in binario."
    }
   ],
   "gloss": [

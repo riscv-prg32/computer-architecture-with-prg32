@@ -91,6 +91,10 @@ Deck({
     ], "Dire esplicitamente agli studenti che oggi non ci si aspetta che capiscano tutto. Oggi si guarda; le prossime lezioni servono a spiegare."),
 
     H("La macchina", "Trentadue registri e un piccolo repertorio di istruzioni."),
+    G("Binario ed esadecimale: come leggere i numeri", ["Decimale", "Binario", "Esadecimale"], [
+      ["0", "0000", "0x0"], ["1", "0001", "0x1"], ["9", "1001", "0x9"], ["10", "1010", "0xA"],
+      ["15", "1111", "0xF"], ["16", "1 0000", "0x10"], ["255", "1111 1111", "0xFF"],
+    ], "Il computer conserva tutto come bit, cifre che valgono 0 o 1: un numero scritto con i bit è in binario, base 2. Le lunghe file di bit sono difficili da leggere, così i programmatori le raggruppano quattro alla volta e scrivono ogni gruppo con una cifra esadecimale, base 16: da 0 a 9, poi da A a F per i valori da dieci a quindici. Il prefisso 0x dice che un numero è esadecimale. Oggi basta riconoscere questi numeri; la Lezione 04 spiega come convertirli.", { widths: [3.6, 4.6, 4.6], mono: [1, 2], caption: "Una cifra esadecimale vale esattamente quattro bit: 0x07E0 è 0000 0111 1110 0000." }),
     C("La macchina che state programmando", [
       ["32 registri", "Ogni registro contiene un valore a 32 bit. Il processore sa calcolare solo su valori che stanno nei registri."],
       ["Calcolare", "Un'operazione aritmetica o logica tra registri: add, sub, and, or, xor, e le forme con immediato come addi."],
@@ -105,6 +109,13 @@ Deck({
       ["sp", "puntatore allo stack", "cima dello stack, sempre allineata a 16 byte", "sì"],
       ["zero", "zero", "si legge sempre 0; le scritture sono ignorate", "-"],
     ], "I ruoli non sono fissati dall'hardware ma da un accordo: la convenzione di chiamata, o ABI. Rispettarla è ciò che permette al vostro assembly e al codice C del framework di chiamarsi a vicenda.", { widths: [1.6, 2.2, 5.6, 3], mono: [0], caption: "I ruoli vengono da un accordo, la convenzione di chiamata (ABI), non dall'hardware." }),
+    T("Le funzioni: un pezzo di programma con un nome", [
+      "Una funzione è una sequenza di istruzioni che svolge un compito, come cancellare lo schermo, e comincia a un'etichetta: il suo nome",
+      "Chiamare una funzione significa saltare alla sua prima istruzione dopo aver annotato dove tornare: l'istruzione call fa entrambe le cose",
+      "Finito il compito, la funzione ritorna: ret salta all'istruzione che segue la chiamata",
+      "Gli argomenti sono i valori di cui la funzione ha bisogno: in RISC-V viaggiano nei registri da a0 ad a7",
+      "PRG32 offre funzioni già pronte come prg32_gfx_clear; voi ne scrivete tre, che il runtime chiama",
+    ], "Il chiamante è il codice che chiama; il chiamato è la funzione chiamata. Il punto a cui tornare è conservato nel registro ra, l'indirizzo di ritorno: per questo il passo 2 salva ra prima delle proprie chiamate e lo ripristina prima di ret."),
     F("Il contratto: tre funzioni che scrivete voi", [
       "init|chiamata una volta, all'avvio della cartuccia: prepara lo stato",
       "update|chiamata una volta per frame: legge l'ingresso, cambia lo stato",
@@ -112,6 +123,13 @@ Deck({
     ], "Il firmware trova le tre funzioni per nome: un prefisso scelto da voi, seguito da _init, _update e _draw. È l'intero contratto tra il vostro gioco e la macchina."),
 
     H("La prima cartuccia", "Quattro piccoli passi, ognuno un programma completo che gira."),
+    G("Come leggere una riga di assembly", ["Parte", "Esempio", "Che cos'è"], [
+      ["etichetta", "first_update:", "un nome per questo punto del programma; termina con i due punti"],
+      ["istruzione", "addi", "l'operazione da eseguire: qui, sommare una costante"],
+      ["operandi", "t1, t1, 1", "ciò su cui lavora: prima la destinazione, poi le sorgenti"],
+      ["commento", "# one more tick", "una nota per le persone: da # a fine riga, ignorata"],
+      ["direttiva", ".section .text", "un ordine all'assemblatore, non al processore; comincia con un punto"],
+    ], "La riga addi t1, t1, 1 si legge ad alta voce così: metti in t1 il valore di t1 più 1. La destinazione viene per prima, come nell'assegnamento t1 = t1 + 1. Una riga può contenere un'etichetta, un'istruzione, un commento, o più d'uno di questi; righe vuote e rientri contano per chi legge, non per l'assemblatore.", { widths: [2.4, 3.8, 6.6], mono: [1], caption: "first_update:   addi t1, t1, 1   # one more tick" }),
     K("Passo 1: il più piccolo programma che gira", SKELETON, [
       ".option norelax rende prevedibile la disposizione della cartuccia: ogni esempio PRG32 comincia così",
       ".section .text dice che ciò che segue è codice eseguibile",
@@ -231,6 +249,7 @@ Deck({
     Q("Dopo la t0, counter e lw t1, 0(t0), che cosa contiene t0?", ["Il valore del contatore", "L'indirizzo del contatore", "Zero, perché la azzera il registro", "L'indirizzo di ritorno"], 1, "la carica l'indirizzo dell'etichetta; lw legge poi in t1 il valore memorizzato a quell'indirizzo."),
     Q("Una funzione che chiama prg32_gfx_clear deve salvare un registro prima della chiamata. Quale?", ["a0, perché porta l'argomento", "sp, perché lo stack si sposta", "ra, perché call lo sovrascrive", "t0, perché è temporaneo"], 2, "call scrive in ra l'indirizzo di ritorno. Le chiamate della funzione chiamata lo sovrascriverebbero: una funzione non foglia salva ra sullo stack e lo ripristina prima di ret."),
     Q("t1 contiene 300. Che cosa lascia in a2 l'istruzione andi a2, t1, 255?", ["300", "255", "45", "44"], 3, "300 = 256 + 44 = 1 0010 1100 in binario. AND con 1111 1111 conserva gli otto bit bassi: 0010 1100 = 44."),
+    Q("Quale numero è 0x1F?", ["il numero decimale 1F", "31: un sedici più quindici", "il registro t1F", "un commento"], 1, "0x indica un numero esadecimale. 1 vale un sedici e F vale quindici unità: 16 + 15 = 31, cioè 1 1111 in binario."),
     X("Esercizi su PRG32", [
       "Cambiate la stringa del titolo e il suo colore in giallo (0xffe0); eseguite di nuovo",
       "Fate crescere la barra a velocità doppia, poi quadrupla, cambiando una sola istruzione",

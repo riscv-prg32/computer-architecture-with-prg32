@@ -16,6 +16,7 @@ letta la risposta non insegna niente.
 \answer{1.1}{B}{\emph{ESP-IDF non è attivo in questo terminale.} L'attivazione dura quanto il terminale: eseguite export.sh, oppure aprite ESP-IDF PowerShell.}
 \answer{1.2}{C}{\emph{PRG32-QT.} PRG32-QT interpreta la cartuccia e ha un debugger integrato; il compilatore serve solo per compilare le cartucce.}
 \answer{1.3}{C}{\emph{chiama il runtime attraverso la stessa tabella di funzioni su ogni host.} Una cartuccia portabile dipende soltanto dall'ABI, la tabella di funzioni del runtime, che ogni host fornisce.}
+\answer{1.4}{B}{\emph{traduce il sorgente assembly in codice macchina.} L'assembly è testo per le persone; il processore legge numeri. L'assemblatore traduce il primo nei secondi; il runtime di un host esegue poi il risultato.}
 \end{description}
 
 \section*{Capitolo 2: Primo contatto}
@@ -23,6 +24,7 @@ letta la risposta non insegna niente.
 \answer{2.1}{B}{\emph{L'indirizzo del contatore.} la carica l'indirizzo dell'etichetta; lw legge poi in t1 il valore memorizzato a quell'indirizzo.}
 \answer{2.2}{C}{\emph{ra, perché call lo sovrascrive.} call scrive in ra l'indirizzo di ritorno. Le chiamate della funzione chiamata lo sovrascriverebbero: una funzione non foglia salva ra sullo stack e lo ripristina prima di ret.}
 \answer{2.3}{D}{\emph{44.} 300 = 256 + 44 = 1 0010 1100 in binario. AND con 1111 1111 conserva gli otto bit bassi: 0010 1100 = 44.}
+\answer{2.4}{B}{\emph{31: un sedici più quindici.} 0x indica un numero esadecimale. 1 vale un sedici e F vale quindici unità: 16 + 15 = 31, cioè 1 1111 in binario.}
 \end{description}
 
 \section*{Capitolo 3: Storia della computazione}

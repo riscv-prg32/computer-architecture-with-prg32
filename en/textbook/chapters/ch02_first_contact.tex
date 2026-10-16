@@ -30,6 +30,38 @@ first assembly laboratory of the \prg textbook \citep{prg32textbook}.
 % ----------------------------------------------------------------------------
 \section{The machine}
 
+\subsection{Binary and hexadecimal: how to read the numbers}
+
+Before the first program, a word on how its numbers are written, because
+assembly code is full of them. A computer stores everything as \term{bits},
+digits that are 0 or~1; a number written with bits is in \term{binary}, base~2,
+where each position is worth twice the one on its right: $1010_2 = 8 + 2 = 10$.
+Long rows of bits are hard to read, so programmers group them four at a time
+and write each group as one \term{hexadecimal} digit, base~16: 0 to 9, then A to
+F for ten to fifteen. The prefix \texttt{0x} says that a number is hexadecimal,
+so \hex{10} is sixteen and not ten.
+
+\begin{center}\small
+\begin{tabular}{rll}
+\toprule
+\textbf{Decimal} & \textbf{Binary} & \textbf{Hexadecimal}\\
+\midrule
+0 & \texttt{0000} & \hex{0}\\
+1 & \texttt{0001} & \hex{1}\\
+9 & \texttt{1001} & \hex{9}\\
+10 & \texttt{1010} & \hex{A}\\
+15 & \texttt{1111} & \hex{F}\\
+16 & \texttt{1 0000} & \hex{10}\\
+255 & \texttt{1111 1111} & \hex{FF}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent One hexadecimal digit is exactly four bits: \hex{07E0}, the green of
+\prg, is \texttt{0000 0111 1110 0000}. Today it is enough to recognise these
+notations; Chapter~\ref{ch:information} explains them, with conversions in
+both directions.
+
 \subsection{Registers, and three kinds of instruction}
 
 A \riscv processor, seen by the programmer, is a very small thing.
@@ -78,6 +110,21 @@ Appendix~\ref{app:riscv}.}\label{tab:fc:regs}
 \end{tabularx}
 \end{table}
 
+\subsection{Functions: a piece of program with a name}
+
+A \term{function} is a sequence of instructions that does one job, such as
+clearing the screen, and starts at a label, which gives it its name. To
+\term{call} a function is to jump to its first instruction after noting where
+to come back: the instruction \ins{call} does both. When its job is done the
+function \term{returns}: \ins{ret} jumps back to the instruction that follows
+the call. The \term{arguments} are the values a function needs for its job; in
+\riscv they travel in the registers \reg{a0} to \reg{a7}. The code that calls
+is the \term{caller}, the function called is the \term{callee}, and the place
+to come back to is kept in the register \reg{ra}, the return address: this is
+why step~2 saves \reg{ra} before its own calls and restores it before \ins{ret}.
+\prg offers ready-made functions such as \code{prg32\_gfx\_clear}; you write
+three of your own, which the runtime calls.
+
 \subsection{The contract: three functions}
 
 A \prg game is three functions that the programmer writes and the firmware
@@ -104,6 +151,26 @@ between a game and the machine.
 
 % ----------------------------------------------------------------------------
 \section{Your first cartridge}
+
+\subsection{How to read one line of assembly}
+
+Before the first listing, a guide to reading it. A line of assembly has at most
+four parts:
+
+\begin{asm}
+first_update:   addi t1, t1, 1      # one more tick
+\end{asm}
+
+\noindent A \term{label}, \code{first\_update:}, is a name for this place in
+the program and ends with a colon. The \term{instruction}, \ins{addi}, is the
+operation to perform, here ``add a constant''. The \term{operands},
+\code{t1, t1, 1}, are what it works on: the destination first, then the
+sources, so the line reads ``put \reg{t1} plus 1 into \reg{t1}'', the
+assignment $t1 = t1 + 1$. A \term{comment} runs from \code{\#} to the end of the
+line and is ignored by the assembler. A line that begins with a dot, such as
+\code{.section .text}, is a \term{directive}: an order to the assembler, not to
+the processor. Blank lines and indentation matter to the reader, not to the
+assembler.
 
 \subsection{Step 1: the smallest program that runs}
 
@@ -447,6 +514,13 @@ three functions and a rectangle & Can a whole game be made out of this? & \vermo
 \item 255
 \item 45
 \item 44
+\end{quiz}
+
+\begin{quiz}{What number is \hex{1F}?}
+\item the decimal number 1F
+\item 31: one sixteen plus fifteen
+\item the register t1F
+\item a comment
 \end{quiz}
 
 \section{Exercises}
