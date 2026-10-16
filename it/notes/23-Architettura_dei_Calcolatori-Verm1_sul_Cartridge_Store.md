@@ -6,54 +6,54 @@ Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: impacchettare e p
 
 ## Slide 1: Verm1 sul Cartridge Store
 
-Il progetto finisce oggi, con il passo che trasforma un programma in un prodotto. Il vostro Verm1 gira sulla vostra scrivania; alla fine di questa lezione sarà un unico file che chiunque può installare, sul kit, su QEMU o su PRG32-QT, con un nome, un'icona e la vostra firma. La citazione, dal gruppo che costruì il primo Macintosh, dice che un lavoro è finito solo quando è stato consegnato.
+Il progetto si chiude oggi con il passo che trasforma un programma in un prodotto. Il Verm1 dello studente gira sulla sua scrivania; alla fine di questa lezione sarà un solo file che chiunque può installare, sul kit, su QEMU o su PRG32-QT, con un nome, un'icona e la firma del suo autore. La citazione, dal gruppo che costruì il primo Macintosh, sostiene che un'opera è finita solo quando è stata consegnata. La lezione tratta la consegna come una disciplina ingegneristica con i suoi concetti: identità, versioni, licenze e responsabilità.
 
 ## Slide 2: Che cosa avrete alla fine
 
-Cinque risultati. Il vostro gioco compilato per due architetture dallo stesso sorgente. Un manifest che gli dà un'identità: id, titolo, versione, autori, licenza. Un'icona e un colophon con crediti e comandi. Un bundle, un solo file ZIP, controllato e pronto per il Cartridge Store. E un'idea chiara di che cosa succede dopo la pubblicazione, e di che cosa rispondete.
+Cinque risultati. Il gioco compilato per due architetture da un solo sorgente. Un manifesto che gli dà un'identità: identificatore, titolo, versione, autori e licenza. Un'icona e un colophon con crediti e comandi. Un bundle, un solo file ZIP, verificato e pronto per il Cartridge Store. E una chiara comprensione di ciò che segue la pubblicazione, e di ciò di cui l'autore risponde.
 
 ## Slide 3: Perché pubblicare?
 
-Perché pubblicare? Un programma che gira solo sul calcolatore del suo autore è un esercizio; uno che altri possono installare è un prodotto. Pubblicare vi obbliga a rispondere a domande che un esercizio lascia saltare: come si chiama, chi l'ha fatto, su che cosa gira, che cosa possono farne gli altri. Il Cartridge Store è lo scaffale di PRG32, e ogni cartuccia che vi si trova è stata scritta da qualcuno che ha cominciato da dove avete cominciato voi.
+Perché pubblicare? Un programma che gira solo sul computer del suo autore è un esercizio; uno che altri possono installare è un prodotto. La pubblicazione impone risposte a domande che un esercizio permette di eludere: come si chiama il programma, chi lo ha fatto, su che cosa gira, e che cosa possono farne gli altri. Il Cartridge Store è lo scaffale di PRG32, e ogni cartuccia su di esso è stata scritta da qualcuno che ha cominciato da dove ha cominciato lo studente.
 
 ## Slide 4: Dal sorgente allo scaffale
 
-Il percorso dal sorgente allo scaffale in sei tappe: il vostro file sorgente; due cartucce, una per architettura; i metadati, cioè identità, icona e crediti; il bundle; la revisione di un redattore; lo Store. I primi quattro passi di oggi avvengono interamente sul vostro calcolatore. Solo il quinto parla con lo Store: fino ad allora nulla lascia la vostra macchina.
+Il percorso dal sorgente allo scaffale in sei fasi: il file sorgente; due cartucce, una per architettura; i metadati, che comprendono identità, icona e crediti; il bundle; la revisione da parte di un editore; e lo Store. I primi quattro passi di oggi avvengono interamente sul computer dello studente. Solo il quinto comunica con lo Store, così che fino ad allora nulla lasci la macchina.
 
 ## Slide 5: Prima di confezionare: è finito?
 
-Prima di confezionare, chiedetevi se il gioco è finito. Sei controlli, ciascuno con un metodo e uno strumento. Parte, si gioca e finisce: giocate tre partite intere. Nessun frame è in ritardo: guardate la telemetria. La memoria è coerente: mettete in pausa a caso e confrontate anello, mappa e schermo. Gira sulla seconda architettura, QEMU, e sul kit vero se ne avete uno. Ed è vostro: ha qualcosa che il riferimento non ha. Una cartuccia mai eseguita su un target non va pubblicata per quel target.
+Prima di impacchettare va stabilito se il gioco è finito. Sei verifiche, ciascuna con un metodo e uno strumento. Si avvia, si gioca e finisce: si giocano tre partite complete. Nessun frame è in ritardo: si osserva la telemetria. La memoria è coerente: si mette in pausa a caso e si confrontano anello, mappa e schermo, l'invariante della Parte 3. Gira sulla seconda architettura, QEMU, e sul kit fisico se è disponibile. Ed è davvero dell'autore: contiene qualcosa che il riferimento non ha. Una cartuccia mai eseguita su un target non va pubblicata per quel target.
 
 ## Slide 6: I campi, e a che cosa vi impegnano
 
-Ogni campo vi impegna a qualcosa. L'`id` è per consuetudine un nome di dominio rovesciato, e non cambia mai: metteteci il vostro nome, perché due studenti non possono pubblicare lo stesso. La `version` segue lo schema major, minor, patch, e una versione pubblicata si considera permanente: un errore si corregge con una nuova versione. Gli `authors` sono tutti quelli che hanno scritto il gioco. La `license` dice che cosa possono farne gli altri. I `tags` sono il modo in cui verrà trovato.
+Ogni campo del manifesto è un impegno. L'`id` è per convenzione un nome di dominio rovesciato e non cambia mai; deve contenere il nome dell'autore, perché due studenti non possono pubblicare lo stesso identificatore. La `version` segue lo schema maggiore, minore, correzione, e una versione pubblicata si considera immutabile: un errore si corregge con una nuova versione. Gli `authors` sono tutti coloro che hanno scritto il gioco. La `license` dice che cosa possono farne gli altri. I `tags` determinano come verrà trovato.
 
 ## Slide 7: Un'icona
 
-L'icona è una piccola immagine PNG che rappresenta il gioco sullo scaffale. Quella di riferimento è di 64 per 64 pixel: un verme e un pezzo di cibo con i colori del gioco. La pixel art si addice a una macchina di questa risoluzione: disegnate in grande, cella per cella, con qualunque editor che salvi PNG. Salvatela come `icon.png` accanto al manifest. E disegnatela voi: un'immagine presa dal web è il lavoro di qualcun altro.
+L'icona è una piccola immagine PNG che rappresenta il gioco sullo scaffale. L'icona di riferimento è di 64 per 64 pixel: un verme e un boccone di cibo nei colori del gioco. La pixel art si addice a una macchina di questa risoluzione; conviene disegnarla in grande, cella per cella, con qualsiasi editor che salvi in PNG, e salvarla come `icon.png` accanto al manifesto. Va disegnata dall'autore: un'immagine presa dal web è opera di qualcun altro.
 
 ## Slide 8: Un omaggio non è una copia
 
-Un omaggio non è una copia. Verm1 è un omaggio a Snake: l'idea di un verme che cresce è vecchia quanto Blockade, del 1976, e appartiene a tutti. Il nome, il codice, l'icona e i suoni sono nostri. Le regole di un gioco non sono protette; codice, immagini, musica e nomi sì. Quindi, prima di pubblicare, chiedetevi di ogni pezzo: l'ho fatto io? Se no, la sua licenza mi permette di pubblicarlo, e ho citato l'autore? Sopra c'è il vostro nome: pubblicate solo ciò che firmereste.
+Un omaggio non è una copia. Verm1 è un omaggio a Snake: l'idea di un verme che cresce è antica quanto Blockade, del 1976, e appartiene a tutti, mentre il nome, il codice, l'icona e i suoni sono originali. Le regole di un gioco non sono protette; codice, immagini, musica e nomi lo sono. Prima della pubblicazione ogni componente va quindi esaminata: l'ha fatta l'autore? Se no, la sua licenza ne permette la pubblicazione, e sono stati dati i crediti? Il nome dell'autore compare sull'opera, quindi va pubblicato solo ciò che l'autore firmerebbe.
 
 ## Slide 9: Che cosa succede dopo
 
-Che cosa succede dopo, in quattro tappe. *In attesa*: il bundle è conservato come invio, e non è ancora sullo scaffale. *Revisione*: un redattore controlla che si installi, giri, sia descritto onestamente e non contenga nulla che non sia vostro. *Pubblicato*: il gioco compare nello Store per le architetture dichiarate. E se trovate un errore: correggetelo, portate la versione a 1.0.1, confezionate e inviate di nuovo; la versione 1.0.0 resta com'era.
+Ciò che segue, in quattro fasi. *In attesa*: il bundle è conservato come proposta e non è ancora sullo scaffale. *Revisione*: un editore verifica che si installi, giri, sia descritto onestamente e non contenga nulla che non sia dell'autore. *Pubblicato*: il gioco compare nello Store per le architetture dichiarate. E se si trova un errore, lo si corregge, si porta la versione a 1.0.1, e il bundle si impacchetta e si propone di nuovo, mentre la versione 1.0.0 resta com'era.
 
 ## Slide 10: La lista di controllo per l'invio
 
-La lista di controllo per l'invio, sette punti: giocato fino alla fine su ogni architettura; `abi-table` per ogni file; id unico e vostro, versione nuova, descrizioni oneste; autori, licenza e colophon completi; i metadati giusti dentro ogni cartuccia; il bundle provato su un altro calcolatore; il token in nessun file. Una lista di controllo non è burocrazia: è lo strumento con cui gli esperti evitano gli errori degli esperti.
+La lista di controllo della proposta, sette punti: giocato fino alla fine su ogni architettura; `abi-table` presente in ogni file; identificatore unico e dell'autore, versione nuova, descrizioni oneste; autori, licenza e colophon completi; i metadati corretti dentro ogni cartuccia; il bundle provato su un altro computer; il token in nessun file. Una lista di controllo non è burocrazia: è lo strumento con cui gli esperti evitano gli errori che gli esperti commettono, una pratica presa in prestito dall'aviazione e dalla chirurgia.
 
 ## Slide 11: Verifica la comprensione: Avete pubblicato la versione 1.0.0 e trovato un errore. Che cosa fate? / Perché metadata.json non contiene la voce architectures?
 
-Ricordate la regola sulle versioni: ciò che è stato pubblicato si considera permanente.
+Per la prima domanda vale la regola sulle versioni: ciò che è stato pubblicato si considera permanente.
 
-Pensate a dove finiscono i metadati: dentro un file di cartuccia. Quante architetture ha un file di cartuccia?
+Per la seconda si considera dove finiscono i metadati, dentro un solo file di cartuccia, e quante architetture serve un solo file di cartuccia.
 
 ## Slide 12: Verifica la comprensione: Dove va tenuto il token dello Store?
 
-Un token è una credenziale, come una password. Quale dei quattro posti non è un file che viene condiviso?
+Un token è una credenziale, paragonabile a una password. La domanda è quale dei quattro luoghi non sia un file che viene mai condiviso.
 
 ## Slide 13: Che cosa avete costruito in questo corso
 
-Che cosa avete costruito in questo corso. Un gioco di seicento righe di assembly, cresciuto da tre funzioni che si limitavano a ritornare. Con esso, ogni livello della macchina: bit e numeri, porte e tabelle, stato e memoria, il processore, lo schermo, i dispositivi. Un metodo: un passo eseguibile alla volta, e uno sguardo dentro ogni volta che qualcosa vi sorprende. E l'ultimo passo, che ne fa ingegneria: un prodotto con un nome, una versione e un autore. La prossima lezione guarda oltre il kit.
+Ciò che lo studente ha costruito in questo corso. Un gioco di circa seicento righe di assembly, cresciuto da tre funzioni che si limitavano a ritornare, e con esso una conoscenza operativa di ogni livello della macchina: bit e numeri, porte e tabelle, stato e memoria, il processore, il display e i dispositivi. Un metodo: un passo eseguibile alla volta, e un'ispezione della macchina ogni volta che qualcosa sorprende. E il passo finale che rende il lavoro ingegneria: un prodotto con un nome, una versione e un autore. La prossima lezione guarda oltre il kit.

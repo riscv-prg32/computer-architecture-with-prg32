@@ -6,84 +6,84 @@ Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: i multiplexer; le
 
 ## Slide 1: Macchine combinatorie
 
-Le lezioni precedenti vi hanno dato le porte e un metodo per combinarle. Questa è un catalogo delle macchine che i progettisti usano davvero: decodificatori, codificatori, multiplexer, comparatori, reti di parità, e infine l'unità aritmetico-logica. Per ciascuna imparate che cosa fa, come è costruita, e dove sta dentro un processore RISC-V. Il giovane Turing della citazione vuole carote e piselli ben separati: questa lezione parla di tenere le cose distinte, e di scegliere tra esse.
+Le lezioni precedenti hanno fornito le porte e un metodo per combinarle. Questa è un catalogo delle macchine combinatorie standard con cui i progettisti costruiscono davvero i sistemi: decoder, encoder, multiplexer, comparatori, reti di parità, e infine l'unità aritmetico-logica. Per ciascuna la lezione stabilisce che cosa calcola, come si costruisce e dove si trova dentro un processore RISC-V. Il giovane Turing della citazione pretende che carote e piselli restino separati; anche questa lezione parla di tenere distinti i segnali e di scegliere tra di essi.
 
 ## Slide 2: Che cosa saprete fare alla fine
 
-Sei obiettivi. Distinguere una macchina combinatoria da una sequenziale. Calcolare quanti bit richiede un codice e riconoscere codici incompleti e ridondanti. Progettare un decodificatore e un codificatore, e dire che cosa fa un transcodificatore. Spiegare multiplexer e demultiplexer e costruirli con le porte. Costruire un comparatore e una rete di parità, sapendo che cosa un controllo di parità può e non può rilevare. E indicare ciascuna di queste macchine dentro il processore.
+Sei risultati di apprendimento. Distinguere una macchina combinatoria da una sequenziale. Calcolare il numero di bit che un codice richiede, e riconoscere codici incompleti e ridondanti. Progettare un decoder e un encoder, e spiegare che cosa fa un transcodificatore. Spiegare multiplexer e demultiplexer e costruirli con le porte. Costruire un comparatore e una rete di parità, con chiaro che cosa un controllo di parità può e non può rilevare. E collocare ciascuna di queste macchine dentro il processore.
 
 ## Slide 3: Una tassonomia dei circuiti digitali
 
-I circuiti digitali sono di due tipi. In un circuito *combinatorio* le uscite in un dato istante dipendono solo dagli ingressi in quello stesso istante: non c'è memoria né retroazione, e una tabella di verità descrive completamente il circuito. In un circuito *sequenziale* le uscite dipendono anche dalla storia passata degli ingressi: servono le nozioni di tempo e di stato. Sommatori, decodificatori e multiplexer sono combinatori; flip-flop, registri e il processore nel suo insieme sono sequenziali, e sono l'argomento della Lezione 13.
+I circuiti digitali si dividono in due classi. In un circuito *combinatorio* le uscite in un dato istante dipendono solo dagli ingressi in quello stesso istante: non c'è né memoria né retroazione, e una tavola di verità descrive completamente il circuito. In un circuito *sequenziale* le uscite dipendono anche dalla storia degli ingressi, quindi servono le nozioni di tempo e di stato. Sommatori, decoder e multiplexer sono combinatori; flip-flop, registri e il processore nel suo insieme sono sequenziali, e sono l'argomento della Lezione 13.
 
 ## Slide 4: Le porte reali richiedono tempo
 
-Una porta reale non risponde all'istante: la sua uscita si assesta dopo un *ritardo di propagazione*, come ha spiegato la Lezione 10. Il ritardo di una rete è quello del suo percorso più lento da un ingresso a un'uscita, il *percorso critico*. Mentre i segnali viaggiano le uscite possono essere temporaneamente sbagliate. Quindi una macchina combinatoria è corretta solo dopo essersi assestata, e qualcosa deve dire quando guardarne le uscite. Quel qualcosa è il clock, ed è lì che cominciano le macchine sequenziali.
+Una porta fisica non risponde istantaneamente: la sua uscita si assesta dopo un *ritardo di propagazione*, la cui origine è stata spiegata nella Lezione 10. Il ritardo di una rete è quello del suo cammino più lento da un ingresso a un'uscita, il *cammino critico*. Mentre i segnali si propagano, le uscite possono essere temporaneamente errate. Una macchina combinatoria è quindi corretta solo dopo essersi assestata, e qualche meccanismo deve indicare quando le sue uscite si possono campionare. Quel meccanismo è il clock, e con esso comincia lo studio delle macchine sequenziali.
 
 ## Slide 5: Codici a lunghezza fissa
 
-Un *codice* associa a ogni elemento di un insieme di N elementi una stringa di simboli, la *parola codice*. In un codice a lunghezza fissa tutte le parole hanno la stessa lunghezza m. Con un alfabeto di k simboli le parole sono k alla m, quindi m deve essere almeno il logaritmo di N, arrotondato per eccesso. In binario: quattordici voti richiedono 4 bit, e i 32 registri di RISC-V ne richiedono esattamente 5. Quando N non è una potenza di due alcune parole restano inutilizzate, e il codice è *incompleto*.
+Un *codice* associa a ogni elemento di un insieme di N elementi una stringa di simboli, la sua *parola di codice*. In un codice a lunghezza fissa ogni parola ha la stessa lunghezza m. Con un alfabeto di k simboli ci sono k^m parole, quindi m deve essere almeno il logaritmo in base k di N, arrotondato per eccesso. In binario quattordici elementi richiedono 4 bit, e i 32 registri di RISC-V ne richiedono esattamente 5, ed è per questo che ogni campo registro di un'istruzione è largo cinque bit. Quando N non è una potenza di due alcune parole restano inutilizzate, e il codice è *incompleto*.
 
 ## Slide 6: Un codice incompleto: il decimale codificato in binario
 
-Il classico codice incompleto: le cifre decimali su quattro bit. Nel BCD 8421 ogni cifra è semplicemente il suo valore in binario; nell'eccesso 3 il valore è aumentato di tre. Dieci cifre richiedono quattro bit, e quattro bit danno sedici parole, quindi sei non si usano mai: nel BCD, le parole da 1010 a 1111. Ricordate la didascalia: quando si progetta un circuito che riceve cifre BCD, quelle sei parole sono indifferenze e semplificano il circuito.
+Il classico codice incompleto: le cifre decimali su quattro bit. Nel BCD 8421 ogni cifra è semplicemente il suo valore in binario; nell'eccesso 3 il valore è aumentato di tre. Dieci cifre richiedono quattro bit, e quattro bit danno sedici parole, quindi sei non si usano mai: nel BCD, le parole da 1010 a 1111. La didascalia ne trae la conseguenza di progetto: in un circuito che riceve cifre BCD quelle sei parole sono condizioni di indifferenza, e sfruttarle semplifica il circuito.
 
 ## Slide 7: Codici ridondanti
 
-Un codice *ridondante* usa più bit del minimo, quindi solo alcune delle parole possibili sono lecite. Se arriva una parola non lecita, qualcosa l'ha alterata lungo il percorso, e l'errore è rilevato. Confrontate i due codici della tabella. Nel Codice 1 ogni parola di 2 bit è lecita: un bit alterato trasforma un elemento in un altro e nessuno se ne accorge. Il Codice 2 aggiunge un terzo bit che rende pari il numero di 1: qualunque bit singolo alterato produce una parola non lecita. La ridondanza è il prezzo pagato per rilevare gli errori.
+Un codice *ridondante* usa più bit del minimo, così che solo alcune delle parole possibili siano lecite. L'arrivo di una parola non lecita rivela che qualcosa l'ha alterata in transito, e l'errore viene rilevato. I due codici della tabella lo mostrano. Nel Codice 1 ogni parola di 2 bit è lecita, quindi un bit alterato trasforma un elemento in un altro e l'errore passa inosservato. Il Codice 2 aggiunge un terzo bit che rende pari il numero di 1, quindi ogni singolo bit alterato produce una parola non lecita. La ridondanza è il prezzo della rilevazione degli errori.
 
 ## Slide 8: La rappresentazione decodificata
 
-Nella rappresentazione *decodificata* ci sono tanti bit quanti elementi, ed esattamente uno vale 1: una linea per elemento. Si dice anche one-hot. È costosa in fili ma immediatamente utilizzabile, perché la linea attiva può accendere direttamente qualcosa. La regola pratica sta nell'ultima riga: si tiene l'informazione in un codice compatto dentro una parola, e la si decodifica dove una scelta va attuata.
+Nella rappresentazione *decodificata* ci sono tanti bit quanti elementi, ed esattamente uno di essi vale 1: una linea per elemento, uno schema detto anche one-hot. È costosa in fili ma immediatamente utilizzabile, perché la linea attiva può abilitare direttamente l'azione corrispondente. Il principio di progetto è enunciato nell'ultima riga: l'informazione si tiene in un codice compatto dentro una parola, e la si decodifica solo nel punto in cui una scelta deve tradursi in azione. La parola dei pulsanti della Lezione 08 è un esempio della forma decodificata.
 
 ## Slide 9: Il decodificatore
 
-Un *decodificatore* riceve una parola codice di m bit e attiva l'unica uscita, su 2 alla m, che le corrisponde. La tabella e il circuito mostrano il decodificatore 2-a-4: ogni uscita è un mintermine dei due ingressi, realizzato con una porta AND e, dove serve, con invertitori. Un decodificatore genera quindi tutti i mintermini dei suoi ingressi. Un ingresso di *abilitazione*, quando vale 0, tiene a 0 tutte le uscite: sarà la chiave per comporre i decodificatori.
+Un *decoder* riceve una parola di codice di m bit e attiva l'unica uscita, tra 2^m, che le corrisponde. La tabella e il circuito mostrano il decoder da 2 a 4: ogni uscita è un mintermine dei due ingressi, costruito con una porta AND e invertitori dove servono. Un decoder genera quindi tutti i mintermini dei suoi ingressi, e con una porta OR può perciò realizzare qualsiasi loro funzione. Un ingresso di *enable*, quando vale 0, tiene a 0 tutte le uscite; è la chiave per comporre piccoli decoder in decoder più grandi.
 
 ## Slide 10: Il codificatore
 
-Il *codificatore* è la macchina inversa: riceve N linee, di cui una attiva, e ne produce il numero come parola codice di m bit. Ogni bit di uscita è l'OR delle linee di ingresso il cui numero ha un 1 in quella posizione. Se più linee possono essere attive insieme serve un *codificatore con priorità*, che dà in uscita il numero della linea attiva più importante. Lo ritroverete con le interruzioni, quando più dispositivi chiedono attenzione nello stesso momento.
+L'*encoder* è la macchina inversa: riceve N linee, di cui una attiva, e produce l'indice della linea attiva come parola di codice di m bit. Ogni bit di uscita è l'OR delle linee di ingresso il cui indice ha 1 in quella posizione. Se più linee possono essere attive contemporaneamente serve un *encoder a priorità*, che produce l'indice della linea attiva più importante. Il problema che risolve, scegliere tra richieste simultanee, ricompare nella Lezione 19, dove le interruzioni sono ordinate per priorità.
 
 ## Slide 11: Transcodificatori: il display a sette segmenti
 
-Un *transcodificatore* converte una parola di un codice nella parola corrispondente di un altro codice. L'esempio è il display a sette segmenti: l'ingresso è una cifra BCD, le uscite sono le sette linee che accendono i segmenti, chiamati da a a g. La tabella dà, per ogni cifra, i segmenti accesi: la cifra 2 accende a, b, g, e e d. Le uscite sono sette, quindi ci sono sette funzioni di quattro variabili da sintetizzare, ciascuna con sei indifferenze.
+Un *transcodificatore* converte una parola di un codice nella parola corrispondente di un altro. L'esempio è il display a sette segmenti: l'ingresso è una cifra BCD, e le uscite sono le sette linee, da a a g, che accendono i segmenti. La tabella dà, per ogni cifra, i segmenti accesi: la cifra 2 accende a, b, g, e e d. Ci sono sette uscite, quindi sette funzioni di quattro variabili da sintetizzare, ciascuna con sei condizioni di indifferenza che le mappe di Karnaugh della Lezione 09 possono sfruttare.
 
 ## Slide 12: Il multiplexer
 
-Un *multiplexer* ha 2 alla n ingressi dati, n linee di selezione e un'uscita: trasferisce sull'uscita l'ingresso scelto dalle linee di selezione. La formula mostra come: ogni ingresso dati è moltiplicato per un mintermine delle linee di selezione, e i prodotti si sommano. Con due ingressi, Y = S'I0 + S I1: quando S vale 0 il primo termine lascia passare I0, quando S vale 1 il secondo lascia passare I1. Il disegno è esattamente questa formula in porte. È la macchina del riscaldamento.
+Un *multiplexer* ha 2^n ingressi di dato, n linee di selezione e un'uscita: instrada verso l'uscita l'ingresso designato dalle linee di selezione. La formula mostra come: ogni ingresso di dato è moltiplicato per un mintermine delle linee di selezione, e i prodotti si sommano. Con due ingressi, Y = S'I0 + S I1: quando S vale 0 il primo termine lascia passare I0, quando S vale 1 il secondo lascia passare I1. Il disegno realizza direttamente questa formula in porte. È la macchina che il riscaldamento ha realizzato in software.
 
 ## Slide 13: Il demultiplexer
 
-Il *demultiplexer* è l'inverso: un ingresso dati, n linee di selezione e 2 alla n uscite. L'ingresso è instradato sull'uscita scelta dalle linee di selezione, e le altre uscite restano a 0. Con l'ingresso dati fisso a 1 è esattamente un decodificatore. Un multiplexer a un capo di un filo e un demultiplexer all'altro permettono a molti segnali di condividere quel filo, uno alla volta: è l'idea che sta dietro ogni linea condivisa, compresi i bus della Lezione 14.
+Il *demultiplexer* è l'inverso: un ingresso di dato, n linee di selezione e 2^n uscite. L'ingresso viene instradato all'uscita designata dalle linee di selezione, mentre le altre uscite restano a 0. Con l'ingresso di dato fisso a 1, un demultiplexer è esattamente un decoder. Un multiplexer a un capo di un filo e un demultiplexer all'altro permettono a molti segnali di condividere quel filo, uno alla volta: il principio alla base di ogni linea condivisa, compresi i bus della Lezione 14.
 
 ## Slide 14: Il comparatore
 
-Un *comparatore* riceve due parole e produce un bit, che vale 1 quando sono uguali. Due bit sono uguali quando il loro XNOR vale 1; due parole sono uguali quando lo sono tutte le loro coppie di bit, quindi il comparatore è un AND di XNOR. Il disegno lo mostra per parole di due bit. Nel processore decide i salti `beq` e `bne`: i due registri vengono confrontati, e il salto avviene o no secondo il risultato.
+Un *comparatore* riceve due parole e produce un solo bit, 1 quando sono uguali. Due bit sono uguali quando il loro XNOR vale 1; due parole sono uguali quando tutte le coppie di bit corrispondenti sono uguali, quindi il comparatore è un AND di XNOR. Il disegno mostra il caso a due bit. Nel processore il comparatore decide i salti `beq` e `bne`: i due registri vengono confrontati, e il salto si esegue o no a seconda del risultato.
 
 ## Slide 15: Parità
 
-Il codice ridondante più semplice aggiunge a ogni parola un *bit di parità*, scelto in modo che il numero totale di 1 sia, per esempio, pari. Il circuito che lo calcola è una *rete di parità*, una catena di XOR: lo XOR di tutti i bit di una parola vale 1 quando il numero di 1 è dispari, perché XOR è la somma modulo 2. La rete si usa due volte: da chi trasmette, per calcolare il bit da aggiungere, e da chi riceve, per verificare la parità di ciò che è arrivato.
+Il codice ridondante più semplice aggiunge a ogni parola un *bit di parità*, scelto così che il numero totale di 1 sia, per esempio, pari. Il circuito che lo calcola è una *rete di parità*, un albero di porte XOR: lo XOR di tutti i bit di una parola vale 1 quando il numero di 1 è dispari, perché lo XOR è la somma modulo 2. La stessa rete si usa due volte: dal mittente, per calcolare il bit da aggiungere, e dal destinatario, per verificare la parità di ciò che è arrivato.
 
 ## Slide 16: La ALU è un insieme di macchine e un multiplexer
 
-La ALU riceve due parole, A e B. Al suo interno più unità lavorano insieme sugli stessi operandi: un addizionatore che fa anche le sottrazioni, una fila di porte AND, una di porte OR, una di porte XOR, uno shifter. Tutte producono un risultato. Un multiplexer lascia passare uno dei risultati, e le sue linee di selezione vengono da un decodificatore che legge l'istruzione. Non c'è memoria da nessuna parte: la ALU è un'unica grande macchina combinatoria, e il suo percorso più lento, la catena dei riporti dell'addizionatore, limita il clock del processore.
+La ALU riceve due parole, A e B. Al suo interno più unità operano contemporaneamente sugli stessi operandi: un sommatore che sottrae anche, una fila di porte AND, una fila di porte OR, una fila di porte XOR, un circuito di scorrimento. Ciascuna produce un risultato, e un multiplexer ne passa uno all'uscita, con le linee di selezione pilotate da un decoder che legge l'istruzione. Non c'è memoria da nessuna parte: la ALU è una grande macchina combinatoria, e il suo cammino più lento, la catena dei riporti del sommatore, limita la frequenza di clock del processore. Il catalogo della lezione converge così nel cuore del percorso dei dati.
 
 ## Slide 17: Verifica la comprensione: Quanti bit richiede un codice binario a lunghezza fissa per le 26 lettere dell'alfabeto? / Un decodificatore ha 3 linee di ingresso e nessuna abilitazione. Quante uscite ha, e quante valgono 1 in ogni istante?
 
-Usate la formula del codice a lunghezza fissa: il più piccolo m tale che 2 alla m sia almeno 26. Quattro bit danno sedici parole, che non bastano. E notate che il risultato lascia alcune parole inutilizzate.
+Per la prima domanda vale la formula della lunghezza fissa: il più piccolo m tale che 2^m sia almeno 26. Quattro bit danno sedici parole, che non bastano; il risultato lascia anche alcune parole inutilizzate, rendendo il codice incompleto.
 
-Un decodificatore con m ingressi ha 2 alla m uscite, e la sua uscita è una rappresentazione decodificata: in ogni istante è attiva esattamente una linea.
+Per la seconda, un decoder con m ingressi ha 2^m uscite, e la sua uscita è in rappresentazione decodificata: è attiva esattamente una linea alla volta.
 
 ## Slide 18: Verifica la comprensione: Di quante linee di selezione ha bisogno un multiplexer con 8 ingressi dati? / Una parola con un bit di parità pari viene ricevuta con due bit alterati. Il controllo di parità:
 
-La relazione è l'inversa della precedente: n linee di selezione scelgono tra 2 alla n ingressi. Otto è 2 alla terza.
+Per la prima domanda la relazione è l'inversa della precedente: n linee di selezione scelgono tra 2^n ingressi, e otto è 2^3.
 
-Contate gli 1. Un controllo di parità sa soltanto se il loro numero è pari o dispari. Alterare un bit cambia questo fatto; alterarne due lo cambia due volte, e lo riporta dov'era.
+Per la seconda si contano gli 1. Un controllo di parità sa solo se il loro numero è pari o dispari. Alterare un bit cambia la parità; alterarne due la cambia due volte, ripristinandola. Il controllo rileva quindi ogni errore su un singolo bit e nessun errore su due bit.
 
 ## Slide 19: Glossario: inglese e italiano
 
-Dodici termini. *Enable*, abilitazione, è l'ingresso che accende o spegne un blocco. *Code word*, parola codice, è ciascuna stringa di un codice. Multiplexer e demultiplexer conservano il nome anche in italiano. Un *transcoder*, transcodificatore, converte tra due codici. Il *parity bit*, bit di parità, è il bit ridondante aggiunto per il controllo.
+Dodici termini. L'*enable* è l'ingresso che attiva o disattiva un blocco. Una *parola di codice* è ogni stringa di un codice. *Multiplexer* e *demultiplexer* conservano il loro nome in italiano. Un *transcodificatore* converte tra due codici. Il *bit di parità* è il bit ridondante aggiunto per il controllo.
 
 ## Slide 20: Conclusioni e letture
 
-Cinque conclusioni. Un codice scrive ogni elemento di un insieme come stringa di simboli su un alfabeto, la sua parola codice. Un codice binario a lunghezza fissa richiede il logaritmo di N bit, arrotondato per eccesso; un codice ridondante ne spende di più per rilevare gli errori. Codifica, decodifica e transcodifica sono svolte da macchine combinatorie. I multiplexer selezionano una sorgente, i demultiplexer una destinazione, comparatori e reti di parità controllano. E il processore li usa tutti. A queste macchine manca la memoria: dopo la Parte 2 di Verm1, la aggiunge la Lezione 13.
+Cinque conclusioni. Un codice scrive ogni elemento di un insieme come stringa di simboli, la sua parola di codice. Un codice binario a lunghezza fissa richiede log2 N bit arrotondato per eccesso, e un codice ridondante spende bit in più per rilevare errori. Codifica, decodifica e transcodifica sono svolte da macchine combinatorie. I multiplexer scelgono una sorgente, i demultiplexer una destinazione, mentre comparatori e reti di parità verificano. Il processore le impiega tutte. A queste macchine manca la memoria: dopo la Parte 2 di Verm1, la Lezione 13 la fornisce.

@@ -4,7 +4,7 @@ Two decks per lecture, in English and in Italian, generated from the specificati
 `decks/it` into `../en/slides` and `../it/slides`:
 
 - the **lecture deck**, of at most 20 slides: the concepts;
-- the **code deck** (`...-Code.pptx`, in Italian `...-Codice.pptx`): every listing of the lecture with
+- the **code deck** (`...-Lab.pptx`, in both languages): every listing of the lecture with
   its explanation, the complete program of the lecture, what it shows when it runs, a step-by-step guide
   for testing it on PRG32-QT, on QEMU and on the board, and the exercises.
 
@@ -157,7 +157,7 @@ marked NEW, CHANGED or UNCHANGED, and each step ends with a "Run it" slide and i
 - In a tutorial the steps are numbered in the section titles (`Step N: ...`); notes and "Run it" slides
   refer to those numbers.
 - Every slide of every deck has a note in `../<lang>/notes/<deck file>.md` (one section `## Slide N` per
-  slide; the notes of a code deck are in `<deck file>-Code.md`). `node notes.js` checks that no slide is
+  slide; the notes of a code deck are in `<deck file>-Lab.md`). `node notes.js` checks that no slide is
   without its note and rewrites the headings from the titles of the slides; the notes of the generated
   slides of a code deck are generated too. `build.js` copies each note into the notes pane of its slide.
 - The textbook in `../en/textbook` follows the lectures one to one (Chapter N is Lecture N), and

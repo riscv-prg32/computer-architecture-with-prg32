@@ -6,54 +6,54 @@ Learning status of this lecture. UNDERSTAND NOW: the Verm1 project; the init, up
 
 ## Slide 1: Verm1, Part 1: A Head That Crosses the World
 
-The project of the course starts here. This is a tutorial, not a lecture: you type a program, step by step, and at the end it runs. It uses only what the lectures from 02 to 06 have taught: registers and memory, colours and strings as numbers, comparisons and shifts, fixed point. The picture on the cover is what you will have on your screen in two hours: a title and a green square, the head of the worm, that crosses the screen by itself. The reference implementation was contributed by Giuseppe Coviello.
+The course project begins here. This is a tutorial rather than a lecture: a program is written step by step, and at the end it runs. It draws exclusively on Lectures 02 to 06: registers and memory, colours and strings as numbers, comparisons and shifts, fixed point. The cover shows the state of the screen two hours from now: a title and a green square, the head of the worm, crossing the screen unaided. The purpose of the session is integration: concepts studied separately must now cooperate within one program. The reference implementation was contributed by Giuseppe Coviello.
 
 ## Slide 2: What you will have by the end
 
-Five results. A cartridge of your own, built from one file that you typed. A title, a grid of 40 by 24 cells and the head drawn in one of them. The head moving by itself, one cell at a time, at a speed set in fixed point. A world without edges, in which the head that leaves on the right comes back from the left. And a habit, which matters more than the program: the working loop of edit, build, run, look, with the debugger as a normal tool.
+Five outcomes. A cartridge of the student's own, built from a single file typed by hand. A title, a grid of 40 by 24 cells, and the head drawn in one of them. The head moving autonomously, one cell at a time, at a speed expressed in fixed point. A world without edges, in which the head that leaves on the right re-enters on the left. And, more important than the program itself, a method: the working loop of edit, build, run and observe, with the debugger as an ordinary instrument rather than a last resort.
 
 ## Slide 3: Verm1: a tribute to Snake
 
-Verm1, read "vermone", is a tribute to Snake: a worm that moves on a grid, eats, grows and must not bite itself. The idea goes back to the arcade game Blockade of 1976 and became famous on the Nokia phones of 1997. It was chosen because it is small enough to be written from scratch in assembly and yet needs every topic of the course. You write every line; there is no engine underneath. The picture on the right is where you will arrive in Part 4.
+Verm1, pronounced "vermone", is a tribute to Snake: a worm moves on a grid, eats, grows, and must not collide with itself. The idea goes back to the arcade game Blockade of 1976 and achieved wide popularity on the Nokia phones of 1997. It was chosen because it is small enough to be written from scratch in assembly yet requires every topic of the course. Every line is written by the student, with no engine underneath. The picture on the right shows the destination, reached in Part 4.
 
 ## Slide 4: The plan: four parts and a publication
 
-The plan of the project. Each row is a tutorial, what you add in it and the lectures it uses. Part 1, today: a grid, a head, automatic movement. Part 2, Lecture 12: steering, food, a score. Part 3, Lecture 17: a body that grows and collisions. Part 4, Lecture 22: the finished game. Lecture 23 prepares the bundle for the Store. One rule, from the notes of the lecturer, applies to every part: never start with a program that does not run; if yours is broken, start from the reference file.
+The plan of the project. Each row is a tutorial, what it adds and the lectures on which it draws. Part 1, today: a grid, a head, autonomous movement. Part 2, Lecture 12: steering, food and a score. Part 3, Lecture 17: a growing body and collisions. Part 4, Lecture 22: the finished game. Lecture 23 prepares the bundle for the Store. One rule applies to every part: never begin from a program that does not run. A student whose file is broken starts again from the reference file, so that every session builds on a working foundation.
 
 ## Slide 5: What Part 1 takes from the lectures
 
-Nothing in today's program is new: each idea comes from a lecture. The registers, `la`, `lw`, `sw`, calls and the stack frame come from Lecture 02. Colours as RGB565 numbers and strings that end with a zero come from Lecture 04. Shifts used as multiplications, comparisons and wrapping around come from Lecture 05. Fixed point, a fraction kept as a scaled integer, comes from Lecture 06, and it becomes the speed of the worm. Keep this table open: when a line of code puzzles you, the third column tells you which lecture to reread.
+Nothing in today's program is new: each idea is traceable to a lecture. Registers, `la`, `lw`, `sw`, procedure calls and the stack frame come from Lecture 02. Colours as RGB565 numbers and zero-terminated strings come from Lecture 04. Shifts as multiplications, comparisons and wrap-around come from Lecture 05. Fixed point, a fraction held as a scaled integer, comes from Lecture 06 and becomes the speed of the worm. The table should remain open throughout the session: when a line of code is puzzling, its third column indicates which lecture to revisit.
 
 ## Slide 6: The world of Verm1
 
-The worm does not live in pixels: it lives in cells. A position is a column from 0 to 39 and a row from 0 to 23, and the head starts in column 5 of row 12, the bright cell in the drawing. To draw a cell its coordinates are turned into pixels: x is the column times 8, a shift left by 3; y is the row times 8 plus 8, because the title line comes first. Thinking in cells makes all the later rules simple: moving is adding 1, and two things collide when their cells are equal.
+The worm inhabits cells, not pixels. A position is a column from 0 to 39 and a row from 0 to 23, and the head starts in column 5 of row 12, the highlighted cell. To draw a cell, its coordinates are mapped to pixels: x is the column times 8, a left shift by 3; y is the row times 8 plus 8, to leave room for the title line. This change of coordinate system is a modelling decision with lasting benefits: in cell coordinates every later rule is simple, since moving is adding 1 and two objects collide exactly when their cells are equal.
 
 ## Slide 7: How fast should a worm go?
 
-`update` runs about thirty times per second. At one cell per frame the head would cross the forty columns in little more than a second. We want a fraction of a cell per frame. So we keep a fraction in units of 1/256 of a cell, add the speed to it at every frame, and take a step each time a whole cell, 256, has accumulated. With `SPEED_Q8` equal to 40 the head advances 40/256 of a cell per frame: one step about every six frames. The remainder is kept, so on average the speed is exact.
+`update` runs approximately thirty times per second. At one cell per frame the head would cross the forty columns in little more than a second, which is unplayable. A fraction of a cell per frame is required. The solution keeps an accumulator in units of 1/256 of a cell, adds the speed to it at every frame, and advances by one cell whenever a whole cell, 256 units, has accumulated. With `SPEED_Q8` equal to 40, the head advances 40/256 of a cell per frame, one step roughly every six frames. Because the remainder is retained rather than discarded, the average speed is exact.
 
 ## Slide 8: Trace it by hand
 
-A trace by hand, the most useful exercise of the tutorial. At each frame 40 is added to the fraction. At frames 1 to 6 the sum stays below 256 and the head does not move. At frame 7 it reaches 280: a whole cell has accumulated, 256 is subtracted, 24 remains, and the head goes from column 5 to column 6. The steps come every six or seven frames, and the remainder carries the difference, like the extra day of a leap year. Fill in frames 8 to 12 yourself.
+A trace by hand, the most instructive exercise of the tutorial. At each frame 40 is added to the accumulator. During frames 1 to 6 the sum remains below 256 and the head does not move. At frame 7 it reaches 280: a whole cell has accumulated, 256 is subtracted, 24 remains, and the head moves from column 5 to column 6. Steps thus occur every six or seven frames, and the remainder absorbs the difference, much as the extra day of a leap year reconciles the calendar with the solar year. Frames 8 to 12 are left to be completed.
 
 ## Slide 9: Stop the program and read the machine
 
-A precise procedure. Enable the debug mode in *Settings* and run the cartridge. Press *Update*: the listing shows `verm1_update`. Click in the gutter beside its first instruction to set a breakpoint: the program stops there at the next frame. Now step, one instruction at a time, and watch the registers. After the two instructions that implement `la`, `t0` holds an address: type it in the *Memory* field and you will see the bytes of `step_q8`. Each *Resume* runs one frame, and the value grows by 40, 0x28.
+A precise debugging procedure. Debug mode is enabled in *Settings* and the cartridge run. *Update* displays `verm1_update` in the listing; a click in the gutter beside its first instruction sets a breakpoint, at which the program halts on the next frame. Stepping one instruction at a time, the registers are observed. After the two instructions into which `la` expands, `t0` holds an address; entering it in the *Memory* field reveals the bytes of `step_q8`. Each *Resume* executes one frame, and the value increases by 40, that is, 0x28.
 
 ## Slide 10: Reading memory: little-endian, live
 
-The memory view shows 128 bytes in hexadecimal starting from the address you typed. A word occupies four bytes, least significant first: when `step_q8` is 240 you read F0 00 00 00. This is the little-endian order of Lecture 04, seen live. The variables are in memory in the order of the file: `head_x`, `head_y`, `step_q8`, so the head's column is eight bytes before the fraction. The debugger only observes: to change the program you edit, build and run.
+The memory view displays 128 bytes in hexadecimal from the address entered. A word occupies four bytes, least significant first: when `step_q8` holds 240 the view shows F0 00 00 00. This is the little-endian order of Lecture 04, now observed directly. Variables appear in memory in the order in which the file declares them, `head_x`, `head_y`, `step_q8`, so the column of the head lies eight bytes before the accumulator. The debugger only observes; to change the program one edits, builds and runs again.
 
 ## Slide 11: Check your understanding: With SPEED_Q8 = 64, how many frames pass between two steps of the head? / Which pixel is the top-left corner of the cell in column 10, row 3?
 
-64 out of 256 is one quarter of a cell per frame. How many quarters make a whole cell? The two large numbers are distractors: 64 is the speed itself, and 256 is the size of a cell in the units of the timer.
+For the first question: 64 out of 256 is one quarter of a cell per frame, and the question is how many quarters make a whole cell. The two large numbers are distractors: 64 is the speed itself, and 256 is the size of a cell in the units of the accumulator.
 
-Apply the two formulas of the grid: x is the column times 8; y is the row times 8, plus the 8 pixels of the title line. The option that forgets the title line is the most common mistake.
+For the second, the two grid formulas apply: x is the column times 8; y is the row times 8 plus the 8 pixels of the title line. The option that omits the title line represents the most common error.
 
 ## Slide 12: Check your understanding: Why does verm1_draw save ra and verm1_update does not?
 
-It is not a matter of length. A call writes the return address into `ra`, so a function that makes calls must keep its own `ra` safe on the stack. `verm1_update` is a leaf: it calls nothing, and `ra` still holds the right address when it reaches `ret`.
+The answer does not depend on the length of the function. A call writes the return address into `ra`, so a function that makes calls must preserve its own `ra` on the stack. `verm1_update` is a *leaf* function: it calls nothing, so `ra` still holds the correct address when `ret` is reached, and no stack frame is needed.
 
 ## Slide 13: Where we are, and what comes next
 
-Where you are. You have a cartridge that runs and that you understand line by line. It already has the shape of every game: a state in memory, a rule that changes it at every frame, and a function that draws it. What is missing is the player: the head goes where it wants. The next four lectures give the tools to read the joystick and to decide, bits, masks and tables, and Part 2 uses them to add steering, food and a score.
+The current position. The student has a cartridge that runs and is understood line by line. It already exhibits the structure common to every game: a state in memory, a rule that transforms it at every frame, and a function that renders it. What is missing is the player: the head goes where it pleases. The next four lectures supply the means to read the joystick and to make decisions, namely bits, masks, Boolean rules and tables, and Part 2 applies them to add steering, food and a score.

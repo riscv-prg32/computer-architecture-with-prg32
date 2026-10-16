@@ -6,54 +6,54 @@ Learning status of this lecture. UNDERSTAND NOW: packaging and publishing; the p
 
 ## Slide 1: Verm1 on the Cartridge Store
 
-The project ends today, with the step that turns a program into a product. Your Verm1 runs on your desk; at the end of this lecture it will be a single file that anyone can install, on the kit, on QEMU or on PRG32-QT, with a name, an icon and your signature. The quotation, from the team that built the first Macintosh, says that a work is finished only when it has been delivered.
+The project ends today with the step that turns a program into a product. The student's Verm1 runs on their own desk; by the end of this lecture it will be a single file that anyone can install, on the kit, on QEMU or on PRG32-QT, bearing a name, an icon and its author's signature. The epigraph, from the team that built the first Macintosh, holds that a work is finished only when it has been delivered. The lecture treats delivery as an engineering discipline with its own concepts: identity, versioning, licensing and responsibility.
 
 ## Slide 2: What you will have by the end
 
-Five results. Your game built for two architectures from the same source. A manifest that gives it an identity: id, title, version, authors, licence. An icon and a colophon with credits and controls. A bundle, a single ZIP file, checked and ready for the Cartridge Store. And a clear idea of what happens after publication, and of what you answer for.
+Five outcomes. The game built for two architectures from a single source. A manifest that gives it an identity: identifier, title, version, authors and licence. An icon and a colophon with credits and controls. A bundle, a single ZIP file, verified and ready for the Cartridge Store. And a clear understanding of what follows publication, and of what the author is answerable for.
 
 ## Slide 3: Why publish?
 
-Why publish? A program that runs only on its author's computer is an exercise; one that others can install is a product. Publishing forces you to answer questions that an exercise lets you skip: what is it called, who made it, on what does it run, what may others do with it. The Cartridge Store is the shelf of PRG32, and every cartridge on it was written by someone who began where you began.
+Why publish? A program that runs only on its author's computer is an exercise; one that others can install is a product. Publication compels answers to questions an exercise allows one to evade: what the program is called, who made it, on what it runs, and what others may do with it. The Cartridge Store is the shelf of PRG32, and every cartridge on it was written by someone who began where the student began.
 
 ## Slide 4: From source to shelf
 
-The path from source to shelf in six stages: your source file; two cartridges, one per architecture; the metadata, that is identity, icon and credits; the bundle; the review by an editor; the Store. The first four of today's steps happen entirely on your computer. Only the fifth talks to the Store: until then nothing leaves your machine.
+The path from source to shelf in six stages: the source file; two cartridges, one per architecture; the metadata, comprising identity, icon and credits; the bundle; review by an editor; and the Store. The first four of today's steps take place entirely on the student's own computer. Only the fifth communicates with the Store, so that until then nothing leaves the machine.
 
 ## Slide 5: Before you package: is it finished?
 
-Before packaging, ask whether the game is finished. Six checks, each with a method and an instrument. It starts, plays and ends: play three whole games. No frame is late: watch the telemetry. Memory is consistent: pause at random and compare ring, map and screen. It runs on the second architecture, QEMU, and on the real kit if you have one. And it is yours: it has something the reference does not have. A cartridge never run on a target should not be published for that target.
+Before packaging, one must establish whether the game is finished. Six checks, each with a method and an instrument. It starts, plays and ends: three complete games are played. No frame is late: the telemetry is observed. Memory is consistent: execution is paused at random and ring, map and screen compared, the invariant of Part 3. It runs on the second architecture, QEMU, and on the physical kit if one is available. And it is the author's own: it contains something the reference does not. A cartridge never run on a target should not be published for that target.
 
 ## Slide 6: The fields, and what they commit you to
 
-Each field commits you to something. The `id` is by custom a reverse domain name, and never changes: put your own name in it, because two students cannot publish the same one. The `version` follows the scheme major, minor, patch, and a published version is treated as permanent: a mistake is corrected with a new version. The `authors` are all those who wrote the game. The `license` says what others may do with it. The `tags` are how it will be found.
+Each field of the manifest is a commitment. The `id` is conventionally a reverse domain name and never changes; it should contain the author's own name, since two students cannot publish the same identifier. The `version` follows the scheme major, minor, patch, and a published version is treated as immutable: an error is corrected by a new version. The `authors` are all who wrote the game. The `license` states what others may do with it. The `tags` determine how it will be found.
 
 ## Slide 7: An icon
 
-The icon is a small PNG image that represents the game on the shelf. The reference one is 64 by 64 pixels: a worm and a piece of food in the colours of the game. Pixel art suits a machine of this resolution: draw large, cell by cell, with any editor that saves PNG. Save it as `icon.png` next to the manifest. And draw it yourself: an image taken from the web is somebody else's work.
+The icon is a small PNG image representing the game on the shelf. The reference icon is 64 by 64 pixels: a worm and a piece of food in the colours of the game. Pixel art suits a machine of this resolution; it is best drawn large, cell by cell, with any editor that saves PNG, and saved as `icon.png` beside the manifest. It should be drawn by the author: an image taken from the web is someone else's work.
 
 ## Slide 8: A tribute is not a copy
 
-A tribute is not a copy. Verm1 is a tribute to Snake: the idea of a worm that grows is as old as Blockade, of 1976, and belongs to everyone. The name, the code, the icon and the sounds are ours. The rules of a game are not protected; code, pictures, music and names are. So before publishing, ask of every piece: did I make it myself? If not, does its licence allow me to publish it, and did I give credit? Your name goes on it: publish only what you would sign.
+A tribute is not a copy. Verm1 is a tribute to Snake: the idea of a growing worm is as old as Blockade, of 1976, and belongs to everyone, while the name, the code, the icon and the sounds are original. The rules of a game are not protected; code, images, music and names are. Before publication each component should therefore be examined: was it made by the author? If not, does its licence permit publication, and has credit been given? The author's name appears on the work, so only what the author would sign should be published.
 
 ## Slide 9: What happens next
 
-What happens next, in four stages. *Pending*: the bundle is kept as a submission, and is not yet on the shelf. *Review*: an editor checks that it installs, runs, is described honestly and contains nothing that is not yours. *Published*: the game appears in the Store for the architectures you declared. And if you find a bug: correct it, raise the version to 1.0.1, pack and submit again; version 1.0.0 remains as it was.
+What follows, in four stages. *Pending*: the bundle is held as a submission and is not yet on the shelf. *Review*: an editor verifies that it installs, runs, is described honestly and contains nothing that is not the author's. *Published*: the game appears in the Store for the declared architectures. And should an error be found, it is corrected, the version raised to 1.0.1, and the bundle packed and submitted again, while version 1.0.0 remains as it was.
 
 ## Slide 10: The submission checklist
 
-The submission checklist, seven points: played to the end on every architecture; `abi-table` for every file; id unique and yours, version new, honest descriptions; authors, licence and colophon complete; the right metadata inside each cartridge; the bundle tested on another computer; the token in no file. A checklist is not bureaucracy: it is the instrument with which experts avoid the mistakes of experts.
+The submission checklist, seven points: played to completion on every architecture; `abi-table` present in every file; identifier unique and the author's own, version new, descriptions honest; authors, licence and colophon complete; the correct metadata inside each cartridge; the bundle tested on another computer; the token in no file. A checklist is not bureaucracy: it is the instrument by which experts avoid the errors that experts make, a practice borrowed from aviation and surgery.
 
 ## Slide 11: Check your understanding: You published version 1.0.0 and found a bug. What do you do? / Why does metadata.json not contain the architectures entry?
 
-Remember the rule about versions: what has been published is treated as permanent.
+For the first question, the rule concerning versions applies: what has been published is treated as permanent.
 
-Think of where the metadata ends up: inside one cartridge file. How many architectures does one cartridge file have?
+For the second, one considers where the metadata ends up, inside a single cartridge file, and how many architectures one cartridge file serves.
 
 ## Slide 12: Check your understanding: Where should the Store token be kept?
 
-A token is a credential, like a password. Which of the four places is not a file that gets shared?
+A token is a credential, comparable to a password. The question is which of the four locations is not a file that is ever shared.
 
 ## Slide 13: What you built in this course
 
-What you built in this course. A game of six hundred lines of assembly, grown from three functions that only returned. With it, every layer of the machine: bits and numbers, gates and tables, state and memory, the processor, the screen, the devices. A method: one runnable step at a time, and a look inside whenever something surprises you. And the last step, which makes it engineering: a product with a name, a version and an author. The next lecture looks beyond the kit.
+What the student has built in this course. A game of about six hundred lines of assembly, grown from three functions that merely returned, and with it a working knowledge of every layer of the machine: bits and numbers, gates and tables, state and memory, the processor, the display and the devices. A method: one runnable step at a time, and an inspection of the machine whenever something is surprising. And the final step that makes the work engineering: a product with a name, a version and an author. The next lecture looks beyond the kit.

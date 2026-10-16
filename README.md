@@ -7,7 +7,7 @@ assembly on the PRG32 platform, with the course-long project Verm1.
 
 | Folder | Content |
 | --- | --- |
-| `en/slides`, `it/slides` | two slide decks per lecture, English (`NN-Computer_Architecture-*.pptx`) and Italian (`NN-Architettura_dei_Calcolatori-*.pptx`): the **lecture deck**, of at most 20 slides, and the **code deck** (`-Code`, `-Codice`), with every listing explained, the complete program and the guide for testing it on PRG32-QT, on QEMU and on the board. 455 + 461 slides per language, the same slides in the same order |
+| `en/slides`, `it/slides` | two slide decks per lecture, English (`NN-Computer_Architecture-*.pptx`) and Italian (`NN-Architettura_dei_Calcolatori-*.pptx`): the **lecture deck**, of at most 20 slides, and the **code deck** (`-Lab`), with every listing explained, the complete program and the guide for testing it on PRG32-QT, on QEMU and on the board. 456 + 461 slides per language, the same slides in the same order |
 | `en/notes`, `it/notes` | the notes of every slide, one Markdown file per deck; the generator copies them into the notes pane of the slides. `reserve/` keeps the notes of the slides that are in neither deck |
 | `code/` | one complete, tested RISC-V program per lecture (`lNN.S`): the listings of the slides, runnable as they are on the three hosts |
 | `en/textbook` | the LaTeX textbook that follows the lectures, Chapter N = Lecture N: sources, the PDF (458 pages) and the Overleaf-ready zip |

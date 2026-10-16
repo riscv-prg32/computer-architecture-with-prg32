@@ -8,7 +8,7 @@ Overleaf. 466 pagine.
 
 Il libro segue una a una le 25 lezioni: **il Capitolo N è la Lezione N** (i capitoli sono
 numerati da 0, come le lezioni). Ogni lezione ha due presentazioni in `../slides`, quella
-della lezione (al più 20 slide) e quella del codice (`-Codice`); il capitolo è la forma
+della lezione (al più 20 slide) e quella del codice (`-Lab`); il capitolo è la forma
 estesa di entrambe.
 
 Autore: Raffaele Montella. L'implementazione di riferimento di Verm1, il progetto del
