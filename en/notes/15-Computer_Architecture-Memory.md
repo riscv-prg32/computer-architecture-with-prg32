@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: memories and addresses; little-endian byte order; processor and memory; memory-mapped I/O. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Memory
 
 You have used memory since the second lecture: every `lw` and `sw` reads or writes it. This lecture explains what a memory is, how it is organised, and what actually happens between the processor and the memory when a load is executed. The picture on the cover is the debugger of PRG32-QT, whose memory view will serve as your microscope. The quotation from Tron is a joke with a serious side: a machine with memory can keep a state, and with a state it can do almost anything.

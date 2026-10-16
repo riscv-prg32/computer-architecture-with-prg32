@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: multiplexers; combinational machines; codes; decoders and encoders; comparators and parity; the ALU. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: finite-state machines (Lecture 13). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Combinational Machines
 
 The previous lectures gave you gates and a method to combine them. This one is a catalogue of the machines that designers actually use: decoders, encoders, multiplexers, comparators, parity networks, and finally the arithmetic logic unit. For each you learn what it does, how it is built, and where it sits inside a RISC-V processor. The young Turing of the quotation wants his carrots and peas kept apart: this lecture is about keeping things separate, and choosing among them.

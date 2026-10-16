@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: analog and digital; bit, byte, word; hexadecimal; positional notation; a colour is a number; characters and strings; little-endian byte order; data structures; arrays in memory; algorithms. USE NOW: shifts as multiplications (Lecture 05) and, used without being studied in this course, the complete program, the PRG32 tools. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Representing Digital Information
 
 In Lecture 02 you typed 0x07e0, 255, `.asciz` and `.word` without knowing exactly what they were. This lecture gives them names. Its thesis is in the subtitle: everything inside the machine is a pattern of bits, whether it is a number, a colour, a letter or a list. The lecture is wide rather than deep: numbers are treated formally in the next two lectures; here you learn to read bits and to see that their meaning is a matter of agreement.

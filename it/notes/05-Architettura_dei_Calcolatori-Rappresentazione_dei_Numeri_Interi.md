@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il complemento a due; i cambi di base; naturali e overflow; shift come moltiplicazione; segno e modulo; istruzioni con o senza segno; l'estensione del segno. DA UTILIZZARE OGGI: le chiamate del runtime PRG32, il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Rappresentazione dei numeri: gli interi
 
 Questa lezione avvia la trattazione formale dei numeri. Si apre con una piccola sorpresa sulla macchina, un segnalino che va a sinistra oltre lo zero e mostra FFFFFFFF, e si chiude spiegando esattamente perché accade. In mezzo imparate a convertire tra basi, a dire quali numeri stanno in un dato numero di bit, e a scrivere i numeri negativi. La citazione di Trilussa, l'Uno che discute con lo Zero, ricorda che in un sistema posizionale anche uno zero ha il suo peso.

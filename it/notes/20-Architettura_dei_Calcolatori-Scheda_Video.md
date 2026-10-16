@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il frame buffer; i controllori delle periferiche; bus e banda; la scheda video; GPU e GPGPU. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: I bus e la scheda video
 
 Con questa lezione il corso lascia il processore e si rivolge a ciò che lo circonda. L'argomento è il percorso di un'immagine: da un numero in memoria a un punto di luce sullo schermo. Lungo la strada incontrate due idee generali, il controller di una periferica e il bus, e una macchina specifica, la scheda video, con il suo processore, la GPU. Il kit non ha alcuna scheda video, ed è un vantaggio: ogni passaggio che una scheda nasconderebbe è svolto da codice che potete leggere.

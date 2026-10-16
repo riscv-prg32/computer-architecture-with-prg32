@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: instruction formats; addressing modes; the processor cycle; interrupts and traps. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Instructions and Interrupts
 
 The previous lecture described what a processor is made of. This one describes what it does. It has two halves. The first follows a single instruction: how it is encoded in 32 bits and which steps the processor takes to carry it out. The second explains what happens when something more urgent than the current program arrives, a timer, a device, an error, and the processor must leave what it is doing and come back later. The joke on the cover is nearly true, as you will see.

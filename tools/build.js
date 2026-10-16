@@ -19,6 +19,11 @@
  * of a deck (one section "## Slide N" per slide, see notes.js), each note goes
  * into the notes pane of its slide, before the lecturer's remarks of the
  * specification; a slide without a note then fails the build.
+ *
+ * Learning status (lib/mastery.js, decks/mastery.js, concepts/registry.json): a slide that carries a status
+ * gets one or two badges in the band above its title, UNDERSTAND NOW, USE NOW or UNDERSTAND LATER, and a
+ * sentence in its notes; the cover shows the legend, and the notes of the cover and of the last slide of the
+ * lecture deck say what the lecture asks to understand, to use and to defer.
  */
 const fs = require("fs");
 const path = require("path");
@@ -26,6 +31,7 @@ const pptxgen = require("pptxgenjs");
 const sharp = require("sharp");
 
 const { LANGS, STR, readNotes } = require("./lib/lang");
+const MASTERY = require("./lib/mastery");
 const LANG = LANGS.includes(process.argv[2]) ? process.argv[2] : null;
 const L = STR[LANG || "en"];
 global.LANG = LANG || "en";
@@ -174,11 +180,25 @@ async function build(deck) {
   const img = (s, file, x, y, w, h, align) => { if (CREDITS[file]) pics.set(file, CREDITS[file]); return s.addImage(contain(file, x, y, w, h, align)); };
   // Notes pane: the tutorial note of ../<lang>/notes (if the deck has them), then the lecturer's remarks.
   const tutorial = readNotes(global.LANG, deck);
+  // The learning status of the slide being drawn: badges above the title, a sentence in the notes.
+  let current = null;
+  const last = deck.slides.filter((x) => x.t !== "mark").length + 1;
+  const status = (s) => {
+    if (count === 1) {
+      MASTERY.drawLegend(pres, s, global.LANG, W - MX);
+      return [MASTERY.legendText(global.LANG), MASTERY.summaryText(global.LANG, deck.lecture)].join("\n\n");
+    }
+    const marks = current ? MASTERY.slideMarks(deck, current) : [];
+    if (marks.length) MASTERY.drawSlide(pres, s, global.LANG, deck.n, marks, W - MX, CW, WHERE);
+    const out = marks.map((m) => MASTERY.sentence(global.LANG, deck.n, m));
+    if (count === last && deck.kind === "main") out.push(MASTERY.summaryText(global.LANG, deck.lecture, true));
+    return out.join(" ");
+  };
   const notes = (s, n) => {
     const t = tutorial && tutorial[count];
     if (tutorial && !t) throw new Error(`${WHERE}: no note for slide ${count} in ${global.LANG}/notes`);
     const cr = [...pics.values()].map((c) => `${c.title}, ${c.author}, ${c.licence}, Wikimedia Commons`); pics.clear();
-    const text = [t, n ? (t ? `${L.lecturer}: ${n}` : n) : null, cr.length ? `${L.pictures}: ${cr.join("; ")}.` : null].filter(Boolean).join("\n\n");
+    const text = [t, status(s), n ? (t ? `${L.lecturer}: ${n}` : n) : null, cr.length ? `${L.pictures}: ${cr.join("; ")}.` : null].filter(Boolean).join("\n\n");
     if (text) s.addNotes(text);
   };
 
@@ -536,6 +556,7 @@ async function build(deck) {
   deck.slides.forEach((sl) => {
     WHERE = `L${deck.n}${deck.kind === "code" ? " code deck" : ""} slide ${count + 1} "${typeof sl.a[0] === "string" ? sl.a[0] : sl.t}"`;
     if (!R[sl.t]) throw new Error(`${WHERE}: unknown slide type ${sl.t}`);
+    current = sl;
     R[sl.t](sl.a);
   });
   await Promise.all(pending);
@@ -551,6 +572,7 @@ async function build(deck) {
     process.exit(bad ? 1 : 0);
   }
   await loadDims();
+  await MASTERY.loadIcons(sharp);
   const dir = path.join(__dirname, "decks", LANG);
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".js")).sort()) require(path.join(dir, f));
   try { decks = decks.flatMap((d) => require("./lib/lab").split(d, LANG)); }

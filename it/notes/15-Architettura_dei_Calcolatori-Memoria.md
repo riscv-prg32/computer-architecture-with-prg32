@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: memorie e indirizzi; l'ordine little-endian; processore e memoria; l'I/O mappato in memoria. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: La memoria
 
 Usate la memoria dalla seconda lezione: ogni `lw` e ogni `sw` la legge o la scrive. Questa lezione spiega che cos'è una memoria, come è organizzata, e che cosa accade davvero tra il processore e la memoria quando si esegue un load. L'immagine in copertina è il debugger di PRG32-QT, la cui vista della memoria vi farà da microscopio. La citazione da Tron è una battuta con un lato serio: una macchina con memoria può conservare uno stato, e con uno stato può fare quasi tutto.

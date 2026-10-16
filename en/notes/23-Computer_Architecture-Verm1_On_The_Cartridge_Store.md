@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: packaging and publishing; the portable cartridge. USE NOW: the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Verm1 on the Cartridge Store
 
 The project ends today, with the step that turns a program into a product. Your Verm1 runs on your desk; at the end of this lecture it will be a single file that anyone can install, on the kit, on QEMU or on PRG32-QT, with a name, an icon and your signature. The quotation, from the team that built the first Macintosh, says that a work is finished only when it has been delivered.

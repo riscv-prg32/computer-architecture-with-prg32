@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: bit masks; codes; arrays in memory; pull-up inputs; Boolean algebra; fixed point; multiplexers; signed or unsigned instructions; comparators and parity; arguments in a0 to a7. USE NOW: the calling convention (Lecture 18) and, used without being studied in this course, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Verm1, Part 2: Steering, Food and a Score
 
 The second tutorial of the project. At the end of Part 1 the head crossed the screen by itself; today the player enters the game. You add steering with the joystick, food that appears at random, a score and a sound. Everything rests on the four lectures of the logic block: a button is one bit selected by a mask, the rule against the U-turn is a single XOR, the movement is read from a table as a multiplexer would select it. Sid Meier's sentence on the cover says what you are adding: choices.

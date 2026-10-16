@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: two's complement; base conversions; naturals and overflow; shifts as multiplications; sign and magnitude; signed or unsigned instructions; sign extension. USE NOW: the PRG32 runtime calls, the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Number Representation: Integers
 
 This lecture begins the formal treatment of numbers. It opens with a small surprise on the machine, a marker that walks left past zero and shows FFFFFFFF, and it ends by explaining exactly why that happens. In between you learn to convert between bases, to say which numbers fit in a given number of bits, and to write negative numbers. The quotation by Trilussa, the One arguing with the Zero, is a reminder that in a positional system even a zero has its weight.

@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: i registri a scorrimento; i registri come flip-flop; bus e porte three-state. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: l'I/O mappato in memoria (Lezione 15); memorie e indirizzi (Lezione 15). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Macchine elementari: registri e bus
 
 La lezione precedente ha costruito un registro con i flip-flop. Questa si chiede come i registri si parlano: come una parola passa dall'uno all'altro, lungo quali fili, e che cosa accade quando molti registri condividono gli stessi fili. Le risposte sono il bus, il buffer a tre stati e il registro a scorrimento. La battuta di Doc Brown in copertina qui è ironica: ai dati le strade servono, e un bus è esattamente una strada. Il riscaldamento parte da un fatto del kit: il suo display riceve ogni pixel un bit alla volta.

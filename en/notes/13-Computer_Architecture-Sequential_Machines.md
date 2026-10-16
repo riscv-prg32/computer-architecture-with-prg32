@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: finite-state machines; the clock; latches and flip-flops; registers as flip-flops. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Sequential Machines
 
 The third block of the course begins: state and memory. The machines of Lecture 11 had no memory: the same inputs always gave the same outputs. A computer, however, remembers: a counter survives from one frame to the next, a game knows whether it is showing the title or the playfield. This lecture introduces time and state, the model that describes every circuit with memory, and the elementary memories, latches and flip-flops, from which the registers of the processor are built.

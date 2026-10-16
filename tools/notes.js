@@ -12,11 +12,13 @@
  * the deck.  The notes of the slides that lib/lab.js generates in a code deck (its cover, the
  * complete program, the test guides) are generated too, and rewritten at every run.  The tool fails
  * if a slide has no note, if a note is empty, or if a note refers to a slide that does not exist.
- * build.js then copies each note into the notes pane of its slide.
+ * build.js then copies each note into the notes pane of its slide.  The header of each file, also generated,
+ * ends with the learning status of the lecture (lib/mastery.js): what to understand, what to use, what comes later.
  */
 const fs = require("fs");
 const { LANGS, STR, visible, notesFile, slideTitle, parseNotes, loadDecks } = require("./lib/lang");
 const { NOTE } = require("./lib/lab");
+const MASTERY = require("./lib/mastery");
 const path = require("path");
 
 const args = process.argv.slice(2), fresh = args[0] === "--new";
@@ -34,7 +36,7 @@ for (const d of loadDecks(lang)) {
   seen++;
   const f = notesFile(lang, d), vis = visible(d), n = vis.length + 1, rel = `${lang}/notes/${path.basename(f)}`;
   const gen = (k) => (k === 1 ? (d.kind === "code" ? NOTE[lang].cover(d) : null) : vis[k - 2].gen ? NOTE[lang][vis[k - 2].gen](d) : null);
-  const head = `# ${L.lecture} ${d.n}: ${d.title}\n\n*${L.course}, ${L.year}. ${L.notesTitle}.* ${L.notesIntro}\n`;
+  const head = `# ${L.lecture} ${d.n}: ${d.title}\n\n*${L.course}, ${L.year}. ${L.notesTitle}.* ${L.notesIntro}\n\n${MASTERY.summaryText(lang, d.lecture)}\n`;
   if (fresh) {
     if (fs.existsSync(f)) { console.error(`${f} exists: not overwritten`); failed++; continue; }
     fs.writeFileSync(f, head + Array.from({ length: n }, (_, i) => `\n## Slide ${i + 1}: ${slideTitle(lang, d, i + 1)}\n\n${gen(i + 1) || ""}\n`).join(""));

@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il sommatore; le funzioni booleane; le forme canoniche; minimizzazione, Karnaugh. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Elementi di algebra di Boole
 
 La lezione precedente vi ha dato operatori e proprietà. Questa risponde alla domanda pratica che ne segue: dato ciò che un circuito deve fare, come si trovano le porte? La risposta è un metodo in tre passi, tabella di verità, forma canonica e minimizzazione, e lo applicherete al circuito più importante del corso, l'addizionatore. La lezione si apre con due istruzioni che sommano due bit, e si chiude con i trentadue sommatori che eseguono ogni `add` che avete scritto.

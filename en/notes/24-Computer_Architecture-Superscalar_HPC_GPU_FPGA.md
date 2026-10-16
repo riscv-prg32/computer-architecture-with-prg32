@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the performance equation; superscalar processors; vector instructions; HPC and Amdahl's law; GPU and FPGA accelerators. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs
 
 The last lecture looks beyond the kit. Everything you have learned was learned on a small processor that executes one instruction at a time. The machines that forecast the weather or train a neural network execute the same kind of instructions, in very large numbers at once. The lecture takes one small loop of Verm1 and follows it onto four kinds of machine. Cray's question about oxen and chickens will come back: it has no single answer. This lecture is an outlook, and is not part of the midterm test.

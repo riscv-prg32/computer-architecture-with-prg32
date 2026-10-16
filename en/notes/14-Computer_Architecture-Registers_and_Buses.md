@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: shift registers; registers as flip-flops; buses and three-state gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: memory-mapped I/O (Lecture 15); memories and addresses (Lecture 15). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Elementary Machines: Registers and Buses
 
 The previous lecture built a register out of flip-flops. This one asks how registers talk to each other: how a word goes from one to another, along which wires, and what happens when many registers share the same wires. The answers are the bus, the three-state buffer and the shift register. Doc Brown's line on the cover is ironic here: data do need roads, and a bus is exactly that. The warm-up starts from a fact about the kit: its display receives every pixel one bit at a time.

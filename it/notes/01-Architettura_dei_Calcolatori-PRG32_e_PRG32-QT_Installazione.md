@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: i componenti di PRG32. DA UTILIZZARE OGGI: gli strumenti di PRG32, il debugger di PRG32-QT, il programma completo (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: contratto init/update/draw (Lezione 02); i registri (Lezione 02). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: PRG32 e PRG32-QT: allestire la propria officina
 
 Questa lezione è un'officina, in due sensi: si lavora con le mani, e si esce con un posto in cui costruire cose. Qui non c'è teoria. Alla fine il vostro portatile esegue PRG32-QT, il compilatore per RISC-V è installato, e una cartuccia compilata da voi è ferma nel debugger. La citazione sull'ascia giustifica le due ore spese sugli strumenti: ogni lezione successiva presuppone che compilare ed eseguire un programma vi costi un comando e dieci secondi.

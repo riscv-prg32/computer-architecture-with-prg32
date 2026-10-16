@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: impacchettare e pubblicare; la cartuccia portabile. DA UTILIZZARE OGGI: gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Verm1 sul Cartridge Store
 
 Il progetto finisce oggi, con il passo che trasforma un programma in un prodotto. Il vostro Verm1 gira sulla vostra scrivania; alla fine di questa lezione sarà un unico file che chiunque può installare, sul kit, su QEMU o su PRG32-QT, con un nome, un'icona e la vostra firma. La citazione, dal gruppo che costruì il primo Macintosh, dice che un lavoro è finito solo quando è stato consegnato.

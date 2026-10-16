@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: l'equazione delle prestazioni; i processori superscalari; le istruzioni vettoriali; HPC e legge di Amdahl; acceleratori GPU e FPGA. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA
 
 L'ultima lezione guarda oltre il kit. Tutto ciò che avete imparato lo avete imparato su un piccolo processore che esegue un'istruzione alla volta. Le macchine che prevedono il tempo o addestrano una rete neurale eseguono lo stesso tipo di istruzioni, in numero enorme e tutte insieme. La lezione prende un piccolo ciclo di Verm1 e lo segue su quattro tipi di macchina. La domanda di Cray su buoi e polli tornerà: non ha una risposta unica. Questa lezione è uno sguardo in avanti, e non fa parte della prova intercorso.

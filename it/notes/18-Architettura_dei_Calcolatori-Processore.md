@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: accumulatore, pila, registri; il modello del processore; i registri di RISC-V; la convenzione di chiamata; la pila; il processore RV32. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: interruzioni e trap (Lezione 19). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Il processore
 
 L'ultimo blocco del corso apre la macchina che finora ha eseguito i vostri programmi. Questa lezione presenta il processore due volte: prima come modello generale, valido per ogni processore, con unità di controllo, registri, stack e unità aritmetica; poi come RISC-V, il processore che programmate dai primi giorni. Ogni elemento astratto del modello ha già, per voi, un nome familiare. L'anello della citazione è il processore stesso: l'unico componente che comanda tutti gli altri.

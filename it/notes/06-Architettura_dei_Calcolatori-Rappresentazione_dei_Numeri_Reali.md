@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: la virgola fissa; complemento a uno ed eccesso k; la virgola mobile IEEE 754; il nome RV32IMAC. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Rappresentazione dei numeri: i reali
 
 La lezione precedente trattava i numeri interi. Questa tratta i numeri con una parte frazionaria, e parte da un problema pratico: una palla che deve spostarsi di meno di un pixel per frame, su un processore che non ha istruzioni per i numeri reali. La soluzione, la virgola fissa, usa solo ciò che già conoscete. La virgola mobile compare poi come risposta generale, con lo standard seguito da ogni calcolatore, IEEE 754.

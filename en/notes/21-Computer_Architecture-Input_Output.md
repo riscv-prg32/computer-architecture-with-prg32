@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: polling, interrupts, DMA; CRT and LCD displays; keyboard and mouse; printers. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Input and Output
 
 This lecture is about the border between the machine and the world: the devices through which information enters and leaves. You will see how a picture is formed on a screen, what happens between a key and the processor, what a mouse says, how a laser printer works. The thread that ties them together is that each of these devices, inside, is made of machines you have already designed. And the lecture begins and ends on the kit, with the device you have used since the first laboratory: a button.

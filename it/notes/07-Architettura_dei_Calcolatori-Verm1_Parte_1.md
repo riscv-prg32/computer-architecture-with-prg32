@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il progetto Verm1; contratto init/update/draw; un colore è un numero; gli array in memoria; .text, .rodata, .data; indirizzo, valore, load, store; perché si salva ra; shift come moltiplicazione; la virgola fissa; le pseudo-istruzioni; l'ordine little-endian. DA UTILIZZARE OGGI: gli strumenti di PRG32, il debugger di PRG32-QT (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: formati delle istruzioni (Lezione 19). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Verm1, parte 1: una testa che attraversa il mondo
 
 Qui comincia il progetto del corso. È un tutorial, non una lezione: scrivete un programma, passo per passo, e alla fine gira. Usa solo ciò che hanno insegnato le lezioni da 02 a 06: registri e memoria, colori e stringhe come numeri, confronti e scorrimenti, virgola fissa. L'immagine in copertina è ciò che avrete sullo schermo tra due ore: un titolo e un quadrato verde, la testa del verme, che attraversa lo schermo da solo. L'implementazione di riferimento è un contributo di Giuseppe Coviello.

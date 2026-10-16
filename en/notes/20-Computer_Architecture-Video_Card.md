@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the frame buffer; device controllers; buses and bandwidth; the video card; GPU and GPGPU. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Buses and the Video Card
 
 With this lecture the course leaves the processor and turns to what surrounds it. The subject is the path of an image: from a number in memory to a point of light on the screen. On the way you meet two general ideas, the controller of a peripheral and the bus, and one specific machine, the video card, with its processor, the GPU. The kit has no video card at all, and this is an advantage: every step that a card would hide is done by code you can read.

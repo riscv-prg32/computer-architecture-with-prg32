@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the pieces of PRG32. USE NOW: the PRG32 tools, the PRG32-QT debugger, the complete program (used, not studied, in this course). UNDERSTAND LATER: the init, update, draw contract (Lecture 02); registers (Lecture 02). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: PRG32 and PRG32-QT: Setting Up Your Workshop
 
 This lecture is a workshop, in both senses: you work with your hands, and you leave with a place where things can be made. Nothing here is theory. At the end your laptop runs PRG32-QT, the compiler for RISC-V is installed, and one cartridge built by you is stopped in the debugger. The quotation about the axe is the justification for spending two hours on tools: every later lecture assumes that building and running a program costs you one command and ten seconds.

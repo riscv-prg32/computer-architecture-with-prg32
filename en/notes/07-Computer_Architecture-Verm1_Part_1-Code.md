@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the Verm1 project; the init, update, draw contract; a colour is a number; arrays in memory; .text, .rodata, .data; address, value, load, store; why ra is saved; shifts as multiplications; fixed point; pseudo-instructions; little-endian byte order. USE NOW: the PRG32 tools, the PRG32-QT debugger (used, not studied, in this course). UNDERSTAND LATER: instruction formats (Lecture 19). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Verm1, Part 1: A Head That Crosses the World: the code
 
 This is the code deck of Lecture 07. The lecture deck holds the concepts; this one holds everything you type and run: the listings with their explanation, the complete program, what it shows, and the way to test it on each of the three hosts.

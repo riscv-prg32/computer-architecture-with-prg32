@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: accumulator, stack, registers; the processor model; the registers of RISC-V; the calling convention; the stack; the RV32 processor. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: interrupts and traps (Lecture 19). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: The Processor
 
 The last block of the course opens the machine that has been running your programs. This lecture presents the processor twice: first as a general model, valid for every processor, with its control unit, registers, stack and arithmetic unit; then as RISC-V, the processor you have programmed since the first days. Each abstract element of the model already has, for you, a familiar name. The ring of the quotation is the processor itself: the one component that commands all the others.

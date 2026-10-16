@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: pull-up inputs; voltage, current, Ohm's law; the transistor as a switch; from volts to bits; CMOS gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: the clock (Lecture 13). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Introduction to Electronics and Digital Electronics
 
 So far a gate has been a symbol and a truth table. This lecture gives it a body. It follows one bit, the bit of a button of the kit, from the finger that presses it to the register that your program reads, and along the way explains what a volt is, what a transistor does, and how two transistors make a NOT. No previous knowledge of physics is assumed. The quotation by Clarke is the feeling to dispel: a chip looks like magic only until you see what it is made of.

@@ -29,6 +29,7 @@ vectors() {
   done
 }
 
+step mastery node mastery_test.js
 step encodings encodings
 step listings listings
 step vectors vectors

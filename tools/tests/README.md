@@ -10,6 +10,9 @@ sh run_all.sh           # needs riscv32-esp-elf-gcc and upstream qemu-system-ris
 sh run_all.sh quick     # without the scripted games of verm1_check.py, which take a few minutes
 ```
 
+`mastery_test.js` (run first by `run_all.sh`, and by `npm test` in `..`) is not about assembly: it tests the
+parser and the texts of the learning-status badges (`../lib/mastery.js`), and needs only Node.
+
 The levels, one by one:
 
 1. **Encodings** - `encodings.S`, assembled with `riscv32-esp-elf-as -march=rv32imac` and

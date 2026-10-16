@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the program-first method; the rules of the course. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: the pieces of PRG32 (Lecture 01); RISC and an open ISA (Lecture 03); the Verm1 project (Lecture 07). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Course Introduction
 
 This is the opening lecture of the course. It does not teach a topic: it explains how the course works, which machine you will program, which game you will build and how you will be assessed. The quotation from The Matrix is a promise: a computer is a system, and a system that you can open and read stops being a mystery. Keep the title in mind, *program first, formalise later*: it is the method of every lecture that follows, and the reason why you will type assembly before you meet the theory that explains it.

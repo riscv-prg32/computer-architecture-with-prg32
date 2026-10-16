@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: fixed point; one's complement and excess-k; IEEE 754 floating point; the name RV32IMAC. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Number Representation: Real Numbers
 
 The previous lecture dealt with whole numbers. This one deals with numbers that have a fractional part, and it starts from a practical problem: a ball that must move by less than one pixel per frame, on a processor that has no instructions for real numbers. The solution, fixed point, uses only what you already know. Floating point then appears as the general answer, with the standard that every computer follows, IEEE 754.

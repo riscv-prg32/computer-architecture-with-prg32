@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: ROM, flash, firmware; l'architettura di von Neumann; la cache; la memoria secondaria. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: La memoria permanente
 
 La lezione precedente trattava la memoria che dimentica quando manca la corrente. Questa tratta le memorie che non dimenticano: i chip che contengono il firmware, i dischi, i supporti ottici, i nastri. Tra le due colloca la cache, una memoria piccola e veloce che nasconde la lentezza di una grande. La citazione è di un professore di calcolo numerico di questo Ateneo, e ogni studente prima o poi ne impara la verità: un dato non esiste se non è stato salvato.

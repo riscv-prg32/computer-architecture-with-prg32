@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il metodo: prima il programma; le regole del corso. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: i componenti di PRG32 (Lezione 01); RISC e un ISA aperto (Lezione 03); il progetto Verm1 (Lezione 07). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Introduzione al corso
 
 Questa è la lezione di apertura del corso. Non insegna un argomento: spiega come funziona il corso, quale macchina programmerete, quale gioco costruirete e come sarete valutati. La citazione da Matrix è una promessa: un calcolatore è un sistema, e un sistema che si può aprire e leggere smette di essere un mistero. Tenete a mente il sottotitolo, *prima si programma, poi si formalizza*: è il metodo di tutte le lezioni che seguono, e la ragione per cui scriverete assembly prima di incontrare la teoria che lo spiega.

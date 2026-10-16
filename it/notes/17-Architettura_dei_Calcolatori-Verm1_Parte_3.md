@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: gli array in memoria; macchine a stati finiti; .text, .rodata, .data; latch e flip-flop; la virgola fissa. DA UTILIZZARE OGGI: la convenzione di chiamata (Lezione 18) e, usati senza essere studiati nel corso, gli strumenti di PRG32, il debugger di PRG32-QT. DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Verm1, parte 3: un corpo, regole e stati
 
 Il terzo tutorial trasforma Verm1 in un vero gioco. Finora il verme era una sola cella e niente poteva andare storto. Oggi nel progetto entra la memoria: il verme prende un corpo che segue la testa e cresce, mordersi fa finire la partita, e il programma acquista una schermata del titolo e una di fine partita. La frase di Brooks in copertina è il motto del giorno: scegliete bene le strutture dati, e il codice quasi si scrive da solo. Ne incontrerete due, un anello e una mappa.

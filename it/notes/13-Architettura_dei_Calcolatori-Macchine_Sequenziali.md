@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: macchine a stati finiti; il clock; latch e flip-flop; i registri come flip-flop. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Macchine sequenziali
 
 Comincia il terzo blocco del corso: stato e memoria. Le macchine della Lezione 11 non avevano memoria: gli stessi ingressi davano sempre le stesse uscite. Un calcolatore però ricorda: un contatore sopravvive da un frame al successivo, un gioco sa se sta mostrando il titolo o il campo di gioco. Questa lezione introduce il tempo e lo stato, il modello che descrive ogni circuito con memoria, e le memorie elementari, latch e flip-flop, con cui sono costruiti i registri del processore.

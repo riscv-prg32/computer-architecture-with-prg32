@@ -234,6 +234,34 @@
 \newcommand{\lecture}[1]{\marginpar{\footnotesize\sffamily\color{prgaccent}%
   \textbf{Lezione #1}}}
 
+% ---- Learning status (generated from tools/decks/mastery.js) -----------------
+% Three states, each told by colour, by the line of its frame and by an icon, so that
+% grey print and colour-blind readers lose nothing: UNDERSTAND NOW (solid, book),
+% USE NOW (double rule, wrench), UNDERSTAND LATER (dashed, clock).  The tokens are those of
+% tools/lib/mastery.js.  \masterychip{now|use|later}{text}; chapstatus is the box that
+% code/lNN/status.tex fills for each chapter.
+\definecolor{stnowfg}{HTML}{075985}\definecolor{stnowbg}{HTML}{E0F2FE}\definecolor{stnowbar}{HTML}{0369A1}
+\definecolor{stusefg}{HTML}{92400E}\definecolor{stusebg}{HTML}{FEF3C7}\definecolor{stusebar}{HTML}{B45309}
+\definecolor{stlaterfg}{HTML}{6B21A8}\definecolor{stlaterbg}{HTML}{F3E8FF}\definecolor{stlaterbar}{HTML}{7E22CE}
+\newcommand{\sticon@now}{\tikz[baseline=-0.55ex,x=0.85ex,y=0.85ex]{\fill[stnowfg]
+  (-1.05,-0.8)--(-0.12,-0.45)--(-0.12,0.95)--(-1.05,0.6)--cycle (1.05,-0.8)--(0.12,-0.45)--(0.12,0.95)--(1.05,0.6)--cycle;}}
+\newcommand{\sticon@use}{\tikz[baseline=-0.55ex,x=0.85ex,y=0.85ex]{\begin{scope}[rotate=-45]
+  \fill[stusefg] (-0.2,-1.1) rectangle (0.2,0.3); \fill[stusefg] (0,0.55) circle (0.55);
+  \fill[stusebg] (-0.17,0.55) rectangle (0.17,1.2);\end{scope}}}
+\newcommand{\sticon@later}{\tikz[baseline=-0.55ex,x=0.85ex,y=0.85ex]{\draw[stlaterfg,line width=0.6pt] (0,0) circle (0.9);
+  \draw[stlaterfg,line width=0.6pt,line cap=round] (0,0.6)--(0,0)--(0.45,-0.3);}}
+\tcbset{stchip/.style={enhanced, on line, boxsep=0pt, left=2.5pt, right=3pt, top=1.2pt, bottom=1.2pt,
+  sharp corners, boxrule=0.4pt, fontupper=\sffamily\scriptsize\bfseries}}
+\newtcbox{\stchip@now}{stchip, colback=stnowbg, colframe=stnowbar, coltext=stnowfg, left=4pt,
+  borderline west={2pt}{0pt}{stnowbar}}
+\newtcbox{\stchip@use}{stchip, colback=stusebg, colframe=stusebar, coltext=stusefg, left=4.5pt,
+  borderline west={0.9pt}{0pt}{stusebar}, borderline west={0.9pt}{1.8pt}{stusebar}}
+\newtcbox{\stchip@later}{stchip, colback=stlaterbg, coltext=stlaterfg, frame hidden, left=5pt,
+  borderline={0.5pt}{0pt}{stlaterbar,dashed}, borderline west={1.6pt}{1.4pt}{stlaterbar,dotted}}
+\newcommand{\masterychip}[2]{\csname stchip@#1\endcsname{\csname sticon@#1\endcsname\hspace{0.35em}#2}}
+\newtcolorbox{chapstatus}[1]{prgbox, colback=white, colframe=prgink!45, colbacktitle=prgink!70,
+  title={#1}, fontupper=\small}
+
 % Multiple-choice questions (D = domanda).  Answers are collected in an appendix.
 \newcounter{quiz}[chapter]
 \renewcommand{\thequiz}{\thechapter.\arabic{quiz}}

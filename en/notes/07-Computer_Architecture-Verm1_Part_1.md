@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the Verm1 project; the init, update, draw contract; a colour is a number; arrays in memory; .text, .rodata, .data; address, value, load, store; why ra is saved; shifts as multiplications; fixed point; pseudo-instructions; little-endian byte order. USE NOW: the PRG32 tools, the PRG32-QT debugger (used, not studied, in this course). UNDERSTAND LATER: instruction formats (Lecture 19). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Verm1, Part 1: A Head That Crosses the World
 
 The project of the course starts here. This is a tutorial, not a lecture: you type a program, step by step, and at the end it runs. It uses only what the lectures from 02 to 06 have taught: registers and memory, colours and strings as numbers, comparisons and shifts, fixed point. The picture on the cover is what you will have on your screen in two hours: a title and a green square, the head of the worm, that crosses the screen by itself. The reference implementation was contributed by Giuseppe Coviello.

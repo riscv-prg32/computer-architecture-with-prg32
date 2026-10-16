@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: ROM, flash, firmware; the von Neumann architecture; the cache; secondary memory. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Permanent Memory
 
 The previous lecture dealt with the memory that forgets when the power goes. This one deals with the memories that do not: the chips that hold the firmware, the disks, the optical media, the tapes. Between the two it places the cache, a small fast memory that hides the slowness of a large one. The quotation is by a professor of numerical computing of this university, and every student learns its truth sooner or later: a datum does not exist unless it has been saved.

@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: analogico e digitale; bit, byte, parola; l'esadecimale; la notazione posizionale; un colore è un numero; caratteri e stringhe; l'ordine little-endian; le strutture dati; gli array in memoria; gli algoritmi. DA UTILIZZARE OGGI: shift come moltiplicazione (Lezione 05) e, usati senza essere studiati nel corso, il programma completo, gli strumenti di PRG32. DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Rappresentare l'informazione digitale
 
 Nella Lezione 02 avete battuto 0x07e0, 255, `.asciz` e `.word` senza sapere esattamente che cosa fossero. Questa lezione dà loro un nome. La tesi sta nel sottotitolo: dentro la macchina tutto è una configurazione di bit, che si tratti di un numero, di un colore, di una lettera o di un elenco. La lezione è ampia più che profonda: i numeri sono trattati formalmente nelle due lezioni successive; qui imparate a leggere i bit e a vedere che il loro significato è questione di accordi.

@@ -56,6 +56,8 @@ figures/                 photographs and screenshots used by the chapters
 code/lNN/cKK.*           the listing of slide KK of the code deck of lecture NN (exported)
 code/lNN/program.S       the complete program of the lecture, ../../code/lNN.S (exported)
 code/lNN/lab.tex         the section "The program of this chapter" (generated)
+code/lNN/status.tex      the box "Learning status of this chapter", after the goals (generated
+                         from tools/decks/mastery.js; see "How to Use This Book")
 code/verm1/              the Verm1 reference programs and the Store bundle files
 ```
 

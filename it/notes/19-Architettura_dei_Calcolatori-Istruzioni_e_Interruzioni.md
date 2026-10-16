@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: formati delle istruzioni; i modi di indirizzamento; il ciclo del processore; interruzioni e trap. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Istruzioni e interruzioni
 
 La lezione precedente ha descritto di che cosa è fatto un processore. Questa descrive che cosa fa. Ha due metà. La prima segue una singola istruzione: come è codificata in 32 bit e quali passi compie il processore per eseguirla. La seconda spiega che cosa succede quando arriva qualcosa di più urgente del programma in corso, un timer, un dispositivo, un errore, e il processore deve lasciare ciò che sta facendo e tornarci dopo. La battuta in copertina è quasi vera, come vedrete.

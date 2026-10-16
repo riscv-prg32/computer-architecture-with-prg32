@@ -1,0 +1,1200 @@
+{
+  "$schema": "./registry.schema.json",
+  "description": "Concept progression registry of ARC12. One entry per concept: stable id, English and Italian labels, intro (lecture of first exposure), use (first lecture in which the student uses it), formal (the lecture that explains it: its badges say UNDERSTAND NOW; null for a concept that the course uses and does not study, with the reason), practice (questions and exercises that check it, as lecture:slide of the specification), review (an open issue found by the audit). intro, use and formal are checked against decks/mastery.js by textbook/check_mastery.js.",
+  "concepts": {
+    "course.spiral": {
+      "label": {
+        "en": "the program-first method",
+        "it": "il metodo: prima il programma"
+      },
+      "intro": "00",
+      "use": "00",
+      "formal": "00",
+      "practice": []
+    },
+    "course.rules": {
+      "label": {
+        "en": "the rules of the course",
+        "it": "le regole del corso"
+      },
+      "intro": "00",
+      "use": "00",
+      "formal": "00",
+      "practice": []
+    },
+    "prg32.platform": {
+      "label": {
+        "en": "the pieces of PRG32",
+        "it": "i componenti di PRG32"
+      },
+      "intro": "00",
+      "use": "01",
+      "formal": "01",
+      "practice": [
+        "01:37",
+        "01:38"
+      ]
+    },
+    "prg32.contract": {
+      "label": {
+        "en": "the init, update, draw contract",
+        "it": "contratto init/update/draw"
+      },
+      "intro": "01",
+      "use": "02",
+      "formal": "02",
+      "practice": []
+    },
+    "prg32.api": {
+      "label": {
+        "en": "the PRG32 runtime calls",
+        "it": "le chiamate del runtime PRG32"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": null,
+      "practice": [],
+      "reason": "A library interface: its functions are used by name and by contract (arguments in a0 to a7). How the runtime implements them is not part of the course; Lecture 20 sketches the frame buffer behind prg32_gfx_rect and Lecture 21 the reading of the buttons."
+    },
+    "prg32.program": {
+      "label": {
+        "en": "the complete program",
+        "it": "il programma completo"
+      },
+      "intro": "00",
+      "use": "00",
+      "formal": null,
+      "practice": [],
+      "reason": "The complete program of a lecture is run whole and read piece by piece: the listings that the lecture explains carry their own badge in the code deck; the rest of the program (the runtime calls, the parts of later lectures) is used as it is."
+    },
+    "prg32.cartridge-format": {
+      "label": {
+        "en": "the portable cartridge",
+        "it": "la cartuccia portabile"
+      },
+      "intro": "23",
+      "use": "23",
+      "formal": "23",
+      "practice": [
+        "23:26"
+      ]
+    },
+    "tool.prg32-cli": {
+      "label": {
+        "en": "the PRG32 tools",
+        "it": "gli strumenti di PRG32"
+      },
+      "intro": "00",
+      "use": "00",
+      "formal": null,
+      "practice": [],
+      "reason": "An operational skill: python3 -m prg32, ESP-IDF, QEMU and PRG32-QT are used in every lecture and never studied. What a portable cartridge is, is explained in Lecture 23 (concept prg32.cartridge-format)."
+    },
+    "tool.debugger": {
+      "label": {
+        "en": "the PRG32-QT debugger",
+        "it": "il debugger di PRG32-QT"
+      },
+      "intro": "01",
+      "use": "01",
+      "formal": null,
+      "practice": [],
+      "reason": "A tool, used in every tutorial with a precise procedure; it observes the machine that the lectures explain, and is not itself a subject."
+    },
+    "asm.machine-model": {
+      "label": {
+        "en": "registers, compute, move, jump",
+        "it": "registri, calcolo, trasferimento, salto"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": []
+    },
+    "asm.register": {
+      "label": {
+        "en": "registers",
+        "it": "i registri"
+      },
+      "intro": "01",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:26"
+      ]
+    },
+    "asm.instructions": {
+      "label": {
+        "en": "the base instructions",
+        "it": "le istruzioni di base"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:26"
+      ]
+    },
+    "asm.pseudo": {
+      "label": {
+        "en": "pseudo-instructions",
+        "it": "le pseudo-istruzioni"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": []
+    },
+    "asm.directives": {
+      "label": {
+        "en": "the assembler directives",
+        "it": "le direttive dell'assemblatore"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": null,
+      "practice": [],
+      "reason": ".section, .global and .option norelax are conventions of the assembler and of PRG32. The sections are explained as a concept of their own (mem.sections, Lecture 07, and Lecture 16 for where they live); .equ is explained where it is used (Lecture 07, slide 11); linker relaxation is not part of the course."
+    },
+    "abi.call-args": {
+      "label": {
+        "en": "arguments in a0 to a7",
+        "it": "gli argomenti in a0 ... a7"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:26"
+      ]
+    },
+    "abi.return-address": {
+      "label": {
+        "en": "why ra is saved",
+        "it": "perché si salva ra"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:24",
+        "07:28"
+      ]
+    },
+    "abi.calling-convention": {
+      "label": {
+        "en": "the calling convention",
+        "it": "la convenzione di chiamata"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "18",
+      "practice": [
+        "18:34",
+        "22:45"
+      ],
+      "review": "Lecture 18 is the formal treatment that Lectures 12 and 22 point to, but its slide 16 gives the roles 'by convention' and its note sends the reader back to Lecture 02 for them: no lecture-deck slide states the caller-saved / callee-saved rule as a rule. Consider stating it on slide 16 of Lecture 18 or in its note."
+    },
+    "arch.stack": {
+      "label": {
+        "en": "the stack",
+        "it": "la pila"
+      },
+      "intro": "02",
+      "use": "18",
+      "formal": "18",
+      "practice": [
+        "18:32"
+      ],
+      "review": "The note of Lecture 02, slide 11 says that the stack is treated 'in the lectures on memory and on subroutines': there is no lecture on subroutines, and the stack is Lecture 18, slides 20-21. Proposed wording: 'The stack is treated formally in Lecture 18.'"
+    },
+    "mem.load-store": {
+      "label": {
+        "en": "address, value, load, store",
+        "it": "indirizzo, valore, load, store"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:23"
+      ]
+    },
+    "isa.instruction-is-data": {
+      "label": {
+        "en": "an instruction is a number",
+        "it": "un'istruzione è un numero"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": []
+    },
+    "isa.formats": {
+      "label": {
+        "en": "instruction formats",
+        "it": "formati delle istruzioni"
+      },
+      "intro": "02",
+      "use": "19",
+      "formal": "19",
+      "practice": [
+        "19:30"
+      ],
+      "review": "Lecture 07, slide 24 (note) says that instruction formats and compressed instructions are the subject of Lecture 19. The formats are (slides 6-8); the compressed instructions are only mentioned (slide 4 note, question 31, the conclusions), not explained."
+    },
+    "isa.addressing-modes": {
+      "label": {
+        "en": "addressing modes",
+        "it": "i modi di indirizzamento"
+      },
+      "intro": "02",
+      "use": "19",
+      "formal": "19",
+      "practice": []
+    },
+    "isa.risc": {
+      "label": {
+        "en": "RISC and an open ISA",
+        "it": "RISC e un ISA aperto"
+      },
+      "intro": "00",
+      "use": "03",
+      "formal": "03",
+      "practice": [
+        "03:25",
+        "18:31"
+      ]
+    },
+    "isa.extensions": {
+      "label": {
+        "en": "the name RV32IMAC",
+        "it": "il nome RV32IMAC"
+      },
+      "intro": "06",
+      "use": "06",
+      "formal": "06",
+      "practice": []
+    },
+    "skill.trace": {
+      "label": {
+        "en": "tracing by hand",
+        "it": "seguire a mano l'esecuzione"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "02",
+      "practice": [
+        "02:26"
+      ]
+    },
+    "verm1.project": {
+      "label": {
+        "en": "the Verm1 project",
+        "it": "il progetto Verm1"
+      },
+      "intro": "00",
+      "use": "07",
+      "formal": "07",
+      "practice": [
+        "07:29"
+      ]
+    },
+    "info.informatics": {
+      "label": {
+        "en": "what informatics is",
+        "it": "che cos'è l'informatica"
+      },
+      "intro": "03",
+      "use": "03",
+      "formal": "03",
+      "practice": []
+    },
+    "arch.von-neumann": {
+      "label": {
+        "en": "the von Neumann architecture",
+        "it": "l'architettura di von Neumann"
+      },
+      "intro": "03",
+      "use": "03",
+      "formal": "03",
+      "practice": [
+        "03:24"
+      ]
+    },
+    "info.analog-digital": {
+      "label": {
+        "en": "analog and digital",
+        "it": "analogico e digitale"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": []
+    },
+    "info.bit-byte-word": {
+      "label": {
+        "en": "bit, byte, word",
+        "it": "bit, byte, parola"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:30"
+      ]
+    },
+    "num.positional": {
+      "label": {
+        "en": "positional notation",
+        "it": "la notazione posizionale"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:34"
+      ]
+    },
+    "num.hex": {
+      "label": {
+        "en": "hexadecimal",
+        "it": "l'esadecimale"
+      },
+      "intro": "02",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:34"
+      ]
+    },
+    "info.rgb565": {
+      "label": {
+        "en": "a colour is a number",
+        "it": "un colore è un numero"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:31"
+      ]
+    },
+    "info.text": {
+      "label": {
+        "en": "characters and strings",
+        "it": "caratteri e stringhe"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:32"
+      ]
+    },
+    "mem.endianness": {
+      "label": {
+        "en": "little-endian byte order",
+        "it": "l'ordine little-endian"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:33",
+        "15:30"
+      ]
+    },
+    "data.structures": {
+      "label": {
+        "en": "data structures",
+        "it": "le strutture dati"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": []
+    },
+    "data.array": {
+      "label": {
+        "en": "arrays in memory",
+        "it": "gli array in memoria"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": [
+        "04:34",
+        "17:43",
+        "17:44"
+      ]
+    },
+    "num.shift-multiply": {
+      "label": {
+        "en": "shifts as multiplications",
+        "it": "shift come moltiplicazione"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "05",
+      "practice": [
+        "05:35"
+      ]
+    },
+    "algo.algorithms": {
+      "label": {
+        "en": "algorithms",
+        "it": "gli algoritmi"
+      },
+      "intro": "04",
+      "use": "04",
+      "formal": "04",
+      "practice": []
+    },
+    "num.base-conversion": {
+      "label": {
+        "en": "base conversions",
+        "it": "i cambi di base"
+      },
+      "intro": "05",
+      "use": "05",
+      "formal": "05",
+      "practice": [
+        "05:34",
+        "05:35"
+      ]
+    },
+    "num.natural-overflow": {
+      "label": {
+        "en": "naturals and overflow",
+        "it": "naturali e overflow"
+      },
+      "intro": "05",
+      "use": "05",
+      "formal": "05",
+      "practice": [
+        "05:35"
+      ]
+    },
+    "num.sign-magnitude": {
+      "label": {
+        "en": "sign and magnitude",
+        "it": "segno e modulo"
+      },
+      "intro": "05",
+      "use": "05",
+      "formal": "05",
+      "practice": [
+        "05:35"
+      ]
+    },
+    "num.twos-complement": {
+      "label": {
+        "en": "two's complement",
+        "it": "il complemento a due"
+      },
+      "intro": "02",
+      "use": "05",
+      "formal": "05",
+      "practice": [
+        "05:31",
+        "05:32"
+      ]
+    },
+    "num.signed-unsigned": {
+      "label": {
+        "en": "signed or unsigned instructions",
+        "it": "istruzioni con o senza segno"
+      },
+      "intro": "05",
+      "use": "05",
+      "formal": "05",
+      "practice": [
+        "05:33",
+        "05:35"
+      ]
+    },
+    "num.sign-extension": {
+      "label": {
+        "en": "sign extension",
+        "it": "l'estensione del segno"
+      },
+      "intro": "05",
+      "use": "05",
+      "formal": "05",
+      "practice": []
+    },
+    "num.ones-excess": {
+      "label": {
+        "en": "one's complement and excess-k",
+        "it": "complemento a uno ed eccesso k"
+      },
+      "intro": "06",
+      "use": "06",
+      "formal": "06",
+      "practice": [
+        "06:27"
+      ]
+    },
+    "num.fixed-point": {
+      "label": {
+        "en": "fixed point",
+        "it": "la virgola fissa"
+      },
+      "intro": "02",
+      "use": "06",
+      "formal": "06",
+      "practice": [
+        "06:28",
+        "07:26"
+      ]
+    },
+    "num.floating-point": {
+      "label": {
+        "en": "IEEE 754 floating point",
+        "it": "la virgola mobile IEEE 754"
+      },
+      "intro": "06",
+      "use": "06",
+      "formal": "06",
+      "practice": [
+        "06:29",
+        "06:30"
+      ]
+    },
+    "mem.sections": {
+      "label": {
+        "en": ".text, .rodata, .data",
+        "it": ".text, .rodata, .data"
+      },
+      "intro": "07",
+      "use": "07",
+      "formal": "07",
+      "practice": []
+    },
+    "logic.bitmask": {
+      "label": {
+        "en": "bit masks",
+        "it": "le maschere di bit"
+      },
+      "intro": "02",
+      "use": "02",
+      "formal": "08",
+      "practice": [
+        "08:28",
+        "08:29"
+      ]
+    },
+    "logic.circuits": {
+      "label": {
+        "en": "analysis and synthesis",
+        "it": "analisi e sintesi"
+      },
+      "intro": "08",
+      "use": "08",
+      "formal": "08",
+      "practice": []
+    },
+    "logic.gates": {
+      "label": {
+        "en": "logic gates",
+        "it": "le porte logiche"
+      },
+      "intro": "08",
+      "use": "08",
+      "formal": "08",
+      "practice": [
+        "08:26"
+      ]
+    },
+    "logic.boolean-algebra": {
+      "label": {
+        "en": "Boolean algebra",
+        "it": "l'algebra di Boole"
+      },
+      "intro": "02",
+      "use": "08",
+      "formal": "08",
+      "practice": [
+        "08:27"
+      ]
+    },
+    "logic.functions": {
+      "label": {
+        "en": "Boolean functions",
+        "it": "le funzioni booleane"
+      },
+      "intro": "09",
+      "use": "09",
+      "formal": "09",
+      "practice": [
+        "09:28"
+      ]
+    },
+    "logic.canonical-forms": {
+      "label": {
+        "en": "canonical forms",
+        "it": "le forme canoniche"
+      },
+      "intro": "09",
+      "use": "09",
+      "formal": "09",
+      "practice": [
+        "09:29"
+      ]
+    },
+    "logic.minimisation": {
+      "label": {
+        "en": "minimisation, Karnaugh maps",
+        "it": "minimizzazione, Karnaugh"
+      },
+      "intro": "08",
+      "use": "09",
+      "formal": "09",
+      "practice": [
+        "09:30"
+      ]
+    },
+    "logic.adder": {
+      "label": {
+        "en": "the adder",
+        "it": "il sommatore"
+      },
+      "intro": "02",
+      "use": "09",
+      "formal": "09",
+      "practice": [
+        "09:31"
+      ]
+    },
+    "elec.circuits": {
+      "label": {
+        "en": "voltage, current, Ohm's law",
+        "it": "tensione, corrente, legge di Ohm"
+      },
+      "intro": "10",
+      "use": "10",
+      "formal": "10",
+      "practice": [
+        "10:28"
+      ]
+    },
+    "elec.transistor": {
+      "label": {
+        "en": "the transistor as a switch",
+        "it": "il transistor come interruttore"
+      },
+      "intro": "10",
+      "use": "10",
+      "formal": "10",
+      "practice": []
+    },
+    "elec.logic-levels": {
+      "label": {
+        "en": "from volts to bits",
+        "it": "dai volt ai bit"
+      },
+      "intro": "02",
+      "use": "10",
+      "formal": "10",
+      "practice": []
+    },
+    "elec.cmos": {
+      "label": {
+        "en": "CMOS gates",
+        "it": "le porte CMOS"
+      },
+      "intro": "10",
+      "use": "10",
+      "formal": "10",
+      "practice": [
+        "10:29",
+        "10:30"
+      ]
+    },
+    "elec.pullup": {
+      "label": {
+        "en": "pull-up inputs",
+        "it": "gli ingressi con pull-up"
+      },
+      "intro": "10",
+      "use": "10",
+      "formal": "10",
+      "practice": [
+        "10:31"
+      ]
+    },
+    "comb.machines": {
+      "label": {
+        "en": "combinational machines",
+        "it": "le reti combinatorie"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": []
+    },
+    "comb.codes": {
+      "label": {
+        "en": "codes",
+        "it": "i codici"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": [
+        "11:36"
+      ]
+    },
+    "comb.decoder": {
+      "label": {
+        "en": "decoders and encoders",
+        "it": "decoder ed encoder"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": [
+        "11:37"
+      ]
+    },
+    "comb.mux": {
+      "label": {
+        "en": "multiplexers",
+        "it": "i multiplexer"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": [
+        "11:38"
+      ]
+    },
+    "comb.comparator-parity": {
+      "label": {
+        "en": "comparators and parity",
+        "it": "comparatori e parità"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": [
+        "11:39"
+      ]
+    },
+    "comb.alu": {
+      "label": {
+        "en": "the ALU",
+        "it": "l'ALU"
+      },
+      "intro": "11",
+      "use": "11",
+      "formal": "11",
+      "practice": []
+    },
+    "seq.fsm": {
+      "label": {
+        "en": "finite-state machines",
+        "it": "macchine a stati finiti"
+      },
+      "intro": "11",
+      "use": "13",
+      "formal": "13",
+      "practice": [
+        "13:35",
+        "13:38"
+      ]
+    },
+    "seq.clock": {
+      "label": {
+        "en": "the clock",
+        "it": "il clock"
+      },
+      "intro": "10",
+      "use": "13",
+      "formal": "13",
+      "practice": []
+    },
+    "seq.latch-ff": {
+      "label": {
+        "en": "latches and flip-flops",
+        "it": "latch e flip-flop"
+      },
+      "intro": "02",
+      "use": "13",
+      "formal": "13",
+      "practice": [
+        "13:36",
+        "13:37"
+      ]
+    },
+    "seq.register": {
+      "label": {
+        "en": "registers as flip-flops",
+        "it": "i registri come flip-flop"
+      },
+      "intro": "13",
+      "use": "13",
+      "formal": "13",
+      "practice": [
+        "14:28"
+      ]
+    },
+    "reg.bus": {
+      "label": {
+        "en": "buses and three-state gates",
+        "it": "bus e porte three-state"
+      },
+      "intro": "14",
+      "use": "14",
+      "formal": "14",
+      "practice": [
+        "14:26"
+      ]
+    },
+    "reg.shift-register": {
+      "label": {
+        "en": "shift registers",
+        "it": "i registri a scorrimento"
+      },
+      "intro": "14",
+      "use": "14",
+      "formal": "14",
+      "practice": [
+        "14:27"
+      ]
+    },
+    "mem.memory": {
+      "label": {
+        "en": "memories and addresses",
+        "it": "memorie e indirizzi"
+      },
+      "intro": "14",
+      "use": "15",
+      "formal": "15",
+      "practice": [
+        "15:29",
+        "15:31"
+      ]
+    },
+    "mem.cpu-interface": {
+      "label": {
+        "en": "processor and memory",
+        "it": "processore e memoria"
+      },
+      "intro": "15",
+      "use": "15",
+      "formal": "15",
+      "practice": []
+    },
+    "mem.mmio": {
+      "label": {
+        "en": "memory-mapped I/O",
+        "it": "l'I/O mappato in memoria"
+      },
+      "intro": "14",
+      "use": "15",
+      "formal": "15",
+      "practice": [
+        "15:32"
+      ]
+    },
+    "mem.permanent": {
+      "label": {
+        "en": "ROM, flash, firmware",
+        "it": "ROM, flash, firmware"
+      },
+      "intro": "16",
+      "use": "16",
+      "formal": "16",
+      "practice": [
+        "16:28"
+      ]
+    },
+    "mem.cache": {
+      "label": {
+        "en": "the cache",
+        "it": "la cache"
+      },
+      "intro": "16",
+      "use": "16",
+      "formal": "16",
+      "practice": [
+        "16:29"
+      ]
+    },
+    "mem.storage": {
+      "label": {
+        "en": "secondary memory",
+        "it": "la memoria secondaria"
+      },
+      "intro": "16",
+      "use": "16",
+      "formal": "16",
+      "practice": [
+        "16:30",
+        "16:31"
+      ]
+    },
+    "cpu.model": {
+      "label": {
+        "en": "the processor model",
+        "it": "il modello del processore"
+      },
+      "intro": "18",
+      "use": "18",
+      "formal": "18",
+      "practice": [
+        "18:30"
+      ]
+    },
+    "cpu.registers": {
+      "label": {
+        "en": "the registers of RISC-V",
+        "it": "i registri di RISC-V"
+      },
+      "intro": "18",
+      "use": "18",
+      "formal": "18",
+      "practice": [
+        "18:30"
+      ]
+    },
+    "cpu.models": {
+      "label": {
+        "en": "accumulator, stack, registers",
+        "it": "accumulatore, pila, registri"
+      },
+      "intro": "18",
+      "use": "18",
+      "formal": "18",
+      "practice": [
+        "18:33"
+      ]
+    },
+    "cpu.datapath": {
+      "label": {
+        "en": "the RV32 processor",
+        "it": "il processore RV32"
+      },
+      "intro": "18",
+      "use": "18",
+      "formal": "18",
+      "practice": []
+    },
+    "cpu.cycle": {
+      "label": {
+        "en": "the processor cycle",
+        "it": "il ciclo del processore"
+      },
+      "intro": "02",
+      "use": "19",
+      "formal": "19",
+      "practice": [
+        "19:31"
+      ]
+    },
+    "cpu.interrupts": {
+      "label": {
+        "en": "interrupts and traps",
+        "it": "interruzioni e trap"
+      },
+      "intro": "18",
+      "use": "19",
+      "formal": "19",
+      "practice": [
+        "19:32",
+        "19:33"
+      ]
+    },
+    "io.framebuffer": {
+      "label": {
+        "en": "the frame buffer",
+        "it": "il frame buffer"
+      },
+      "intro": "20",
+      "use": "20",
+      "formal": "20",
+      "practice": [
+        "20:23",
+        "20:25",
+        "22:44"
+      ]
+    },
+    "io.controllers": {
+      "label": {
+        "en": "device controllers",
+        "it": "i controllori delle periferiche"
+      },
+      "intro": "20",
+      "use": "20",
+      "formal": "20",
+      "practice": []
+    },
+    "io.bus": {
+      "label": {
+        "en": "buses and bandwidth",
+        "it": "bus e banda"
+      },
+      "intro": "20",
+      "use": "20",
+      "formal": "20",
+      "practice": [
+        "20:24"
+      ]
+    },
+    "io.video": {
+      "label": {
+        "en": "the video card",
+        "it": "la scheda video"
+      },
+      "intro": "20",
+      "use": "20",
+      "formal": "20",
+      "practice": []
+    },
+    "io.gpu": {
+      "label": {
+        "en": "GPU and GPGPU",
+        "it": "GPU e GPGPU"
+      },
+      "intro": "20",
+      "use": "20",
+      "formal": "20",
+      "practice": [
+        "20:26"
+      ]
+    },
+    "io.display": {
+      "label": {
+        "en": "CRT and LCD displays",
+        "it": "display CRT e LCD"
+      },
+      "intro": "21",
+      "use": "21",
+      "formal": "21",
+      "practice": [
+        "21:24",
+        "21:25"
+      ]
+    },
+    "io.keyboard-mouse": {
+      "label": {
+        "en": "keyboard and mouse",
+        "it": "tastiera e mouse"
+      },
+      "intro": "21",
+      "use": "21",
+      "formal": "21",
+      "practice": [
+        "21:23"
+      ]
+    },
+    "io.printer": {
+      "label": {
+        "en": "printers",
+        "it": "le stampanti"
+      },
+      "intro": "21",
+      "use": "21",
+      "formal": "21",
+      "practice": []
+    },
+    "io.polling": {
+      "label": {
+        "en": "polling, interrupts, DMA",
+        "it": "polling, interruzioni, DMA"
+      },
+      "intro": "21",
+      "use": "21",
+      "formal": "21",
+      "practice": [
+        "21:26"
+      ]
+    },
+    "num.division": {
+      "label": {
+        "en": "quotient and remainder",
+        "it": "quoziente e resto"
+      },
+      "intro": "22",
+      "use": "22",
+      "formal": "22",
+      "practice": [
+        "22:42"
+      ],
+      "review": "Lecture 22, slide 3 credits 'the M extension: divu and remu' to Lecture 18, which does not treat them. divu and remu are listed in Lecture 05 (slide 27), the M extension is read in Lecture 06 (slide 26), and the digits of Lecture 22 are their first real explanation. Either correct the row of Lecture 22, slide 3, or add division to Lecture 18."
+    },
+    "store.publishing": {
+      "label": {
+        "en": "packaging and publishing",
+        "it": "impacchettare e pubblicare"
+      },
+      "intro": "23",
+      "use": "23",
+      "formal": "23",
+      "practice": [
+        "23:25",
+        "23:27"
+      ]
+    },
+    "perf.equation": {
+      "label": {
+        "en": "the performance equation",
+        "it": "l'equazione delle prestazioni"
+      },
+      "intro": "24",
+      "use": "24",
+      "formal": "24",
+      "practice": []
+    },
+    "perf.superscalar": {
+      "label": {
+        "en": "superscalar processors",
+        "it": "i processori superscalari"
+      },
+      "intro": "24",
+      "use": "24",
+      "formal": "24",
+      "practice": [
+        "24:43"
+      ]
+    },
+    "perf.vector": {
+      "label": {
+        "en": "vector instructions",
+        "it": "le istruzioni vettoriali"
+      },
+      "intro": "24",
+      "use": "24",
+      "formal": "24",
+      "practice": [
+        "24:44"
+      ]
+    },
+    "perf.hpc": {
+      "label": {
+        "en": "HPC and Amdahl's law",
+        "it": "HPC e legge di Amdahl"
+      },
+      "intro": "24",
+      "use": "24",
+      "formal": "24",
+      "practice": [
+        "24:42"
+      ]
+    },
+    "perf.accelerators": {
+      "label": {
+        "en": "GPU and FPGA accelerators",
+        "it": "acceleratori GPU e FPGA"
+      },
+      "intro": "24",
+      "use": "24",
+      "formal": "24",
+      "practice": [
+        "24:45"
+      ]
+    }
+  }
+}

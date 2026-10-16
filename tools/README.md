@@ -95,6 +95,28 @@ After a change of `drop:` or `code:` the slides of a lecture deck are renumbered
 that every slide has a note, not that the note is the right one. Move the notes of the slides that
 changed place (`../<lang>/notes`, and `reserve/` for the dropped ones) before running it.
 
+## Learning status: understand now, use now, understand later
+
+A lecture shows more than it explains: that is the method. So that students can tell what to master today
+from what they may use provisionally and from what is only a preview, a slide can carry one or two badges in
+the band above its title:
+
+| Badge | Italian | Means |
+| --- | --- | --- |
+| UNDERSTAND NOW | DA COMPRENDERE OGGI | by the end of the lecture, explain it, trace it, apply it |
+| USE NOW | DA UTILIZZARE OGGI | follow and use the recipe; the inside is explained in the lecture shown, or is not a subject of the course |
+| UNDERSTAND LATER | DA COMPRENDERE PIÙ AVANTI | a preview; the lecture shown explains it |
+
+The badges are data, not drawing: `concepts/registry.json` defines the concepts (labels in both languages, the
+lecture of first exposure, of first use and of formal treatment, the questions that check them) and
+`decks/mastery.js` says, for each lecture, which slides carry which status, in the numbering of `decks/plan.js`
+and for both languages at once. `lib/mastery.js` draws the badges, writes one sentence in the notes of each
+marked slide, puts the legend on every cover and the list of the lecture in the notes of the cover and of the
+last slide, writes the same list at the top of each notes file (`notes.js`) and the box *Learning status* of
+each chapter of the books (`textbook/export_listings.js`). `node textbook/check_mastery.js` checks it all and
+writes `concepts/coverage.md`, the matrix of the 25 lectures; `concepts/DESIGN.md` is the design guide
+(colours, shapes, placement, accessibility) and the procedure for marking a slide.
+
 ## The programs of the lectures: `../code`
 
 `../code/lNN.S` is one complete, commented cartridge per lecture: the listings of the lecture put
@@ -155,6 +177,7 @@ node build.js it     # only the Italian decks
 node build.js en 05  # the two decks of lecture 05, in English
 node notes.js        # check the slide notes of both languages
 npm run textbook     # listings and programs for the books, answers, glossary, and the checks
+npm test             # the learning status: unit tests, then check_mastery.js (after node build.js)
 ```
 
 - `build.js` is the layout engine (pptxgenjs). It measures text before placing it and fails the build if
@@ -165,6 +188,7 @@ npm run textbook     # listings and programs for the books, answers, glossary, a
 - `lib/gates.js` draws logic gates and circuits, `lib/draw.js` timing diagrams and state diagrams,
   `lib/circuit.js` electronic schematics (SVG, rasterised with sharp).
 - `lib/verm1.js` reads the Verm1 sources for the tutorial decks.
+- `lib/mastery.js` draws the learning-status badges and writes their notes (see the section above).
 - `tests/` holds the checks of the assembly shown on the slides: encodings, a QEMU test of the
   listings, the programs of the lectures run on the PRG32-QT headless runner (which also writes the
   pictures `assets/lab_lNN.png` used in the code decks), the vector listings of lecture 24, the four parts

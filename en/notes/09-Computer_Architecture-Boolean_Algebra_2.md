@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: the adder; Boolean functions; canonical forms; minimisation, Karnaugh maps. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Elements of Boolean Algebra
 
 The previous lecture gave you operators and properties. This one answers the practical question that follows: given what a circuit must do, how do you find the gates? The answer is a method in three steps, truth table, canonical form and minimisation, and you will apply it to the most important circuit of the course, the adder. The lecture opens with two instructions that add two bits, and it closes with the thirty-two adders that execute every `add` you have typed.

@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: che cos'è l'informatica; l'architettura di von Neumann; RISC e un ISA aperto. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: l'algebra di Boole (Lezione 08). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Storia della computazione
 
 La volta scorsa avete eseguito un programma RISC-V. Questa lezione si chiede da dove viene quella macchina. Non è un elenco di date da memorizzare: ogni tappa della storia aggiunge un'idea, e ognuna di quelle idee è ancora dentro il chip del kit PRG32. La citazione in copertina è il primo programma più famoso, dal libro che ha presentato il linguaggio C: da allora ogni programmatore ha cominciato facendo dire ciao a una macchina, come avete fatto voi con HELLO PRG32.

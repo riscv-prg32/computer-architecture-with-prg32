@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: polling, interruzioni, DMA; display CRT e LCD; tastiera e mouse; le stampanti. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Ingresso e uscita
 
 Questa lezione riguarda il confine tra la macchina e il mondo: i dispositivi attraverso cui l'informazione entra ed esce. Vedrete come si forma un'immagine su uno schermo, che cosa succede tra un tasto e il processore, che cosa dice un mouse, come funziona una stampante laser. Il filo che li lega è che ciascuno di questi dispositivi, dentro, è fatto di macchine che avete già progettato. E la lezione comincia e finisce sul kit, con il dispositivo che usate dal primo laboratorio: un pulsante.

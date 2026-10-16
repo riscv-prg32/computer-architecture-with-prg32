@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: bit masks; the von Neumann architecture; analysis and synthesis; Boolean algebra; logic gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: minimisation, Karnaugh maps (Lecture 09). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Elements of Boolean Algebra
 
 The second block of the course begins: logic. After learning what bits mean, you learn how they are combined. You have in fact been using Boolean algebra since the first days, every time you tested a button with `andi`; this lecture gives that operation a name and builds the algebra around it. The White Rabbit on the cover is always in a hurry: the processor too does everything by tiny logical steps, billions of them per second.

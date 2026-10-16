@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: arrays in memory; finite-state machines; .text, .rodata, .data; latches and flip-flops; fixed point. USE NOW: the calling convention (Lecture 18) and, used without being studied in this course, the PRG32 tools, the PRG32-QT debugger. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: Verm1, Part 3: A Body, Rules and States
 
 The third tutorial turns Verm1 into a real game. Until now the worm was a single cell and nothing could go wrong. Today memory enters the project: the worm gets a body that follows the head and grows, biting itself ends the game, and the program acquires a title screen and a game-over screen. Brooks's sentence on the cover is the motto of the day: choose the data structures well, and the code almost writes itself. You will meet two of them, a ring and a map.

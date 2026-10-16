@@ -2,6 +2,8 @@
 
 *ARC12 Computer Architecture, A.Y. 2026/27. Slide notes.* One note per slide: what the slide shows, how to read it, and what to take away. Generated headings, hand-written text; in a code deck the notes of the generated slides (the complete program, the test guides) are generated too. `node notes.js` checks that every slide has its note.
 
+Learning status of this lecture. UNDERSTAND NOW: what informatics is; the von Neumann architecture; RISC and an open ISA. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: Boolean algebra (Lecture 08). A slide without a badge is context: a story, an example, a question, an exercise.
+
 ## Slide 1: History of Computing
 
 Last time you ran a RISC-V program. This lecture asks where that machine comes from. It is not a list of dates to memorise: each stage of the story adds one idea, and every one of those ideas is still inside the chip of the PRG32 kit. The quotation on the cover is the most famous first program, from the book that introduced the C language: every programmer since has started by making a machine say hello, as you did with HELLO PRG32.

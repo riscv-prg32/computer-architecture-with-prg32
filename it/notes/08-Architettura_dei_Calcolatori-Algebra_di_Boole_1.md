@@ -2,6 +2,8 @@
 
 *ARC12 Architettura dei Calcolatori, A.A. 2026/27. Note alle slide.* Una nota per ogni slide: che cosa mostra, come leggerla, che cosa portarsi via. Titoli generati, testo scritto a mano; in una presentazione del codice anche le note delle slide generate (il programma completo, le guide di prova) sono generate. `node notes.js` controlla che ogni slide abbia la sua nota.
 
+Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: le maschere di bit; l'architettura di von Neumann; analisi e sintesi; l'algebra di Boole; le porte logiche. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: minimizzazione, Karnaugh (Lezione 09). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
+
 ## Slide 1: Elementi di algebra di Boole
 
 Comincia il secondo blocco del corso: la logica. Dopo aver imparato che cosa significano i bit, imparate come si combinano. In realtà usate l'algebra di Boole fin dai primi giorni, ogni volta che avete esaminato un pulsante con `andi`; questa lezione dà un nome a quell'operazione e le costruisce attorno l'algebra. Il Bianconiglio in copertina va sempre di fretta: anche il processore fa tutto a minuscoli passi logici, miliardi al secondo.

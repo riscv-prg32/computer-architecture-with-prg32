@@ -46,6 +46,10 @@ fisse) e lo stile della bibliografia.
   (`code/lNN/program.S`, copia di `../../code/lNN.S`), il frame scritto dal suo test e i
   comandi per eseguirlo. L'Appendice B ha la guida passo per passo per PRG32-QT, QEMU e
   la scheda.
+- **Stato di apprendimento.** Ogni capitolo si apre, dopo gli obiettivi, con il riquadro
+  *Stato di apprendimento di questo capitolo* (`code/lNN/status.tex`, generato da
+  `../../tools/decks/mastery.js`): che cosa comprendere oggi, che cosa usare, che cosa si
+  comprenderà più avanti e in quale capitolo. *Come usare questo libro* spiega le etichette.
 - **Figure.** Le stesse dell'edizione inglese (`figures/`), con le etichette dei
   diagrammi TikZ tradotte.
 - **Appendici E e F** (risposte e glossario) sono generate dalle presentazioni
