@@ -14,7 +14,7 @@ Five results. The score and the best score in digits, converted by a division by
 
 ## Slide 3: What Part 4 takes from the lectures
 
-The ideas of the last block of lectures, and where they appear today. The calling convention of Lecture 18 becomes small functions with a contract, some of them leaves. The M extension gives quotient and remainder for the digits. The processor cycle reminds us that every instruction costs time, so we measure. The screen as memory, from Lecture 20, suggests drawing only what changed. And from Lecture 21: the devices belong to the runtime, to which we ask for a note of a given duration.
+The ideas of the last block of lectures, and where they appear today. The calling convention of Lecture 18 becomes small functions with a contract, some of them leaves. The M extension, met in Lectures 05 and 06, gives quotient and remainder for the digits. The processor cycle reminds us that every instruction costs time, so we measure. The screen as memory, from Lecture 20, suggests drawing only what changed. And from Lecture 21: the devices belong to the runtime, to which we ask for a note of a given duration.
 
 ## Slide 4: Where you are going
 

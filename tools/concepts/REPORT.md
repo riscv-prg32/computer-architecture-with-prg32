@@ -79,7 +79,7 @@ Concepts deferred for good are only the tools (`tool.prg32-cli`, `tool.debugger`
 | `node build.js` | 100 decks built; no badge too wide, no text overflow |
 | `node notes.js` | every slide has its note; 917 notes per language |
 | `node textbook/check_decks.js` | 456 + 461 slides, every lecture deck within 20, 0 differences English/Italian |
-| `npm test` (`mastery_test.js`, `check_mastery.js`) | 13 tests passed; 0 failures, 30 warnings (below) |
+| `npm test` (`mastery_test.js`, `check_mastery.js`) | 13 tests passed; 0 failures, 26 warnings (below) |
 | `npm run textbook` | exports, appendices, credits, both checks: 0 failures (15 number hints, as before) |
 | `latexmk -pdf main.tex`, both editions | 462 and 470 pages, no error, no undefined reference; both zips compile from a clean unzip |
 | `tests/run_all.sh quick` | all checks passed (encodings, listings, vectors, cartridges, Verm1 steps, Store bundle) |
@@ -89,8 +89,8 @@ question or an exercise, more than two badges, a deferral that does not point to
 registry `intro`/`use`/`formal` that disagrees with the marks, a `practice` reference that is not a question,
 a never-studied concept without its reason, different slide kinds in the two languages, a badge too wide in
 either language, a colour pair below WCAG AA, and, in the 100 built decks, a missing badge or any other shape in
-the band of the badges. The 30 warnings are 26 concepts understood without a question or exercise that checks
-them (listed in `coverage.md`), and the 4 open issues below.
+the band of the badges. The 26 warnings are concepts understood without a question or exercise that checks them
+(listed in `coverage.md`); the 4 issues of the audit were resolved (below).
 
 ## Visual QA log
 
@@ -109,17 +109,22 @@ approximate and the real look in PowerPoint was not inspected).
 | it 22 lecture | 5, 9 | bullets with box, bullets with screenshot | ok |
 | en book | p. 17, p. 35 | reading guide, chapter box | ok; badges legible at 80 and 300 dpi |
 
-## Needs review (nothing changed: the decision is the author's)
+## Issues found by the audit, and resolved
 
-1. **Lecture 02, slide 11 (note):** "the lectures on memory and on subroutines" — there is no lecture on
-   subroutines; the stack is Lecture 18, slides 20-21. Proposed: "The stack is treated formally in Lecture 18."
-2. **Lecture 22, slide 3:** credits "the M extension: divu and remu" to Lecture 18, which does not treat them
-   (they are listed in Lecture 05, slide 27, and the M extension is read in Lecture 06, slide 26). Lecture 22 was
-   therefore marked as the formal treatment of quotient and remainder.
-3. **Lecture 07, slide 24 (note):** promises compressed instructions in Lecture 19, where they are only
-   mentioned (slide 4 note, question 31, conclusions).
-4. **Lecture 18, slide 16:** the formal home of the calling convention gives the register roles "by
-   convention" and its note points back to Lecture 02; no slide states the caller-saved / callee-saved rule.
+Four cross-references promised an explanation in the wrong place. They were reported, and on the author's
+request (2026-10-16) corrected in the specifications of both languages, in the notes and in both books:
+
+1. **Lecture 02, slide 11 (note), and Chapter 2:** the stack was said to be treated "in the lectures on memory
+   and on subroutines" (the chapter said Chapters 15 and 19). Now: Lecture 18 / Chapter 18, where push and pop are.
+2. **Lecture 22, slide 3, its note and Chapter 22:** `divu` and `remu` were credited to Lecture 18, which does
+   not treat them. Now: Lectures 05 and 06 (the unsigned instructions, slide 27 of Lecture 05; the M of
+   RV32IMAC, slide 26 of Lecture 06). Lecture 22 remains the first real explanation of quotient and remainder.
+3. **Lecture 07, slide 24 (note), and Chapter 7:** compressed instructions were promised in Lecture 19, which
+   only names them. Now: the formats are in Lecture 19; the compressed forms are named there and listed in
+   Appendix A.
+4. **Lecture 18, slide 16, and Chapter 18:** the formal home of the calling convention now states the rule on
+   the slide (caption: caller-saved `ra`, `t`, `a`; callee-saved `s` and `sp`), in its note and in the chapter,
+   which points to Appendix A for the full convention.
 
 ## Remaining risks and limits
 

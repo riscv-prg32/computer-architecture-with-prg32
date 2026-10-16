@@ -192,8 +192,7 @@
       "practice": [
         "18:34",
         "22:45"
-      ],
-      "review": "Lecture 18 is the formal treatment that Lectures 12 and 22 point to, but its slide 16 gives the roles 'by convention' and its note sends the reader back to Lecture 02 for them: no lecture-deck slide states the caller-saved / callee-saved rule as a rule. Consider stating it on slide 16 of Lecture 18 or in its note."
+      ]
     },
     "arch.stack": {
       "label": {
@@ -205,8 +204,7 @@
       "formal": "18",
       "practice": [
         "18:32"
-      ],
-      "review": "The note of Lecture 02, slide 11 says that the stack is treated 'in the lectures on memory and on subroutines': there is no lecture on subroutines, and the stack is Lecture 18, slides 20-21. Proposed wording: 'The stack is treated formally in Lecture 18.'"
+      ]
     },
     "mem.load-store": {
       "label": {
@@ -240,8 +238,7 @@
       "formal": "19",
       "practice": [
         "19:30"
-      ],
-      "review": "Lecture 07, slide 24 (note) says that instruction formats and compressed instructions are the subject of Lecture 19. The formats are (slides 6-8); the compressed instructions are only mentioned (slide 4 note, question 31, the conclusions), not explained."
+      ]
     },
     "isa.addressing-modes": {
       "label": {
@@ -1122,8 +1119,7 @@
       "formal": "22",
       "practice": [
         "22:42"
-      ],
-      "review": "Lecture 22, slide 3 credits 'the M extension: divu and remu' to Lecture 18, which does not treat them. divu and remu are listed in Lecture 05 (slide 27), the M extension is read in Lecture 06 (slide 26), and the digits of Lecture 22 are their first real explanation. Either correct the row of Lecture 22, slide 3, or add division to Lecture 18."
+      ]
     },
     "store.publishing": {
       "label": {

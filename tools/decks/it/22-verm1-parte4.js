@@ -21,7 +21,7 @@ Deck({
     ]),
     G("Che cosa prende la Parte 4 dalle lezioni", ["Da", "Idea", "Dove compare oggi"], [
       ["Lezione 18", "la convenzione di chiamata: registri a, t, s, ra, lo stack", "piccole funzioni con un contratto; funzioni foglia"],
-      ["Lezione 18", "l'estensione M: divu e remu, quoziente e resto", "le cifre del punteggio"],
+      ["Lezioni 05, 06", "divu e remu (senza segno), la M di RV32IMAC: quoziente e resto", "le cifre del punteggio"],
       ["Lezione 19", "il ciclo del processore: ogni istruzione costa tempo", "la misura prima e dopo il passo 4"],
       ["Lezione 20", "lo schermo è memoria: il costo è scrivere pixel", "disegnare solo ciò che è cambiato"],
       ["Lezione 21", "i dispositivi sono del runtime: noi chiediamo, lui fa", "prg32_audio_note, con una durata"],

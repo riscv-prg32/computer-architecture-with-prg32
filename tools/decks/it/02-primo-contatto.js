@@ -141,7 +141,7 @@ Deck({
       h.tx(s, "sp", { x: x - 1.5, y: y0 + 4 * ch, w: 0.55, h: ch, fontSize: 18, bold: true, fontFace: h.MONO, color: P.red, valign: "middle", align: "right" });
       h.tx(s, "indirizzi più alti", { x, y: y0 - 0.32, w, h: 0.28, fontSize: 11.5, color: P.mute, italic: true, align: "center" });
       h.tx(s, "Lo stack cresce verso il basso: si sottrae da sp per allocare, si somma per rilasciare.", { x: x - 0.6, y: y0 + 5 * ch + 0.2, w: w + 2, h: 0.7, fontSize: 14, color: P.ink });
-    }, "La convenzione richiede che sp resti allineato a 16 byte tra una chiamata e l'altra: per questo il frame è di 16 byte anche se ne servono solo 4. Lo stack è trattato formalmente nelle lezioni sulla memoria e sui sottoprogrammi."),
+    }, "La convenzione richiede che sp resti allineato a 16 byte tra una chiamata e l'altra: per questo il frame è di 16 byte anche se ne servono solo 4. Lo stack, con push e pop, è trattato formalmente nella Lezione 18."),
     K("Passo 3: un valore che sopravvive tra i frame", COUNTER, [
       "counter è un'etichetta: dà un nome a una locazione di memoria, nella sezione .data, che contiene una parola di 32 bit",
       "la mette in t0 l'INDIRIZZO di quella locazione",

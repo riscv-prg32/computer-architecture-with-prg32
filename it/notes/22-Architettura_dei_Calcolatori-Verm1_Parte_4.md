@@ -14,7 +14,7 @@ Cinque risultati. Il punteggio e il punteggio migliore in cifre, convertiti da u
 
 ## Slide 3: Che cosa prende la Parte 4 dalle lezioni
 
-Le idee dell'ultimo blocco di lezioni, e dove compaiono oggi. La convenzione di chiamata della Lezione 18 diventa piccole funzioni con un contratto, alcune delle quali foglie. L'estensione M dà quoziente e resto per le cifre. Il ciclo del processore ricorda che ogni istruzione costa tempo, quindi si misura. Lo schermo come memoria, dalla Lezione 20, suggerisce di disegnare solo ciò che è cambiato. E dalla Lezione 21: i dispositivi sono del runtime, a cui chiediamo una nota di una certa durata.
+Le idee dell'ultimo blocco di lezioni, e dove compaiono oggi. La convenzione di chiamata della Lezione 18 diventa piccole funzioni con un contratto, alcune delle quali foglie. L'estensione M, incontrata nelle Lezioni 05 e 06, dà quoziente e resto per le cifre. Il ciclo del processore ricorda che ogni istruzione costa tempo, quindi si misura. Lo schermo come memoria, dalla Lezione 20, suggerisce di disegnare solo ciò che è cambiato. E dalla Lezione 21: i dispositivi sono del runtime, a cui chiediamo una nota di una certa durata.
 
 ## Slide 4: Dove state andando
 

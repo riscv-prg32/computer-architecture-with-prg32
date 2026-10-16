@@ -140,7 +140,7 @@ Deck({
       h.tx(s, "sp", { x: x - 1.5, y: y0 + 4 * ch, w: 0.55, h: ch, fontSize: 18, bold: true, fontFace: h.MONO, color: P.red, valign: "middle", align: "right" });
       h.tx(s, "higher addresses", { x, y: y0 - 0.32, w, h: 0.28, fontSize: 11.5, color: P.mute, italic: true, align: "center" });
       h.tx(s, "The stack grows downward: subtract from sp to allocate, add to release.", { x: x - 0.6, y: y0 + 5 * ch + 0.2, w: w + 2, h: 0.7, fontSize: 14, color: P.ink });
-    }, "The convention requires sp to stay 16-byte aligned across calls, which is why the frame is 16 bytes even though only 4 are used. The stack is treated formally in the lectures on memory and on subroutines."),
+    }, "The convention requires sp to stay 16-byte aligned across calls, which is why the frame is 16 bytes even though only 4 are used. The stack, with push and pop, is treated formally in Lecture 18."),
     K("Step 3: a value that survives between frames", COUNTER, [
       "counter is a label: it names a location in memory, in the .data section, holding one 32-bit word",
       "la puts the ADDRESS of that location in t0",

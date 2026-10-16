@@ -250,7 +250,14 @@ la quinta non esiste come registro.
 
 L'hardware tratta in modo identico i registri da \reg{x1} a \reg{x31}, e solo
 \reg{x0} è speciale (Tabella~\ref{tab:cpu:regs}); il program counter non è nel
-banco. I ruoli vengono dalla convenzione di chiamata. L'MC68000, invece,
+banco. I ruoli vengono dalla convenzione di chiamata, incontrata nel
+Capitolo~\ref{ch:firstcontact}, la cui regola è questa. Una chiamata può
+distruggere \reg{ra} e i registri \reg{t} e \reg{a}: sono \emph{salvati dal
+chiamante}, e un chiamante che ne ha ancora bisogno li salva prima della
+chiamata. Una chiamata deve restituire invariati i registri \reg{s} e \reg{sp}:
+sono \emph{salvati dal chiamato}, e una funzione che ne usa uno lo salva nel suo
+frame sullo stack e lo ripristina prima di \ins{ret}. L'Appendice~\ref{app:riscv}
+dà la convenzione completa. L'MC68000, invece,
 separava i registri dati D0--D7 dai registri indirizzi A0--A7, con A7 come
 puntatore allo stack.
 

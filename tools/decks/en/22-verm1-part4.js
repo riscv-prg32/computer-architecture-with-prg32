@@ -20,7 +20,7 @@ Deck({
     ]),
     G("What Part 4 takes from the lectures", ["From", "Idea", "Where it appears today"], [
       ["Lecture 18", "the calling convention: a, t, s registers, ra, the stack", "small functions with contracts; leaf functions"],
-      ["Lecture 18", "the M extension: divu and remu, quotient and remainder", "the digits of the score"],
+      ["Lectures 05, 06", "divu and remu (unsigned), the M of RV32IMAC: quotient and remainder", "the digits of the score"],
       ["Lecture 19", "the processor cycle: every instruction costs time", "the measure before and after step 4"],
       ["Lecture 20", "the screen is memory: writing pixels is the cost", "draw only what changed"],
       ["Lecture 21", "devices belong to the runtime: we ask, it does", "prg32_audio_note, with a duration"],

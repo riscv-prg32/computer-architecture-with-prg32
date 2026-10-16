@@ -244,7 +244,13 @@ the fifth does not exist as a register.
 
 The hardware treats \reg{x1} to \reg{x31} identically, and only \reg{x0} is
 special (Table~\ref{tab:cpu:regs}); the program counter is not in the bank.
-The roles come from the calling convention. The MC68000, instead, separated
+The roles come from the calling convention, met in Chapter~\ref{ch:firstcontact},
+whose rule is this. A call may destroy \reg{ra} and the \reg{t} and \reg{a}
+registers: they are \emph{caller-saved}, and a caller that still needs one saves
+it before the call. A call must return the \reg{s} registers and \reg{sp}
+unchanged: they are \emph{callee-saved}, and a function that uses one saves it
+in its stack frame and restores it before \ins{ret}. Appendix~\ref{app:riscv}
+gives the complete convention. The MC68000, instead, separated
 the data registers D0--D7 from the address registers A0--A7, with A7 as stack
 pointer.
 

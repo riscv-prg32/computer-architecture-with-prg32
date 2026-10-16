@@ -159,7 +159,7 @@ verm1_draw:
       "Pseudo-instructions are expanded: la is auipc plus addi, li is addi from zero, ret is a jump to ra",
       "Some instructions start with c.: the compressed 16-bit forms of the same instructions",
       "The cartridge is loaded at address 0x40800000: every address you see starts there",
-    ], "Disassembly of verm1_update from verm1/verm1_part1.S (objdump, rv32imac), abridged; the exact offsets depend on the build. Instruction formats and compressed instructions are the subject of Lecture 19.", "txt"),
+    ], "Disassembly of verm1_update from verm1/verm1_part1.S (objdump, rv32imac), abridged; the exact offsets depend on the build. Instruction formats are the subject of Lecture 19; the compressed forms are only named there, and listed in Appendix A of the textbook.", "txt"),
     T("Reading memory: little-endian, live", [
       "The Memory view shows 128 bytes from the address you typed, in hexadecimal",
       "step_q8 is a word of .data: its four bytes come lowest byte first",

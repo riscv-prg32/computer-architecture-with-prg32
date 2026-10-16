@@ -160,7 +160,7 @@ verm1_draw:
       "Le pseudo-istruzioni sono espanse: la è auipc più addi, li è addi da zero, ret è un salto a ra",
       "Alcune istruzioni cominciano con c.: sono le forme compresse a 16 bit delle stesse istruzioni",
       "La cartuccia è caricata all'indirizzo 0x40800000: ogni indirizzo che vedete parte da lì",
-    ], "Disassemblato di verm1_update da verm1/verm1_part1.S (objdump, rv32imac), abbreviato; gli scostamenti esatti dipendono dalla compilazione. Formati delle istruzioni e istruzioni compresse sono l'argomento della Lezione 19.", "txt"),
+    ], "Disassemblato di verm1_update da verm1/verm1_part1.S (objdump, rv32imac), abbreviato; gli scostamenti esatti dipendono dalla compilazione. I formati delle istruzioni sono l'argomento della Lezione 19; le forme compresse vi sono solo nominate, e sono elencate nell'Appendice A del libro.", "txt"),
     T("Leggere la memoria: little-endian, dal vivo", [
       "La vista Memory mostra 128 byte a partire dall'indirizzo scritto, in esadecimale",
       "step_q8 è una parola di .data: i suoi quattro byte arrivano dal meno significativo",
