@@ -47,29 +47,30 @@ module.exports = {
       39: "use tool.prg32-cli",
       program: "use prg32.program",
     },
-    // Pilot.  The objectives (slide 2) are understood; the directives, the build, the runtime calls and the
-    // calling convention are used; the stack, the instruction formats, addressing modes and the questions of
-    // slide 25 are previews with a lecture each.
+    // Pilot, novice-first.  Slide 2 is the learning contract (three outcomes); 9 and 24 are the two checkpoints;
+    // 26 lists what is not expected yet and 27 is the closing map.  The directives, the build, the runtime calls and
+    // the calling convention are used; the stack, the instruction formats, addressing modes and the questions of
+    // slide 26 are previews with a lecture each.  The stack frame (15) and the debugger (23) are in the code deck.
     "02": {
       4: "use num.hex,info.bit-byte-word",                  // "Today you only need to recognise these numbers": Lecture 04
       5: "now asm.machine-model",
       6: ["now asm.register", "use abi.calling-convention"],  // "Preserved across a call?": the convention, Lecture 18
       7: "now prog.function",
       8: "now prg32.contract",
-      10: "now asm.line",
-      11: "use asm.directives",
-      12: "use tool.prg32-cli",
-      13: ["now abi.call-args", "use prg32.api"],
-      14: ["now abi.return-address", "later arch.stack"],     // the stack, formally: Lecture 18, slides 20-21
-      15: "now mem.load-store",
-      16: ["now mem.load-store", "later isa.addressing-modes"], // "we return to it formally with addressing modes": Lecture 19, slide 10
-      17: "use logic.bitmask",                                // andi 255 as "modulo 256"; masks: Lecture 08
-      19: "now asm.instructions",
-      20: "now asm.pseudo",
-      21: ["now isa.instruction-is-data", "later isa.formats"], // "Do not explain the formats now": Lecture 19, slides 7-8
-      22: "use tool.debugger",
-      23: "now skill.trace",
-      25: "later num.hex,num.twos-complement,num.fixed-point,logic.boolean-algebra,logic.adder,elec.logic-levels,seq.latch-ff,cpu.cycle,verm1.project",
+      11: "now asm.line",
+      12: "use asm.directives",
+      13: "use tool.prg32-cli",
+      14: ["now abi.call-args", "use prg32.api"],
+      15: ["now abi.return-address", "later arch.stack"],     // the stack, formally: Lecture 18, slides 20-21
+      16: "now mem.load-store",
+      17: ["now mem.load-store", "later isa.addressing-modes"], // "we return to it formally with addressing modes": Lecture 19, slide 10
+      18: "use logic.bitmask",                                // andi 255 as "modulo 256"; masks: Lecture 08
+      20: "now asm.instructions",
+      21: "now asm.pseudo",
+      22: ["now isa.instruction-is-data", "later isa.formats"], // "Do not explain the formats now": Lecture 19, slides 7-8
+      23: "use tool.debugger",
+      24: "now skill.trace",
+      26: "later num.hex,num.twos-complement,num.fixed-point,logic.boolean-algebra,logic.adder,elec.logic-levels,seq.latch-ff,cpu.cycle,verm1.project",
       program: "use prg32.program",
     },
     // History: the definition, von Neumann and RISC are understood; the narrative is context.

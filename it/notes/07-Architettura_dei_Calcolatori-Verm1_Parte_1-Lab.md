@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il progetto Verm1; contratto init/update/draw; un colore è un numero; gli array in memoria; .text, .rodata, .data; indirizzo, valore, load, store; perché si salva ra; shift come moltiplicazione; la virgola fissa; le pseudo-istruzioni; l'ordine little-endian. DA UTILIZZARE OGGI: gli strumenti di PRG32, il debugger di PRG32-QT (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: formati delle istruzioni (Lezione 19). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) costruire una cartuccia da un file vuoto: una griglia, un titolo e una testa che si muove; (2) mettere costanti e variabili nella sezione giusta, .rodata o .data; (3) controllare una velocità con un accumulatore in virgola fissa. Si appoggia su: contratto init/update/draw (Lezione 02); un colore è un numero (Lezione 04); gli array in memoria (Lezione 04); indirizzo, valore, load, store (Lezione 02); perché si salva ra (Lezione 02). Prossimo passo: Lezione 08, Elementi di algebra di Boole.
+
+Ponte. Nella Lezione 02 il passo 2 salvava ra sullo stack prima delle sue chiamate, e lw t1, 0(t0) leggeva una parola all'indirizzo in t0. Oggi verm1_draw salva ra e verm1_update no, e ogni variabile di Verm1 si legge con la e lw. La Lezione 18 spiega lo stack e la convenzione di chiamata; la Lezione 19 nomina i modi di indirizzamento. Richiamo: Perché verm1_draw salva ra mentre verm1_update no?
+
+Il filo della lezione: I numeri sono diventati posizioni, colori e una velocità: l'intero blocco sull'informazione, in un gioco che gira. Prossimo passo: la logica che permetterà al giocatore di guidarlo.
+
 ## Slide 1: Verm1, parte 1: una testa che attraversa il mondo: il codice
 
 Questa è la presentazione del codice della Lezione 07. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

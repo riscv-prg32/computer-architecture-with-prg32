@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: multiplexers; combinational machines; codes; decoders and encoders; comparators and parity; the ALU. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: finite-state machines (Lecture 13). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) tell a combinational machine from a sequential one; (2) use decoders, multiplexers, comparators and parity; (3) explain the ALU as parallel units and a multiplexer. Builds on: only what Lecture 01 set up. Next: Lecture 12, Verm1, Part 2: Steering, Food and a Score.
+
+Bridge. In Lecture 02 an instruction was a 32-bit number, and the processor somehow knew what to do with it. Today a decoder reads a field of that number, funct3, and drives the multiplexer that picks the ALU's result. Lecture 19 describes all the fields and the fetch, decode, execute cycle. Recall: Which part of the word of an instruction tells the ALU to add rather than to compute an AND?
+
+Closing thread: The ALU that executed every add so far is one large combinational machine: many results computed at once, one chosen. Next: these circuits at work in the second part of Verm1.
+
 ## Slide 1: Combinational Machines
 
 The previous lectures supplied gates and a method for combining them. This one is a catalogue of the standard combinational machines from which designers actually build systems: decoders, encoders, multiplexers, comparators, parity networks, and finally the arithmetic logic unit. For each, the lecture establishes what it computes, how it is constructed, and where it is located inside a RISC-V processor. The young Turing of the epigraph insists that his carrots and peas be kept apart; this lecture is likewise about keeping signals distinct and selecting among them.

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: shift registers; registers as flip-flops; buses and three-state gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: memory-mapped I/O (Lecture 15); memories and addresses (Lecture 15). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) explain how registers share a bus through three-state buffers; (2) use a shift register for serial transfer. Builds on: registers as flip-flops (Lecture 13). Next: Lecture 15, Memory.
+
+Closing thread: A bus is a road that only one register may drive at a time, and a shift register turns a word into a stream of bits: the display of the kit receives its pixels this way. Next: memory.
+
 ## Slide 1: Elementary Machines: Registers and Buses: the code
 
 This is the code deck of Lecture 14. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

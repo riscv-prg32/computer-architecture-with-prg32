@@ -120,7 +120,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:30"
+        "02:32"
       ]
     },
     "asm.instructions": {
@@ -132,7 +132,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:30"
+        "02:32"
       ]
     },
     "asm.pseudo": {
@@ -165,7 +165,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:30"
+        "02:32"
       ]
     },
     "abi.return-address": {
@@ -177,7 +177,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:27",
+        "02:29",
         "07:28"
       ]
     },
@@ -215,7 +215,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:26"
+        "02:28"
       ]
     },
     "isa.instruction-is-data": {
@@ -282,7 +282,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:30"
+        "02:32"
       ]
     },
     "verm1.project": {
@@ -1224,7 +1224,7 @@
       "use": "02",
       "formal": "02",
       "practice": [
-        "02:27"
+        "02:29"
       ]
     },
     "asm.line": {

@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: impacchettare e pubblicare; la cartuccia portabile. DA UTILIZZARE OGGI: gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) compilare cartucce portabili e verificarle; (2) impacchettare un bundle con i metadati e pubblicarlo in sicurezza. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 24, Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA.
+
+Il filo della lezione: Un gioco è finito quando qualcun altro può eseguirlo: una cartuccia portabile, metadati onesti, un bundle provato su un altro computer e un token tenuto segreto. Prossimo passo: macchine più veloci di un solo core.
+
 ## Slide 1: Verm1 sul Cartridge Store
 
 Il progetto si chiude oggi con il passo che trasforma un programma in un prodotto. Il Verm1 dello studente gira sulla sua scrivania; alla fine di questa lezione sarà un solo file che chiunque può installare, sul kit, su QEMU o su PRG32-QT, con un nome, un'icona e la firma del suo autore. La citazione, dal gruppo che costruì il primo Macintosh, sostiene che un'opera è finita solo quando è stata consegnata. La lezione tratta la consegna come una disciplina ingegneristica con i suoi concetti: identità, versioni, licenze e responsabilità.

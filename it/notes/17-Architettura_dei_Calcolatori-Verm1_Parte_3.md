@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: gli array in memoria; macchine a stati finiti; .text, .rodata, .data; latch e flip-flop; la virgola fissa. DA UTILIZZARE OGGI: la convenzione di chiamata (Lezione 18) e, usati senza essere studiati nel corso, gli strumenti di PRG32, il debugger di PRG32-QT. DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) realizzare il gioco come macchina a stati con tre stati; (2) tenere il corpo in un buffer circolare e la griglia in un array di byte; (3) riconoscere una collisione leggendo la griglia. Si appoggia su: gli array in memoria (Lezione 04); macchine a stati finiti (Lezione 13); .text, .rodata, .data (Lezione 07); latch e flip-flop (Lezione 13); la virgola fissa (Lezione 06). Prossimo passo: Lezione 18, Il processore.
+
+Il filo della lezione: Il gioco ha ora una memoria e degli stati: le macchine sequenziali della Lezione 13, scritte in software. Prossimo passo: il processore che esegue tutto questo.
+
 ## Slide 1: Verm1, parte 3: un corpo, regole e stati
 
 Il terzo tutorial trasforma Verm1 in un vero gioco. Finora il verme era una sola cella e nulla poteva andare storto. Oggi la memoria entra nel progetto: il verme acquista un corpo che segue la testa e cresce, mordersi pone fine alla partita, e il programma guadagna una schermata del titolo e una di fine partita. La frase di Fred Brooks in copertina è il principio guida della sessione: si scelgano bene le strutture dati, e il codice si scrive quasi da sé. Si introducono due di queste strutture, un anello e una mappa, e il tutorial è in gran parte uno studio di come il loro progetto dia forma al codice.

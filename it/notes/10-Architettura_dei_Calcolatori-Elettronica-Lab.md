@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: gli ingressi con pull-up; tensione, corrente, legge di Ohm; il transistor come interruttore; dai volt ai bit; le porte CMOS. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: il clock (Lezione 13). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) spiegare come un transistor MOS funziona da interruttore e come CMOS costruisce una porta; (2) leggere livelli logici e margini di rumore dalle tensioni; (3) dimensionare la resistenza di un LED e spiegare il pull-up di un pulsante. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 11, Macchine combinatorie.
+
+Ponte. Nella Lezione 02 il contatore sopravviveva da un frame all'altro in memoria, non in un registro. Oggi una cella di memoria costa circa 6 transistor e un flip-flop circa 20: ricordare un bit è un circuito. La Lezione 13 mostra come latch e flip-flop conservano un bit. Richiamo: Dove abitava il contatore della Lezione 02 tra due frame, e perché non in t1?
+
+Il filo della lezione: Un bit è una tensione dentro un intervallo garantito, e una porta è qualche interruttore: il pulsante del kit è ora un circuito che capite. Prossimo passo: le macchine costruite con le porte.
+
 ## Slide 1: Introduzione all'elettronica e all'elettronica digitale: il codice
 
 Questa è la presentazione del codice della Lezione 10. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

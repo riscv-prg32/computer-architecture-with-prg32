@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: analog and digital; bit, byte, word; hexadecimal; positional notation; a colour is a number; characters and strings; little-endian byte order; data structures; arrays in memory; algorithms. USE NOW: shifts as multiplications (Lecture 05) and, used without being studied in this course, the complete program, the PRG32 tools. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) distinguish analog from digital information and count the values that n bits can represent; (2) encode numbers, colours and text as bits: positional notation, hexadecimal, RGB565, ASCII; (3) name the basic data structures and the properties of an algorithm. Builds on: only what Lecture 01 set up. Next: Lecture 05, Number Representation: Integers.
+
+Bridge. In Lecture 02 the instruction addi t1, t1, 1 appeared in memory as the word 0x00130313. Today the same 32 bits can be read as a number, a colour, four letters or an instruction: the code decides. Lecture 19 reads the instruction field by field. Recall: Name two different things one 32-bit word can mean, and what decides which meaning applies.
+
+Closing thread: Bits mean nothing by themselves: a code gives them a meaning, and the same 32 bits can be a number, a colour, four letters or an instruction. Next: the codes for integers, and what happens when they run out of bits.
+
 ## Slide 1: Representing Digital Information
 
 In Lecture 02 the student wrote 0x07e0, 255, `.asciz` and `.word` without knowing precisely what they denoted. This lecture names them. Its thesis is stated in the subtitle: everything inside the machine is a pattern of bits, whether a number, a colour, a letter or a list, and the meaning of a pattern is fixed by convention, not by the bits themselves. The lecture favours breadth over depth: the representation of numbers is treated formally in the next two lectures, while here the aim is to learn to read bits and to recognise that interpretation is an agreement.

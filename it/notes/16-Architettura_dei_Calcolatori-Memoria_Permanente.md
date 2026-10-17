@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: ROM, flash, firmware; l'architettura di von Neumann; la cache; la memoria secondaria. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) classificare le memorie permanenti e dire dove è conservata la cartuccia; (2) spiegare un successo e un fallimento di cache, e la località; (3) confrontare i tempi di accesso di dischi e memorie a stato solido. Si appoggia su: l'architettura di von Neumann (Lezione 03). Prossimo passo: Lezione 17, Verm1, parte 3: un corpo, regole e stati.
+
+Il filo della lezione: La memoria è una gerarchia: piccola e veloce vicino al processore, grande e lenta lontano, e la località fa funzionare il trucco. Prossimo passo: la terza parte di Verm1, che ha bisogno di memoria per un corpo intero.
+
 ## Slide 1: La memoria permanente
 
 La lezione precedente ha trattato la memoria che dimentica quando si toglie l'alimentazione. Questa tratta le memorie che non dimenticano: i chip che contengono il firmware, i dischi magnetici, i supporti ottici e i nastri. Tra le due colloca la cache, una piccola memoria veloce che nasconde la lentezza di una grande, e l'idea che unifica la lezione è che questa stessa strategia ricorre a ogni scala. La citazione è di un professore di calcolo numerico di questo Ateneo, e ogni studente prima o poi ne impara la verità: un dato non esiste finché non è stato salvato.

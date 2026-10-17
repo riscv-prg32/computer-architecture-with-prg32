@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il complemento a due; i cambi di base; naturali e overflow; shift come moltiplicazione; segno e modulo; istruzioni con o senza segno; l'estensione del segno. DA UTILIZZARE OGGI: le chiamate del runtime PRG32, il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) convertire tra basi e leggere una configurazione di n bit come naturale e in complemento a due; (2) riconoscere il trabocco nella somma di naturali e di interi; (3) scegliere tra istruzioni con e senza segno, comprese lb e lbu. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 06, Rappresentazione dei numeri: i reali.
+
+Il filo della lezione: Lo 0xFFFFFFFF di un contatore sceso sotto zero è -1 in complemento a due: i bit non sono cambiati, è cambiata la lettura. Prossimo passo: le frazioni su un chip senza unità in virgola mobile.
+
 ## Slide 1: Rappresentazione dei numeri: gli interi
 
 Questa lezione avvia la trattazione formale della rappresentazione dei numeri. Si apre con un enigma osservato sulla macchina, un segnalino che si sposta a sinistra oltre lo zero e mostra FFFFFFFF, e si chiude spiegandolo per intero. Nel mezzo lo studente impara a convertire tra basi, a stabilire quali numeri un dato numero di bit può rappresentare, e a codificare i numeri negativi. La citazione di Trilussa, in cui l'Uno schernisce lo Zero, porta con sé un punto matematico preciso: in un sistema posizionale lo zero, che da solo non vale nulla, dà a ogni altra cifra il suo peso.

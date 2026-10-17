@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: i multiplexer; le reti combinatorie; i codici; decoder ed encoder; comparatori e parità; l'ALU. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: macchine a stati finiti (Lezione 13). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) distinguere una macchina combinatoria da una sequenziale; (2) usare decodificatori, multiplexer, comparatori e parità; (3) spiegare l'ALU come unità in parallelo e un multiplexer. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 12, Verm1, parte 2: la guida, il cibo e un punteggio.
+
+Ponte. Nella Lezione 02 un'istruzione era un numero a 32 bit, e il processore in qualche modo sapeva che cosa farne. Oggi un decodificatore legge un campo di quel numero, funct3, e pilota il multiplexer che sceglie il risultato dell'ALU. La Lezione 19 descrive tutti i campi e il ciclo di prelievo, decodifica, esecuzione. Richiamo: Quale parte della parola di un'istruzione dice all'ALU di sommare invece di calcolare un AND?
+
+Il filo della lezione: L'ALU che ha eseguito ogni add finora è una grande macchina combinatoria: molti risultati calcolati insieme, uno scelto. Prossimo passo: questi circuiti al lavoro nella seconda parte di Verm1.
+
 ## Slide 1: Macchine combinatorie
 
 Le lezioni precedenti hanno fornito le porte e un metodo per combinarle. Questa è un catalogo delle macchine combinatorie standard con cui i progettisti costruiscono davvero i sistemi: decoder, encoder, multiplexer, comparatori, reti di parità, e infine l'unità aritmetico-logica. Per ciascuna la lezione stabilisce che cosa calcola, come si costruisce e dove si trova dentro un processore RISC-V. Il giovane Turing della citazione pretende che carote e piselli restino separati; anche questa lezione parla di tenere distinti i segnali e di scegliere tra di essi.

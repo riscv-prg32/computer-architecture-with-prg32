@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: quoziente e resto; caratteri e stringhe; la virgola fissa; la convenzione di chiamata; gli array in memoria; macchine a stati finiti; il frame buffer; il ciclo del processore. DA UTILIZZARE OGGI: gli strumenti di PRG32, il debugger di PRG32-QT (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) trasformare un numero in cifre decimali con divu e remu; (2) disegnare solo ciò che è cambiato, con un flag dirty; (3) completare il gioco: livelli, suono, velocità. Si appoggia su: caratteri e stringhe (Lezione 04); la virgola fissa (Lezione 06); la convenzione di chiamata (Lezione 18); gli array in memoria (Lezione 04); macchine a stati finiti (Lezione 13). Prossimo passo: Lezione 23, Verm1 sul Cartridge Store.
+
+Il filo della lezione: Verm1 è finito: ogni argomento del corso vi ha una riga. Prossimo passo: dargli un nome, un'icona e un posto sullo Store.
+
 ## Slide 1: Verm1, parte 4: il gioco finito
 
 Il quarto e ultimo tutorial completa Verm1. Alla fine della Parte 3 il gioco era completo nelle sue regole; oggi diventa completo come programma. Il punteggio si scrive in cifre decimali, il verme accelera, ci sono due suoni, e lo schermo si ridisegna solo dove cambia. La frase di Knuth in copertina giustifica l'ordine del lavoro: prima si è reso il gioco corretto, e solo ora, con una misura in mano, lo si rende veloce. Ottimizzare senza misurare è tirare a indovinare, e il tutorial si chiude misurando l'effetto delle proprie modifiche.

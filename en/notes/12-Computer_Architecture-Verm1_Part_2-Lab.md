@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: bit masks; codes; arrays in memory; pull-up inputs; Boolean algebra; fixed point; multiplexers; signed or unsigned instructions; comparators and parity; arguments in a0 to a7. USE NOW: the calling convention (Lecture 18) and, used without being studied in this course, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) read the buttons with masks and refuse a U-turn with one XOR; (2) compare positions with XOR and OR to detect food; (3) keep and show a score. Builds on: bit masks (Lecture 08); codes (Lecture 11); arrays in memory (Lecture 04); pull-up inputs (Lecture 10); Boolean algebra (Lecture 08). Next: Lecture 13, Sequential Machines.
+
+Bridge. In Lecture 07 a function that calls another saved ra in a frame of 16 bytes. Today the functions of Verm1 call each other more deeply: each saves ra once, on entry, and restores it before ret. Lecture 18 states the rules: which registers a call may change and which it must preserve. Recall: A function calls two other functions. How many times must it save ra, and where?
+
+Closing thread: Every rule of the game became a few logic instructions: a mask, an XOR, a comparison. Next: circuits that remember, and the states of a game.
+
 ## Slide 1: Verm1, Part 2: Steering, Food and a Score: the code
 
 This is the code deck of Lecture 12. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

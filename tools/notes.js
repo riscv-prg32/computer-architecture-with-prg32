@@ -13,7 +13,9 @@
  * complete program, the test guides) are generated too, and rewritten at every run.  The tool fails
  * if a slide has no note, if a note is empty, or if a note refers to a slide that does not exist.
  * build.js then copies each note into the notes pane of its slide.  The header of each file, also generated,
- * ends with the learning status of the lecture (lib/mastery.js): what to understand, what to use, what comes later.
+ * ends with the learning status of the lecture (lib/mastery.js): what to understand, what to use, what comes later;
+ * then the roadmap (outcomes, what it builds on, the next lecture), the retrieval bridges and the closing thread
+ * (lib/roadmap.js, from concepts/assessments.json and concepts/bridges.json).
  */
 const fs = require("fs");
 const { LANGS, STR, visible, notesFile, slideTitle, parseNotes, loadDecks } = require("./lib/lang");
@@ -30,13 +32,15 @@ if (langs.length > 1) {      // the specifications are loaded once per process: 
   process.exit(bad ? 1 : 0);
 }
 const lang = langs[0], L = STR[lang];
+const ROADMAP = require("./lib/roadmap");
 let failed = 0, total = 0, words = 0, seen = 0;
-for (const d of loadDecks(lang)) {
+const DECKS = loadDecks(lang), TITLES = Object.fromEntries(DECKS.map((d) => [d.n, d.lecture.title]));
+for (const d of DECKS) {
   if (only && Number(d.n) !== Number(only)) continue;
   seen++;
   const f = notesFile(lang, d), vis = visible(d), n = vis.length + 1, rel = `${lang}/notes/${path.basename(f)}`;
   const gen = (k) => (k === 1 ? (d.kind === "code" ? NOTE[lang].cover(d) : null) : vis[k - 2].gen ? NOTE[lang][vis[k - 2].gen](d) : null);
-  const head = `# ${L.lecture} ${d.n}: ${d.title}\n\n*${L.course}, ${L.year}. ${L.notesTitle}.* ${L.notesIntro}\n\n${MASTERY.summaryText(lang, d.lecture)}\n`;
+  const head = `# ${L.lecture} ${d.n}: ${d.title}\n\n*${L.course}, ${L.year}. ${L.notesTitle}.* ${L.notesIntro}\n\n${MASTERY.summaryText(lang, d.lecture)}\n\n${ROADMAP.notesText(lang, d.lecture, TITLES)}\n`;
   if (fresh) {
     if (fs.existsSync(f)) { console.error(`${f} exists: not overwritten`); failed++; continue; }
     fs.writeFileSync(f, head + Array.from({ length: n }, (_, i) => `\n## Slide ${i + 1}: ${slideTitle(lang, d, i + 1)}\n\n${gen(i + 1) || ""}\n`).join(""));

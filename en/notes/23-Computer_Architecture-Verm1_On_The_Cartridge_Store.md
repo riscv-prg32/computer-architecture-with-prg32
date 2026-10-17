@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: packaging and publishing; the portable cartridge. USE NOW: the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) build portable cartridges and check them; (2) package a bundle with metadata and publish it safely. Builds on: only what Lecture 01 set up. Next: Lecture 24, Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs.
+
+Closing thread: A game is finished when someone else can run it: a portable cartridge, honest metadata, a bundle tested on another computer and a token kept secret. Next: machines faster than one core.
+
 ## Slide 1: Verm1 on the Cartridge Store
 
 The project ends today with the step that turns a program into a product. The student's Verm1 runs on their own desk; by the end of this lecture it will be a single file that anyone can install, on the kit, on QEMU or on PRG32-QT, bearing a name, an icon and its author's signature. The epigraph, from the team that built the first Macintosh, holds that a work is finished only when it has been delivered. The lecture treats delivery as an engineering discipline with its own concepts: identity, versioning, licensing and responsibility.

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: what informatics is; the von Neumann architecture; RISC and an open ISA. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: Boolean algebra (Lecture 08). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) define informatics and explain why it is not only about computers; (2) name the units of the von Neumann architecture and its stored-program idea; (3) say what distinguishes RISC from CISC and why RISC-V is open. Builds on: only what Lecture 01 set up. Next: Lecture 04, Representing Digital Information.
+
+Closing thread: The machine you programmed in Lecture 02 is a von Neumann machine: program and data in one memory. RISC-V is the latest step of a long debate on how simple instructions should be. Next: how anything at all becomes bits.
+
 ## Slide 1: History of Computing: the code
 
 This is the code deck of Lecture 03. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

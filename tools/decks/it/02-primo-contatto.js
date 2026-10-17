@@ -81,14 +81,15 @@ Deck({
   cover: "lab1_step4_bar.png",
   notes: "Lezione nuova del 2026/27. È il turno «gioca» della spirale per tutta la prima metà del corso: ogni lezione successiva rimanda a qualcosa scritto qui. I quattro passi sono quelli verificati del laboratorio 05-asm-first-contact del libro di PRG32; eseguirli dal vivo (labs/run.sh 05-asm-first-contact/stepN_....S first).",
   slides: [
-    O("Che cosa saprete fare alla fine", [
-      "Compilare una cartuccia da un file assembly ed eseguirla su PRG32",
-      "Dire che cos'è un registro, e nominare quelli che userete ogni giorno",
-      "Chiamare una funzione del framework, passando gli argomenti nei registri",
-      "Conservare un valore in memoria da un frame al successivo: load, modify, store",
-      "Leggere un'istruzione come il numero a 32 bit che è davvero",
-      "Elencare le domande che questo programma solleva: il resto del corso risponde",
-    ], "Dire esplicitamente agli studenti che oggi non ci si aspetta che capiscano tutto. Oggi si guarda; le prossime lezioni servono a spiegare."),
+    T("Il vostro contratto di apprendimento per oggi", [
+      ["Alla fine saprete", [
+        "compilare ed eseguire una cartuccia, e dire quando il runtime chiama init, update e draw",
+        "leggere una riga di assembly: etichetta, istruzione, operandi, commento",
+        "distinguere un indirizzo da un valore, e tracciare che cosa lasciano la, lw, addi e sw",
+      ]],
+      "Vi serve solo la Lezione 01: che cos'è un programma, il terminale, PRG32-QT funzionante",
+      "Userete anche cose che non dovete ancora capire: le ultime slide dicono quali, e quando vengono spiegate",
+    ], "Leggere ad alta voce il contratto e tornarci alla fine. Tre risultati, tre verifiche: il punto di controllo 1 (dopo il contratto), il punto di controllo 2 (la traccia) e il biglietto d'uscita. Tutto il resto che compare oggi nelle slide va visto e usato, non padroneggiato.", { box: "Risultato 1: punto di controllo 1\nRisultato 2: il biglietto d'uscita\nRisultato 3: punto di controllo 2, la traccia", head: "Come lo saprete" }),
 
     H("La macchina", "Trentadue registri e un piccolo repertorio di istruzioni."),
     G("Binario ed esadecimale: come leggere i numeri", ["Decimale", "Binario", "Esadecimale"], [
@@ -121,6 +122,11 @@ Deck({
       "update|chiamata una volta per frame: legge l'ingresso, cambia lo stato",
       "draw|chiamata una volta per frame: trasforma lo stato in un'immagine",
     ], "Il firmware trova le tre funzioni per nome: un prefisso scelto da voi, seguito da _init, _update e _draw. È l'intero contratto tra il vostro gioco e la macchina."),
+    T("Punto di controllo 1: prevedete prima di eseguire", [
+      "Un gioco gira a 30 frame al secondo per 2 secondi",
+      ["Quante volte il runtime ha chiamato", ["init?", "update?", "draw?"]],
+      "Quale tipo di istruzione, calcolo, trasferimento o salto, può leggere un valore dalla memoria?",
+    ], "Fermarsi qui due o tre minuti. Raccogliere un'alzata di mano per init: la risposta sbagliata più comune è 60. Le risposte sono nelle note della slide.", { box: "Un minuto da soli: scrivete le risposte\n\nUn minuto con il vicino: mettetevi d'accordo\n\nPoi verifichiamo insieme", head: "Come" }),
 
     H("La prima cartuccia", "Quattro piccoli passi, ognuno un programma completo che gira."),
     G("Come leggere una riga di assembly", ["Parte", "Esempio", "Che cos'è"], [
@@ -227,15 +233,15 @@ Deck({
       "Eseguite first_update passo-passo e guardate cambiare t0 e t1",
       "Usate la scheda quando volete la verità sul tempo, PRG32-QT quando volete la verità su un registro",
     ], "Dimostrare dal vivo: caricare il passo 3, fermarsi su first_update, eseguire quattro passi. Chiedere agli studenti di prevedere ogni registro prima di premere il tasto.", { img: "prg32qt_debugger.png", cap: "Il debugger di PRG32-QT: codice, registri, memoria", wide: true }),
-    G("Tracciare a mano: tre frame di first_update", ["Frame", "lw: t1 diventa", "addi: t1 diventa", "sw: counter diventa", "Larghezza barra (andi 255)"], [
+    G("Punto di controllo 2: tracciate first_update a mano", ["Frame", "lw: t1 diventa", "addi: t1 diventa", "sw: counter diventa", "Larghezza barra (andi 255)"], [
       ["1", "0", "1", "1", "1"],
       ["2", "1", "2", "2", "2"],
-      ["256", "255", "256", "256", "0"],
-      ["257", "256", "257", "257", "1"],
-    ], "La traccia a mano è l'abilità di debug più preziosa del corso. 256 = 1 0000 0000 in binario: gli otto bit bassi sono tutti zero, quindi la barra ricomincia.", { widths: [1.4, 2.6, 2.8, 3, 3], hi: { 2: P.amberSoft }, caption: "Al frame 256 il contatore continua a crescere, ma i suoi otto bit bassi tornano a zero: la barra ricomincia." }),
+      ["256", "?", "?", "?", "?"],
+      ["257", "?", "?", "?", "?"],
+    ], "La traccia a mano è l'abilità di debug più preziosa del corso. Dare tre minuti per completare le due righe, poi rivelarle in PRG32-QT: 255, 256, 256, 0 e 256, 257, 257, 1. 256 = 1 0000 0000 in binario: gli otto bit bassi sono tutti zero, quindi la barra ricomincia.", { widths: [1.4, 2.6, 2.8, 3, 3], hi: { 2: P.amberSoft }, caption: "Completate le righe segnate con ?, poi verificatele in PRG32-QT. Che cosa succede alla barra al frame 256, e perché?" }),
 
     H("Che cosa viene dopo", "Ogni domanda sollevata qui ha una lezione che le risponde."),
-    G("Domande che il vostro programma ha già sollevato", ["Avete visto", "La domanda", "Risposta in"], [
+    G("Non ancora: ciò che spiegheranno le prossime lezioni", ["Avete visto", "La domanda", "Risposta in"], [
       ["0x07e0, 0xffff, 255", "Perché i programmatori scrivono i numeri in esadecimale?", "Lezioni 04 e 05"],
       ["una posizione sotto zero mostrata come 0xFFFFFFFF", "Come fa un registro a contenere un numero negativo?", "Lezione 05"],
       ["una palla che si muove meno di un pixel per frame", "Come si rappresentano le frazioni senza FPU?", "Lezione 06"],
@@ -245,7 +251,14 @@ Deck({
       ["counter sopravvive tra i frame", "Come fa un circuito a ricordare un bit?", "Lezioni 13 e 15"],
       ["0x00130313", "Come fa il processore a decodificarla ed eseguirla?", "Lezioni 18 e 19"],
       ["tre funzioni e un rettangolo", "Posso farci un gioco intero?", "Verm1: 07, 12, 17, 22"],
-    ], "È la mappa in avanti del corso. Conservarne una copia: ogni presentazione successiva si apre indicando una di queste righe. L'ultima riga è il progetto: Verm1 parte nella Lezione 07 esattamente dallo scheletro di oggi.", { widths: [4.2, 5.2, 3], mono: [0] }),
+    ], "È la mappa in avanti del corso. Conservarne una copia: ogni presentazione successiva si apre indicando una di queste righe. L'ultima riga è il progetto: Verm1 parte nella Lezione 07 esattamente dallo scheletro di oggi.", { widths: [4.2, 5.2, 3] }),
+    F("Il filo di oggi, e dove porta", [
+      "cartuccia|init una volta; update e draw a ogni frame",
+      "registri|i valori mentre si calcola",
+      "memoria|variabili a indirizzi, conservate tra i frame",
+      "la, lw, addi, sw|carica, modifica, memorizza",
+      "traccia|prevedere lo schermo prima di eseguire",
+    ], "Prossimo passo: la Lezione 03, da dove vengono queste idee. I numeri: Lezioni da 04 a 06. Lo stack e la convenzione di chiamata: Lezione 18. La codifica di un'istruzione: Lezione 19."),
     Q("Dopo la t0, counter e lw t1, 0(t0), che cosa contiene t0?", ["Il valore del contatore", "L'indirizzo del contatore", "Zero, perché la azzera il registro", "L'indirizzo di ritorno"], 1, "la carica l'indirizzo dell'etichetta; lw legge poi in t1 il valore memorizzato a quell'indirizzo."),
     Q("Una funzione che chiama prg32_gfx_clear deve salvare un registro prima della chiamata. Quale?", ["a0, perché porta l'argomento", "sp, perché lo stack si sposta", "ra, perché call lo sovrascrive", "t0, perché è temporaneo"], 2, "call scrive in ra l'indirizzo di ritorno. Le chiamate della funzione chiamata lo sovrascriverebbero: una funzione non foglia salva ra sullo stack e lo ripristina prima di ret."),
     Q("t1 contiene 300. Che cosa lascia in a2 l'istruzione andi a2, t1, 255?", ["300", "255", "45", "44"], 3, "300 = 256 + 44 = 1 0010 1100 in binario. AND con 1111 1111 conserva gli otto bit bassi: 0010 1100 = 44."),

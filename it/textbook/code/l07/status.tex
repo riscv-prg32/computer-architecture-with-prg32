@@ -4,3 +4,13 @@
 \masterychip{use}{DA UTILIZZARE OGGI}\enspace gli strumenti di PRG32, il debugger di PRG32-QT (si usa, non si studia, in questo corso).\par\smallskip
 \masterychip{later}{DA COMPRENDERE PIÙ AVANTI}\enspace formati delle istruzioni (Capitolo~\ref{ch:instructions}).
 \end{chapstatus}
+\begin{chapstatus}{Percorso del capitolo}
+Alla fine del capitolo saprete:
+\begin{enumerate}[nosep,leftmargin=2em]
+\item costruire una cartuccia da un file vuoto: una griglia, un titolo e una testa che si muove
+\item mettere costanti e variabili nella sezione giusta, .rodata o .data
+\item controllare una velocità con un accumulatore in virgola fissa
+\end{enumerate}
+Si appoggia su: contratto init/update/draw (Capitolo~\ref{ch:firstcontact}); un colore è un numero (Capitolo~\ref{ch:information}); gli array in memoria (Capitolo~\ref{ch:information}); indirizzo, valore, load, store (Capitolo~\ref{ch:firstcontact}); perché si salva ra (Capitolo~\ref{ch:firstcontact}). Prossimo passo: Capitolo~\ref{ch:boole1}.
+\par\smallskip\textbf{Guardando indietro, guardando avanti.} Nella Lezione 02 il passo 2 salvava ra sullo stack prima delle sue chiamate, e lw t1, 0(t0) leggeva una parola all'indirizzo in t0. Oggi verm1\_draw salva ra e verm1\_update no, e ogni variabile di Verm1 si legge con la e lw. La Lezione 18 spiega lo stack e la convenzione di chiamata; la Lezione 19 nomina i modi di indirizzamento. \emph{Richiamo:} Perché verm1\_draw salva ra mentre verm1\_update no?
+\end{chapstatus}

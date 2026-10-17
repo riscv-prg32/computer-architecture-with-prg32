@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: instruction formats; addressing modes; the processor cycle; interrupts and traps. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) decode a RISC-V instruction into its fields; (2) name the addressing mode of each operand; (3) describe the instruction cycle and what an interrupt changes. Builds on: only what Lecture 01 set up. Next: Lecture 20, Buses and the Video Card.
+
+Closing thread: The number 0x00130313 of Lecture 02 can now be read field by field, and the processor that fetches it can be interrupted and resumed. Next: the devices that the processor serves.
+
 ## Slide 1: Instructions and Interrupts
 
 The previous lecture described what a processor is made of; this one describes what it does. It has two halves. The first follows a single instruction: how it is encoded in 32 bits and which steps the processor takes to execute it. The second explains what happens when something more urgent than the current program arrives, a timer, a device or an error, so that the processor must suspend its work and resume it later. The two halves are connected: the interrupt is a modification of the very cycle the first half describes. The joke on the cover, as will become apparent, is nearly literally true.

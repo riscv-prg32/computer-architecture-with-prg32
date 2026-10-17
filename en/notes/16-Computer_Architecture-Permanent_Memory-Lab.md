@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: ROM, flash, firmware; the von Neumann architecture; the cache; secondary memory. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) classify permanent memories and say where the cartridge is kept; (2) explain a cache hit and a cache miss, and locality; (3) compare the access times of disks and solid-state storage. Builds on: the von Neumann architecture (Lecture 03). Next: Lecture 17, Verm1, Part 3: A Body, Rules and States.
+
+Closing thread: Memory is a hierarchy: small and fast near the processor, large and slow far away, and locality makes the trick work. Next: the third part of Verm1, which needs memory for a whole body.
+
 ## Slide 1: Permanent Memory: the code
 
 This is the code deck of Lecture 16. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

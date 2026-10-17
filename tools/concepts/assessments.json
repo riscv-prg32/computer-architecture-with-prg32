@@ -1,0 +1,1455 @@
+{
+  "description": "Formative assessment of the course. For each lecture: its 2-3 headline outcomes, the closing synthesis and the exit ticket (one or two items, 2-4 minutes). Each item names the concepts of registry.json it checks, a student-facing prompt, the instructor rubric (expected reasoning) and a likely novice misconception, in English and Italian. kind: exit (the exit ticket), checkpoint (asked during the lecture; source names the slide of the specification), check (extra practice). A concept understood in a lecture (formal) must be checked by a question or exercise of the decks (practice in registry.json) or by an item here, in its formal lecture or later. tools/lib/assessments.js validates this file; docs/teaching is generated from it by tools/textbook/teaching_docs.js.",
+  "lectures": {
+    "00": {
+      "outcomes": {
+        "en": [
+          "Describe the four steps of the learning spiral and say why a prediction comes before running",
+          "State the assessment rules: one midterm, two exam parts that must both be passed, no devices and no AI"
+        ],
+        "it": [
+          "Descrivere i quattro passi della spirale di apprendimento e dire perché la previsione viene prima dell'esecuzione",
+          "Enunciare le regole di valutazione: una prova intercorso, due parti d'esame da superare entrambe, nessun dispositivo e nessuna IA"
+        ]
+      },
+      "closing": {
+        "en": "The course runs on one method: play, observe, formalise, return. Every topic will start as something seen on PRG32 and end as a rule that lets you predict it. Next: installing the workshop.",
+        "it": "Il corso segue un solo metodo: giocare, osservare, formalizzare, ritornare. Ogni argomento comincerà come qualcosa visto su PRG32 e finirà come una regola che permette di prevederlo. Prossimo passo: installare il laboratorio."
+      }
+    },
+    "01": {
+      "outcomes": {
+        "en": [
+          "Explain the path from a source file to a running cartridge: source, translator, machine code, cartridge, host",
+          "Run a cartridge in PRG32-QT and build one with the terminal"
+        ],
+        "it": [
+          "Spiegare il percorso da un file sorgente a una cartuccia in esecuzione: sorgente, traduttore, codice macchina, cartuccia, host",
+          "Eseguire una cartuccia in PRG32-QT e compilarne una dal terminale"
+        ]
+      },
+      "closing": {
+        "en": "You now own the whole cycle: write a source file, translate it, send the cartridge to a host, stop it in the debugger. Next: writing the source file yourself.",
+        "it": "Ora possedete l'intero ciclo: scrivere un sorgente, tradurlo, inviare la cartuccia a un host, fermarla nel debugger. Prossimo passo: scrivere il sorgente da voi."
+      }
+    },
+    "02": {
+      "outcomes": {
+        "en": [
+          "Build and run a cartridge, and say when the runtime calls init, update and draw",
+          "Read a line of assembly: label, instruction, operands, comment",
+          "Tell an address from a value, and trace what la, lw, addi and sw leave in registers and memory"
+        ],
+        "it": [
+          "Compilare ed eseguire una cartuccia, e dire quando il runtime chiama init, update e draw",
+          "Leggere una riga di assembly: etichetta, istruzione, operandi, commento",
+          "Distinguere un indirizzo da un valore, e tracciare che cosa lasciano la, lw, addi e sw nei registri e in memoria"
+        ]
+      },
+      "closing": {
+        "en": "A program is a few functions that the runtime calls; each line is one instruction; values live in registers while they are computed and in memory between frames. Everything else you used today has a lecture of its own. Next: where these ideas came from.",
+        "it": "Un programma è fatto di poche funzioni che il runtime chiama; ogni riga è un'istruzione; i valori stanno nei registri mentre si calcola e in memoria tra un frame e l'altro. Tutto il resto che avete usato oggi ha una sua lezione. Prossimo passo: da dove vengono queste idee."
+      }
+    },
+    "03": {
+      "outcomes": {
+        "en": [
+          "Define informatics and explain why it is not only about computers",
+          "Name the units of the von Neumann architecture and its stored-program idea",
+          "Say what distinguishes RISC from CISC and why RISC-V is open"
+        ],
+        "it": [
+          "Definire l'informatica e spiegare perché non riguarda solo i computer",
+          "Nominare le unità dell'architettura di von Neumann e la sua idea del programma memorizzato",
+          "Dire che cosa distingue RISC da CISC e perché RISC-V è aperto"
+        ]
+      },
+      "closing": {
+        "en": "The machine you programmed in Lecture 02 is a von Neumann machine: program and data in one memory. RISC-V is the latest step of a long debate on how simple instructions should be. Next: how anything at all becomes bits.",
+        "it": "La macchina che avete programmato nella Lezione 02 è una macchina di von Neumann: programma e dati in un'unica memoria. RISC-V è l'ultimo passo di un lungo dibattito su quanto debbano essere semplici le istruzioni. Prossimo passo: come qualsiasi cosa diventa bit."
+      }
+    },
+    "04": {
+      "outcomes": {
+        "en": [
+          "Distinguish analog from digital information and count the values that n bits can represent",
+          "Encode numbers, colours and text as bits: positional notation, hexadecimal, RGB565, ASCII",
+          "Name the basic data structures and the properties of an algorithm"
+        ],
+        "it": [
+          "Distinguere l'informazione analogica da quella digitale e contare i valori che n bit possono rappresentare",
+          "Codificare numeri, colori e testo in bit: notazione posizionale, esadecimale, RGB565, ASCII",
+          "Nominare le strutture dati di base e le proprietà di un algoritmo"
+        ]
+      },
+      "closing": {
+        "en": "Bits mean nothing by themselves: a code gives them a meaning, and the same 32 bits can be a number, a colour, four letters or an instruction. Next: the codes for integers, and what happens when they run out of bits.",
+        "it": "I bit da soli non significano nulla: un codice dà loro un significato, e gli stessi 32 bit possono essere un numero, un colore, quattro lettere o un'istruzione. Prossimo passo: i codici degli interi, e che cosa succede quando i bit finiscono."
+      }
+    },
+    "05": {
+      "outcomes": {
+        "en": [
+          "Convert between bases and read an n-bit pattern as unsigned and as two's complement",
+          "Recognise overflow in unsigned and in signed addition",
+          "Choose between signed and unsigned instructions, including lb and lbu"
+        ],
+        "it": [
+          "Convertire tra basi e leggere una configurazione di n bit come naturale e in complemento a due",
+          "Riconoscere il trabocco nella somma di naturali e di interi",
+          "Scegliere tra istruzioni con e senza segno, comprese lb e lbu"
+        ]
+      },
+      "closing": {
+        "en": "The 0xFFFFFFFF of a counter that went below zero is -1 in two's complement: the bits did not change, the reading did. Next: fractions on a chip with no floating-point unit.",
+        "it": "Lo 0xFFFFFFFF di un contatore sceso sotto zero è -1 in complemento a due: i bit non sono cambiati, è cambiata la lettura. Prossimo passo: le frazioni su un chip senza unità in virgola mobile."
+      }
+    },
+    "06": {
+      "outcomes": {
+        "en": [
+          "Represent a real number in fixed point and compute with it using integer instructions",
+          "Decode an IEEE 754 single-precision number",
+          "Read the name RV32IMAC and say what the kit can and cannot compute in hardware"
+        ],
+        "it": [
+          "Rappresentare un numero reale in virgola fissa e calcolarci con le istruzioni intere",
+          "Decodificare un numero IEEE 754 in precisione singola",
+          "Leggere il nome RV32IMAC e dire che cosa il kit sa e non sa calcolare in hardware"
+        ]
+      },
+      "closing": {
+        "en": "Without an F extension, fractions are integers with an agreed scale: Verm1 will move its head by fractions of a cell exactly this way. Next: the first part of the project.",
+        "it": "Senza l'estensione F, le frazioni sono interi con una scala concordata: Verm1 muoverà la testa di frazioni di cella proprio così. Prossimo passo: la prima parte del progetto."
+      }
+    },
+    "07": {
+      "outcomes": {
+        "en": [
+          "Build a cartridge from an empty file: a grid, a title and a moving head",
+          "Place constants and variables in the right section, .rodata or .data",
+          "Control a speed with a fixed-point accumulator"
+        ],
+        "it": [
+          "Costruire una cartuccia da un file vuoto: una griglia, un titolo e una testa che si muove",
+          "Mettere costanti e variabili nella sezione giusta, .rodata o .data",
+          "Controllare una velocità con un accumulatore in virgola fissa"
+        ]
+      },
+      "closing": {
+        "en": "Numbers became positions, colours and a speed: the whole information block, in one running game. Next: the logic that will let the player steer it.",
+        "it": "I numeri sono diventati posizioni, colori e una velocità: l'intero blocco sull'informazione, in un gioco che gira. Prossimo passo: la logica che permetterà al giocatore di guidarlo."
+      }
+    },
+    "08": {
+      "outcomes": {
+        "en": [
+          "Tell the analysis of a logic circuit from its synthesis",
+          "Apply the axioms and theorems of Boolean algebra, De Morgan's included",
+          "Set, clear and test bits with masks"
+        ],
+        "it": [
+          "Distinguere l'analisi di un circuito logico dalla sua sintesi",
+          "Applicare gli assiomi e i teoremi dell'algebra di Boole, compreso De Morgan",
+          "Porre a 1, azzerare e verificare bit con le maschere"
+        ]
+      },
+      "closing": {
+        "en": "andi t3, t0, 1 is a row of 32 AND gates: Boolean algebra describes both the instruction and the circuit. Next: from a truth table to the smallest circuit.",
+        "it": "andi t3, t0, 1 è una fila di 32 porte AND: l'algebra di Boole descrive sia l'istruzione sia il circuito. Prossimo passo: da una tabella di verità al circuito più piccolo."
+      }
+    },
+    "09": {
+      "outcomes": {
+        "en": [
+          "Write a function in canonical form from its truth table",
+          "Minimise a function of up to four variables with a Karnaugh map",
+          "Build a full adder and chain it into an n-bit adder"
+        ],
+        "it": [
+          "Scrivere una funzione in forma canonica dalla sua tabella di verità",
+          "Minimizzare una funzione di al più quattro variabili con una mappa di Karnaugh",
+          "Costruire un sommatore completo e concatenarlo in un sommatore a n bit"
+        ]
+      },
+      "closing": {
+        "en": "The add of Lecture 02 is now a circuit you could draw: 32 full adders and a carry that ripples. Next: the electronics that make a gate.",
+        "it": "La add della Lezione 02 è ora un circuito che sapreste disegnare: 32 sommatori completi e un riporto che si propaga. Prossimo passo: l'elettronica che fa una porta."
+      }
+    },
+    "10": {
+      "outcomes": {
+        "en": [
+          "Explain how a MOS transistor works as a switch and how CMOS builds a gate",
+          "Read logic levels and noise margins from voltages",
+          "Size the resistor of an LED and explain the pull-up of a button"
+        ],
+        "it": [
+          "Spiegare come un transistor MOS funziona da interruttore e come CMOS costruisce una porta",
+          "Leggere livelli logici e margini di rumore dalle tensioni",
+          "Dimensionare la resistenza di un LED e spiegare il pull-up di un pulsante"
+        ]
+      },
+      "closing": {
+        "en": "A bit is a voltage inside a guaranteed range, and a gate is a few switches: the button of the kit is now a circuit you understand. Next: the machines built from gates.",
+        "it": "Un bit è una tensione dentro un intervallo garantito, e una porta è qualche interruttore: il pulsante del kit è ora un circuito che capite. Prossimo passo: le macchine costruite con le porte."
+      }
+    },
+    "11": {
+      "outcomes": {
+        "en": [
+          "Tell a combinational machine from a sequential one",
+          "Use decoders, multiplexers, comparators and parity",
+          "Explain the ALU as parallel units and a multiplexer"
+        ],
+        "it": [
+          "Distinguere una macchina combinatoria da una sequenziale",
+          "Usare decodificatori, multiplexer, comparatori e parità",
+          "Spiegare l'ALU come unità in parallelo e un multiplexer"
+        ]
+      },
+      "closing": {
+        "en": "The ALU that executed every add so far is one large combinational machine: many results computed at once, one chosen. Next: these circuits at work in the second part of Verm1.",
+        "it": "L'ALU che ha eseguito ogni add finora è una grande macchina combinatoria: molti risultati calcolati insieme, uno scelto. Prossimo passo: questi circuiti al lavoro nella seconda parte di Verm1."
+      }
+    },
+    "12": {
+      "outcomes": {
+        "en": [
+          "Read the buttons with masks and refuse a U-turn with one XOR",
+          "Compare positions with XOR and OR to detect food",
+          "Keep and show a score"
+        ],
+        "it": [
+          "Leggere i pulsanti con le maschere e rifiutare un'inversione a U con un solo XOR",
+          "Confrontare posizioni con XOR e OR per riconoscere il cibo",
+          "Tenere e mostrare un punteggio"
+        ]
+      },
+      "closing": {
+        "en": "Every rule of the game became a few logic instructions: a mask, an XOR, a comparison. Next: circuits that remember, and the states of a game.",
+        "it": "Ogni regola del gioco è diventata qualche istruzione logica: una maschera, uno XOR, un confronto. Prossimo passo: i circuiti che ricordano, e gli stati di un gioco."
+      }
+    },
+    "13": {
+      "outcomes": {
+        "en": [
+          "Describe a finite-state machine with a state diagram",
+          "Explain the clock and why a circuit must settle within one period",
+          "Tell a latch from a flip-flop and build a register"
+        ],
+        "it": [
+          "Descrivere una macchina a stati finiti con un diagramma degli stati",
+          "Spiegare il clock e perché un circuito deve stabilizzarsi entro un periodo",
+          "Distinguere un latch da un flip-flop e costruire un registro"
+        ]
+      },
+      "closing": {
+        "en": "A register is flip-flops that sample on a clock edge: this is how the counter of Lecture 02 survived from one frame to the next, in hardware. Next: how registers exchange data.",
+        "it": "Un registro è fatto di flip-flop che campionano su un fronte del clock: è così che il contatore della Lezione 02 sopravviveva da un frame all'altro, in hardware. Prossimo passo: come i registri si scambiano i dati."
+      }
+    },
+    "14": {
+      "outcomes": {
+        "en": [
+          "Explain how registers share a bus through three-state buffers",
+          "Use a shift register for serial transfer"
+        ],
+        "it": [
+          "Spiegare come i registri condividono un bus attraverso i buffer three-state",
+          "Usare un registro a scorrimento per il trasferimento seriale"
+        ]
+      },
+      "closing": {
+        "en": "A bus is a road that only one register may drive at a time, and a shift register turns a word into a stream of bits: the display of the kit receives its pixels this way. Next: memory.",
+        "it": "Un bus è una strada che un solo registro alla volta può pilotare, e un registro a scorrimento trasforma una parola in una sequenza di bit: il display del kit riceve così i suoi pixel. Prossimo passo: la memoria."
+      }
+    },
+    "15": {
+      "outcomes": {
+        "en": [
+          "Compute the capacity of a memory from its address and data lines",
+          "Describe the interface between processor and memory during a load",
+          "Explain memory-mapped input/output"
+        ],
+        "it": [
+          "Calcolare la capacità di una memoria dalle sue linee di indirizzo e di dato",
+          "Descrivere l'interfaccia tra processore e memoria durante un caricamento",
+          "Spiegare l'ingresso/uscita mappato in memoria"
+        ]
+      },
+      "closing": {
+        "en": "Every lw and sw of the course is a short dialogue on the address bus, the data bus and two control lines; a device answers on the same bus. Next: memory that survives without power, and caches.",
+        "it": "Ogni lw e sw del corso è un breve dialogo sul bus degli indirizzi, sul bus dei dati e su due linee di controllo; un dispositivo risponde sullo stesso bus. Prossimo passo: la memoria che sopravvive senza alimentazione, e le cache."
+      }
+    },
+    "16": {
+      "outcomes": {
+        "en": [
+          "Classify permanent memories and say where the cartridge is kept",
+          "Explain a cache hit and a cache miss, and locality",
+          "Compare the access times of disks and solid-state storage"
+        ],
+        "it": [
+          "Classificare le memorie permanenti e dire dove è conservata la cartuccia",
+          "Spiegare un successo e un fallimento di cache, e la località",
+          "Confrontare i tempi di accesso di dischi e memorie a stato solido"
+        ]
+      },
+      "closing": {
+        "en": "Memory is a hierarchy: small and fast near the processor, large and slow far away, and locality makes the trick work. Next: the third part of Verm1, which needs memory for a whole body.",
+        "it": "La memoria è una gerarchia: piccola e veloce vicino al processore, grande e lenta lontano, e la località fa funzionare il trucco. Prossimo passo: la terza parte di Verm1, che ha bisogno di memoria per un corpo intero."
+      }
+    },
+    "17": {
+      "outcomes": {
+        "en": [
+          "Implement the game as a state machine with three states",
+          "Keep the body in a ring buffer and the grid in an array of bytes",
+          "Detect a collision by reading the grid"
+        ],
+        "it": [
+          "Realizzare il gioco come macchina a stati con tre stati",
+          "Tenere il corpo in un buffer circolare e la griglia in un array di byte",
+          "Riconoscere una collisione leggendo la griglia"
+        ]
+      },
+      "closing": {
+        "en": "The game now has a memory and states: the sequential machines of Lecture 13, written in software. Next: the processor that runs all of this.",
+        "it": "Il gioco ha ora una memoria e degli stati: le macchine sequenziali della Lezione 13, scritte in software. Prossimo passo: il processore che esegue tutto questo."
+      }
+    },
+    "18": {
+      "outcomes": {
+        "en": [
+          "Follow an instruction through the blocks of an RV32 processor",
+          "Use the stack and the calling convention correctly",
+          "Compare accumulator, stack and register machines"
+        ],
+        "it": [
+          "Seguire un'istruzione attraverso i blocchi di un processore RV32",
+          "Usare correttamente lo stack e la convenzione di chiamata",
+          "Confrontare macchine ad accumulatore, a stack e a registri"
+        ]
+      },
+      "closing": {
+        "en": "The ra saved in Lecture 02 is now explained: the stack and the calling convention are rules that let functions written by different people call each other. Next: how an instruction is encoded and executed, and how the processor is interrupted.",
+        "it": "Il ra salvato nella Lezione 02 è ora spiegato: lo stack e la convenzione di chiamata sono regole che permettono a funzioni scritte da persone diverse di chiamarsi. Prossimo passo: come un'istruzione è codificata ed eseguita, e come il processore viene interrotto."
+      }
+    },
+    "19": {
+      "outcomes": {
+        "en": [
+          "Decode a RISC-V instruction into its fields",
+          "Name the addressing mode of each operand",
+          "Describe the instruction cycle and what an interrupt changes"
+        ],
+        "it": [
+          "Decodificare un'istruzione RISC-V nei suoi campi",
+          "Nominare il modo di indirizzamento di ogni operando",
+          "Descrivere il ciclo dell'istruzione e che cosa cambia un'interruzione"
+        ]
+      },
+      "closing": {
+        "en": "The number 0x00130313 of Lecture 02 can now be read field by field, and the processor that fetches it can be interrupted and resumed. Next: the devices that the processor serves.",
+        "it": "Il numero 0x00130313 della Lezione 02 si legge ora campo per campo, e il processore che lo preleva può essere interrotto e ripreso. Prossimo passo: i dispositivi che il processore serve."
+      }
+    },
+    "20": {
+      "outcomes": {
+        "en": [
+          "Explain why devices sit behind controllers and how the processor talks to them",
+          "Compute the size of a frame buffer and the bandwidth of a video signal",
+          "Describe what a video card and a GPU do"
+        ],
+        "it": [
+          "Spiegare perché i dispositivi stanno dietro ai controllori e come il processore dialoga con loro",
+          "Calcolare la dimensione di un frame buffer e la banda di un segnale video",
+          "Descrivere che cosa fanno una scheda video e una GPU"
+        ]
+      },
+      "closing": {
+        "en": "Every rectangle drawn since Lecture 02 ended in a frame buffer that a controller sends to the screen many times a second. Next: the other devices: displays, keyboards, printers.",
+        "it": "Ogni rettangolo disegnato dalla Lezione 02 è finito in un frame buffer che un controllore invia allo schermo molte volte al secondo. Prossimo passo: gli altri dispositivi: display, tastiere, stampanti."
+      }
+    },
+    "21": {
+      "outcomes": {
+        "en": [
+          "Describe how displays, keyboards and printers work",
+          "Compare polling with interrupts for reading a device"
+        ],
+        "it": [
+          "Descrivere come funzionano display, tastiere e stampanti",
+          "Confrontare il polling con le interruzioni per leggere un dispositivo"
+        ]
+      },
+      "closing": {
+        "en": "Reading the joystick once per frame is polling: simple, and blind between two reads. Next: the finished game.",
+        "it": "Leggere il joystick una volta per frame è polling: semplice, e cieco tra due letture. Prossimo passo: il gioco finito."
+      }
+    },
+    "22": {
+      "outcomes": {
+        "en": [
+          "Turn a number into decimal digits with divu and remu",
+          "Draw only what changed, with a dirty flag",
+          "Finish the game: levels, sound, speed"
+        ],
+        "it": [
+          "Trasformare un numero in cifre decimali con divu e remu",
+          "Disegnare solo ciò che è cambiato, con un flag dirty",
+          "Completare il gioco: livelli, suono, velocità"
+        ]
+      },
+      "closing": {
+        "en": "Verm1 is finished: every topic of the course has a line in it. Next: giving it a name, an icon and a place on the Store.",
+        "it": "Verm1 è finito: ogni argomento del corso vi ha una riga. Prossimo passo: dargli un nome, un'icona e un posto sullo Store."
+      }
+    },
+    "23": {
+      "outcomes": {
+        "en": [
+          "Build portable cartridges and check them",
+          "Package a bundle with metadata and publish it safely"
+        ],
+        "it": [
+          "Compilare cartucce portabili e verificarle",
+          "Impacchettare un bundle con i metadati e pubblicarlo in sicurezza"
+        ]
+      },
+      "closing": {
+        "en": "A game is finished when someone else can run it: a portable cartridge, honest metadata, a bundle tested on another computer and a token kept secret. Next: machines faster than one core.",
+        "it": "Un gioco è finito quando qualcun altro può eseguirlo: una cartuccia portabile, metadati onesti, un bundle provato su un altro computer e un token tenuto segreto. Prossimo passo: macchine più veloci di un solo core."
+      }
+    },
+    "24": {
+      "outcomes": {
+        "en": [
+          "Use the performance equation to say where time goes",
+          "Explain superscalar execution, vectors, GPUs and FPGAs as answers to it",
+          "Bound a parallel speed-up with Amdahl's law"
+        ],
+        "it": [
+          "Usare l'equazione delle prestazioni per dire dove va il tempo",
+          "Spiegare esecuzione superscalare, vettori, GPU e FPGA come risposte a essa",
+          "Limitare l'accelerazione parallela con la legge di Amdahl"
+        ]
+      },
+      "closing": {
+        "en": "The loop that empties Verm1's map can be made faster in five ways, and each is a machine of its own. The question an engineer asks is not which machine is fastest, but which is sufficient.",
+        "it": "Il ciclo che svuota la mappa di Verm1 si può rendere più veloce in cinque modi, e ciascuno è una macchina a sé. La domanda dell'ingegnere non è quale macchina sia la più veloce, ma quale sia sufficiente."
+      }
+    }
+  },
+  "items": {
+    "A00.1": {
+      "lecture": "00",
+      "kind": "exit",
+      "concepts": [
+        "course.spiral"
+      ],
+      "prompt": {
+        "en": "Before running a program you are asked to write down what you expect to see. Which step of the learning spiral is this, and what do you learn when your prediction turns out to be wrong?",
+        "it": "Prima di eseguire un programma vi si chiede di scrivere che cosa vi aspettate di vedere. Quale passo della spirale di apprendimento è questo, e che cosa imparate quando la previsione si rivela sbagliata?"
+      },
+      "rubric": {
+        "en": "Return (predict, then run). A wrong prediction shows exactly which rule of one's mental model is wrong, and the machine shows it at no cost. Full credit: names the step and gives this reason; half: names the four steps (play, observe, formalise, return) without the reason.",
+        "it": "Ritornare (prevedere, poi eseguire). Una previsione sbagliata mostra esattamente quale regola del proprio modello mentale è sbagliata, e la macchina lo mostra senza alcun costo. Punteggio pieno: nomina il passo e dà questa ragione; metà: nomina i quattro passi (giocare, osservare, formalizzare, ritornare) senza la ragione."
+      },
+      "misconception": {
+        "en": "A prediction is a guess that does not matter: only the final result counts.",
+        "it": "Una previsione è un tentativo che non conta: conta solo il risultato finale."
+      }
+    },
+    "A00.2": {
+      "lecture": "00",
+      "kind": "exit",
+      "concepts": [
+        "course.rules"
+      ],
+      "prompt": {
+        "en": "True or false? Correct the false ones. (a) Passing the midterm is enough to record the final mark. (b) A calculator app on the phone is allowed in the midterm. (c) The theory part may be taken before the laboratory part.",
+        "it": "Vero o falso? Correggete le affermazioni false. (a) Superare la prova intercorso basta per verbalizzare il voto finale. (b) Nella prova intercorso è ammessa la calcolatrice del telefono. (c) La parte di teoria si può sostenere prima di quella di laboratorio."
+      },
+      "rubric": {
+        "en": "(a) False: both parts, theory and practice, must be passed, and the mark is recorded only in a theory session. (b) False: no devices and no help of any kind, AI included. (c) True: the result is kept for the academic year. One point per correct answer with its correction.",
+        "it": "(a) Falso: vanno superate entrambe le parti, teoria e pratica, e il voto si verbalizza solo in un appello di teoria. (b) Falso: nessun dispositivo e nessun aiuto di alcun tipo, IA compresa. (c) Vero: il risultato resta valido per l'anno accademico. Un punto per ogni risposta corretta con la sua correzione."
+      },
+      "misconception": {
+        "en": "The midterm mark is a guarantee that the oral cannot change.",
+        "it": "Il voto della prova intercorso è una garanzia che l'orale non può cambiare."
+      }
+    },
+    "A01.1": {
+      "lecture": "01",
+      "kind": "exit",
+      "concepts": [
+        "prog.program",
+        "prg32.platform"
+      ],
+      "prompt": {
+        "en": "Put these four in order and say in one line what each does: the cartridge, the source file, the runtime of a host, the assembler.",
+        "it": "Mettete in ordine questi quattro elementi e dite in una riga che cosa fa ciascuno: la cartuccia, il file sorgente, il runtime di un host, l'assemblatore."
+      },
+      "rubric": {
+        "en": "Source file (text written by a person) -> assembler (translates it into machine code) -> cartridge (one file: machine code, data, a header) -> runtime of a host (loads it and calls init, update, draw). Full credit: correct order and a correct role for each; half: correct order only.",
+        "it": "File sorgente (testo scritto da una persona) -> assemblatore (lo traduce in codice macchina) -> cartuccia (un file: codice macchina, dati, intestazione) -> runtime di un host (la carica e chiama init, update, draw). Punteggio pieno: ordine corretto e ruolo corretto per ciascuno; metà: solo l'ordine."
+      },
+      "misconception": {
+        "en": "The assembler runs the program, or the cartridge contains the source code.",
+        "it": "L'assemblatore esegue il programma, oppure la cartuccia contiene il codice sorgente."
+      }
+    },
+    "A01.2": {
+      "lecture": "01",
+      "kind": "exit",
+      "concepts": [
+        "tool.terminal"
+      ],
+      "level": "use",
+      "prompt": {
+        "en": "In a new terminal you type python3 -m prg32 doctor and read: idf.py: command not found. What does the message tell you, and what do you do first?",
+        "it": "In un nuovo terminale scrivete python3 -m prg32 doctor e leggete: idf.py: command not found. Che cosa vi dice il messaggio, e che cosa fate per prima cosa?"
+      },
+      "rubric": {
+        "en": "The terminal cannot find the program idf.py: ESP-IDF is not active in this terminal (activation lasts as long as the terminal). First action: activate it (export.sh, or the ESP-IDF PowerShell on Windows) and run the doctor again; do not reinstall.",
+        "it": "Il terminale non trova il programma idf.py: ESP-IDF non è attivo in questo terminale (l'attivazione dura quanto il terminale). Prima azione: attivarlo (export.sh, o la PowerShell di ESP-IDF su Windows) e rieseguire il doctor; non reinstallare."
+      },
+      "misconception": {
+        "en": "An error message means the installation is broken and must be redone.",
+        "it": "Un messaggio d'errore significa che l'installazione è rotta e va rifatta."
+      }
+    },
+    "CP02.1": {
+      "lecture": "02",
+      "kind": "checkpoint",
+      "source": "02:9",
+      "concepts": [
+        "prg32.contract",
+        "asm.machine-model"
+      ],
+      "prompt": {
+        "en": "A game runs at 30 frames per second for 2 seconds. How many times has the runtime called init, update and draw? Which of the three kinds of instruction, compute, move or jump, can read memory?",
+        "it": "Un gioco gira a 30 frame al secondo per 2 secondi. Quante volte il runtime ha chiamato init, update e draw? Quale dei tre tipi di istruzione, calcolo, trasferimento o salto, può leggere la memoria?"
+      },
+      "rubric": {
+        "en": "init once; update 60 times; draw 60 times. Only move instructions (lw, sw) touch memory; compute works on registers only.",
+        "it": "init una volta; update 60 volte; draw 60 volte. Solo le istruzioni di trasferimento (lw, sw) accedono alla memoria; il calcolo lavora solo sui registri."
+      },
+      "misconception": {
+        "en": "init runs at every frame, or add can take a value straight from memory.",
+        "it": "init gira a ogni frame, oppure add può prendere un valore direttamente dalla memoria."
+      }
+    },
+    "CP02.2": {
+      "lecture": "02",
+      "kind": "checkpoint",
+      "source": "02:24",
+      "concepts": [
+        "mem.load-store",
+        "skill.trace"
+      ],
+      "prompt": {
+        "en": "first_update runs la t0, counter; lw t1, 0(t0); addi t1, t1, 1; sw t1, 0(t0), and the bar is drawn andi t1, 255 pixels wide. Fill in, for frames 256 and 257, what lw leaves in t1, what addi leaves in t1, what sw leaves in counter, and the width of the bar.",
+        "it": "first_update esegue la t0, counter; lw t1, 0(t0); addi t1, t1, 1; sw t1, 0(t0), e la barra è disegnata larga andi t1, 255 pixel. Completate, per i frame 256 e 257, che cosa lascia lw in t1, che cosa lascia addi in t1, che cosa lascia sw in counter, e la larghezza della barra."
+      },
+      "rubric": {
+        "en": "Frame 256: 255, 256, 256, width 0. Frame 257: 256, 257, 257, width 1. t0 holds the address of counter throughout; the value lives in t1 between lw and sw, and in memory between frames. The width restarts because 256 is 1 0000 0000: its low eight bits are zero. Full credit: both rows; half: the counter right and the width wrong.",
+        "it": "Frame 256: 255, 256, 256, larghezza 0. Frame 257: 256, 257, 257, larghezza 1. t0 contiene per tutto il tempo l'indirizzo di counter; il valore sta in t1 tra lw e sw, e in memoria tra un frame e l'altro. La larghezza ricomincia perché 256 è 1 0000 0000: i suoi otto bit bassi sono zero. Punteggio pieno: entrambe le righe; metà: il contatore giusto e la larghezza sbagliata."
+      },
+      "misconception": {
+        "en": "The width is 256, because the mask is forgotten; or addi changes counter in memory before sw.",
+        "it": "La larghezza è 256, perché si dimentica la maschera; oppure addi cambia counter in memoria prima di sw."
+      }
+    },
+    "A02.1": {
+      "lecture": "02",
+      "kind": "exit",
+      "concepts": [
+        "asm.line",
+        "asm.pseudo"
+      ],
+      "prompt": {
+        "en": "Read the line  loop:  li a0, 32   # x  aloud. Name its label, instruction, operands and comment. Is li an instruction of the processor? What does the assembler do with it?",
+        "it": "Leggete ad alta voce la riga  loop:  li a0, 32   # x . Nominatene etichetta, istruzione, operandi e commento. li è un'istruzione del processore? Che cosa ne fa l'assemblatore?"
+      },
+      "rubric": {
+        "en": "Label loop; instruction li; operands a0 (destination) and 32; comment # x, ignored by the assembler. li is a pseudo-instruction: the assembler emits a real instruction, here addi a0, zero, 32. Full credit: four parts named and the expansion; half: parts only.",
+        "it": "Etichetta loop; istruzione li; operandi a0 (destinazione) e 32; commento # x, ignorato dall'assemblatore. li è una pseudo-istruzione: l'assemblatore emette un'istruzione vera, qui addi a0, zero, 32. Punteggio pieno: quattro parti nominate e l'espansione; metà: solo le parti."
+      },
+      "misconception": {
+        "en": "Every word written in assembly exists in the hardware, or the comment is executed.",
+        "it": "Ogni parola scritta in assembly esiste nell'hardware, oppure il commento viene eseguito."
+      }
+    },
+    "A02.2": {
+      "lecture": "02",
+      "kind": "exit",
+      "concepts": [
+        "isa.instruction-is-data"
+      ],
+      "prompt": {
+        "en": "The debugger shows the instruction addi t1, t1, 1 stored in memory as the word 0x00130313. What is that word, and what does it tell you about where a program lives?",
+        "it": "Il debugger mostra l'istruzione addi t1, t1, 1 conservata in memoria come la parola 0x00130313. Che cos'è quella parola, e che cosa vi dice su dove abita un programma?"
+      },
+      "rubric": {
+        "en": "It is the machine code of the instruction: the same instruction written as a 32-bit number. A program is kept in memory as numbers, like any data (the stored-program idea). Naming the fields is not required today (Lecture 19).",
+        "it": "È il codice macchina dell'istruzione: la stessa istruzione scritta come numero a 32 bit. Un programma è conservato in memoria come numeri, come qualsiasi dato (l'idea del programma memorizzato). Nominare i campi oggi non è richiesto (Lezione 19)."
+      },
+      "misconception": {
+        "en": "Memory holds the text addi t1, t1, 1, or instructions live somewhere other than memory.",
+        "it": "La memoria contiene il testo addi t1, t1, 1, oppure le istruzioni stanno altrove rispetto alla memoria."
+      }
+    },
+    "A03.1": {
+      "lecture": "03",
+      "kind": "exit",
+      "concepts": [
+        "info.informatics"
+      ],
+      "prompt": {
+        "en": "Explain the sentence attributed to Dijkstra, 'Computer science is no more about computers than astronomy is about telescopes', using the definition of informatics given in the lecture.",
+        "it": "Spiegate la frase attribuita a Dijkstra, 'L'informatica non riguarda i computer più di quanto l'astronomia riguardi i telescopi', usando la definizione di informatica data nella lezione."
+      },
+      "rubric": {
+        "en": "Informatics is the science of information and of its automatic processing: what can be computed and at what cost, algorithms, representation. The computer is its instrument, as the telescope is the astronomer's. Full credit: definition plus the analogy instrument/object of study.",
+        "it": "L'informatica è la scienza dell'informazione e del suo trattamento automatico: che cosa si può calcolare e a quale costo, gli algoritmi, la rappresentazione. Il computer ne è lo strumento, come il telescopio per l'astronomo. Punteggio pieno: definizione più l'analogia strumento/oggetto di studio."
+      },
+      "misconception": {
+        "en": "Informatics means knowing how to use software and computers.",
+        "it": "Informatica significa saper usare i programmi e i computer."
+      }
+    },
+    "A03.2": {
+      "lecture": "03",
+      "kind": "exit",
+      "concepts": [
+        "arch.von-neumann"
+      ],
+      "prompt": {
+        "en": "Where is the program of a cartridge kept while it runs, and why does this make a von Neumann machine different from a machine programmed by rewiring cables?",
+        "it": "Dove è conservato il programma di una cartuccia mentre gira, e perché questo rende una macchina di von Neumann diversa da una macchina programmata ricollegando cavi?"
+      },
+      "rubric": {
+        "en": "In the same memory as the data (stored program). Changing the program means writing different numbers into memory, with no change to the hardware; a rewired machine must be physically rebuilt for each program.",
+        "it": "Nella stessa memoria dei dati (programma memorizzato). Cambiare programma significa scrivere numeri diversi in memoria, senza toccare l'hardware; una macchina a cavi va ricostruita fisicamente per ogni programma."
+      },
+      "misconception": {
+        "en": "The program is built into the processor.",
+        "it": "Il programma è costruito dentro il processore."
+      }
+    },
+    "A04.1": {
+      "lecture": "04",
+      "kind": "exit",
+      "concepts": [
+        "info.analog-digital"
+      ],
+      "prompt": {
+        "en": "A mercury thermometer and a display that shows 21.5 both measure temperature. Which is analog and which digital? Why can the digital reading be copied a thousand times without getting worse?",
+        "it": "Un termometro a mercurio e un display che mostra 21,5 misurano entrambi la temperatura. Quale è analogico e quale digitale? Perché la lettura digitale si può copiare mille volte senza peggiorare?"
+      },
+      "rubric": {
+        "en": "The mercury column is analog (it varies continuously); the display is digital (a finite set of symbols). A digital value is a choice among discrete levels: small noise does not change which level is read, so copies are exact; an analog copy adds noise at every generation.",
+        "it": "La colonna di mercurio è analogica (varia con continuità); il display è digitale (un insieme finito di simboli). Un valore digitale è una scelta tra livelli discreti: un piccolo rumore non cambia il livello letto, quindi le copie sono esatte; una copia analogica aggiunge rumore a ogni generazione."
+      },
+      "misconception": {
+        "en": "Digital means electronic, so the display is digital only because it uses electricity.",
+        "it": "Digitale significa elettronico, quindi il display è digitale solo perché usa l'elettricità."
+      }
+    },
+    "A04.2": {
+      "lecture": "04",
+      "kind": "exit",
+      "concepts": [
+        "data.structures"
+      ],
+      "prompt": {
+        "en": "The Undo button of an editor cancels the most recent change first, then the one before. Which of the five data structures fits, and why not an array reached by index?",
+        "it": "Il pulsante Annulla di un editor cancella prima la modifica più recente, poi quella precedente. Quale delle cinque strutture dati è adatta, e perché non un array letto per indice?"
+      },
+      "rubric": {
+        "en": "A stack: last in, first out; each change is pushed, Undo pops the top. An array could store the changes, but the rule of access, always the most recent, is what defines the stack; with an array one must also keep track of the top. Bonus: the stack frame of Lecture 02 is the same idea.",
+        "it": "Uno stack: l'ultimo entrato è il primo a uscire; ogni modifica viene inserita in cima, Annulla toglie la cima. Un array potrebbe conservare le modifiche, ma è la regola di accesso, sempre la più recente, a definire lo stack; con un array bisogna in più tenere traccia della cima. Bonus: lo stack frame della Lezione 02 è la stessa idea."
+      },
+      "misconception": {
+        "en": "A data structure is a kind of memory, rather than a rule for organising and reaching the data.",
+        "it": "Una struttura dati è un tipo di memoria, invece di una regola per organizzare e raggiungere i dati."
+      }
+    },
+    "A04.3": {
+      "lecture": "04",
+      "kind": "check",
+      "concepts": [
+        "algo.algorithms"
+      ],
+      "prompt": {
+        "en": "A recipe says: 'stir until it looks right, then keep warm'. Which properties of an algorithm does it violate? Rewrite it so that it satisfies them.",
+        "it": "Una ricetta dice: 'mescolate finché sembra giusto, poi tenete in caldo'. Quali proprietà di un algoritmo viola? Riscrivetela in modo che le rispetti."
+      },
+      "rubric": {
+        "en": "'Looks right' is not unambiguous (two executors judge differently) and 'keep warm' is not terminating. A correct rewrite has elementary, unambiguous steps and an end: 'stir for 3 minutes; keep at 60 degrees for 10 minutes; stop'.",
+        "it": "'Sembra giusto' non è univoco (due esecutori giudicano diversamente) e 'tenete in caldo' non termina. Una riscrittura corretta ha passi elementari e univoci e una fine: 'mescolate per 3 minuti; tenete a 60 gradi per 10 minuti; fermatevi'."
+      },
+      "misconception": {
+        "en": "Any list of instructions is an algorithm.",
+        "it": "Qualsiasi elenco di istruzioni è un algoritmo."
+      }
+    },
+    "A05.1": {
+      "lecture": "05",
+      "kind": "exit",
+      "concepts": [
+        "num.sign-extension",
+        "num.signed-unsigned"
+      ],
+      "prompt": {
+        "en": "The byte 0xF6 is in memory. Which 32-bit value does lb leave in a register, and which does lbu leave? Which is right if the byte is a temperature of -10 degrees?",
+        "it": "In memoria c'è il byte 0xF6. Quale valore a 32 bit lascia lb in un registro, e quale lbu? Quale è giusto se il byte è una temperatura di -10 gradi?"
+      },
+      "rubric": {
+        "en": "lb sign-extends: 0xFFFFFFF6, which is -10. lbu fills with zeros: 0x000000F6, which is 246. For a temperature of -10, lb. The choice of the load states what the byte means.",
+        "it": "lb estende il segno: 0xFFFFFFF6, cioè -10. lbu riempie di zeri: 0x000000F6, cioè 246. Per una temperatura di -10, lb. La scelta del caricamento dichiara che cosa significa il byte."
+      },
+      "misconception": {
+        "en": "Widening a number always means adding zeros on the left.",
+        "it": "Allargare un numero significa sempre aggiungere zeri a sinistra."
+      }
+    },
+    "A05.2": {
+      "lecture": "05",
+      "kind": "exit",
+      "concepts": [
+        "num.twos-complement",
+        "num.natural-overflow"
+      ],
+      "prompt": {
+        "en": "On 8 bits, compute 0111 1111 + 0000 0001. Read the result as an unsigned number and as a two's-complement number. Is there overflow in each reading?",
+        "it": "Su 8 bit, calcolate 0111 1111 + 0000 0001. Leggete il risultato come naturale e in complemento a due. C'è trabocco in ciascuna lettura?"
+      },
+      "rubric": {
+        "en": "Result 1000 0000. Unsigned: 127 + 1 = 128, which fits in 8 bits: no overflow. Two's complement: 127 + 1 should be 128, which is not representable; the pattern reads -128: overflow (two positives gave a negative).",
+        "it": "Risultato 1000 0000. Naturali: 127 + 1 = 128, che sta in 8 bit: nessun trabocco. Complemento a due: 127 + 1 dovrebbe dare 128, non rappresentabile; la configurazione si legge -128: trabocco (due positivi hanno dato un negativo)."
+      },
+      "misconception": {
+        "en": "Overflow is a property of the bits alone, the same for every reading.",
+        "it": "Il trabocco è una proprietà dei soli bit, uguale per ogni lettura."
+      }
+    },
+    "A06.1": {
+      "lecture": "06",
+      "kind": "exit",
+      "concepts": [
+        "isa.extensions"
+      ],
+      "prompt": {
+        "en": "Read RV32IMAC letter by letter. A student writes fmul.s in a cartridge for the kit: what happens, and why does Verm1 move with fixed-point numbers?",
+        "it": "Leggete RV32IMAC lettera per lettera. Uno studente scrive fmul.s in una cartuccia per il kit: che cosa succede, e perché Verm1 si muove con numeri in virgola fissa?"
+      },
+      "rubric": {
+        "en": "RV32I: 32-bit base integer set; M: multiply and divide; A: atomics; C: compressed 16-bit encodings. There is no F: fmul.s is not part of the instruction set of the kit, so the toolchain refuses it for that target (or, if forced, it is an illegal instruction). Fractions are therefore integers with an agreed scale: fixed point.",
+        "it": "RV32I: insieme base intero a 32 bit; M: moltiplicazione e divisione; A: istruzioni atomiche; C: codifiche compresse a 16 bit. Manca F: fmul.s non fa parte dell'insieme di istruzioni del kit, quindi la toolchain la rifiuta per quel target (o, se forzata, è un'istruzione illegale). Le frazioni sono perciò interi con una scala concordata: la virgola fissa."
+      },
+      "misconception": {
+        "en": "Every processor can compute with decimals; fixed point is only a style choice.",
+        "it": "Ogni processore sa calcolare con i decimali; la virgola fissa è solo una scelta di stile."
+      }
+    },
+    "A06.2": {
+      "lecture": "06",
+      "kind": "exit",
+      "concepts": [
+        "num.fixed-point"
+      ],
+      "prompt": {
+        "en": "In Q24.8, which real number does the word 0x00000180 represent? How do you add two Q24.8 numbers, and how do you multiply them?",
+        "it": "In Q24.8, quale numero reale rappresenta la parola 0x00000180? Come si sommano due numeri Q24.8, e come si moltiplicano?"
+      },
+      "rubric": {
+        "en": "0x180 = 384; 384 / 256 = 1.5. Addition: an ordinary integer add, the scale is the same. Multiplication: integer multiply, then shift right by 8 to restore the scale.",
+        "it": "0x180 = 384; 384 / 256 = 1,5. Somma: una normale somma intera, la scala è la stessa. Moltiplicazione: prodotto intero, poi scorrimento a destra di 8 per ripristinare la scala."
+      },
+      "misconception": {
+        "en": "The product of two Q24.8 numbers is already in Q24.8.",
+        "it": "Il prodotto di due numeri Q24.8 è già in Q24.8."
+      }
+    },
+    "A07.1": {
+      "lecture": "07",
+      "kind": "exit",
+      "concepts": [
+        "mem.sections"
+      ],
+      "prompt": {
+        "en": "Verm1 declares title: .asciz \"VERM1\" and head_x: .word 5. In which section does each belong, and why must head_x not be placed in .rodata?",
+        "it": "Verm1 dichiara title: .asciz \"VERM1\" e head_x: .word 5. In quale sezione va ciascuno, e perché head_x non deve stare in .rodata?"
+      },
+      "rubric": {
+        "en": "title in .rodata (a constant: read-only data); head_x in .data (a variable, changed at every step). .rodata promises that the bytes never change and may be placed in read-only memory: storing into it breaks that promise, and on a protected host the store fails.",
+        "it": "title in .rodata (una costante: dati di sola lettura); head_x in .data (una variabile, cambiata a ogni passo). .rodata promette che i byte non cambiano mai e può stare in memoria di sola lettura: scriverci viola quella promessa, e su un host protetto la scrittura fallisce."
+      },
+      "misconception": {
+        "en": "Sections are only comments for the reader; the assembler puts everything in the same place.",
+        "it": "Le sezioni sono solo commenti per chi legge; l'assemblatore mette tutto nello stesso posto."
+      }
+    },
+    "A07.2": {
+      "lecture": "07",
+      "kind": "exit",
+      "concepts": [
+        "verm1.project",
+        "num.fixed-point"
+      ],
+      "prompt": {
+        "en": "step_q8 grows by SPEED_Q8 at every frame, and the head moves one cell each time it reaches 256. With SPEED_Q8 = 64, how many frames between two steps? With 128? Predict, then run.",
+        "it": "step_q8 cresce di SPEED_Q8 a ogni frame, e la testa si sposta di una cella ogni volta che arriva a 256. Con SPEED_Q8 = 64, quanti frame tra due passi? Con 128? Prevedete, poi eseguite."
+      },
+      "rubric": {
+        "en": "64: 256 / 64 = 4 frames per step. 128: 2 frames per step. The speed is a fraction of a cell per frame in Q24.8.",
+        "it": "64: 256 / 64 = 4 frame per passo. 128: 2 frame per passo. La velocità è una frazione di cella per frame in Q24.8."
+      },
+      "misconception": {
+        "en": "A larger SPEED_Q8 means more frames between steps.",
+        "it": "Un SPEED_Q8 più grande significa più frame tra un passo e l'altro."
+      }
+    },
+    "A08.1": {
+      "lecture": "08",
+      "kind": "exit",
+      "concepts": [
+        "logic.circuits"
+      ],
+      "prompt": {
+        "en": "Analysis or synthesis? (a) Given a schematic, find its truth table. (b) Given 'the light is on when exactly one of two switches is up', build a circuit. (c) Read andi t3, t0, 1 and say what ends up in t3.",
+        "it": "Analisi o sintesi? (a) Dato uno schema, trovarne la tabella di verità. (b) Dato 'la luce è accesa quando esattamente uno dei due interruttori è alzato', costruire un circuito. (c) Leggere andi t3, t0, 1 e dire che cosa finisce in t3."
+      },
+      "rubric": {
+        "en": "(a) analysis: from structure to behaviour. (b) synthesis: from behaviour to structure (an XOR). (c) analysis: bit 0 of t0, all other bits 0. One point each, with the reason.",
+        "it": "(a) analisi: dalla struttura al comportamento. (b) sintesi: dal comportamento alla struttura (uno XOR). (c) analisi: il bit 0 di t0, tutti gli altri bit a 0. Un punto ciascuno, con la ragione."
+      },
+      "misconception": {
+        "en": "Analysis and synthesis are the same task done in a different order.",
+        "it": "Analisi e sintesi sono lo stesso compito fatto in ordine diverso."
+      }
+    },
+    "A08.2": {
+      "lecture": "08",
+      "kind": "exit",
+      "concepts": [
+        "logic.bitmask"
+      ],
+      "prompt": {
+        "en": "Write one instruction that sets bit 3 of t0 to 1 and leaves the other bits unchanged, and one that clears it.",
+        "it": "Scrivete un'istruzione che pone a 1 il bit 3 di t0 lasciando invariati gli altri bit, e una che lo azzera."
+      },
+      "rubric": {
+        "en": "Set: ori t0, t0, 8 (8 = bit 3). Clear: andi t0, t0, -9 (the mask ...11110111, which is ~8). OR with 1 sets, AND with 0 clears, and the other bits meet the neutral value.",
+        "it": "Porre a 1: ori t0, t0, 8 (8 = bit 3). Azzerare: andi t0, t0, -9 (la maschera ...11110111, cioè ~8). OR con 1 pone a 1, AND con 0 azzera, e gli altri bit incontrano il valore neutro."
+      },
+      "misconception": {
+        "en": "addi t0, t0, 8 sets bit 3.",
+        "it": "addi t0, t0, 8 pone a 1 il bit 3."
+      }
+    },
+    "A09.1": {
+      "lecture": "09",
+      "kind": "exit",
+      "concepts": [
+        "logic.adder"
+      ],
+      "prompt": {
+        "en": "A full adder receives A = 1, B = 1, Cin = 1. Give S and Cout. Why does a 32-bit adder need 32 of them, chained?",
+        "it": "Un sommatore completo riceve A = 1, B = 1, Cin = 1. Date S e Cout. Perché un sommatore a 32 bit ne richiede 32, concatenati?"
+      },
+      "rubric": {
+        "en": "1 + 1 + 1 = 3 = binary 11: S = 1, Cout = 1. Each full adder adds one column; its carry out is the carry in of the next column, as in addition by hand.",
+        "it": "1 + 1 + 1 = 3 = 11 in binario: S = 1, Cout = 1. Ogni sommatore completo somma una colonna; il suo riporto in uscita è il riporto in ingresso della colonna successiva, come nella somma a mano."
+      },
+      "misconception": {
+        "en": "The carry can be ignored except in the last column.",
+        "it": "Il riporto si può ignorare tranne che nell'ultima colonna."
+      }
+    },
+    "A09.2": {
+      "lecture": "09",
+      "kind": "exit",
+      "concepts": [
+        "logic.minimisation"
+      ],
+      "prompt": {
+        "en": "In a Karnaugh map of three variables A, B, C, why can the cells 000 and 010 be grouped, but not 000 and 011? Which term does the first group give?",
+        "it": "In una mappa di Karnaugh di tre variabili A, B, C, perché si possono raggruppare le celle 000 e 010, ma non 000 e 011? Quale termine dà il primo gruppo?"
+      },
+      "rubric": {
+        "en": "000 and 010 differ only in B, so B can be eliminated: A'C'. 000 and 011 differ in two variables: no single term covers just those two cells.",
+        "it": "000 e 010 differiscono solo in B, che si può eliminare: A'C'. 000 e 011 differiscono in due variabili: nessun termine copre esattamente quelle due celle."
+      },
+      "misconception": {
+        "en": "Any two cells that contain 1 can be grouped.",
+        "it": "Due celle qualsiasi che contengono 1 si possono raggruppare."
+      }
+    },
+    "A10.1": {
+      "lecture": "10",
+      "kind": "exit",
+      "concepts": [
+        "elec.transistor",
+        "elec.cmos"
+      ],
+      "prompt": {
+        "en": "In two sentences: how does a MOS transistor act as a switch, and why does a CMOS inverter draw almost no current when its input is steady?",
+        "it": "In due frasi: come funziona da interruttore un transistor MOS, e perché un invertitore CMOS non assorbe quasi corrente quando il suo ingresso è stabile?"
+      },
+      "rubric": {
+        "en": "The voltage on the gate creates or removes a conducting channel between source and drain: closed or open. In CMOS one transistor of the pair is always off, so there is no path from supply to ground in a steady state; current flows only while switching.",
+        "it": "La tensione sul gate crea o elimina un canale conduttivo tra source e drain: chiuso o aperto. In CMOS uno dei due transistor della coppia è sempre spento, quindi a regime non c'è un percorso dall'alimentazione alla massa; la corrente scorre solo durante la commutazione."
+      },
+      "misconception": {
+        "en": "A transistor stores a bit by itself.",
+        "it": "Un transistor conserva da solo un bit."
+      }
+    },
+    "A10.2": {
+      "lecture": "10",
+      "kind": "exit",
+      "concepts": [
+        "elec.logic-levels"
+      ],
+      "prompt": {
+        "en": "On the kit an input reads 1 above 2.475 V and 0 below 0.825 V; an output gives a 1 above 2.64 V. A wire adds 0.1 V of noise downwards. Can a 1 be misread? What does an input read at 1.6 V?",
+        "it": "Sul kit un ingresso legge 1 sopra 2,475 V e 0 sotto 0,825 V; un'uscita dà un 1 sopra 2,64 V. Un filo aggiunge 0,1 V di rumore verso il basso. Un 1 può essere letto male? Che cosa legge un ingresso a 1,6 V?"
+      },
+      "rubric": {
+        "en": "Noise margin for a 1: 2.64 - 2.475 = 0.165 V, larger than 0.1 V: the 1 is still read as 1. 1.6 V lies between the two thresholds: the value is undefined, and signals must cross that band quickly.",
+        "it": "Margine di rumore per l'1: 2,64 - 2,475 = 0,165 V, maggiore di 0,1 V: l'1 viene ancora letto come 1. 1,6 V sta tra le due soglie: il valore è indefinito, e i segnali devono attraversare quella fascia rapidamente."
+      },
+      "misconception": {
+        "en": "A 1 is exactly 3.3 V and anything else is an error.",
+        "it": "Un 1 vale esattamente 3,3 V e qualsiasi altro valore è un errore."
+      }
+    },
+    "A11.1": {
+      "lecture": "11",
+      "kind": "exit",
+      "concepts": [
+        "comb.machines"
+      ],
+      "prompt": {
+        "en": "Combinational or sequential: an adder; a counter of button presses; a multiplexer; the processor as a whole? State the rule you used.",
+        "it": "Combinatoria o sequenziale: un sommatore; un contatore di pressioni di un pulsante; un multiplexer; il processore nel suo insieme? Enunciate la regola usata."
+      },
+      "rubric": {
+        "en": "Adder and multiplexer: combinational. Counter and processor: sequential. Rule: a combinational machine's outputs depend only on the present inputs; a sequential one also depends on the past, kept as state.",
+        "it": "Sommatore e multiplexer: combinatorie. Contatore e processore: sequenziali. Regola: le uscite di una macchina combinatoria dipendono solo dagli ingressi presenti; quelle di una sequenziale anche dal passato, conservato come stato."
+      },
+      "misconception": {
+        "en": "A circuit is sequential if it is complicated.",
+        "it": "Un circuito è sequenziale se è complicato."
+      }
+    },
+    "A11.2": {
+      "lecture": "11",
+      "kind": "exit",
+      "concepts": [
+        "comb.alu"
+      ],
+      "prompt": {
+        "en": "The ALU computes the sum, the AND, the OR, the XOR and a shift of the same two words at the same time. How does only the result of add t2, t0, t1 reach t2, and who chooses it?",
+        "it": "L'ALU calcola insieme la somma, l'AND, l'OR, lo XOR e uno scorrimento delle stesse due parole. Come arriva in t2 solo il risultato di add t2, t0, t1, e chi lo sceglie?"
+      },
+      "rubric": {
+        "en": "A multiplexer at the output passes one result; its selection lines come from the decoder and control unit, which read the opcode and funct3 of the instruction. No memory is involved: the ALU is combinational.",
+        "it": "Un multiplexer in uscita lascia passare un solo risultato; le sue linee di selezione vengono dal decodificatore e dall'unità di controllo, che leggono opcode e funct3 dell'istruzione. Non c'è memoria: l'ALU è combinatoria."
+      },
+      "misconception": {
+        "en": "The ALU computes only the operation requested, one at a time.",
+        "it": "L'ALU calcola solo l'operazione richiesta, una alla volta."
+      }
+    },
+    "A12.1": {
+      "lecture": "12",
+      "kind": "exit",
+      "concepts": [
+        "verm1.project",
+        "logic.bitmask"
+      ],
+      "prompt": {
+        "en": "Directions are coded RIGHT 0, DOWN 1, LEFT 2, UP 3. The worm goes RIGHT and the player pushes LEFT. What does xor t3, t2, t1 give, and what does the code do with it?",
+        "it": "Le direzioni sono codificate RIGHT 0, DOWN 1, LEFT 2, UP 3. Il verme va a RIGHT e il giocatore spinge LEFT. Che cosa dà xor t3, t2, t1, e che cosa ne fa il codice?"
+      },
+      "rubric": {
+        "en": "0 XOR 2 = 2 (binary 10): opposite directions differ only in bit 1. The code compares t3 with 2 and ignores the request: a U-turn is refused. The same holds for DOWN and UP (1 XOR 3 = 2).",
+        "it": "0 XOR 2 = 2 (10 in binario): direzioni opposte differiscono solo nel bit 1. Il codice confronta t3 con 2 e ignora la richiesta: l'inversione a U è rifiutata. Lo stesso vale per DOWN e UP (1 XOR 3 = 2)."
+      },
+      "misconception": {
+        "en": "Refusing a U-turn needs four separate comparisons.",
+        "it": "Rifiutare un'inversione a U richiede quattro confronti separati."
+      }
+    },
+    "A13.1": {
+      "lecture": "13",
+      "kind": "exit",
+      "concepts": [
+        "seq.clock"
+      ],
+      "prompt": {
+        "en": "The kit's clock runs at 160 MHz. What is its period, and why must every combinational network between two registers settle within it?",
+        "it": "Il clock del kit va a 160 MHz. Qual è il suo periodo, e perché ogni rete combinatoria tra due registri deve stabilizzarsi entro quel tempo?"
+      },
+      "rubric": {
+        "en": "T = 1 / 160 MHz = 6.25 ns. The registers sample their inputs on a clock edge: if the network's outputs have not settled by the next edge, a wrong value is captured. The critical path bounds the clock frequency.",
+        "it": "T = 1 / 160 MHz = 6,25 ns. I registri campionano gli ingressi su un fronte del clock: se le uscite della rete non si sono stabilizzate entro il fronte successivo, viene catturato un valore sbagliato. Il cammino critico limita la frequenza del clock."
+      },
+      "misconception": {
+        "en": "A faster clock always makes the same circuit faster.",
+        "it": "Un clock più veloce rende sempre più veloce lo stesso circuito."
+      }
+    },
+    "A13.2": {
+      "lecture": "13",
+      "kind": "exit",
+      "concepts": [
+        "seq.latch-ff"
+      ],
+      "prompt": {
+        "en": "What is the difference between a D latch and a D flip-flop, and which one lets a register be read and written in the same clock cycle safely?",
+        "it": "Qual è la differenza tra un latch D e un flip-flop D, e quale dei due permette di leggere e scrivere un registro nello stesso ciclo di clock in sicurezza?"
+      },
+      "rubric": {
+        "en": "The latch is transparent while its enable is active: the output follows the input. The flip-flop samples only on the clock edge. The flip-flop: the new value appears only at the edge, so the old value can be read during the cycle.",
+        "it": "Il latch è trasparente finché l'abilitazione è attiva: l'uscita segue l'ingresso. Il flip-flop campiona solo sul fronte del clock. Il flip-flop: il nuovo valore compare solo al fronte, quindi durante il ciclo si può leggere il vecchio."
+      },
+      "misconception": {
+        "en": "Latch and flip-flop are two names for the same circuit.",
+        "it": "Latch e flip-flop sono due nomi dello stesso circuito."
+      }
+    },
+    "A14.1": {
+      "lecture": "14",
+      "kind": "exit",
+      "concepts": [
+        "reg.bus"
+      ],
+      "prompt": {
+        "en": "Three registers share a common bus. What happens if two of them drive it at the same time, and which component prevents it?",
+        "it": "Tre registri condividono un bus comune. Che cosa succede se due di essi lo pilotano contemporaneamente, e quale componente lo impedisce?"
+      },
+      "rubric": {
+        "en": "Two outputs fight: one drives 1 while the other drives 0, the value is undefined and current may flow between them. Three-state buffers disconnect every register except the one enabled by the control.",
+        "it": "Due uscite si contendono la linea: una pilota 1 mentre l'altra pilota 0, il valore è indefinito e può scorrere corrente tra loro. I buffer three-state scollegano tutti i registri tranne quello abilitato dal controllo."
+      },
+      "misconception": {
+        "en": "The bus simply adds or ORs the values put on it.",
+        "it": "Il bus semplicemente somma o mette in OR i valori che riceve."
+      }
+    },
+    "A14.2": {
+      "lecture": "14",
+      "kind": "exit",
+      "concepts": [
+        "reg.shift-register"
+      ],
+      "prompt": {
+        "en": "An 8-bit word is sent serially, one bit per clock pulse. How many pulses does it take, and what does the shift register do at each?",
+        "it": "Una parola di 8 bit viene inviata in serie, un bit per impulso di clock. Quanti impulsi servono, e che cosa fa il registro a scorrimento a ciascuno?"
+      },
+      "rubric": {
+        "en": "8 pulses. At each pulse every bit moves one position; one bit leaves on the serial line (or enters, on the receiving side).",
+        "it": "8 impulsi. A ogni impulso ogni bit si sposta di una posizione; un bit esce sulla linea seriale (o entra, dal lato che riceve)."
+      },
+      "misconception": {
+        "en": "A serial transfer sends all bits at once on one wire.",
+        "it": "Un trasferimento seriale invia tutti i bit insieme su un filo."
+      }
+    },
+    "A15.1": {
+      "lecture": "15",
+      "kind": "exit",
+      "concepts": [
+        "mem.cpu-interface"
+      ],
+      "prompt": {
+        "en": "List, in order, what travels on the address bus, the control lines and the data bus while the processor executes lw t1, 0(t0).",
+        "it": "Elencate, in ordine, che cosa viaggia sul bus degli indirizzi, sulle linee di controllo e sul bus dei dati mentre il processore esegue lw t1, 0(t0)."
+      },
+      "rubric": {
+        "en": "The address in t0 goes into MA and onto the address bus; read enable is asserted; the memory puts the word on the data bus; it is captured in MB and then written into t1. The address bus is one-way, the data bus two-way.",
+        "it": "L'indirizzo in t0 va in MA e sul bus degli indirizzi; si attiva il read enable; la memoria mette la parola sul bus dei dati; questa viene catturata in MB e poi scritta in t1. Il bus degli indirizzi è unidirezionale, quello dei dati bidirezionale."
+      },
+      "misconception": {
+        "en": "The data travels on the address bus.",
+        "it": "Il dato viaggia sul bus degli indirizzi."
+      }
+    },
+    "A15.2": {
+      "lecture": "15",
+      "kind": "exit",
+      "concepts": [
+        "mem.mmio"
+      ],
+      "prompt": {
+        "en": "RISC-V has no input/output instructions. How, then, does a program turn on an LED or send a pixel to a device?",
+        "it": "RISC-V non ha istruzioni di ingresso/uscita. Come fa allora un programma ad accendere un LED o inviare un pixel a un dispositivo?"
+      },
+      "rubric": {
+        "en": "Memory-mapped I/O: the registers of the device controller are given addresses, and the program writes them with an ordinary sw (and reads them with lw). On PRG32 the runtime does this for the cartridge.",
+        "it": "Ingresso/uscita mappato in memoria: ai registri del controllore del dispositivo sono assegnati indirizzi, e il programma li scrive con una normale sw (e li legge con lw). Su PRG32 lo fa il runtime per conto della cartuccia."
+      },
+      "misconception": {
+        "en": "A special instruction, or the operating system alone, is needed to reach a device.",
+        "it": "Per raggiungere un dispositivo serve un'istruzione speciale, o solo il sistema operativo."
+      }
+    },
+    "A16.1": {
+      "lecture": "16",
+      "kind": "exit",
+      "concepts": [
+        "mem.cache"
+      ],
+      "prompt": {
+        "en": "What happens on a cache miss? Why does a loop that reads an array in order have few misses?",
+        "it": "Che cosa succede in caso di fallimento di cache? Perché un ciclo che legge un array in ordine ha pochi fallimenti?"
+      },
+      "rubric": {
+        "en": "The word is not in the cache: the whole block that contains it is brought from main memory into the cache, and the processor waits. Reading in order uses the neighbouring words of the same block next (spatial locality), so most reads hit.",
+        "it": "La parola non è in cache: l'intero blocco che la contiene viene portato dalla memoria principale nella cache, e il processore attende. Leggendo in ordine si usano subito le parole vicine dello stesso blocco (località spaziale), quindi la maggior parte delle letture ha successo."
+      },
+      "misconception": {
+        "en": "On a miss the program stops with an error.",
+        "it": "In caso di fallimento il programma si ferma con un errore."
+      }
+    },
+    "A16.2": {
+      "lecture": "16",
+      "kind": "exit",
+      "concepts": [
+        "mem.permanent"
+      ],
+      "prompt": {
+        "en": "Why can't the firmware and the cartridges of the kit live only in RAM? Which memory keeps them, and what is its limit?",
+        "it": "Perché il firmware e le cartucce del kit non possono stare solo in RAM? Quale memoria li conserva, e qual è il suo limite?"
+      },
+      "rubric": {
+        "en": "RAM is volatile: it loses its content without power. They are kept in flash memory, permanent and electrically erasable; it is erased in blocks and wears out after many write cycles.",
+        "it": "La RAM è volatile: perde il contenuto senza alimentazione. Sono conservati nella memoria flash, permanente e cancellabile elettricamente; si cancella a blocchi e si consuma dopo molti cicli di scrittura."
+      },
+      "misconception": {
+        "en": "Permanent memory is simply slower RAM.",
+        "it": "La memoria permanente è semplicemente RAM più lenta."
+      }
+    },
+    "A17.1": {
+      "lecture": "17",
+      "kind": "exit",
+      "concepts": [
+        "seq.fsm",
+        "verm1.project"
+      ],
+      "prompt": {
+        "en": "Verm1 has three states: TITLE, PLAY, OVER. Draw the transitions and label each with the event that causes it.",
+        "it": "Verm1 ha tre stati: TITLE, PLAY, OVER. Disegnate le transizioni ed etichettate ciascuna con l'evento che la provoca."
+      },
+      "rubric": {
+        "en": "TITLE -A pressed-> PLAY (new game); PLAY -the worm bites itself-> OVER; OVER -A pressed-> TITLE. Every other event leaves the state unchanged.",
+        "it": "TITLE -A premuto-> PLAY (nuova partita); PLAY -il verme si morde-> OVER; OVER -A premuto-> TITLE. Ogni altro evento lascia lo stato invariato."
+      },
+      "misconception": {
+        "en": "The state is what is drawn on the screen, not a variable in memory.",
+        "it": "Lo stato è ciò che è disegnato sullo schermo, non una variabile in memoria."
+      }
+    },
+    "A17.2": {
+      "lecture": "17",
+      "kind": "exit",
+      "concepts": [
+        "data.array",
+        "logic.bitmask"
+      ],
+      "prompt": {
+        "en": "The body is a ring of 256 entries. head_i is 255 and the worm moves one step. What is the new head_i, and why does Verm1 compute it with andi t1, t1, 255?",
+        "it": "Il corpo è un anello di 256 elementi. head_i vale 255 e il verme fa un passo. Quanto vale il nuovo head_i, e perché Verm1 lo calcola con andi t1, t1, 255?"
+      },
+      "rubric": {
+        "en": "255 + 1 = 256, and 256 AND 255 = 0: the index wraps to the start of the ring. With 256 entries, keeping the low 8 bits is the same as taking the index modulo 256, with no division.",
+        "it": "255 + 1 = 256, e 256 AND 255 = 0: l'indice torna all'inizio dell'anello. Con 256 elementi, tenere gli 8 bit bassi equivale a prendere l'indice modulo 256, senza divisione."
+      },
+      "misconception": {
+        "en": "The index goes to 256 and writes past the end of the array.",
+        "it": "L'indice arriva a 256 e scrive oltre la fine dell'array."
+      }
+    },
+    "A18.1": {
+      "lecture": "18",
+      "kind": "exit",
+      "concepts": [
+        "cpu.datapath"
+      ],
+      "prompt": {
+        "en": "Follow add t2, t0, t1 through the block diagram of an RV32 processor: name, in order, the blocks it uses and what each does. Which block does it not use?",
+        "it": "Seguite add t2, t0, t1 nello schema a blocchi di un processore RV32: nominate, in ordine, i blocchi che usa e che cosa fa ciascuno. Quale blocco non usa?"
+      },
+      "rubric": {
+        "en": "PC gives the address; the instruction is fetched from memory; the decoder and control unit read its fields; the register file supplies t0 and t1; the ALU adds; the result is written back into t2; the next PC is PC + 4. The data memory is not used (no load or store).",
+        "it": "Il PC dà l'indirizzo; l'istruzione è prelevata dalla memoria; decodificatore e unità di controllo ne leggono i campi; il banco dei registri fornisce t0 e t1; l'ALU somma; il risultato è riscritto in t2; il PC successivo è PC + 4. La memoria dei dati non è usata (nessun caricamento o memorizzazione)."
+      },
+      "misconception": {
+        "en": "Every instruction reads or writes the data memory.",
+        "it": "Ogni istruzione legge o scrive la memoria dei dati."
+      }
+    },
+    "A18.2": {
+      "lecture": "18",
+      "kind": "exit",
+      "concepts": [
+        "arch.stack",
+        "abi.calling-convention"
+      ],
+      "prompt": {
+        "en": "A function begins with addi sp, sp, -16 and sw ra, 12(sp). Where is ra now, and what must the function do before ret?",
+        "it": "Una funzione comincia con addi sp, sp, -16 e sw ra, 12(sp). Dove si trova ora ra, e che cosa deve fare la funzione prima di ret?"
+      },
+      "rubric": {
+        "en": "In memory, at address sp + 12 inside the frame just reserved on the stack. Before ret: lw ra, 12(sp) to restore it, then addi sp, sp, 16 to release the frame, so that sp is as the caller left it.",
+        "it": "In memoria, all'indirizzo sp + 12 nel frame appena riservato sullo stack. Prima di ret: lw ra, 12(sp) per ripristinarlo, poi addi sp, sp, 16 per rilasciare il frame, così che sp sia come l'ha lasciato il chiamante."
+      },
+      "misconception": {
+        "en": "ret restores sp and ra by itself.",
+        "it": "ret ripristina da sé sp e ra."
+      }
+    },
+    "A19.1": {
+      "lecture": "19",
+      "kind": "exit",
+      "concepts": [
+        "isa.addressing-modes"
+      ],
+      "prompt": {
+        "en": "Name the addressing mode of: the 1 in addi t1, t1, 1; the word read by lw t1, 8(sp); the target of beq t0, t1, loop; the operand t0 of add t2, t0, t1.",
+        "it": "Nominate il modo di indirizzamento di: l'1 in addi t1, t1, 1; la parola letta da lw t1, 8(sp); la destinazione di beq t0, t1, loop; l'operando t0 di add t2, t0, t1."
+      },
+      "rubric": {
+        "en": "Immediate; base plus displacement; PC-relative; register. One point each.",
+        "it": "Immediato; base più spiazzamento; relativo al PC; registro. Un punto ciascuno."
+      },
+      "misconception": {
+        "en": "8(sp) means 8 times sp.",
+        "it": "8(sp) significa 8 per sp."
+      }
+    },
+    "A19.2": {
+      "lecture": "19",
+      "kind": "exit",
+      "concepts": [
+        "cpu.interrupts"
+      ],
+      "prompt": {
+        "en": "An interrupt arrives while the processor is executing an instruction. What happens to that instruction, which register remembers where to resume, and how does the handler end?",
+        "it": "Arriva un'interruzione mentre il processore sta eseguendo un'istruzione. Che cosa succede a quell'istruzione, quale registro ricorda dove riprendere, e come termina il gestore?"
+      },
+      "rubric": {
+        "en": "The current instruction completes; the address at which to resume is saved in mepc; control jumps to the handler, which saves what it uses, serves the device and ends with mret, which returns to the address in mepc.",
+        "it": "L'istruzione corrente viene completata; l'indirizzo da cui riprendere è salvato in mepc; il controllo salta al gestore, che salva ciò che usa, serve il dispositivo e termina con mret, che torna all'indirizzo in mepc."
+      },
+      "misconception": {
+        "en": "An interrupt is a call written in the program.",
+        "it": "Un'interruzione è una chiamata scritta nel programma."
+      }
+    },
+    "A20.1": {
+      "lecture": "20",
+      "kind": "exit",
+      "concepts": [
+        "io.controllers"
+      ],
+      "prompt": {
+        "en": "Why is a device never connected directly to the processor? Say what its controller does and how the processor talks to it.",
+        "it": "Perché un dispositivo non è mai collegato direttamente al processore? Dite che cosa fa il suo controllore e come il processore dialoga con esso."
+      },
+      "rubric": {
+        "en": "Devices are slow, varied and asynchronous. The controller manages the dialogue with the device and presents a few registers (data, status, control) on the bus; the processor reads and writes them as memory (memory-mapped I/O), and the controller can raise an interrupt when an operation completes.",
+        "it": "I dispositivi sono lenti, diversi tra loro e asincroni. Il controllore gestisce il dialogo con il dispositivo e presenta sul bus alcuni registri (dati, stato, controllo); il processore li legge e scrive come memoria (I/O mappato in memoria), e il controllore può sollevare un'interruzione quando un'operazione è completa."
+      },
+      "misconception": {
+        "en": "The processor drives every signal of the device itself.",
+        "it": "Il processore pilota da sé ogni segnale del dispositivo."
+      }
+    },
+    "A20.2": {
+      "lecture": "20",
+      "kind": "exit",
+      "concepts": [
+        "io.video",
+        "io.framebuffer"
+      ],
+      "prompt": {
+        "en": "A screen of 320 x 200 pixels uses 16 bits per pixel and is redrawn 30 times per second. How much frame-buffer memory is needed, and how many bytes per second must reach the screen?",
+        "it": "Uno schermo di 320 x 200 pixel usa 16 bit per pixel ed è ridisegnato 30 volte al secondo. Quanta memoria serve per il frame buffer, e quanti byte al secondo devono raggiungere lo schermo?"
+      },
+      "rubric": {
+        "en": "320 x 200 x 2 bytes = 128,000 bytes. 128,000 x 30 = 3,840,000 bytes per second, about 3.8 MB/s. Both grow with resolution and colour depth: the pressure that shaped video cards.",
+        "it": "320 x 200 x 2 byte = 128.000 byte. 128.000 x 30 = 3.840.000 byte al secondo, circa 3,8 MB/s. Entrambi crescono con risoluzione e profondità di colore: la pressione che ha plasmato le schede video."
+      },
+      "misconception": {
+        "en": "16 bits per pixel means 16 bytes per pixel.",
+        "it": "16 bit per pixel significa 16 byte per pixel."
+      }
+    },
+    "A21.1": {
+      "lecture": "21",
+      "kind": "exit",
+      "concepts": [
+        "io.printer"
+      ],
+      "prompt": {
+        "en": "In four steps, how does a laser printer turn a page into toner on paper? Why does a printer have a processor and memory of its own?",
+        "it": "In quattro passi, come trasforma una stampante laser una pagina in toner sulla carta? Perché una stampante ha un proprio processore e una propria memoria?"
+      },
+      "rubric": {
+        "en": "The drum is charged; a laser beam, steered by a rotating mirror, discharges the points of the image line by line; toner sticks according to the charge pattern; it is transferred to the paper and fused by heat. It needs its own processor and memory to turn the page description into the dot pattern at its own pace: it is a small computer, a controller with firmware.",
+        "it": "Il tamburo viene caricato; un raggio laser, guidato da uno specchio rotante, scarica i punti dell'immagine riga per riga; il toner aderisce secondo la distribuzione delle cariche; viene trasferito sulla carta e fissato dal calore. Servono un processore e una memoria propri per trasformare la descrizione della pagina nella trama di punti al proprio ritmo: è un piccolo computer, un controllore con firmware."
+      },
+      "misconception": {
+        "en": "The computer sends the printer the dots one at a time, as it prints.",
+        "it": "Il computer invia alla stampante i punti uno alla volta, mentre stampa."
+      }
+    },
+    "A21.2": {
+      "lecture": "21",
+      "kind": "exit",
+      "concepts": [
+        "io.polling",
+        "cpu.interrupts"
+      ],
+      "prompt": {
+        "en": "A game reads the joystick once per frame, at 30 frames per second. A tap lasts 20 ms and falls between two reads. Is it seen? What would an interrupt change?",
+        "it": "Un gioco legge il joystick una volta per frame, a 30 frame al secondo. Un tocco dura 20 ms e cade tra due letture. Viene visto? Che cosa cambierebbe un'interruzione?"
+      },
+      "rubric": {
+        "en": "The frame lasts about 33 ms: a 20 ms tap between two reads is missed. Polling sees only the state at the moment of reading. An interrupt on the edge of the button would notify the processor when the tap happens, so it can be recorded and handled at the next frame.",
+        "it": "Il frame dura circa 33 ms: un tocco di 20 ms tra due letture va perso. Il polling vede solo lo stato al momento della lettura. Un'interruzione sul fronte del pulsante avviserebbe il processore quando il tocco avviene, così da registrarlo e gestirlo al frame successivo."
+      },
+      "misconception": {
+        "en": "Polling sees everything that happens, only later.",
+        "it": "Il polling vede tutto ciò che accade, solo più tardi."
+      }
+    },
+    "A22.1": {
+      "lecture": "22",
+      "kind": "exit",
+      "concepts": [
+        "num.division",
+        "info.text"
+      ],
+      "prompt": {
+        "en": "to_decimal receives 205. Show how remu and divu by 10 give its three digits, and why it stores the bytes '2', '0', '5' rather than the numbers 2, 0, 5.",
+        "it": "to_decimal riceve 205. Mostrate come remu e divu per 10 ne danno le tre cifre, e perché memorizza i byte '2', '0', '5' invece dei numeri 2, 0, 5."
+      },
+      "rubric": {
+        "en": "205 remu 10 = 5 (units), 205 divu 10 = 20; 20 remu 10 = 0 (tens), 20 divu 10 = 2; 2 remu 10 = 2 (hundreds). The digits come out from the right. The screen draws characters: each digit becomes its ASCII code by adding 48, the code of '0': 50, 48, 53.",
+        "it": "205 remu 10 = 5 (unità), 205 divu 10 = 20; 20 remu 10 = 0 (decine), 20 divu 10 = 2; 2 remu 10 = 2 (centinaia). Le cifre escono da destra. Lo schermo disegna caratteri: ogni cifra diventa il suo codice ASCII aggiungendo 48, il codice di '0': 50, 48, 53."
+      },
+      "misconception": {
+        "en": "A number in a register can be drawn as text directly.",
+        "it": "Un numero in un registro si può disegnare direttamente come testo."
+      }
+    },
+    "A22.2": {
+      "lecture": "22",
+      "kind": "exit",
+      "concepts": [
+        "verm1.project",
+        "io.framebuffer"
+      ],
+      "prompt": {
+        "en": "Why does verm1_draw redraw the map only when dirty is set? What would the player see if update forgot to set it after a step?",
+        "it": "Perché verm1_draw ridisegna la mappa solo quando dirty è impostato? Che cosa vedrebbe il giocatore se update si dimenticasse di impostarlo dopo un passo?"
+      },
+      "rubric": {
+        "en": "Drawing is the most expensive work of a frame; when nothing changed, the frame buffer already holds the right picture, so redrawing wastes time. If dirty were not set, the screen would show the old position: the worm would appear frozen while the game goes on.",
+        "it": "Disegnare è il lavoro più costoso di un frame; se nulla è cambiato, il frame buffer contiene già l'immagine giusta, e ridisegnare spreca tempo. Se dirty non venisse impostato, lo schermo mostrerebbe la vecchia posizione: il verme sembrerebbe fermo mentre il gioco prosegue."
+      },
+      "misconception": {
+        "en": "The screen keeps itself up to date with the variables in memory.",
+        "it": "Lo schermo si tiene aggiornato da sé con le variabili in memoria."
+      }
+    },
+    "A23.1": {
+      "lecture": "23",
+      "kind": "exit",
+      "concepts": [
+        "prg32.cartridge-format"
+      ],
+      "prompt": {
+        "en": "cartridge summary prints import_model: abi-table. What does this say about the cartridge, and why does the Store accept only such cartridges?",
+        "it": "cartridge summary stampa import_model: abi-table. Che cosa dice questo della cartuccia, e perché lo Store accetta solo cartucce del genere?"
+      },
+      "rubric": {
+        "en": "The cartridge reaches the runtime through a table of functions, not fixed addresses in one firmware image. It therefore keeps working after a firmware update and on every host: the interface is the table. A Store cartridge must run on every player's machine.",
+        "it": "La cartuccia raggiunge il runtime attraverso una tabella di funzioni, non indirizzi fissi di una sola immagine del firmware. Continua quindi a funzionare dopo un aggiornamento del firmware e su ogni host: l'interfaccia è la tabella. Una cartuccia dello Store deve girare sulla macchina di ogni giocatore."
+      },
+      "misconception": {
+        "en": "Portable means the cartridge is recompiled on each host.",
+        "it": "Portabile significa che la cartuccia viene ricompilata su ogni host."
+      }
+    },
+    "A23.2": {
+      "lecture": "23",
+      "kind": "exit",
+      "concepts": [
+        "store.publishing"
+      ],
+      "prompt": {
+        "en": "You published version 1.0.0 and found a bug. What do you publish now? Where must the Store token never appear?",
+        "it": "Avete pubblicato la versione 1.0.0 e trovato un errore. Che cosa pubblicate ora? Dove non deve mai comparire il token dello Store?"
+      },
+      "rubric": {
+        "en": "A new version, such as 1.0.1: what has been published is permanent and is never replaced. The token stays in an environment variable of the shell: never in source files, in files under version control or in screenshots; if exposed, revoke it.",
+        "it": "Una nuova versione, per esempio 1.0.1: ciò che è stato pubblicato è permanente e non si sostituisce. Il token resta in una variabile d'ambiente della shell: mai nei sorgenti, in file sotto controllo di versione o in schermate; se esposto, va revocato."
+      },
+      "misconception": {
+        "en": "Republishing 1.0.0 with the fix overwrites the old one.",
+        "it": "Ripubblicare la 1.0.0 con la correzione sovrascrive la vecchia."
+      }
+    },
+    "A24.1": {
+      "lecture": "24",
+      "kind": "exit",
+      "concepts": [
+        "perf.equation"
+      ],
+      "prompt": {
+        "en": "The loop that empties Verm1's map executes 3,840 instructions at about one cycle each on a 160 MHz clock. How long does it take? Name one way to reduce each of the three factors.",
+        "it": "Il ciclo che svuota la mappa di Verm1 esegue 3.840 istruzioni a circa un ciclo ciascuna con un clock a 160 MHz. Quanto dura? Nominate un modo per ridurre ciascuno dei tre fattori."
+      },
+      "rubric": {
+        "en": "3,840 x 1 x 6.25 ns = 24 microseconds. Fewer instructions: vectors, better algorithms; fewer cycles per instruction: pipelining, superscalar execution; a shorter cycle: faster transistors. One point for the time, one for the three remedies.",
+        "it": "3.840 x 1 x 6,25 ns = 24 microsecondi. Meno istruzioni: vettori, algoritmi migliori; meno cicli per istruzione: pipeline, esecuzione superscalare; un ciclo più breve: transistor più veloci. Un punto per il tempo, uno per i tre rimedi."
+      },
+      "misconception": {
+        "en": "Only the clock frequency determines how fast a program runs.",
+        "it": "Solo la frequenza del clock determina quanto velocemente gira un programma."
+      }
+    },
+    "A24.2": {
+      "lecture": "24",
+      "kind": "exit",
+      "concepts": [
+        "perf.hpc"
+      ],
+      "prompt": {
+        "en": "A program is 80% parallel. With as many processors as you like, what is the largest speed-up, and why?",
+        "it": "Un programma è parallelo all'80%. Con tutti i processori che si vuole, qual è l'accelerazione massima, e perché?"
+      },
+      "rubric": {
+        "en": "Amdahl's law: speed-up = 1 / (0.2 + 0.8 / N), which tends to 1 / 0.2 = 5. The sequential 20% runs on one processor whatever N is.",
+        "it": "Legge di Amdahl: accelerazione = 1 / (0,2 + 0,8 / N), che tende a 1 / 0,2 = 5. Il 20% sequenziale gira su un solo processore qualunque sia N."
+      },
+      "misconception": {
+        "en": "With enough processors any program becomes as fast as one wants.",
+        "it": "Con abbastanza processori qualsiasi programma diventa veloce quanto si vuole."
+      }
+    }
+  },
+  "exceptions": {}
+}

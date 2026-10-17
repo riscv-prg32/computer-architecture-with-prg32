@@ -189,6 +189,25 @@ prima istruzione della funzione e annota nel registro \reg{ra} dove tornare;
 \ins{ret} torna lì. I valori di cui la funzione ha bisogno, i suoi
 \term{argomenti}, viaggiano nei registri da \reg{a0} ad \reg{a7}.
 
+\section*{Parole che è facile confondere}
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{Queste due} & \textbf{differiscono così}\\
+\midrule
+assembly e codice macchina & l'assembly è testo scritto dalle persone, un'istruzione per riga; il codice macchina è fatto delle stesse istruzioni come numeri, che il processore legge\\
+assemblatore e compilatore & entrambi traducono il sorgente in codice macchina: l'assemblatore traduce l'assembly, il compilatore traduce il C\\
+file sorgente e cartuccia & il file sorgente è ciò che scrivete; la cartuccia è ciò che la toolchain ne produce e che un host carica\\
+firmware e cartuccia & il firmware è sempre sul kit e parte per primo; la cartuccia è il vostro gioco, che il runtime del firmware chiama\\
+toolchain e runtime & la toolchain gira sul portatile e traduce; il runtime gira sull'host e chiama il vostro codice a ogni frame\\
+la scheda e un emulatore & la scheda ha il chip vero; un emulatore, o un interprete, imita il chip via software su un portatile\\
+registro e memoria & 32 piccole celle dentro il processore, dove si calcola; una lunga fila di celle numerate fuori di esso, dove si conservano i dati\\
+indirizzo e valore & dove un valore è conservato (il numero di una cella di memoria); ciò che vi è conservato\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
 \section*{Un piccolo dizionario per le prime settimane}
 
 \begin{description}\small

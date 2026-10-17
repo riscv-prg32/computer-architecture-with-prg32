@@ -1,0 +1,18 @@
+hint ch00_introduction.tex                  numbers  en only {'1980': 2}  it only {}
+hint ch03_history.tex                       numbers  en only {'1800': 1, '1940': 2, '1950': 1, '1960': 1, '1970': 1, '1980': 3, '1990': 1}  it only {'60': 1, '50': 1, '70': 1, '80': 1, '90': 1}
+hint ch05_integers.tex                      numbers  en only {}  it only {'2': 3}
+hint ch06_reals.tex                         numbers  en only {}  it only {'1': 1, '8': 2, '2': 1}
+hint ch08_boolean_algebra_1.tex             numbers  en only {'0': 1}  it only {'1': 1}
+hint ch10_electronics.tex                   numbers  en only {'1980': 1, '1990': 1}  it only {}
+hint ch11_combinational_machines.tex        numbers  en only {}  it only {'1': 1}
+hint ch15_memory.tex                        numbers  en only {'1950': 1}  it only {}
+hint ch16_permanent_memory.tex              numbers  en only {'1990': 1}  it only {}
+hint ch17_verm1_part3.tex                   numbers  en only {}  it only {'1': 1}
+hint ch19_instructions_and_interrupts.tex   numbers  en only {}  it only {'1': 2}
+hint ch20_video_card.tex                    numbers  en only {'1990': 1}  it only {}
+hint ch21_input_output.tex                  numbers  en only {'1960': 1}  it only {}
+hint ch24_beyond_one_core.tex               numbers  en only {'1980': 1}  it only {}
+hint app_riscv.tex                          numbers  en only {}  it only {'1': 8}
+hint zero.tex                               numbers  en only {'1980': 1}  it only {}
+920 quiz items checked, 16 hint(s), 0 failure(s)
+EXIT 0

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: polling, interrupts, DMA; CRT and LCD displays; keyboard and mouse; printers. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) describe how displays, keyboards and printers work; (2) compare polling with interrupts for reading a device. Builds on: only what Lecture 01 set up. Next: Lecture 22, Verm1, Part 4: The Finished Game.
+
+Closing thread: Reading the joystick once per frame is polling: simple, and blind between two reads. Next: the finished game.
+
 ## Slide 1: Input and Output
 
 This lecture concerns the boundary between the machine and the world: the devices through which information enters and leaves. It shows how an image is formed on a screen, what happens between a key and the processor, what a mouse communicates, and how a laser printer works. The unifying thread is that each of these devices is internally composed of machines already designed in this course, encoders, counters, shift registers and controllers. The lecture begins and ends on the kit, with the device used since the first laboratory session: a button.

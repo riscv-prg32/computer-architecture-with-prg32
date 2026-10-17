@@ -1,0 +1,31 @@
+# Checks the committed course material on every push and pull request.
+# It does not rebuild the decks (that needs the fonts and the layout engine of a workstation: `cd tools && npm run verify`);
+# it checks the sources and the 100 committed .pptx files, and fails if a deck is missing or broken.
+# The assembly tests (tools/tests/run_all.sh) need the RISC-V toolchain and PRG32: they are run on a workstation.
+name: verify
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - name: Unit and negative tests, the sources
+        run: npm run test:source
+      - name: The built decks (badges, structure, notes, bilingual parity) and their negative tests
+        run: node textbook/check_mastery.js && node textbook/check_pptx.js && node tests/pptx_test.js
+      - name: The notes match the decks
+        run: node notes.js
+      - name: The two editions of the textbook agree with each other and with the decks
+        run: node textbook/check_decks.js && python3 textbook/check_editions.py

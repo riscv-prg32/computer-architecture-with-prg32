@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: bit masks; the von Neumann architecture; analysis and synthesis; Boolean algebra; logic gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: minimisation, Karnaugh maps (Lecture 09). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) tell the analysis of a logic circuit from its synthesis; (2) apply the axioms and theorems of Boolean algebra, De Morgan's included; (3) set, clear and test bits with masks. Builds on: the von Neumann architecture (Lecture 03). Next: Lecture 09, Elements of Boolean Algebra.
+
+Closing thread: andi t3, t0, 1 is a row of 32 AND gates: Boolean algebra describes both the instruction and the circuit. Next: from a truth table to the smallest circuit.
+
 ## Slide 1: Elements of Boolean Algebra
 
 The second block of the course opens: logic. Having established what bits mean, the course turns to how they are combined. Boolean algebra has in fact been in use since the first weeks, every time a button was tested with `andi`; this lecture names that operation and constructs the algebra around it. The White Rabbit on the cover, always in a hurry, is an apt emblem: the processor too accomplishes everything through minute logical steps, billions of them per second.

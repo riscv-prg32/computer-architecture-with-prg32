@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: program, source and machine code; the pieces of PRG32. USE NOW: the terminal, the PRG32 tools, the PRG32-QT debugger, the complete program (used, not studied, in this course). UNDERSTAND LATER: the init, update, draw contract (Lecture 02); registers (Lecture 02). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) explain the path from a source file to a running cartridge: source, translator, machine code, cartridge, host; (2) run a cartridge in PRG32-QT and build one with the terminal. Builds on: Lecture 00, and Starting from Zero for a reader who has never programmed. Next: Lecture 02, First Contact: RISC-V Assembly on PRG32.
+
+Closing thread: You now own the whole cycle: write a source file, translate it, send the cartridge to a host, stop it in the debugger. Next: writing the source file yourself.
+
 ## Slide 1: PRG32 and PRG32-QT: Setting Up Your Workshop
 
 This lecture is a workshop in both senses of the word: a session of practical work, and the place in which all subsequent work will be done. It contains no theory. Its outcome is a configured environment: PRG32-QT running on the student's laptop, the RISC-V toolchain installed and verified, and a first cartridge built by the student and halted in the debugger. The epigraph about sharpening the axe justifies devoting two hours to tools: every later lecture presupposes that building and running a program costs a single command and a few seconds, so that attention can be spent on the ideas rather than on the procedure.

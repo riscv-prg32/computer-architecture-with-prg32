@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: le maschere di bit; l'architettura di von Neumann; analisi e sintesi; l'algebra di Boole; le porte logiche. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: minimizzazione, Karnaugh (Lezione 09). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) distinguere l'analisi di un circuito logico dalla sua sintesi; (2) applicare gli assiomi e i teoremi dell'algebra di Boole, compreso De Morgan; (3) porre a 1, azzerare e verificare bit con le maschere. Si appoggia su: l'architettura di von Neumann (Lezione 03). Prossimo passo: Lezione 09, Elementi di algebra di Boole.
+
+Il filo della lezione: andi t3, t0, 1 è una fila di 32 porte AND: l'algebra di Boole descrive sia l'istruzione sia il circuito. Prossimo passo: da una tabella di verità al circuito più piccolo.
+
 ## Slide 1: Elementi di algebra di Boole: il codice
 
 Questa è la presentazione del codice della Lezione 08. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

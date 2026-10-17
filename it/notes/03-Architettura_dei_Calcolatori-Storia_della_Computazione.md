@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: che cos'è l'informatica; l'architettura di von Neumann; RISC e un ISA aperto. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: l'algebra di Boole (Lezione 08). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) definire l'informatica e spiegare perché non riguarda solo i computer; (2) nominare le unità dell'architettura di von Neumann e la sua idea del programma memorizzato; (3) dire che cosa distingue RISC da CISC e perché RISC-V è aperto. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 04, Rappresentare l'informazione digitale.
+
+Il filo della lezione: La macchina che avete programmato nella Lezione 02 è una macchina di von Neumann: programma e dati in un'unica memoria. RISC-V è l'ultimo passo di un lungo dibattito su quanto debbano essere semplici le istruzioni. Prossimo passo: come qualsiasi cosa diventa bit.
+
 ## Slide 1: Storia della computazione
 
 La lezione precedente ha eseguito un programma RISC-V; questa si chiede da dove venga quella macchina. Non è una cronologia da memorizzare. La storia è presentata come una sequenza di contributi concettuali, ciascuno dei quali aggiunge un'idea ancora incorporata nel chip del kit PRG32: la rappresentazione fisica, la procedura meccanizzata, il programma come dato, l'insieme ridotto di istruzioni, lo standard aperto. La citazione è il primo programma canonico, dal libro che ha introdotto il linguaggio C: da allora ogni programmatore comincia facendo dire ciao a una macchina, come lo studente ha fatto con HELLO PRG32.

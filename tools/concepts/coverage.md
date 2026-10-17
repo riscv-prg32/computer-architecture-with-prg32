@@ -51,21 +51,21 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 | `tool.prg32-cli` | the PRG32 tools | gli strumenti di PRG32 | 00 | 00 | never | 00 use · 01 use · 02 use · 03 use · 04 use · 05 use · 06 use · 07 use · 08 use · 09 use · 10 use · 11 use · 12 use · 13 use · 14 use · 15 use · 16 use · 17 use · 18 use · 19 use · 20 use · 21 use · 22 use · 23 use · 24 use | - |
 | `tool.debugger` | the PRG32-QT debugger | il debugger di PRG32-QT | 01 | 01 | never | 01 use · 02 use · 07 use · 12 use · 17 use · 22 use | - |
 | `asm.machine-model` | registers, compute, move, jump | registri, calcolo, trasferimento, salto | 02 | 02 | 02 | 02 now | **none** |
-| `asm.register` | registers | i registri | 01 | 02 | 02 | 01 later · 02 now | 02:30 |
-| `asm.instructions` | the base instructions | le istruzioni di base | 02 | 02 | 02 | 02 now | 02:30 |
+| `asm.register` | registers | i registri | 01 | 02 | 02 | 01 later · 02 now | 02:32 |
+| `asm.instructions` | the base instructions | le istruzioni di base | 02 | 02 | 02 | 02 now | 02:32 |
 | `asm.pseudo` | pseudo-instructions | le pseudo-istruzioni | 02 | 02 | 02 | 02 now · 07 now | **none** |
 | `asm.directives` | the assembler directives | le direttive dell'assemblatore | 02 | 02 | never | 02 use | - |
-| `abi.call-args` | arguments in a0 to a7 | gli argomenti in a0 ... a7 | 02 | 02 | 02 | 02 now · 12 now | 02:30 |
-| `abi.return-address` | why ra is saved | perché si salva ra | 02 | 02 | 02 | 02 now · 07 now | 02:27, 07:28 |
+| `abi.call-args` | arguments in a0 to a7 | gli argomenti in a0 ... a7 | 02 | 02 | 02 | 02 now · 12 now | 02:32 |
+| `abi.return-address` | why ra is saved | perché si salva ra | 02 | 02 | 02 | 02 now · 07 now | 02:29, 07:28 |
 | `abi.calling-convention` | the calling convention | la convenzione di chiamata | 02 | 02 | 18 | 02 use · 12 use · 17 use · 18 now · 22 now | 18:34, 22:45 |
 | `arch.stack` | the stack | la pila | 02 | 18 | 18 | 02 later · 18 now | 18:32 |
-| `mem.load-store` | address, value, load, store | indirizzo, valore, load, store | 02 | 02 | 02 | 02 now · 07 now | 02:26 |
+| `mem.load-store` | address, value, load, store | indirizzo, valore, load, store | 02 | 02 | 02 | 02 now · 07 now | 02:28 |
 | `isa.instruction-is-data` | an instruction is a number | un'istruzione è un numero | 02 | 02 | 02 | 02 now | **none** |
 | `isa.formats` | instruction formats | formati delle istruzioni | 02 | 19 | 19 | 02 later · 07 later · 19 now | 19:30 |
 | `isa.addressing-modes` | addressing modes | i modi di indirizzamento | 02 | 19 | 19 | 02 later · 19 now | **none** |
 | `isa.risc` | RISC and an open ISA | RISC e un ISA aperto | 00 | 03 | 03 | 00 later · 03 now | 03:25, 18:31 |
 | `isa.extensions` | the name RV32IMAC | il nome RV32IMAC | 06 | 06 | 06 | 06 now | **none** |
-| `skill.trace` | tracing by hand | seguire a mano l'esecuzione | 02 | 02 | 02 | 02 now | 02:30 |
+| `skill.trace` | tracing by hand | seguire a mano l'esecuzione | 02 | 02 | 02 | 02 now | 02:32 |
 | `verm1.project` | the Verm1 project | il progetto Verm1 | 00 | 07 | 07 | 00 later · 02 later · 07 now | 07:29 |
 | `info.informatics` | what informatics is | che cos'è l'informatica | 03 | 03 | 03 | 03 now | **none** |
 | `arch.von-neumann` | the von Neumann architecture | l'architettura di von Neumann | 03 | 03 | 03 | 03 now · 08 now · 16 now | 03:24 |
@@ -145,7 +145,7 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 | `perf.accelerators` | GPU and FPGA accelerators | acceleratori GPU e FPGA | 24 | 24 | 24 | 24 now | 24:45 |
 | `prog.program` | program, source and machine code | programma, sorgente, codice macchina | 01 | 01 | 01 | 01 now | 01:44 |
 | `tool.terminal` | the terminal | il terminale | 01 | 01 | never | 01 use | - |
-| `prog.function` | functions, call and return | funzioni, chiamata e ritorno | 02 | 02 | 02 | 02 now | 02:27 |
+| `prog.function` | functions, call and return | funzioni, chiamata e ritorno | 02 | 02 | 02 | 02 now | 02:29 |
 | `asm.line` | reading a line of assembly | leggere una riga di assembly | 02 | 02 | 02 | 02 now | **none** |
 
 ## Concepts that the course uses and does not study
@@ -162,9 +162,115 @@ operational use, *formal* the lecture that explains it. *Check* lists the questi
 Issues found by the audit, left to the author: nothing below has been changed in the slides.
 
 
-## Concepts understood without a question or an exercise
+## How each understood concept is checked
 
-`course.spiral` (00), `course.rules` (00), `prg32.contract` (02), `asm.machine-model` (02), `asm.pseudo` (02), `isa.instruction-is-data` (02), `isa.addressing-modes` (19), `isa.extensions` (06), `info.informatics` (03), `info.analog-digital` (04), `data.structures` (04), `algo.algorithms` (04), `num.sign-extension` (05), `mem.sections` (07), `logic.circuits` (08), `elec.transistor` (10), `elec.logic-levels` (10), `comb.machines` (11), `comb.alu` (11), `seq.clock` (13), `mem.cpu-interface` (15), `cpu.datapath` (18), `io.controllers` (20), `io.video` (20), `io.printer` (21), `perf.equation` (24), `asm.line` (02).
+A question or exercise of the decks (*deck*, lecture:slide) or an item of `concepts/assessments.json` (*item*); an exception
+names a concept that is deliberately not assessed, with its reason. Generated; the items are in `docs/teaching`.
+
+| Concept | formal | deck | item | exception |
+| --- | --- | --- | --- | --- |
+| `course.spiral` | 00 | - | A00.1 | - |
+| `course.rules` | 00 | - | A00.2 | - |
+| `prg32.platform` | 01 | 01:42, 01:43 | A01.1 | - |
+| `prg32.contract` | 02 | - | CP02.1 | - |
+| `prg32.cartridge-format` | 23 | 23:26 | A23.1 | - |
+| `asm.machine-model` | 02 | - | CP02.1 | - |
+| `asm.register` | 02 | 02:32 | - | - |
+| `asm.instructions` | 02 | 02:32 | - | - |
+| `asm.pseudo` | 02 | - | A02.1 | - |
+| `abi.call-args` | 02 | 02:32 | - | - |
+| `abi.return-address` | 02 | 02:29, 07:28 | - | - |
+| `abi.calling-convention` | 18 | 18:34, 22:45 | A18.2 | - |
+| `arch.stack` | 18 | 18:32 | A18.2 | - |
+| `mem.load-store` | 02 | 02:28 | CP02.2 | - |
+| `isa.instruction-is-data` | 02 | - | A02.2 | - |
+| `isa.formats` | 19 | 19:30 | - | - |
+| `isa.addressing-modes` | 19 | - | A19.1 | - |
+| `isa.risc` | 03 | 03:25, 18:31 | - | - |
+| `isa.extensions` | 06 | - | A06.1 | - |
+| `skill.trace` | 02 | 02:32 | CP02.2 | - |
+| `verm1.project` | 07 | 07:29 | A07.2, A12.1, A17.1, A22.2 | - |
+| `info.informatics` | 03 | - | A03.1 | - |
+| `arch.von-neumann` | 03 | 03:24 | A03.2 | - |
+| `info.analog-digital` | 04 | - | A04.1 | - |
+| `info.bit-byte-word` | 04 | 04:30 | - | - |
+| `num.positional` | 04 | 04:34 | - | - |
+| `num.hex` | 04 | 04:34 | - | - |
+| `info.rgb565` | 04 | 04:31 | - | - |
+| `info.text` | 04 | 04:32 | A22.1 | - |
+| `mem.endianness` | 04 | 04:33, 15:30 | - | - |
+| `data.structures` | 04 | - | A04.2 | - |
+| `data.array` | 04 | 04:34, 17:43, 17:44 | A17.2 | - |
+| `num.shift-multiply` | 05 | 05:35 | - | - |
+| `algo.algorithms` | 04 | - | A04.3 | - |
+| `num.base-conversion` | 05 | 05:34, 05:35 | - | - |
+| `num.natural-overflow` | 05 | 05:35 | A05.2 | - |
+| `num.sign-magnitude` | 05 | 05:35 | - | - |
+| `num.twos-complement` | 05 | 05:31, 05:32 | A05.2 | - |
+| `num.signed-unsigned` | 05 | 05:33, 05:35 | A05.1 | - |
+| `num.sign-extension` | 05 | - | A05.1 | - |
+| `num.ones-excess` | 06 | 06:27 | - | - |
+| `num.fixed-point` | 06 | 06:28, 07:26 | A06.2, A07.2 | - |
+| `num.floating-point` | 06 | 06:29, 06:30 | - | - |
+| `mem.sections` | 07 | - | A07.1 | - |
+| `logic.bitmask` | 08 | 08:28, 08:29 | A08.2, A12.1, A17.2 | - |
+| `logic.circuits` | 08 | - | A08.1 | - |
+| `logic.gates` | 08 | 08:26 | - | - |
+| `logic.boolean-algebra` | 08 | 08:27 | - | - |
+| `logic.functions` | 09 | 09:28 | - | - |
+| `logic.canonical-forms` | 09 | 09:29 | - | - |
+| `logic.minimisation` | 09 | 09:30 | A09.2 | - |
+| `logic.adder` | 09 | 09:31 | A09.1 | - |
+| `elec.circuits` | 10 | 10:28 | - | - |
+| `elec.transistor` | 10 | - | A10.1 | - |
+| `elec.logic-levels` | 10 | - | A10.2 | - |
+| `elec.cmos` | 10 | 10:29, 10:30 | A10.1 | - |
+| `elec.pullup` | 10 | 10:31 | - | - |
+| `comb.machines` | 11 | - | A11.1 | - |
+| `comb.codes` | 11 | 11:36 | - | - |
+| `comb.decoder` | 11 | 11:37 | - | - |
+| `comb.mux` | 11 | 11:38 | - | - |
+| `comb.comparator-parity` | 11 | 11:39 | - | - |
+| `comb.alu` | 11 | - | A11.2 | - |
+| `seq.fsm` | 13 | 13:35, 13:38 | A17.1 | - |
+| `seq.clock` | 13 | - | A13.1 | - |
+| `seq.latch-ff` | 13 | 13:36, 13:37 | A13.2 | - |
+| `seq.register` | 13 | 14:28 | - | - |
+| `reg.bus` | 14 | 14:26 | A14.1 | - |
+| `reg.shift-register` | 14 | 14:27 | A14.2 | - |
+| `mem.memory` | 15 | 15:29, 15:31 | - | - |
+| `mem.cpu-interface` | 15 | - | A15.1 | - |
+| `mem.mmio` | 15 | 15:32 | A15.2 | - |
+| `mem.permanent` | 16 | 16:28 | A16.2 | - |
+| `mem.cache` | 16 | 16:29 | A16.1 | - |
+| `mem.storage` | 16 | 16:30, 16:31 | - | - |
+| `cpu.model` | 18 | 18:30 | - | - |
+| `cpu.registers` | 18 | 18:30 | - | - |
+| `cpu.models` | 18 | 18:33 | - | - |
+| `cpu.datapath` | 18 | - | A18.1 | - |
+| `cpu.cycle` | 19 | 19:31 | - | - |
+| `cpu.interrupts` | 19 | 19:32, 19:33 | A19.2, A21.2 | - |
+| `io.framebuffer` | 20 | 20:23, 20:25, 22:44 | A20.2, A22.2 | - |
+| `io.controllers` | 20 | - | A20.1 | - |
+| `io.bus` | 20 | 20:24 | - | - |
+| `io.video` | 20 | - | A20.2 | - |
+| `io.gpu` | 20 | 20:26 | - | - |
+| `io.display` | 21 | 21:24, 21:25 | - | - |
+| `io.keyboard-mouse` | 21 | 21:23 | - | - |
+| `io.printer` | 21 | - | A21.1 | - |
+| `io.polling` | 21 | 21:26 | A21.2 | - |
+| `num.division` | 22 | 22:42 | A22.1 | - |
+| `store.publishing` | 23 | 23:25, 23:27 | A23.2 | - |
+| `perf.equation` | 24 | - | A24.1 | - |
+| `perf.superscalar` | 24 | 24:43 | - | - |
+| `perf.vector` | 24 | 24:44 | - | - |
+| `perf.hpc` | 24 | 24:42 | A24.2 | - |
+| `perf.accelerators` | 24 | 24:45 | - | - |
+| `prog.program` | 01 | 01:44 | A01.1 | - |
+| `prog.function` | 02 | 02:29 | - | - |
+| `asm.line` | 02 | - | A02.1 | - |
+
+Understood concepts checked by a deck question or exercise: 73; only by an assessment item: 27; exceptions: 0.
 
 ## Contrast of the badges
 

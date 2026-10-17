@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: analogico e digitale; bit, byte, parola; l'esadecimale; la notazione posizionale; un colore è un numero; caratteri e stringhe; l'ordine little-endian; le strutture dati; gli array in memoria; gli algoritmi. DA UTILIZZARE OGGI: shift come moltiplicazione (Lezione 05) e, usati senza essere studiati nel corso, il programma completo, gli strumenti di PRG32. DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) distinguere l'informazione analogica da quella digitale e contare i valori che n bit possono rappresentare; (2) codificare numeri, colori e testo in bit: notazione posizionale, esadecimale, RGB565, ASCII; (3) nominare le strutture dati di base e le proprietà di un algoritmo. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 05, Rappresentazione dei numeri: gli interi.
+
+Ponte. Nella Lezione 02 l'istruzione addi t1, t1, 1 è comparsa in memoria come la parola 0x00130313. Oggi gli stessi 32 bit si possono leggere come numero, colore, quattro lettere o istruzione: decide il codice. La Lezione 19 legge l'istruzione campo per campo. Richiamo: Nominate due cose diverse che una parola di 32 bit può significare, e che cosa decide quale significato vale.
+
+Il filo della lezione: I bit da soli non significano nulla: un codice dà loro un significato, e gli stessi 32 bit possono essere un numero, un colore, quattro lettere o un'istruzione. Prossimo passo: i codici degli interi, e che cosa succede quando i bit finiscono.
+
 ## Slide 1: Rappresentare l'informazione digitale: il codice
 
 Questa è la presentazione del codice della Lezione 04. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

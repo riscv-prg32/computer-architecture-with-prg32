@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: accumulator, stack, registers; the processor model; the registers of RISC-V; the calling convention; the stack; the RV32 processor. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: interrupts and traps (Lecture 19). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) follow an instruction through the blocks of an RV32 processor; (2) use the stack and the calling convention correctly; (3) compare accumulator, stack and register machines. Builds on: only what Lecture 01 set up. Next: Lecture 19, Instructions and Interrupts.
+
+Closing thread: The ra saved in Lecture 02 is now explained: the stack and the calling convention are rules that let functions written by different people call each other. Next: how an instruction is encoded and executed, and how the processor is interrupted.
+
 ## Slide 1: The Processor: the code
 
 This is the code deck of Lecture 18. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

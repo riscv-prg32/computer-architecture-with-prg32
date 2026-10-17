@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: formati delle istruzioni; i modi di indirizzamento; il ciclo del processore; interruzioni e trap. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) decodificare un'istruzione RISC-V nei suoi campi; (2) nominare il modo di indirizzamento di ogni operando; (3) descrivere il ciclo dell'istruzione e che cosa cambia un'interruzione. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 20, I bus e la scheda video.
+
+Il filo della lezione: Il numero 0x00130313 della Lezione 02 si legge ora campo per campo, e il processore che lo preleva può essere interrotto e ripreso. Prossimo passo: i dispositivi che il processore serve.
+
 ## Slide 1: Istruzioni e interruzioni: il codice
 
 Questa è la presentazione del codice della Lezione 19. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: finite-state machines; the clock; latches and flip-flops; registers as flip-flops. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) describe a finite-state machine with a state diagram; (2) explain the clock and why a circuit must settle within one period; (3) tell a latch from a flip-flop and build a register. Builds on: only what Lecture 01 set up. Next: Lecture 14, Elementary Machines: Registers and Buses.
+
+Closing thread: A register is flip-flops that sample on a clock edge: this is how the counter of Lecture 02 survived from one frame to the next, in hardware. Next: how registers exchange data.
+
 ## Slide 1: Sequential Machines: the code
 
 This is the code deck of Lecture 13. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: bit masks; codes; arrays in memory; pull-up inputs; Boolean algebra; fixed point; multiplexers; signed or unsigned instructions; comparators and parity; arguments in a0 to a7. USE NOW: the calling convention (Lecture 18) and, used without being studied in this course, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) read the buttons with masks and refuse a U-turn with one XOR; (2) compare positions with XOR and OR to detect food; (3) keep and show a score. Builds on: bit masks (Lecture 08); codes (Lecture 11); arrays in memory (Lecture 04); pull-up inputs (Lecture 10); Boolean algebra (Lecture 08). Next: Lecture 13, Sequential Machines.
+
+Bridge. In Lecture 07 a function that calls another saved ra in a frame of 16 bytes. Today the functions of Verm1 call each other more deeply: each saves ra once, on entry, and restores it before ret. Lecture 18 states the rules: which registers a call may change and which it must preserve. Recall: A function calls two other functions. How many times must it save ra, and where?
+
+Closing thread: Every rule of the game became a few logic instructions: a mask, an XOR, a comparison. Next: circuits that remember, and the states of a game.
+
 ## Slide 1: Verm1, Part 2: Steering, Food and a Score
 
 The second tutorial of the project. At the end of Part 1 the head crossed the screen autonomously; today the player enters the game. Steering with the joystick is added, together with food that appears at random, a score and a sound. Everything rests on the four lectures of the logic block: a button is a bit selected by a mask, the rule forbidding the U-turn is a single XOR, and the movement is read from a table as a multiplexer would select it. Sid Meier's sentence on the cover names what is being added: meaningful choices.

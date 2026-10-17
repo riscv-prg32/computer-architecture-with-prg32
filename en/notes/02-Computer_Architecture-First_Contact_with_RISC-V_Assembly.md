@@ -4,13 +4,17 @@
 
 Learning status of this lecture. UNDERSTAND NOW: registers, compute, move, jump; registers; functions, call and return; the init, update, draw contract; reading a line of assembly; arguments in a0 to a7; why ra is saved; address, value, load, store; the base instructions; pseudo-instructions; an instruction is a number; tracing by hand. USE NOW: hexadecimal (Lecture 04); bit, byte, word (Lecture 04); the calling convention (Lecture 18); bit masks (Lecture 08) and, used without being studied in this course, the assembler directives, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger, the complete program. UNDERSTAND LATER: the stack (Lecture 18); addressing modes (Lecture 19); instruction formats (Lecture 19); two's complement (Lecture 05); fixed point (Lecture 06); Boolean algebra (Lecture 08); the adder (Lecture 09); from volts to bits (Lecture 10); latches and flip-flops (Lecture 13); the processor cycle (Lecture 19); the Verm1 project (Lecture 07). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) build and run a cartridge, and say when the runtime calls init, update and draw; (2) read a line of assembly: label, instruction, operands, comment; (3) tell an address from a value, and trace what la, lw, addi and sw leave in registers and memory. Builds on: only what Lecture 01 set up. Next: Lecture 03, History of Computing.
+
+Closing thread: A program is a few functions that the runtime calls; each line is one instruction; values live in registers while they are computed and in memory between frames. Everything else you used today has a lecture of its own. Next: where these ideas came from.
+
 ## Slide 1: First Contact: RISC-V Assembly on PRG32
 
 This is the first lecture in which a program is written, and it deliberately precedes any theory. Over two hours the student builds four small cartridges, each a complete program that runs. Full understanding of every detail is neither expected nor required today. The aim is to *observe* registers, memory and a procedure call at work, so that the lectures that follow have concrete phenomena to explain. The epigraph sets the register of the session: fewer words, more code.
 
-## Slide 2: What you will be able to do by the end
+## Slide 2: Your learning contract for today
 
-Six learning outcomes. The first four are operational: building and running a cartridge, naming the registers, calling a function with its arguments, and preserving a value in memory between frames. The fifth is a change of perspective with lasting consequences: an instruction is a 32-bit number. The sixth is the most important for the course as a whole: the student leaves with a list of questions, each of which is the subject of a later lecture. Today's lecture is therefore as much an inventory of problems as a body of answers.
+This is the contract of the lecture, and it is deliberately short. Three outcomes, each with a check that the student can see (a *label*, in the second, is a name that marks a place in the program; slide 9 shows one): checkpoint 1 tests the first, the exit ticket the second, and checkpoint 2, the trace, the third. The only prerequisites are those of Lecture 01: knowing what a program is, using the terminal, and having PRG32-QT running. Today's program also contains things that are used without being understood: the stack frame that saves `ra`, the calling convention, the encoding of an instruction as a number. They are needed to make the program run, and the last slides of the lecture say which lecture explains each of them. A student who can do the three things on this slide by the end has met the goal of the day, even if much else remains unclear.
 
 ## Slide 3: Binary and hexadecimal: how to read the numbers
 
@@ -24,7 +28,7 @@ The whole machine is described by four cards. There are 32 *registers*, each hol
 
 ## Slide 5: The registers you will actually use
 
-The registers carry names that reflect their use. `a0` to `a7` pass the arguments of a call, and `a0` also returns the result. `t0` to `t6` are temporaries, freely usable and not preserved across calls. `s0` to `s11` are preserved across calls. `ra` holds the return address, `sp` the top of the *stack*, an area of memory where functions keep values for a while (slide 9 shows how), and `zero` always reads as 0. The caption contains the essential point: these roles are not imposed by the hardware, which treats `x1` to `x31` identically. They are an agreement, the *calling convention*, and it is this agreement that allows assembly written by the student and C code of the framework to call one another. It is used today and studied formally in Lecture 18.
+The registers carry names that reflect their use. `a0` to `a7` pass the arguments of a call, and `a0` also returns the result. `t0` to `t6` are temporaries, freely usable and not preserved across calls. `s0` to `s11` are preserved across calls. `ra` holds the return address, `sp` the top of the *stack*, an area of memory where functions keep values for a while (step 2, in the code deck, shows how), and `zero` always reads as 0. The caption contains the essential point: these roles are not imposed by the hardware, which treats `x1` to `x31` identically. They are an agreement, the *calling convention*, and it is this agreement that allows assembly written by the student and C code of the framework to call one another. It is used today and studied formally in Lecture 18.
 
 ## Slide 6: Functions: a piece of program with a name
 
@@ -36,15 +40,15 @@ A function usually needs some values to do its job, such as the position and the
 
 The interface between a game and PRG32 is a contract of three functions supplied by the programmer. `init` is called once, when the cartridge starts, to establish the initial state. `update` is called once per frame, to read the input and modify the state. `draw` is called once per frame, to render the state as an image. The firmware locates them by name: a prefix chosen by the programmer followed by `_init`, `_update` and `_draw`. The separation of responsibilities should be adopted from the first day: `update` decides, `draw` displays, and neither does the other's work.
 
-## Slide 8: How to read one line of assembly
+## Slide 8: Checkpoint 1: predict before you run
+
+The first checkpoint, after the contract of three functions. Students answer alone for one minute, then agree with a neighbour, then the class checks together. The answers: `init` is called once, when the cartridge starts; `update` and `draw` are called once per frame, so 2 seconds at 30 frames per second give 60 calls each. Only the *move* instructions, `lw` and `sw`, read or write memory; compute instructions work only on registers, and jumps change which instruction runs next. The most common wrong answer is that `init` runs at every frame: it is worth asking who chose 60 for `init`, and why. A student who cannot answer the second question should look again at the card *Move* on slide 4.
+
+## Slide 9: How to read one line of assembly
 
 Before the first listing, a guide to reading it. A line of assembly has at most four parts, and the table names them. A label is a name followed by a colon; it marks a place in the program, often the start of a function. The instruction is the operation to perform. The operands are what the instruction works on, and in RISC-V the destination always comes first. A comment starts with `#` and runs to the end of the line; it is written for people, and the assembler ignores it.
 
 A line that begins with a dot is a *directive*. It is an instruction for the assembler, not for the processor: `.section .text`, for example, says that the code which follows is to be placed among the executable instructions. The caption shows a complete line. It is read as "put `t1` plus 1 into `t1`", which a mathematician would write `t1 = t1 + 1`. Blank lines and indentation do not change the program; they only make it easier to read, and that matters too.
-
-## Slide 9: Why save ra? The stack frame
-
-Why must `ra` be saved? The instruction `call` writes into `ra` the address to which control must return. The callee, however, may itself make calls, each of which overwrites `ra`. A function that calls another must therefore first preserve its own return address in memory: it decrements `sp` by 16 to reserve space, the *stack frame*, and stores `ra` at `12(sp)`; after the call it performs the inverse operations. The diagram shows the frame, with the stack growing towards lower addresses; the 16-byte size follows from the alignment that the convention requires of `sp`. Omitting this pair of operations is the classic first error: the function returns to the wrong place. Why `ra` is saved must be understood today; the stack as a data structure is treated formally in Lecture 18.
 
 ## Slide 10: Address or value? The crux of memory
 
@@ -62,21 +66,21 @@ Several of the instructions written today do not exist in the hardware: they are
 
 An instruction is a number. `addi t1, t1, 1` is the 32-bit word 0x00130313, and the coloured strip shows its fields: twelve bits for the constant 1, five for the source register (`t1` is register number 6), three that select the addition, five for the destination register and seven for the opcode, which identifies the class of instruction. The format need not be memorised now; it is the subject of Lecture 19. What matters today is the principle: assembly is a readable notation for machine code, and an instruction stored in memory is data like any other. This is the stored-program idea that the next lecture places in its historical context.
 
-## Slide 14: PRG32-QT: a microscope for registers
+## Slide 14: Checkpoint 2: trace first_update by hand
 
-PRG32-QT executes the same cartridge on the laptop and can halt between any two instructions, displaying every register. It should be used now on the third step: navigate to `update`, pause, and execute the four instructions of `first_update` one at a time while observing `t0` and `t1`. Before each step, the expected change should be stated aloud; a prediction made explicit is a prediction that can be wrong, and therefore informative. The final line is a principle worth retaining: the board is the authority on time, PRG32-QT the authority on the content of a register.
+The second checkpoint is a trace by hand: a record, frame by frame, of what each instruction leaves in `t1` and in memory. The first two rows are worked out; students fill in the rows marked ? for three minutes, and the answers are then revealed by stepping in PRG32-QT. Frame 256: `lw` gives 255, `addi` 256, `sw` stores 256, and the width is 0. Frame 257: 256, 257, 257 and a width of 1. The surprise is the width: `andi` with 255 keeps only the eight least significant bits, and 256 in binary is a one followed by eight zeros, so the mask computes the remainder modulo 256, a fact used today and explained in Lecture 08. Students who wrote 256 for the width have traced the counter correctly and forgotten the mask: the most instructive mistake of the day. Tracing by hand is slow and unglamorous, and it is the most valuable debugging skill this course teaches.
 
-## Slide 15: Trace it by hand: three frames of first_update
+## Slide 15: Not expected yet: what later lectures explain
 
-A trace by hand records, frame by frame, what each instruction leaves in `t1` and in memory. The early frames hold no surprise. The highlighted row does: at frame 256 the counter reaches 256 and yet the width of the bar is 0, because `andi` with 255 retains only the eight least significant bits, and 256 in binary is a one followed by eight zeros. The mask operation thus computes the remainder modulo 256, a fact used today and explained in Lecture 08. Tracing by hand is slow and unglamorous, and it is the most valuable debugging skill this course teaches.
+This table states what the student is *not* expected to understand yet. Each row records something observed or used today, the question it raises, and the lecture that answers it. Why hexadecimal? Lectures 04 and 05. How does a register hold a negative number? Lecture 05. What does AND do to thirty-two bits at once? Lectures 08 and 09. How does a circuit remember a bit? Lectures 13 and 15. How is 0x00130313 decoded and executed? Lectures 18 and 19, which also explain the stack frame used in step 2. The last row is the project: from three functions and a rectangle to a complete game. Using these things today without understanding them is not a failure; it is the method of the course, and the table is the map that says when each question will be answered.
 
-## Slide 16: Questions your program has already raised
+## Slide 16: Today's thread, and where it leads
 
-Each row of the table records something observed today, the question it raises, and the lecture that answers it. Why hexadecimal? Lectures 04 and 05. How does a register hold a negative number? Lecture 05. What does AND do to thirty-two bits at once? Lectures 08 and 09. How does a circuit remember a bit? Lectures 13 and 15. How is 0x00130313 decoded and executed? Lectures 18 and 19. The last row is the project: from three functions and a rectangle to a complete game. The table is the map of the course drawn from the student's own program, and it is worth keeping at hand.
+The closing map reconstructs the thread of the lecture in five boxes. A cartridge is three functions that the runtime calls: `init` once, `update` and `draw` at every frame. While the program computes, values are in registers. Between frames they live in memory, at addresses, as variables. The pattern `la`, `lw`, `addi`, `sw` moves a value from memory to a register, changes it and stores it back. And a trace lets one predict the screen before running the program. The caption says where each idea goes next. A good closing question for the class: which box would you need to explain to a friend why the green bar starts again at frame 256?
 
 ## Slide 17: Check your understanding: After la t0, counter and lw t1, 0(t0), what does t0 hold? / A function that calls prg32_gfx_clear must save one register before the call. Which one?
 
-The first question tests the distinction between address and value. `la` loads the address of the label into `t0`; `lw` then uses `t0` to locate the word and copies its content into `t1`, leaving `t0` unchanged. `t0` therefore still holds the address. Anyone who chose "the value" should return to the slide with the two arrows.
+The first question tests the distinction between address and value. `la` loads the address of the label into `t0`; `lw` then uses `t0` to locate the word and copies its content into `t1`, leaving `t0` unchanged. `t0` therefore still holds the address. Anyone who chose "the value" should return to slide 10, with the two arrows.
 
 The second question turns on the effect of `call`, which writes the return address into `ra`. A function that must later return to its own caller needs its original `ra`, which the call has just overwritten. `a0` is intended to be overwritten, `sp` is restored by the callee, and `t0` is a temporary that no one has undertaken to preserve.
 

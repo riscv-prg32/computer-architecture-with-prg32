@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: pull-up inputs; voltage, current, Ohm's law; the transistor as a switch; from volts to bits; CMOS gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: the clock (Lecture 13). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) explain how a MOS transistor works as a switch and how CMOS builds a gate; (2) read logic levels and noise margins from voltages; (3) size the resistor of an LED and explain the pull-up of a button. Builds on: only what Lecture 01 set up. Next: Lecture 11, Combinational Machines.
+
+Bridge. In Lecture 02 the counter survived from one frame to the next in memory, not in a register. Today a memory cell costs about 6 transistors and a flip-flop about 20: remembering a bit is a circuit. Lecture 13 shows how latches and flip-flops keep a bit. Recall: Where did the counter of Lecture 02 live between two frames, and why not in t1?
+
+Closing thread: A bit is a voltage inside a guaranteed range, and a gate is a few switches: the button of the kit is now a circuit you understand. Next: the machines built from gates.
+
 ## Slide 1: Introduction to Electronics and Digital Electronics
 
 Until now a gate has been a symbol and a truth table; this lecture gives it a physical body. It follows a single bit, that of a button of the kit, from the finger that presses it to the register the program reads, explaining along the way what a volt is, what a transistor does, and how two transistors make a NOT gate. No prior knowledge of physics is assumed. The epigraph by Arthur C. Clarke names the impression the lecture sets out to dispel: a chip appears to be magic only until one sees what it is made of.

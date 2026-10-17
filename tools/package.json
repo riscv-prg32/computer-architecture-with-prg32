@@ -3,6 +3,18 @@
   "version": "2026.27.0",
   "private": true,
   "description": "Generator for the ARC12 Computer Architecture lecture decks (English and Italian, PRG32 / RISC-V first)",
-  "scripts": { "build": "node build.js", "notes": "node notes.js", "test": "node tests/mastery_test.js && node tests/terms_test.js && node textbook/check_mastery.js", "textbook": "node textbook/export_listings.js en && node textbook/export_listings.js it && node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py && python3 textbook/gen_credits.py && node textbook/check_decks.js && node textbook/check_mastery.js && python3 textbook/check_editions.py" },
-  "dependencies": { "pptxgenjs": "^3.12.0", "sharp": "^0.33.0" }
+  "scripts": {
+    "build": "node build.js",
+    "notes": "node notes.js",
+    "test:source": "node tests/mastery_test.js && node tests/terms_test.js && node tests/assessments_test.js && node textbook/check_mastery.js --source-only",
+    "test": "node tests/mastery_test.js && node tests/terms_test.js && node tests/assessments_test.js && node textbook/check_mastery.js && node textbook/check_pptx.js && node tests/pptx_test.js",
+    "teaching": "node textbook/teaching_docs.js",
+    "textbook": "node textbook/export_listings.js en && node textbook/export_listings.js it && node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py && python3 textbook/gen_credits.py && node textbook/check_decks.js && node textbook/check_mastery.js && python3 textbook/check_editions.py",
+    "verify": "node build.js && node notes.js && npm run teaching && npm test && npm run textbook"
+  },
+  "dependencies": {
+    "jszip": "^3.10.2",
+    "pptxgenjs": "^3.12.0",
+    "sharp": "^0.33.0"
+  }
 }

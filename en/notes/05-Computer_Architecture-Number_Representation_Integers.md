@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: two's complement; base conversions; naturals and overflow; shifts as multiplications; sign and magnitude; signed or unsigned instructions; sign extension. USE NOW: the PRG32 runtime calls, the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) convert between bases and read an n-bit pattern as unsigned and as two's complement; (2) recognise overflow in unsigned and in signed addition; (3) choose between signed and unsigned instructions, including lb and lbu. Builds on: only what Lecture 01 set up. Next: Lecture 06, Number Representation: Real Numbers.
+
+Closing thread: The 0xFFFFFFFF of a counter that went below zero is -1 in two's complement: the bits did not change, the reading did. Next: fractions on a chip with no floating-point unit.
+
 ## Slide 1: Number Representation: Integers
 
 This lecture begins the formal treatment of numerical representation. It opens with a puzzle observed on the machine, a marker that moves left past zero and displays FFFFFFFF, and closes by explaining it completely. Between the two, the student learns to convert between bases, to determine which numbers a given number of bits can represent, and to encode negative numbers. The epigraph from Trilussa, in which the One mocks the Zero, carries a precise mathematical point: in a positional system the zero, worthless on its own, gives every other digit its weight.

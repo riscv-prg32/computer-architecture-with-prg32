@@ -31,6 +31,7 @@ const pptxgen = require("pptxgenjs");
 const sharp = require("sharp");
 
 const { LANGS, STR, readNotes } = require("./lib/lang");
+const ROADMAP = require("./lib/roadmap");
 const MASTERY = require("./lib/mastery");
 const LANG = LANGS.includes(process.argv[2]) ? process.argv[2] : null;
 const L = STR[LANG || "en"];
@@ -186,12 +187,17 @@ async function build(deck) {
   const status = (s) => {
     if (count === 1) {
       MASTERY.drawLegend(pres, s, global.LANG, W - MX);
-      return [MASTERY.legendText(global.LANG), MASTERY.summaryText(global.LANG, deck.lecture)].join("\n\n");
+      const titles = Object.fromEntries(decks.map((d) => [d.n, (d.lecture || d).title]));
+      return [MASTERY.legendText(global.LANG), MASTERY.summaryText(global.LANG, deck.lecture), ROADMAP.notesText(global.LANG, deck.lecture, titles).replace(/\n\n[^\n]*$/, "")].join("\n\n");
     }
     const marks = current ? MASTERY.slideMarks(deck, current) : [];
     if (marks.length) MASTERY.drawSlide(pres, s, global.LANG, deck.n, marks, W - MX, CW, WHERE);
     const out = marks.map((m) => MASTERY.sentence(global.LANG, deck.n, m));
-    if (count === last && deck.kind === "main") out.push(MASTERY.summaryText(global.LANG, deck.lecture, true));
+    if (count === last && deck.kind === "main") {
+      out.push(MASTERY.summaryText(global.LANG, deck.lecture, true));
+      const R = ROADMAP.S[global.LANG];   // the closing thread and the exit ticket, read at the end of the lecture
+      out.push(`${R.closing}: ${ROADMAP.lec(deck.n).closing[global.LANG]} ${R.exit} (${R.exitHow}): ${ROADMAP.exitItems(deck.n).map((it, i) => `${i + 1}. ${it.prompt[global.LANG]}`).join(" ")}`);
+    }
     return out.join(" ");
   };
   const notes = (s, n) => {

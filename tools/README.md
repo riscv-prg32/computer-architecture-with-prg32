@@ -21,7 +21,7 @@ of the previous editions appears only as a historical counterpart in comparison 
 | --- | ---: | ---: | --- |
 | `00-...-Course_Introduction` | 20 | 10 | `l00.S` |
 | `01-...-PRG32_and_PRG32-QT_Setup` | 20 | 28 | `l01.S` |
-| `02-...-First_Contact_with_RISC-V_Assembly` | 20 | 16 | `l02.S` |
+| `02-...-First_Contact_with_RISC-V_Assembly` | 20 | 18 | `l02.S` |
 | **Information** | | | |
 | `03-...-History_of_Computing` | 19 | 13 | `l03.S` |
 | `04-...-Digital_Information` | 20 | 13 | `l04.S` |
@@ -50,7 +50,7 @@ of the previous editions appears only as a historical counterpart in comparison 
 | **Outlook** | | | |
 | `24-...-Superscalar_HPC_GPU_FPGA` | 20 | 21 | `l24.S`, and the vector listings |
 
-Fifty decks per language: 463 slides in the lecture decks and 461 in the code decks. The file names above
+Fifty decks per language: 463 slides in the lecture decks and 463 in the code decks. The file names above
 are the English ones; the Italian decks are `NN-Architettura_dei_Calcolatori-*`.
 
 ## Pictures: `assets/` and their credits
@@ -177,8 +177,26 @@ node build.js it     # only the Italian decks
 node build.js en 05  # the two decks of lecture 05, in English
 node notes.js        # check the slide notes of both languages
 npm run textbook     # listings and programs for the books, answers, glossary, and the checks
-npm test             # the learning status and the first-use terms: unit tests, terms_test.js, then check_mastery.js (after node build.js)
+npm test             # the full check (after node build.js): unit and negative tests, first-use terms, assessments,
+                     # check_mastery.js and check_pptx.js on the 100 BUILT decks; fails if jszip or a deck is missing
+npm run test:source  # the sources only, labelled as such: NOT the full verification
+npm run teaching     # docs/teaching/<lang>: exit tickets, rubrics, roadmaps (from concepts/assessments.json, bridges.json)
+npm run verify       # everything: build, notes, teaching documents, npm test, textbook pipeline
 ```
+
+**Assessment and roadmaps.** `concepts/assessments.json` gives each lecture its 2-4 headline outcomes, its closing thread and
+its exit ticket, and every assessment item (exit ticket, checkpoint on a slide, extra check) with the concepts it checks, a
+prompt, a rubric and a likely misconception, in English and Italian. `lib/assessments.js` validates it, and `check_mastery.js`
+fails if a concept understood in a lecture has no question, exercise or item to check it (or no written exception).
+`concepts/bridges.json` holds the retrieval bridges of the long deferrals; `lib/roadmap.js` fails if a deferred concept goes
+more than nine lectures without being met again, and writes the roadmap into the notes, the decks (cover and last-slide notes)
+and the textbook (`code/lNN/status.tex`, `closing.tex`). The instructor material is in `../docs/teaching`, the audit of the
+remediation in `../docs/audit`.
+
+**Built decks.** `textbook/check_pptx.js` opens every package and checks ZIP and XML integrity, the number of slides, the titles,
+the notes, the learning-status label and icon, the laboratory slides of each code deck and English/Italian parity;
+`tests/pptx_test.js` damages copies of real decks and checks that each damage is caught. `textbook/check_editions.py` also fails
+when the book reads a file of `code/` that does not exist (moving a slide renames the exported listings).
 
 The course has no prerequisites, so every word that a beginner meets in the first lectures is explained where it
 first appears. `concepts/terms.json` lists those words; `tests/terms_test.js` reads the course in order (lecture by

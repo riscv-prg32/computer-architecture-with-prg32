@@ -4,3 +4,13 @@
 \masterychip{use}{USE NOW}\enspace the PRG32 tools, the PRG32-QT debugger (used, not studied, in this course).\par\smallskip
 \masterychip{later}{UNDERSTAND LATER}\enspace instruction formats (Chapter~\ref{ch:instructions}).
 \end{chapstatus}
+\begin{chapstatus}{Roadmap of this chapter}
+By the end of the chapter you can:
+\begin{enumerate}[nosep,leftmargin=2em]
+\item build a cartridge from an empty file: a grid, a title and a moving head
+\item place constants and variables in the right section, .rodata or .data
+\item control a speed with a fixed-point accumulator
+\end{enumerate}
+It builds on: the init, update, draw contract (Chapter~\ref{ch:firstcontact}); a colour is a number (Chapter~\ref{ch:information}); arrays in memory (Chapter~\ref{ch:information}); address, value, load, store (Chapter~\ref{ch:firstcontact}); why ra is saved (Chapter~\ref{ch:firstcontact}). Next: Chapter~\ref{ch:boole1}.
+\par\smallskip\textbf{Looking back, looking ahead.} In Lecture 02 step 2 saved ra on the stack before its calls, and lw t1, 0(t0) read a word at the address in t0. Today verm1\_draw saves ra and verm1\_update does not, and every variable of Verm1 is read with la and lw. Lecture 18 explains the stack and the calling convention; Lecture 19 names the addressing modes. \emph{Recall:} Why does verm1\_draw save ra while verm1\_update does not?
+\end{chapstatus}

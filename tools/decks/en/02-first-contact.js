@@ -80,14 +80,15 @@ Deck({
   cover: "lab1_step4_bar.png",
   notes: "New lecture for 2026/27. It is the 'play' turn of the spiral for the whole first half of the course: every later lecture points back to something typed here. The four steps are the verified steps of the textbook lab 05-asm-first-contact; run them live (labs/run.sh 05-asm-first-contact/stepN_....S first).",
   slides: [
-    O("What you will be able to do by the end", [
-      "Build a cartridge from an assembly file and run it on PRG32",
-      "Say what a register is, and name the ones you will use every day",
-      "Call a framework function, passing arguments in registers",
-      "Keep a value in memory from one frame to the next: load, modify, store",
-      "Read one instruction as the 32-bit number it really is",
-      "List the questions this program raises: the rest of the course answers them",
-    ], "Tell the students explicitly that they are not expected to understand everything today. Today is for seeing; the next lectures are for explaining."),
+    T("Your learning contract for today", [
+      ["By the end you will be able to", [
+        "build and run a cartridge, and say when the runtime calls init, update and draw",
+        "read a line of assembly: label, instruction, operands, comment",
+        "tell an address from a value, and trace what la, lw, addi and sw leave behind",
+      ]],
+      "You need only Lecture 01: what a program is, the terminal, PRG32-QT running",
+      "You will also use things you are not expected to understand yet: the last slides say which, and when they are explained",
+    ], "Read the contract aloud and come back to it at the end. Three outcomes, three checks: checkpoint 1 (slide of the contract), checkpoint 2 (the trace) and the exit ticket. Anything else on the slides today is to be seen and used, not mastered.", { box: "Outcome 1: checkpoint 1\nOutcome 2: the exit ticket\nOutcome 3: checkpoint 2, the trace", head: "How you will know" }),
 
     H("The machine", "Thirty-two registers and a small repertoire of instructions."),
     G("Binary and hexadecimal: how to read the numbers", ["Decimal", "Binary", "Hexadecimal"], [
@@ -120,6 +121,11 @@ Deck({
       "update|called once per frame: read input, change the state",
       "draw|called once per frame: turn the state into a picture",
     ], "The firmware finds the three functions by name: a prefix that you choose, followed by _init, _update and _draw. That is the whole contract between your game and the machine."),
+    T("Checkpoint 1: predict before you run", [
+      "A game runs at 30 frames per second for 2 seconds",
+      ["How many times has the runtime called", ["init?", "update?", "draw?"]],
+      "Which kind of instruction, compute, move or jump, can read a value from memory?",
+    ], "Pause here for two or three minutes. Collect a show of hands for init: the most common wrong answer is 60. The answers are in the slide notes.", { box: "One minute alone: write your answers\n\nOne minute with your neighbour: agree on them\n\nThen we check together", head: "How" }),
 
     H("Your first cartridge", "Four small steps, each one a complete program that runs."),
     G("How to read one line of assembly", ["Part", "Example", "What it is"], [
@@ -226,15 +232,15 @@ Deck({
       "Step through first_update and watch t0 and t1 change",
       "Use the board when you want the truth about time, PRG32-QT when you want the truth about a register",
     ], "Demonstrate live: load step 3, break at first_update, single-step four times. Ask the students to predict each register before pressing the key.", { img: "prg32qt_debugger.png", cap: "The PRG32-QT debugger: source, registers, memory", wide: true }),
-    G("Trace it by hand: three frames of first_update", ["Frame", "lw: t1 becomes", "addi: t1 becomes", "sw: counter becomes", "Bar width (andi 255)"], [
+    G("Checkpoint 2: trace first_update by hand", ["Frame", "lw: t1 becomes", "addi: t1 becomes", "sw: counter becomes", "Bar width (andi 255)"], [
       ["1", "0", "1", "1", "1"],
       ["2", "1", "2", "2", "2"],
-      ["256", "255", "256", "256", "0"],
-      ["257", "256", "257", "257", "1"],
-    ], "The by-hand trace is the most valuable debugging skill of the course. 256 = 1 0000 0000 in binary: the low eight bits are all zero, so the bar restarts.", { widths: [1.4, 2.6, 2.8, 3, 3], hi: { 2: P.amberSoft }, caption: "At frame 256 the counter keeps growing, but its low eight bits return to zero: the bar starts again." }),
+      ["256", "?", "?", "?", "?"],
+      ["257", "?", "?", "?", "?"],
+    ], "The by-hand trace is the most valuable debugging skill of the course. Give three minutes to fill in the two rows, then reveal them in PRG32-QT: 255, 256, 256, 0 and 256, 257, 257, 1. 256 = 1 0000 0000 in binary: the low eight bits are all zero, so the bar restarts.", { widths: [1.4, 2.6, 2.8, 3, 3], hi: { 2: P.amberSoft }, caption: "Fill in the rows marked ?, then check them in PRG32-QT. What happens to the bar at frame 256, and why?" }),
 
     H("What comes next", "Every question raised here has a lecture that answers it."),
-    G("Questions your program has already raised", ["You saw", "The question", "Answered in"], [
+    G("Not expected yet: what later lectures explain", ["You saw", "The question", "Answered in"], [
       ["0x07e0, 0xffff, 255", "Why do programmers write numbers in hexadecimal?", "Lectures 04 and 05"],
       ["a position below zero shown as 0xFFFFFFFF", "How does a register hold a negative number?", "Lecture 05"],
       ["a ball that moves less than a pixel per frame", "How do we represent fractions without an FPU?", "Lecture 06"],
@@ -244,7 +250,14 @@ Deck({
       ["counter survives between frames", "How does a circuit remember a bit?", "Lectures 13 and 15"],
       ["0x00130313", "How does the processor decode and execute it?", "Lectures 18 and 19"],
       ["three functions and a rectangle", "Can I make a whole game out of this?", "Verm1: 07, 12, 17, 22"],
-    ], "This is the forward map of the course. Keep a copy: each later deck opens by pointing at one of these rows. The last row is the project: Verm1 starts in Lecture 07 from exactly the skeleton of today.", { widths: [4.2, 5.2, 3], mono: [0] }),
+    ], "This is the forward map of the course. Keep a copy: each later deck opens by pointing at one of these rows. The last row is the project: Verm1 starts in Lecture 07 from exactly the skeleton of today.", { widths: [4.2, 5.2, 3] }),
+    F("Today's thread, and where it leads", [
+      "cartridge|init once; update and draw at every frame",
+      "registers|values while they are computed",
+      "memory|variables at addresses, kept between frames",
+      "la, lw, addi, sw|load, modify, store",
+      "trace|predict the screen before you run",
+    ], "Next: Lecture 03, where these ideas come from. The numbers: Lectures 04 to 06. The stack and the calling convention: Lecture 18. The encoding of an instruction: Lecture 19."),
     Q("After la t0, counter and lw t1, 0(t0), what does t0 hold?", ["The value of the counter", "The address of the counter", "Zero, because la clears the register", "The return address"], 1, "la loads the address of the label; lw then reads the value stored at that address into t1."),
     Q("A function that calls prg32_gfx_clear must save one register before the call. Which one?", ["a0, because it carries the argument", "sp, because the stack moves", "ra, because call overwrites it", "t0, because it is temporary"], 2, "call writes the return address in ra. The callee's own calls would overwrite it, so a non-leaf function saves ra on the stack and restores it before ret."),
     Q("t1 holds 300. What does andi a2, t1, 255 leave in a2?", ["300", "255", "45", "44"], 3, "300 = 256 + 44 = 1 0010 1100 in binary. AND with 1111 1111 keeps the low eight bits: 0010 1100 = 44."),

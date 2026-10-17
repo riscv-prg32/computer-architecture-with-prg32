@@ -1,0 +1,255 @@
+
+> arc12-slides@2026.27.0 verify
+> node build.js && node notes.js && npm run teaching && npm test && npm run textbook
+
+en/slides/00-Computer_Architecture-Course_Introduction.pptx  20 slides
+en/slides/00-Computer_Architecture-Course_Introduction-Lab.pptx  10 slides
+en/slides/01-Computer_Architecture-PRG32_and_PRG32-QT_Setup.pptx  20 slides
+en/slides/01-Computer_Architecture-PRG32_and_PRG32-QT_Setup-Lab.pptx  28 slides
+en/slides/02-Computer_Architecture-First_Contact_with_RISC-V_Assembly.pptx  20 slides
+en/slides/02-Computer_Architecture-First_Contact_with_RISC-V_Assembly-Lab.pptx  18 slides
+en/slides/03-Computer_Architecture-History_of_Computing.pptx  20 slides
+en/slides/03-Computer_Architecture-History_of_Computing-Lab.pptx  13 slides
+en/slides/04-Computer_Architecture-Digital_Information.pptx  20 slides
+en/slides/04-Computer_Architecture-Digital_Information-Lab.pptx  13 slides
+en/slides/05-Computer_Architecture-Number_Representation_Integers.pptx  20 slides
+en/slides/05-Computer_Architecture-Number_Representation_Integers-Lab.pptx  20 slides
+en/slides/06-Computer_Architecture-Number_Representation_Reals.pptx  20 slides
+en/slides/06-Computer_Architecture-Number_Representation_Reals-Lab.pptx  14 slides
+en/slides/07-Computer_Architecture-Verm1_Part_1.pptx  13 slides
+en/slides/07-Computer_Architecture-Verm1_Part_1-Lab.pptx  18 slides
+en/slides/08-Computer_Architecture-Boolean_Algebra_1.pptx  19 slides
+en/slides/08-Computer_Architecture-Boolean_Algebra_1-Lab.pptx  20 slides
+en/slides/09-Computer_Architecture-Boolean_Algebra_2.pptx  20 slides
+en/slides/09-Computer_Architecture-Boolean_Algebra_2-Lab.pptx  16 slides
+en/slides/10-Computer_Architecture-Electronics.pptx  20 slides
+en/slides/10-Computer_Architecture-Electronics-Lab.pptx  14 slides
+en/slides/11-Computer_Architecture-Combinational_Machines.pptx  20 slides
+en/slides/11-Computer_Architecture-Combinational_Machines-Lab.pptx  16 slides
+en/slides/12-Computer_Architecture-Verm1_Part_2.pptx  13 slides
+en/slides/12-Computer_Architecture-Verm1_Part_2-Lab.pptx  25 slides
+en/slides/13-Computer_Architecture-Sequential_Machines.pptx  20 slides
+en/slides/13-Computer_Architecture-Sequential_Machines-Lab.pptx  15 slides
+en/slides/14-Computer_Architecture-Registers_and_Buses.pptx  20 slides
+en/slides/14-Computer_Architecture-Registers_and_Buses-Lab.pptx  17 slides
+en/slides/15-Computer_Architecture-Memory.pptx  20 slides
+en/slides/15-Computer_Architecture-Memory-Lab.pptx  17 slides
+en/slides/16-Computer_Architecture-Permanent_Memory.pptx  20 slides
+en/slides/16-Computer_Architecture-Permanent_Memory-Lab.pptx  13 slides
+en/slides/17-Computer_Architecture-Verm1_Part_3.pptx  13 slides
+en/slides/17-Computer_Architecture-Verm1_Part_3-Lab.pptx  37 slides
+en/slides/18-Computer_Architecture-Processor.pptx  20 slides
+en/slides/18-Computer_Architecture-Processor-Lab.pptx  15 slides
+en/slides/19-Computer_Architecture-Instructions_and_Interrupts.pptx  20 slides
+en/slides/19-Computer_Architecture-Instructions_and_Interrupts-Lab.pptx  19 slides
+en/slides/20-Computer_Architecture-Video_Card.pptx  20 slides
+en/slides/20-Computer_Architecture-Video_Card-Lab.pptx  11 slides
+en/slides/21-Computer_Architecture-Input_Output.pptx  20 slides
+en/slides/21-Computer_Architecture-Input_Output-Lab.pptx  12 slides
+en/slides/22-Computer_Architecture-Verm1_Part_4.pptx  12 slides
+en/slides/22-Computer_Architecture-Verm1_Part_4-Lab.pptx  44 slides
+en/slides/23-Computer_Architecture-Verm1_On_The_Cartridge_Store.pptx  13 slides
+en/slides/23-Computer_Architecture-Verm1_On_The_Cartridge_Store-Lab.pptx  17 slides
+en/slides/24-Computer_Architecture-Superscalar_HPC_GPU_FPGA.pptx  20 slides
+en/slides/24-Computer_Architecture-Superscalar_HPC_GPU_FPGA-Lab.pptx  21 slides
+it/slides/00-Architettura_dei_Calcolatori-Introduzione_al_Corso.pptx  20 slides
+it/slides/00-Architettura_dei_Calcolatori-Introduzione_al_Corso-Lab.pptx  10 slides
+it/slides/01-Architettura_dei_Calcolatori-PRG32_e_PRG32-QT_Installazione.pptx  20 slides
+it/slides/01-Architettura_dei_Calcolatori-PRG32_e_PRG32-QT_Installazione-Lab.pptx  28 slides
+it/slides/02-Architettura_dei_Calcolatori-Primo_Contatto_con_Assembly_RISC-V.pptx  20 slides
+it/slides/02-Architettura_dei_Calcolatori-Primo_Contatto_con_Assembly_RISC-V-Lab.pptx  18 slides
+it/slides/03-Architettura_dei_Calcolatori-Storia_della_Computazione.pptx  20 slides
+it/slides/03-Architettura_dei_Calcolatori-Storia_della_Computazione-Lab.pptx  13 slides
+it/slides/04-Architettura_dei_Calcolatori-Informazione_Digitale.pptx  20 slides
+it/slides/04-Architettura_dei_Calcolatori-Informazione_Digitale-Lab.pptx  13 slides
+it/slides/05-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Interi.pptx  20 slides
+it/slides/05-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Interi-Lab.pptx  20 slides
+it/slides/06-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Reali.pptx  20 slides
+it/slides/06-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Reali-Lab.pptx  14 slides
+it/slides/07-Architettura_dei_Calcolatori-Verm1_Parte_1.pptx  13 slides
+it/slides/07-Architettura_dei_Calcolatori-Verm1_Parte_1-Lab.pptx  18 slides
+it/slides/08-Architettura_dei_Calcolatori-Algebra_di_Boole_1.pptx  19 slides
+it/slides/08-Architettura_dei_Calcolatori-Algebra_di_Boole_1-Lab.pptx  20 slides
+it/slides/09-Architettura_dei_Calcolatori-Algebra_di_Boole_2.pptx  20 slides
+it/slides/09-Architettura_dei_Calcolatori-Algebra_di_Boole_2-Lab.pptx  16 slides
+it/slides/10-Architettura_dei_Calcolatori-Elettronica.pptx  20 slides
+it/slides/10-Architettura_dei_Calcolatori-Elettronica-Lab.pptx  14 slides
+it/slides/11-Architettura_dei_Calcolatori-Macchine_Combinatorie.pptx  20 slides
+it/slides/11-Architettura_dei_Calcolatori-Macchine_Combinatorie-Lab.pptx  16 slides
+it/slides/12-Architettura_dei_Calcolatori-Verm1_Parte_2.pptx  13 slides
+it/slides/12-Architettura_dei_Calcolatori-Verm1_Parte_2-Lab.pptx  25 slides
+it/slides/13-Architettura_dei_Calcolatori-Macchine_Sequenziali.pptx  20 slides
+it/slides/13-Architettura_dei_Calcolatori-Macchine_Sequenziali-Lab.pptx  15 slides
+it/slides/14-Architettura_dei_Calcolatori-Registri_e_Bus.pptx  20 slides
+it/slides/14-Architettura_dei_Calcolatori-Registri_e_Bus-Lab.pptx  17 slides
+it/slides/15-Architettura_dei_Calcolatori-Memoria.pptx  20 slides
+it/slides/15-Architettura_dei_Calcolatori-Memoria-Lab.pptx  17 slides
+it/slides/16-Architettura_dei_Calcolatori-Memoria_Permanente.pptx  20 slides
+it/slides/16-Architettura_dei_Calcolatori-Memoria_Permanente-Lab.pptx  13 slides
+it/slides/17-Architettura_dei_Calcolatori-Verm1_Parte_3.pptx  13 slides
+it/slides/17-Architettura_dei_Calcolatori-Verm1_Parte_3-Lab.pptx  37 slides
+it/slides/18-Architettura_dei_Calcolatori-Processore.pptx  20 slides
+it/slides/18-Architettura_dei_Calcolatori-Processore-Lab.pptx  15 slides
+it/slides/19-Architettura_dei_Calcolatori-Istruzioni_e_Interruzioni.pptx  20 slides
+it/slides/19-Architettura_dei_Calcolatori-Istruzioni_e_Interruzioni-Lab.pptx  19 slides
+it/slides/20-Architettura_dei_Calcolatori-Scheda_Video.pptx  20 slides
+it/slides/20-Architettura_dei_Calcolatori-Scheda_Video-Lab.pptx  11 slides
+it/slides/21-Architettura_dei_Calcolatori-Ingresso_Uscita.pptx  20 slides
+it/slides/21-Architettura_dei_Calcolatori-Ingresso_Uscita-Lab.pptx  12 slides
+it/slides/22-Architettura_dei_Calcolatori-Verm1_Parte_4.pptx  12 slides
+it/slides/22-Architettura_dei_Calcolatori-Verm1_Parte_4-Lab.pptx  44 slides
+it/slides/23-Architettura_dei_Calcolatori-Verm1_sul_Cartridge_Store.pptx  13 slides
+it/slides/23-Architettura_dei_Calcolatori-Verm1_sul_Cartridge_Store-Lab.pptx  17 slides
+it/slides/24-Architettura_dei_Calcolatori-Superscalari_HPC_GPU_FPGA.pptx  20 slides
+it/slides/24-Architettura_dei_Calcolatori-Superscalari_HPC_GPU_FPGA-Lab.pptx  21 slides
+en/notes/00-Computer_Architecture-Course_Introduction.md  20 notes, 2443 words
+en/notes/00-Computer_Architecture-Course_Introduction-Lab.md  10 notes, 849 words
+en/notes/01-Computer_Architecture-PRG32_and_PRG32-QT_Setup.md  20 notes, 2412 words
+en/notes/01-Computer_Architecture-PRG32_and_PRG32-QT_Setup-Lab.md  28 notes, 2361 words
+en/notes/02-Computer_Architecture-First_Contact_with_RISC-V_Assembly.md  20 notes, 2505 words
+en/notes/02-Computer_Architecture-First_Contact_with_RISC-V_Assembly-Lab.md  18 notes, 1503 words
+en/notes/03-Computer_Architecture-History_of_Computing.md  20 notes, 1777 words
+en/notes/03-Computer_Architecture-History_of_Computing-Lab.md  13 notes, 922 words
+en/notes/04-Computer_Architecture-Digital_Information.md  20 notes, 1857 words
+en/notes/04-Computer_Architecture-Digital_Information-Lab.md  13 notes, 987 words
+en/notes/05-Computer_Architecture-Number_Representation_Integers.md  20 notes, 1810 words
+en/notes/05-Computer_Architecture-Number_Representation_Integers-Lab.md  20 notes, 1584 words
+en/notes/06-Computer_Architecture-Number_Representation_Reals.md  20 notes, 1712 words
+en/notes/06-Computer_Architecture-Number_Representation_Reals-Lab.md  14 notes, 1054 words
+en/notes/07-Computer_Architecture-Verm1_Part_1.md  13 notes, 1192 words
+en/notes/07-Computer_Architecture-Verm1_Part_1-Lab.md  18 notes, 1397 words
+en/notes/08-Computer_Architecture-Boolean_Algebra_1.md  19 notes, 1555 words
+en/notes/08-Computer_Architecture-Boolean_Algebra_1-Lab.md  20 notes, 1505 words
+en/notes/09-Computer_Architecture-Boolean_Algebra_2.md  20 notes, 1803 words
+en/notes/09-Computer_Architecture-Boolean_Algebra_2-Lab.md  16 notes, 1159 words
+en/notes/10-Computer_Architecture-Electronics.md  20 notes, 1844 words
+en/notes/10-Computer_Architecture-Electronics-Lab.md  14 notes, 1053 words
+en/notes/11-Computer_Architecture-Combinational_Machines.md  20 notes, 1664 words
+en/notes/11-Computer_Architecture-Combinational_Machines-Lab.md  16 notes, 1192 words
+en/notes/12-Computer_Architecture-Verm1_Part_2.md  13 notes, 1151 words
+en/notes/12-Computer_Architecture-Verm1_Part_2-Lab.md  25 notes, 1819 words
+en/notes/13-Computer_Architecture-Sequential_Machines.md  20 notes, 1671 words
+en/notes/13-Computer_Architecture-Sequential_Machines-Lab.md  15 notes, 1144 words
+en/notes/14-Computer_Architecture-Registers_and_Buses.md  20 notes, 1549 words
+en/notes/14-Computer_Architecture-Registers_and_Buses-Lab.md  17 notes, 1265 words
+en/notes/15-Computer_Architecture-Memory.md  20 notes, 1574 words
+en/notes/15-Computer_Architecture-Memory-Lab.md  17 notes, 1295 words
+en/notes/16-Computer_Architecture-Permanent_Memory.md  20 notes, 1661 words
+en/notes/16-Computer_Architecture-Permanent_Memory-Lab.md  13 notes, 959 words
+en/notes/17-Computer_Architecture-Verm1_Part_3.md  13 notes, 1154 words
+en/notes/17-Computer_Architecture-Verm1_Part_3-Lab.md  37 notes, 2249 words
+en/notes/18-Computer_Architecture-Processor.md  20 notes, 1701 words
+en/notes/18-Computer_Architecture-Processor-Lab.md  15 notes, 1116 words
+en/notes/19-Computer_Architecture-Instructions_and_Interrupts.md  20 notes, 1674 words
+en/notes/19-Computer_Architecture-Instructions_and_Interrupts-Lab.md  19 notes, 1430 words
+en/notes/20-Computer_Architecture-Video_Card.md  20 notes, 1603 words
+en/notes/20-Computer_Architecture-Video_Card-Lab.md  11 notes, 797 words
+en/notes/21-Computer_Architecture-Input_Output.md  20 notes, 1617 words
+en/notes/21-Computer_Architecture-Input_Output-Lab.md  12 notes, 866 words
+en/notes/22-Computer_Architecture-Verm1_Part_4.md  12 notes, 1011 words
+en/notes/22-Computer_Architecture-Verm1_Part_4-Lab.md  44 notes, 1966 words
+en/notes/23-Computer_Architecture-Verm1_On_The_Cartridge_Store.md  13 notes, 966 words
+en/notes/23-Computer_Architecture-Verm1_On_The_Cartridge_Store-Lab.md  17 notes, 1211 words
+en/notes/24-Computer_Architecture-Superscalar_HPC_GPU_FPGA.md  20 notes, 1622 words
+en/notes/24-Computer_Architecture-Superscalar_HPC_GPU_FPGA-Lab.md  21 notes, 1623 words
+en: 926 notes, 74834 words
+it/notes/00-Architettura_dei_Calcolatori-Introduzione_al_Corso.md  20 notes, 2472 words
+it/notes/00-Architettura_dei_Calcolatori-Introduzione_al_Corso-Lab.md  10 notes, 795 words
+it/notes/01-Architettura_dei_Calcolatori-PRG32_e_PRG32-QT_Installazione.md  20 notes, 2341 words
+it/notes/01-Architettura_dei_Calcolatori-PRG32_e_PRG32-QT_Installazione-Lab.md  28 notes, 2272 words
+it/notes/02-Architettura_dei_Calcolatori-Primo_Contatto_con_Assembly_RISC-V.md  20 notes, 2496 words
+it/notes/02-Architettura_dei_Calcolatori-Primo_Contatto_con_Assembly_RISC-V-Lab.md  18 notes, 1447 words
+it/notes/03-Architettura_dei_Calcolatori-Storia_della_Computazione.md  20 notes, 1804 words
+it/notes/03-Architettura_dei_Calcolatori-Storia_della_Computazione-Lab.md  13 notes, 832 words
+it/notes/04-Architettura_dei_Calcolatori-Informazione_Digitale.md  20 notes, 1876 words
+it/notes/04-Architettura_dei_Calcolatori-Informazione_Digitale-Lab.md  13 notes, 935 words
+it/notes/05-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Interi.md  20 notes, 1862 words
+it/notes/05-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Interi-Lab.md  20 notes, 1533 words
+it/notes/06-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Reali.md  20 notes, 1786 words
+it/notes/06-Architettura_dei_Calcolatori-Rappresentazione_dei_Numeri_Reali-Lab.md  14 notes, 1008 words
+it/notes/07-Architettura_dei_Calcolatori-Verm1_Parte_1.md  13 notes, 1182 words
+it/notes/07-Architettura_dei_Calcolatori-Verm1_Parte_1-Lab.md  18 notes, 1398 words
+it/notes/08-Architettura_dei_Calcolatori-Algebra_di_Boole_1.md  19 notes, 1565 words
+it/notes/08-Architettura_dei_Calcolatori-Algebra_di_Boole_1-Lab.md  20 notes, 1433 words
+it/notes/09-Architettura_dei_Calcolatori-Algebra_di_Boole_2.md  20 notes, 1822 words
+it/notes/09-Architettura_dei_Calcolatori-Algebra_di_Boole_2-Lab.md  16 notes, 1088 words
+it/notes/10-Architettura_dei_Calcolatori-Elettronica.md  20 notes, 1874 words
+it/notes/10-Architettura_dei_Calcolatori-Elettronica-Lab.md  14 notes, 986 words
+it/notes/11-Architettura_dei_Calcolatori-Macchine_Combinatorie.md  20 notes, 1703 words
+it/notes/11-Architettura_dei_Calcolatori-Macchine_Combinatorie-Lab.md  16 notes, 1156 words
+it/notes/12-Architettura_dei_Calcolatori-Verm1_Parte_2.md  13 notes, 1177 words
+it/notes/12-Architettura_dei_Calcolatori-Verm1_Parte_2-Lab.md  25 notes, 1794 words
+it/notes/13-Architettura_dei_Calcolatori-Macchine_Sequenziali.md  20 notes, 1699 words
+it/notes/13-Architettura_dei_Calcolatori-Macchine_Sequenziali-Lab.md  15 notes, 1095 words
+it/notes/14-Architettura_dei_Calcolatori-Registri_e_Bus.md  20 notes, 1565 words
+it/notes/14-Architettura_dei_Calcolatori-Registri_e_Bus-Lab.md  17 notes, 1205 words
+it/notes/15-Architettura_dei_Calcolatori-Memoria.md  20 notes, 1641 words
+it/notes/15-Architettura_dei_Calcolatori-Memoria-Lab.md  17 notes, 1222 words
+it/notes/16-Architettura_dei_Calcolatori-Memoria_Permanente.md  20 notes, 1722 words
+it/notes/16-Architettura_dei_Calcolatori-Memoria_Permanente-Lab.md  13 notes, 889 words
+it/notes/17-Architettura_dei_Calcolatori-Verm1_Parte_3.md  13 notes, 1155 words
+it/notes/17-Architettura_dei_Calcolatori-Verm1_Parte_3-Lab.md  37 notes, 2191 words
+it/notes/18-Architettura_dei_Calcolatori-Processore.md  20 notes, 1739 words
+it/notes/18-Architettura_dei_Calcolatori-Processore-Lab.md  15 notes, 1051 words
+it/notes/19-Architettura_dei_Calcolatori-Istruzioni_e_Interruzioni.md  20 notes, 1644 words
+it/notes/19-Architettura_dei_Calcolatori-Istruzioni_e_Interruzioni-Lab.md  19 notes, 1344 words
+it/notes/20-Architettura_dei_Calcolatori-Scheda_Video.md  20 notes, 1632 words
+it/notes/20-Architettura_dei_Calcolatori-Scheda_Video-Lab.md  11 notes, 754 words
+it/notes/21-Architettura_dei_Calcolatori-Ingresso_Uscita.md  20 notes, 1634 words
+it/notes/21-Architettura_dei_Calcolatori-Ingresso_Uscita-Lab.md  12 notes, 819 words
+it/notes/22-Architettura_dei_Calcolatori-Verm1_Parte_4.md  12 notes, 999 words
+it/notes/22-Architettura_dei_Calcolatori-Verm1_Parte_4-Lab.md  44 notes, 1911 words
+it/notes/23-Architettura_dei_Calcolatori-Verm1_sul_Cartridge_Store.md  13 notes, 968 words
+it/notes/23-Architettura_dei_Calcolatori-Verm1_sul_Cartridge_Store-Lab.md  17 notes, 1207 words
+it/notes/24-Architettura_dei_Calcolatori-Superscalari_HPC_GPU_FPGA.md  20 notes, 1668 words
+it/notes/24-Architettura_dei_Calcolatori-Superscalari_HPC_GPU_FPGA-Lab.md  21 notes, 1579 words
+it: 926 notes, 73970 words
+
+> arc12-slides@2026.27.0 teaching
+> node textbook/teaching_docs.js
+
+docs/teaching/en: exit-tickets.md, rubrics.md, roadmaps.md (25 lectures, 52 items)
+docs/teaching/it: exit-tickets.md, rubrics.md, roadmaps.md (25 lectures, 52 items)
+
+> arc12-slides@2026.27.0 test
+> node tests/mastery_test.js && node tests/terms_test.js && node tests/assessments_test.js && node textbook/check_mastery.js && node textbook/check_pptx.js && node tests/pptx_test.js
+
+mastery: 13 tests passed
+terms en: 41 terms, each defined where it is first met
+terms it: 41 terms, each defined where it is first met
+assessments: 14 tests passed
+106 concepts, 25 lectures, 445 slides of the specifications with 467 badges; 100 built decks checked; 52 assessment items, 0 exception(s); 0 warning(s), 0 failure(s)
+check_pptx: 100/100 packages opened, 1852 slides inspected under ..; 0 failure(s)
+pptx: 9 tests passed (one intact copy, 8 damaged)
+
+> arc12-slides@2026.27.0 textbook
+> node textbook/export_listings.js en && node textbook/export_listings.js it && node textbook/quiz_glossary.js && python3 textbook/gen_appendices.py && python3 textbook/gen_credits.py && node textbook/check_decks.js && node textbook/check_mastery.js && python3 textbook/check_editions.py
+
+en: 137 listings exported to ../en/textbook/code
+it: 137 listings exported to ../it/textbook/code
+en: 92 questions, 216 glossary pairs -> quiz_glossary.en.json
+it: 92 questions, 216 glossary pairs -> quiz_glossary.it.json
+en answers: 92  glossary entries: 207
+it answers: 92  glossary entries: 207
+en: 35 picture credits
+it: 35 picture credits
+50 decks: 463 slides in the 25 lecture decks, 463 in the 25 code decks; 0 difference(s) between English and Italian
+106 concepts, 25 lectures, 445 slides of the specifications with 467 badges; 100 built decks checked; 52 assessment items, 0 exception(s); 0 warning(s), 0 failure(s)
+hint ch00_introduction.tex                  numbers  en only {'1980': 2}  it only {}
+hint ch03_history.tex                       numbers  en only {'1800': 1, '1940': 2, '1950': 1, '1960': 1, '1970': 1, '1980': 3, '1990': 1}  it only {'60': 1, '50': 1, '70': 1, '80': 1, '90': 1}
+hint ch05_integers.tex                      numbers  en only {}  it only {'2': 3}
+hint ch06_reals.tex                         numbers  en only {}  it only {'1': 1, '8': 2, '2': 1}
+hint ch08_boolean_algebra_1.tex             numbers  en only {'0': 1}  it only {'1': 1}
+hint ch10_electronics.tex                   numbers  en only {'1980': 1, '1990': 1}  it only {}
+hint ch11_combinational_machines.tex        numbers  en only {}  it only {'1': 1}
+hint ch15_memory.tex                        numbers  en only {'1950': 1}  it only {}
+hint ch16_permanent_memory.tex              numbers  en only {'1990': 1}  it only {}
+hint ch17_verm1_part3.tex                   numbers  en only {}  it only {'1': 1}
+hint ch19_instructions_and_interrupts.tex   numbers  en only {}  it only {'1': 2}
+hint ch20_video_card.tex                    numbers  en only {'1990': 1}  it only {}
+hint ch21_input_output.tex                  numbers  en only {'1960': 1}  it only {}
+hint ch24_beyond_one_core.tex               numbers  en only {'1980': 1}  it only {}
+hint app_riscv.tex                          numbers  en only {}  it only {'1': 8}
+hint zero.tex                               numbers  en only {'1980': 1}  it only {}
+920 quiz items checked, 16 hint(s), 0 failure(s)
+EXIT 0

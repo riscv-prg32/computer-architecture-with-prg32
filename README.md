@@ -7,13 +7,15 @@ assembly on the PRG32 platform, with the course-long project Verm1.
 
 | Folder | Content |
 | --- | --- |
-| `en/slides`, `it/slides` | two slide decks per lecture, English (`NN-Computer_Architecture-*.pptx`) and Italian (`NN-Architettura_dei_Calcolatori-*.pptx`): the **lecture deck**, of at most 20 slides, and the **code deck** (`-Lab`), with every listing explained, the complete program and the guide for testing it on PRG32-QT, on QEMU and on the board. 463 + 461 slides per language, the same slides in the same order |
+| `en/slides`, `it/slides` | two slide decks per lecture, English (`NN-Computer_Architecture-*.pptx`) and Italian (`NN-Architettura_dei_Calcolatori-*.pptx`): the **lecture deck**, of at most 20 slides, and the **code deck** (`-Lab`), with every listing explained, the complete program and the guide for testing it on PRG32-QT, on QEMU and on the board. 463 + 463 slides per language, the same slides in the same order |
 | `en/notes`, `it/notes` | the notes of every slide, one Markdown file per deck; the generator copies them into the notes pane of the slides. `reserve/` keeps the notes of the slides that are in neither deck |
 | `code/` | one complete, tested RISC-V program per lecture (`lNN.S`): the listings of the slides, runnable as they are on the three hosts |
 | `en/textbook` | the LaTeX textbook that follows the lectures, Chapter N = Lecture N: sources, the PDF (458 pages) and the Overleaf-ready zip |
 | `it/textbook` | the Italian edition of the textbook, *Architettura dei calcolatori: prima programmare, poi formalizzare* (466 pages): same structure, file names and labels as the English one, which is the reference edition |
 | `tools/` | the deck generator, the deck specifications (`tools/decks/en`, `tools/decks/it`) and the plan that splits each lecture into its two decks (`tools/decks/plan.js`), the pictures (`tools/assets`), the tests of every listing (`tools/tests`) and the scripts that feed the textbook (`tools/textbook`) |
 | `verm1/` | the Verm1 project: the four reference programs, the intermediate steps of the tutorials and the files of the Cartridge Store bundle |
+| `docs/teaching/` | instructor and student instruments, English and Italian: exit tickets, rubrics, lecture roadmaps (generated), the guide to the learning statuses, a facilitation template, the Lecture 02 plan, the Verm1 milestone guides, a pulse survey and a classroom pilot protocol |
+| `docs/audit/` | the remediation of the development-2 audit: baseline, issue ledger, per-lesson matrix, visual QA, final report and raw logs |
 
 Decks, notes, listings of the book, quiz answers and glossary are all generated from, or
 checked against, the deck specifications in `tools/decks`, so they cannot drift from each

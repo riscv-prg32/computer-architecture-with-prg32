@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: quoziente e resto; caratteri e stringhe; la virgola fissa; la convenzione di chiamata; gli array in memoria; macchine a stati finiti; il frame buffer; il ciclo del processore. DA UTILIZZARE OGGI: gli strumenti di PRG32, il debugger di PRG32-QT (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) trasformare un numero in cifre decimali con divu e remu; (2) disegnare solo ciò che è cambiato, con un flag dirty; (3) completare il gioco: livelli, suono, velocità. Si appoggia su: caratteri e stringhe (Lezione 04); la virgola fissa (Lezione 06); la convenzione di chiamata (Lezione 18); gli array in memoria (Lezione 04); macchine a stati finiti (Lezione 13). Prossimo passo: Lezione 23, Verm1 sul Cartridge Store.
+
+Il filo della lezione: Verm1 è finito: ogni argomento del corso vi ha una riga. Prossimo passo: dargli un nome, un'icona e un posto sullo Store.
+
 ## Slide 1: Verm1, parte 4: il gioco finito: il codice
 
 Questa è la presentazione del codice della Lezione 22. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

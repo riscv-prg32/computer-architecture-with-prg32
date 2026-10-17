@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: the adder; Boolean functions; canonical forms; minimisation, Karnaugh maps. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) write a function in canonical form from its truth table; (2) minimise a function of up to four variables with a Karnaugh map; (3) build a full adder and chain it into an n-bit adder. Builds on: only what Lecture 01 set up. Next: Lecture 10, Introduction to Electronics and Digital Electronics.
+
+Closing thread: The add of Lecture 02 is now a circuit you could draw: 32 full adders and a carry that ripples. Next: the electronics that make a gate.
+
 ## Slide 1: Elements of Boolean Algebra
 
 The previous lecture supplied operators and their properties. This one addresses the practical question that follows: given what a circuit must do, how are its gates found? The answer is a method in three steps, truth table, canonical form and minimisation, applied to the most important circuit of the course, the adder. The lecture opens with two instructions that add two bits, and closes with the thirty-two adders that execute every `add` written so far. It thus passes from the algebra as a calculus to the algebra as a design method.

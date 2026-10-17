@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: memories and addresses; little-endian byte order; processor and memory; memory-mapped I/O. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) compute the capacity of a memory from its address and data lines; (2) describe the interface between processor and memory during a load; (3) explain memory-mapped input/output. Builds on: little-endian byte order (Lecture 04). Next: Lecture 16, Permanent Memory.
+
+Bridge. Since Lecture 02, lw t1, 0(t0) has read a word at an address computed from t0. Today that address is the one placed on the address bus, register plus constant. Lecture 19 calls this base plus displacement and compares it with the other addressing modes. Recall: In lw t1, 8(t0), which address goes on the address bus?
+
+Closing thread: Every lw and sw of the course is a short dialogue on the address bus, the data bus and two control lines; a device answers on the same bus. Next: memory that survives without power, and caches.
+
 ## Slide 1: Memory
 
 Memory has been in use since the second lecture: every `lw` and `sw` reads or writes it. This lecture explains what a memory is, how it is organised, and what actually takes place between processor and memory when a load executes. The cover shows the PRG32-QT debugger, whose memory view serves as the instrument of observation throughout. The epigraph from Tron is playful but makes a serious point: a machine with memory can retain a state, and with state it can do almost anything, as the previous two lectures established.

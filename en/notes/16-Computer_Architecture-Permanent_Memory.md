@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: ROM, flash, firmware; the von Neumann architecture; the cache; secondary memory. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) classify permanent memories and say where the cartridge is kept; (2) explain a cache hit and a cache miss, and locality; (3) compare the access times of disks and solid-state storage. Builds on: the von Neumann architecture (Lecture 03). Next: Lecture 17, Verm1, Part 3: A Body, Rules and States.
+
+Closing thread: Memory is a hierarchy: small and fast near the processor, large and slow far away, and locality makes the trick work. Next: the third part of Verm1, which needs memory for a whole body.
+
 ## Slide 1: Permanent Memory
 
 The previous lecture treated the memory that forgets when power is removed. This one treats the memories that do not: the chips that hold the firmware, magnetic disks, optical media and tapes. Between the two it places the cache, a small fast memory that conceals the slowness of a large one, and the lecture's unifying idea is that this same strategy recurs at every scale. The epigraph is by a professor of numerical computing of this university, and every student eventually learns its truth: a datum does not exist until it has been saved.

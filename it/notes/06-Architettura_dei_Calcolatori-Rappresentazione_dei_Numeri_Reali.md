@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: la virgola fissa; complemento a uno ed eccesso k; la virgola mobile IEEE 754; il nome RV32IMAC. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) rappresentare un numero reale in virgola fissa e calcolarci con le istruzioni intere; (2) decodificare un numero IEEE 754 in precisione singola; (3) leggere il nome RV32IMAC e dire che cosa il kit sa e non sa calcolare in hardware. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 07, Verm1, parte 1: una testa che attraversa il mondo.
+
+Il filo della lezione: Senza l'estensione F, le frazioni sono interi con una scala concordata: Verm1 muoverà la testa di frazioni di cella proprio così. Prossimo passo: la prima parte del progetto.
+
 ## Slide 1: Rappresentazione dei numeri: i reali
 
 La lezione precedente ha trattato gli interi; questa tratta i numeri con una parte frazionaria. Comincia da un problema ingegneristico concreto: una pallina deve muoversi di meno di un pixel per frame, su un processore privo di istruzioni per i numeri reali. La prima soluzione, la virgola fissa, non usa nulla al di là dell'aritmetica intera già compresa. La virgola mobile emerge poi come soluzione generale, insieme allo standard a cui si conforma sostanzialmente ogni calcolatore, IEEE 754. La lezione è quindi organizzata come una progressione da un vincolo specifico a una teoria generale, e di nuovo al vincolo.

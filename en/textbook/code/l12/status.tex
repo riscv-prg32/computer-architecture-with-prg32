@@ -4,3 +4,13 @@
 \masterychip{use}{USE NOW}\enspace the calling convention (Chapter~\ref{ch:processor}) and, used without being studied in this course, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger.\par\smallskip
 \masterychip{later}{UNDERSTAND LATER}\enspace nothing.
 \end{chapstatus}
+\begin{chapstatus}{Roadmap of this chapter}
+By the end of the chapter you can:
+\begin{enumerate}[nosep,leftmargin=2em]
+\item read the buttons with masks and refuse a U-turn with one XOR
+\item compare positions with XOR and OR to detect food
+\item keep and show a score
+\end{enumerate}
+It builds on: bit masks (Chapter~\ref{ch:boole1}); codes (Chapter~\ref{ch:combinational}); arrays in memory (Chapter~\ref{ch:information}); pull-up inputs (Chapter~\ref{ch:electronics}); Boolean algebra (Chapter~\ref{ch:boole1}). Next: Chapter~\ref{ch:sequential}.
+\par\smallskip\textbf{Looking back, looking ahead.} In Lecture 07 a function that calls another saved ra in a frame of 16 bytes. Today the functions of Verm1 call each other more deeply: each saves ra once, on entry, and restores it before ret. Lecture 18 states the rules: which registers a call may change and which it must preserve. \emph{Recall:} A function calls two other functions. How many times must it save ra, and where?
+\end{chapstatus}

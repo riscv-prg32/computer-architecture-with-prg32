@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: shift registers; registers as flip-flops; buses and three-state gates. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: memory-mapped I/O (Lecture 15); memories and addresses (Lecture 15). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) explain how registers share a bus through three-state buffers; (2) use a shift register for serial transfer. Builds on: registers as flip-flops (Lecture 13). Next: Lecture 15, Memory.
+
+Closing thread: A bus is a road that only one register may drive at a time, and a shift register turns a word into a stream of bits: the display of the kit receives its pixels this way. Next: memory.
+
 ## Slide 1: Elementary Machines: Registers and Buses
 
 The previous lecture built a register from flip-flops. This one asks how registers communicate: how a word passes from one to another, along which wires, and what happens when many registers share the same wires. The answers are the bus, the three-state buffer and the shift register, the elementary machines of every datapath. Doc Brown's line on the cover is ironic in this context: data most certainly need roads, and a bus is exactly that. The warm-up starts from a fact about the kit: its display receives every pixel one bit at a time.

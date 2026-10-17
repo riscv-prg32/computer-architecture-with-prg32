@@ -276,7 +276,7 @@ Registers do not keep their values between one call of \code{update} and the
 next: the firmware uses them in the meantime. Whatever must last has to live
 in memory (Listing~\ref{lst:fc:step3}).
 
-\asmfile[caption={Step 3: the new \code{first\_update} and its variable.},label=lst:fc:step3]{code/l02/c06.S}
+\asmfile[caption={Step 3: the new \code{first\_update} and its variable.},label=lst:fc:step3]{code/l02/c07.S}
 
 \code{counter} is a label: it names a location in memory, in the section
 \code{.data}, which holds one 32-bit word, initially zero. \ins{la} puts the
@@ -330,7 +330,7 @@ draw a green bar whose width is the counter (Listing~\ref{lst:fc:step4},
 Figure~\ref{fig:fc:bar}). The constant \code{GREEN} is defined at the top of
 the file by \code{.equ GREEN, 0x07e0}.
 
-\asmfile[caption={Step 4: the lines added to \code{first\_draw}.},label=lst:fc:step4]{code/l02/c07.S}
+\asmfile[caption={Step 4: the lines added to \code{first\_draw}.},label=lst:fc:step4]{code/l02/c08.S}
 
 \begin{figure}[htb]
 \centering
@@ -493,6 +493,8 @@ three functions and a rectangle & Can a whole game be made out of this? & \vermo
 \input{code/l02/lab}
 
 % ----------------------------------------------------------------------------
+\input{code/l02/closing}
+
 \section{Check your understanding}
 
 \begin{quiz}{After \code{la t0, counter} and \code{lw t1, 0(t0)}, what does \reg{t0} hold?}

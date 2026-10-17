@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il metodo: prima il programma; le regole del corso. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: i componenti di PRG32 (Lezione 01); RISC e un ISA aperto (Lezione 03); il progetto Verm1 (Lezione 07). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) descrivere i quattro passi della spirale di apprendimento e dire perché la previsione viene prima dell'esecuzione; (2) enunciare le regole di valutazione: una prova intercorso, due parti d'esame da superare entrambe, nessun dispositivo e nessuna IA. Si appoggia su: niente: è la prima lezione. Prossimo passo: Lezione 01, PRG32 e PRG32-QT: allestire la propria officina.
+
+Il filo della lezione: Il corso segue un solo metodo: giocare, osservare, formalizzare, ritornare. Ogni argomento comincerà come qualcosa visto su PRG32 e finirà come una regola che permette di prevederlo. Prossimo passo: installare il laboratorio.
+
 ## Slide 1: Introduzione al corso: il codice
 
 Questa è la presentazione del codice della Lezione 00. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

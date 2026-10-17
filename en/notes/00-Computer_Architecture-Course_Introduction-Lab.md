@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: the program-first method; the rules of the course. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: the pieces of PRG32 (Lecture 01); RISC and an open ISA (Lecture 03); the Verm1 project (Lecture 07). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) describe the four steps of the learning spiral and say why a prediction comes before running; (2) state the assessment rules: one midterm, two exam parts that must both be passed, no devices and no AI. Builds on: nothing: it is the first lecture. Next: Lecture 01, PRG32 and PRG32-QT: Setting Up Your Workshop.
+
+Closing thread: The course runs on one method: play, observe, formalise, return. Every topic will start as something seen on PRG32 and end as a rule that lets you predict it. Next: installing the workshop.
+
 ## Slide 1: Course Introduction: the code
 
 This is the code deck of Lecture 00. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

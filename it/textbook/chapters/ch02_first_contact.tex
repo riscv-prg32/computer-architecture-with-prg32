@@ -278,7 +278,7 @@ I registri non conservano i loro valori tra una chiamata di \code{update} e la
 successiva: nel frattempo li usa il firmware. Ciò che deve durare deve vivere
 in memoria (Listato~\ref{lst:fc:step3}).
 
-\asmfile[caption={Passo 3: la nuova \code{first\_update} e la sua variabile.},label=lst:fc:step3]{code/l02/c06.S}
+\asmfile[caption={Passo 3: la nuova \code{first\_update} e la sua variabile.},label=lst:fc:step3]{code/l02/c07.S}
 
 \code{counter} è un'etichetta: dà un nome a una locazione di memoria, nella
 sezione \code{.data}, che contiene una parola di 32 bit, inizialmente zero.
@@ -334,7 +334,7 @@ disegnano una barra verde la cui larghezza è il contatore
 (Listato~\ref{lst:fc:step4}, Figura~\ref{fig:fc:bar}). La costante \code{GREEN}
 è definita in cima al file con \code{.equ GREEN, 0x07e0}.
 
-\asmfile[caption={Passo 4: le righe aggiunte a \code{first\_draw}.},label=lst:fc:step4]{code/l02/c07.S}
+\asmfile[caption={Passo 4: le righe aggiunte a \code{first\_draw}.},label=lst:fc:step4]{code/l02/c08.S}
 
 \begin{figure}[htb]
 \centering
@@ -497,6 +497,8 @@ tre funzioni e un rettangolo & Se ne può fare un gioco intero? & \vermone: Capi
 \input{code/l02/lab}
 
 % ----------------------------------------------------------------------------
+\input{code/l02/closing}
+
 \section{Verificate di aver capito}
 
 \begin{quiz}{Dopo \code{la t0, counter} e \code{lw t1, 0(t0)}, che cosa contiene \reg{t0}?}

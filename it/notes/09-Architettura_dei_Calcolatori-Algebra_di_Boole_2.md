@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il sommatore; le funzioni booleane; le forme canoniche; minimizzazione, Karnaugh. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) scrivere una funzione in forma canonica dalla sua tabella di verità; (2) minimizzare una funzione di al più quattro variabili con una mappa di Karnaugh; (3) costruire un sommatore completo e concatenarlo in un sommatore a n bit. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 10, Introduzione all'elettronica e all'elettronica digitale.
+
+Il filo della lezione: La add della Lezione 02 è ora un circuito che sapreste disegnare: 32 sommatori completi e un riporto che si propaga. Prossimo passo: l'elettronica che fa una porta.
+
 ## Slide 1: Elementi di algebra di Boole
 
 La lezione precedente ha fornito operatori e proprietà. Questa affronta la domanda pratica che ne segue: dato ciò che un circuito deve fare, come se ne trovano le porte? La risposta è un metodo in tre passi, tavola di verità, forma canonica e minimizzazione, applicato al circuito più importante del corso, il sommatore. La lezione si apre con due istruzioni che sommano due bit e si chiude con i trentadue sommatori che eseguono ogni `add` scritto finora. Passa così dall'algebra come calcolo all'algebra come metodo di progetto.

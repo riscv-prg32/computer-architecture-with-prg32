@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: il frame buffer; i controllori delle periferiche; bus e banda; la scheda video; GPU e GPGPU. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) spiegare perché i dispositivi stanno dietro ai controllori e come il processore dialoga con loro; (2) calcolare la dimensione di un frame buffer e la banda di un segnale video; (3) descrivere che cosa fanno una scheda video e una GPU. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 21, Ingresso e uscita.
+
+Il filo della lezione: Ogni rettangolo disegnato dalla Lezione 02 è finito in un frame buffer che un controllore invia allo schermo molte volte al secondo. Prossimo passo: gli altri dispositivi: display, tastiere, stampanti.
+
 ## Slide 1: I bus e la scheda video
 
 Con questa lezione il corso lascia il processore e si volge a ciò che lo circonda. L'argomento è il percorso di un'immagine, da un numero in memoria a un punto di luce sullo schermo. Lungo la strada si incontrano due idee generali, il controllore di periferica e il bus, insieme a una macchina specifica, la scheda video e il suo processore, la GPU. Il kit non ha alcuna scheda video, e a fini didattici questo è un vantaggio: ogni passo che una scheda nasconderebbe è eseguito da codice che si può leggere, e di cui si può misurare il costo.

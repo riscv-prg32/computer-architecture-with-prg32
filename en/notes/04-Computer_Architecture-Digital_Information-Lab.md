@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: analog and digital; bit, byte, word; hexadecimal; positional notation; a colour is a number; characters and strings; little-endian byte order; data structures; arrays in memory; algorithms. USE NOW: shifts as multiplications (Lecture 05) and, used without being studied in this course, the complete program, the PRG32 tools. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) distinguish analog from digital information and count the values that n bits can represent; (2) encode numbers, colours and text as bits: positional notation, hexadecimal, RGB565, ASCII; (3) name the basic data structures and the properties of an algorithm. Builds on: only what Lecture 01 set up. Next: Lecture 05, Number Representation: Integers.
+
+Bridge. In Lecture 02 the instruction addi t1, t1, 1 appeared in memory as the word 0x00130313. Today the same 32 bits can be read as a number, a colour, four letters or an instruction: the code decides. Lecture 19 reads the instruction field by field. Recall: Name two different things one 32-bit word can mean, and what decides which meaning applies.
+
+Closing thread: Bits mean nothing by themselves: a code gives them a meaning, and the same 32 bits can be a number, a colour, four letters or an instruction. Next: the codes for integers, and what happens when they run out of bits.
+
 ## Slide 1: Representing Digital Information: the code
 
 This is the code deck of Lecture 04. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

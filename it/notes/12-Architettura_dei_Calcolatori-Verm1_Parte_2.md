@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: le maschere di bit; i codici; gli array in memoria; gli ingressi con pull-up; l'algebra di Boole; la virgola fissa; i multiplexer; istruzioni con o senza segno; comparatori e parità; gli argomenti in a0 ... a7. DA UTILIZZARE OGGI: la convenzione di chiamata (Lezione 18) e, usati senza essere studiati nel corso, gli strumenti di PRG32, le chiamate del runtime PRG32, il debugger di PRG32-QT. DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) leggere i pulsanti con le maschere e rifiutare un'inversione a U con un solo XOR; (2) confrontare posizioni con XOR e OR per riconoscere il cibo; (3) tenere e mostrare un punteggio. Si appoggia su: le maschere di bit (Lezione 08); i codici (Lezione 11); gli array in memoria (Lezione 04); gli ingressi con pull-up (Lezione 10); l'algebra di Boole (Lezione 08). Prossimo passo: Lezione 13, Macchine sequenziali.
+
+Ponte. Nella Lezione 07 una funzione che ne chiama un'altra salvava ra in un frame di 16 byte. Oggi le funzioni di Verm1 si chiamano più in profondità: ciascuna salva ra una volta, all'ingresso, e lo ripristina prima di ret. La Lezione 18 enuncia le regole: quali registri una chiamata può cambiare e quali deve conservare. Richiamo: Una funzione chiama altre due funzioni. Quante volte deve salvare ra, e dove?
+
+Il filo della lezione: Ogni regola del gioco è diventata qualche istruzione logica: una maschera, uno XOR, un confronto. Prossimo passo: i circuiti che ricordano, e gli stati di un gioco.
+
 ## Slide 1: Verm1, parte 2: la guida, il cibo e un punteggio
 
 Il secondo tutorial del progetto. Alla fine della Parte 1 la testa attraversava lo schermo da sola; oggi entra in gioco il giocatore. Si aggiunge la guida con il joystick, insieme a un cibo che compare a caso, un punteggio e un suono. Tutto poggia sulle quattro lezioni del blocco di logica: un pulsante è un bit selezionato da una maschera, la regola che vieta l'inversione a U è un solo XOR, e il movimento si legge da una tabella come lo selezionerebbe un multiplexer. La frase di Sid Meier in copertina nomina ciò che si aggiunge: scelte che contano.

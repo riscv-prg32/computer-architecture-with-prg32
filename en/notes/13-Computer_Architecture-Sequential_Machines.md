@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: finite-state machines; the clock; latches and flip-flops; registers as flip-flops. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) describe a finite-state machine with a state diagram; (2) explain the clock and why a circuit must settle within one period; (3) tell a latch from a flip-flop and build a register. Builds on: only what Lecture 01 set up. Next: Lecture 14, Elementary Machines: Registers and Buses.
+
+Closing thread: A register is flip-flops that sample on a clock edge: this is how the counter of Lecture 02 survived from one frame to the next, in hardware. Next: how registers exchange data.
+
 ## Slide 1: Sequential Machines
 
 The third block of the course opens: state and memory. The machines of Lecture 11 had no memory: identical inputs always produced identical outputs. A computer, however, remembers: a counter persists from one frame to the next, and a game knows whether it is displaying the title or the playfield. This lecture introduces time and state, the model that describes every circuit with memory, and the elementary storage elements, latches and flip-flops, from which the registers of the processor are built. It is the conceptual hinge between logic and architecture.

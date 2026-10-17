@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: registri, calcolo, trasferimento, salto; i registri; funzioni, chiamata e ritorno; contratto init/update/draw; leggere una riga di assembly; gli argomenti in a0 ... a7; perché si salva ra; indirizzo, valore, load, store; le istruzioni di base; le pseudo-istruzioni; un'istruzione è un numero; seguire a mano l'esecuzione. DA UTILIZZARE OGGI: l'esadecimale (Lezione 04); bit, byte, parola (Lezione 04); la convenzione di chiamata (Lezione 18); le maschere di bit (Lezione 08) e, usati senza essere studiati nel corso, le direttive dell'assemblatore, gli strumenti di PRG32, le chiamate del runtime PRG32, il debugger di PRG32-QT, il programma completo. DA COMPRENDERE PIÙ AVANTI: la pila (Lezione 18); i modi di indirizzamento (Lezione 19); formati delle istruzioni (Lezione 19); il complemento a due (Lezione 05); la virgola fissa (Lezione 06); l'algebra di Boole (Lezione 08); il sommatore (Lezione 09); dai volt ai bit (Lezione 10); latch e flip-flop (Lezione 13); il ciclo del processore (Lezione 19); il progetto Verm1 (Lezione 07). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) compilare ed eseguire una cartuccia, e dire quando il runtime chiama init, update e draw; (2) leggere una riga di assembly: etichetta, istruzione, operandi, commento; (3) distinguere un indirizzo da un valore, e tracciare che cosa lasciano la, lw, addi e sw nei registri e in memoria. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 03, Storia della computazione.
+
+Il filo della lezione: Un programma è fatto di poche funzioni che il runtime chiama; ogni riga è un'istruzione; i valori stanno nei registri mentre si calcola e in memoria tra un frame e l'altro. Tutto il resto che avete usato oggi ha una sua lezione. Prossimo passo: da dove vengono queste idee.
+
 ## Slide 1: Primo contatto: l'assembly RISC-V su PRG32: il codice
 
 Questa è la presentazione del codice della Lezione 02. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.
@@ -24,46 +28,54 @@ Due comandi che si digiteranno centinaia di volte. `cartridge build` trasforma i
 
 Il secondo passo scrive sullo schermo. `first_draw` si legge meglio in tre parti. Le prime due righe aprono uno stack frame e salvano `ra`, perché la funzione sta per fare delle chiamate. Seguono due chiamate: `prg32_gfx_clear`, con il colore in `a0`, e `prg32_gfx_text8`, con cinque argomenti da `a0` ad `a4`: x, y, l'indirizzo della stringa, colore di primo piano e colore di sfondo. Vanno distinti i due modi di caricare un registro: `li` carica una costante numerica, `la` l'indirizzo di un'etichetta. Le ultime tre righe ripristinano `ra`, rilasciano il frame e ritornano. La stringa stessa è un dato, collocato nella sezione di sola lettura `.rodata`.
 
-## Slide 6: Passo 3: un valore che sopravvive tra i frame
+## Slide 6: Perché salvare ra? Il frame di stack
+
+Perché si deve salvare `ra`? L'istruzione `call` scrive in `ra` l'indirizzo a cui il controllo deve tornare. La funzione chiamata, però, può a sua volta fare chiamate, ciascuna delle quali sovrascrive `ra`. Una funzione che ne chiama un'altra deve quindi prima preservare in memoria il proprio indirizzo di ritorno: decrementa `sp` di 16 per riservare spazio, lo *stack frame*, e memorizza `ra` in `12(sp)`; dopo la chiamata esegue le operazioni inverse. Lo schema mostra il frame, con lo stack che cresce verso gli indirizzi bassi; la dimensione di 16 byte discende dall'allineamento che la convenzione richiede a `sp`. Omettere questa coppia di operazioni è il classico primo errore: la funzione ritorna nel posto sbagliato. Perché si salva `ra` va compreso oggi; lo stack come struttura dati si tratta formalmente nella Lezione 18.
+
+## Slide 7: Passo 3: un valore che sopravvive tra i frame
 
 Il terzo passo conserva un valore da un frame al successivo. I registri non mantengono il loro contenuto tra invocazioni successive di `update`, quindi il valore deve risiedere in memoria. `counter` è un'etichetta che nomina una posizione della sezione `.data`, la parte del programma che contiene dati invece di istruzioni; la posizione contiene una parola. Le quattro istruzioni costituiscono lo schema alla base di ogni *variabile*, un posto in memoria con un nome, il cui valore il programma cambia: `la` mette in `t0` l'*indirizzo* della posizione; `lw` carica il *valore* in `t1`; `addi` lo modifica; `sw` lo riscrive. Carica, modifica, memorizza: l'idioma che definisce un'architettura load-store. Sullo schermo ancora non cambia nulla: il contatore avanza, ma nulla lo disegna.
 
-## Slide 7: Passo 4: rendere visibile il contatore
+## Slide 8: Passo 4: rendere visibile il contatore
 
 Il quarto passo rende visibile il contatore come una barra verde. Il valore viene caricato, e `andi a2, t1, 255` ne conserva solo gli otto bit meno significativi, gli otto a destra, che valgono meno, così la larghezza va da 0 a 255 e poi ricomincia. Gli altri registri portano gli argomenti di `prg32_gfx_rect`: x, y, larghezza, altezza e colore. Queste otto righe contengono i semi di tre lezioni successive: 255 scritto come 0xFF (la notazione posizionale, Lezione 04), `andi` usato come maschera (l'algebra di Boole, Lezione 08) e 0x07e0 che indica il verde (la codifica del colore, Lezione 04). Conviene ricordare dove ciascuno è stato incontrato per la prima volta.
 
-## Slide 8: Il programma completo: l02.S (1 di 3)
+## Slide 9: PRG32-QT: un microscopio per i registri
+
+PRG32-QT esegue la stessa cartuccia sul portatile e può fermarsi tra due istruzioni qualsiasi, mostrando ogni registro. Va usato ora sul terzo passo: si va a `update`, si mette in pausa e si eseguono una alla volta le quattro istruzioni di `first_update`, osservando `t0` e `t1`. Prima di ogni passo il cambiamento atteso va dichiarato ad alta voce; una previsione resa esplicita è una previsione che può essere sbagliata, e quindi informativa. L'ultima riga è un principio da conservare: la scheda è l'autorità sul tempo, PRG32-QT l'autorità sul contenuto di un registro.
+
+## Slide 10: Il programma completo: l02.S (1 di 3)
 
 Una pagina del programma completo, riprodotta esattamente com'è nel repository. Va letta dall'inizio. L'intestazione dice che cosa mostra il programma e come si compila; seguono i tre punti di ingresso, init, update e draw, e le sezioni dei dati chiudono il file. Le righe già incontrate nei listati della lezione hanno qui gli stessi commenti, così che ogni frammento si possa ritrovare nell'insieme.
 
-## Slide 9: Il programma completo: l02.S (2 di 3)
+## Slide 11: Il programma completo: l02.S (2 di 3)
 
 Una pagina del programma completo, riprodotta esattamente com'è nel repository. Va letta dall'inizio. L'intestazione dice che cosa mostra il programma e come si compila; seguono i tre punti di ingresso, init, update e draw, e le sezioni dei dati chiudono il file. Le righe già incontrate nei listati della lezione hanno qui gli stessi commenti, così che ogni frammento si possa ritrovare nell'insieme.
 
-## Slide 10: Il programma completo: l02.S (3 di 3)
+## Slide 12: Il programma completo: l02.S (3 di 3)
 
 Una pagina del programma completo, riprodotta esattamente com'è nel repository. Va letta dall'inizio. L'intestazione dice che cosa mostra il programma e come si compila; seguono i tre punti di ingresso, init, update e draw, e le sezioni dei dati chiudono il file. Le righe già incontrate nei listati della lezione hanno qui gli stessi commenti, così che ogni frammento si possa ritrovare nell'insieme.
 
-## Slide 11: Eseguite: che cosa dovreste vedere
+## Slide 13: Eseguite: che cosa dovreste vedere
 
 Il comportamento atteso del programma, e l'ingresso che richiede. Il risultato va previsto prima di eseguire: ogni differenza tra la previsione e lo schermo è un'informazione sul proprio modello della macchina, e conviene spiegarla prima di correggerla. L'immagine è stata prodotta dal test automatico, non disegnata a mano.
 
-## Slide 12: Provatelo su PRG32-QT
+## Slide 14: Provatelo su PRG32-QT
 
 La via più diretta: PRG32-QT sul proprio computer, in quattro passi, ciascuno con il suo comando. Per gli strumenti PRG32-QT si presenta come una scheda in ascolto sulla porta 8080, ed è per questo che il comando di caricamento nomina l'esp32c6. Con la modalità debug attiva si può fermare l'esecuzione su qualsiasi istruzione e ispezionare registri e memoria.
 
-## Slide 13: Provatelo su QEMU
+## Slide 15: Provatelo su QEMU
 
 Lo stesso programma sull'emulatore. QEMU esegue il firmware vero su un chip emulato, quindi la cartuccia va compilata per l'architettura qemu e caricata mentre QEMU non è in esecuzione. Il firmware si avvia sul menu Setup, da cui si scelgono Run Cartridge e lo slot. La tastiera è letta dal terminale da cui QEMU è stato avviato, non dalla finestra che mostra l'immagine.
 
-## Slide 14: Provatelo sulla scheda
+## Slide 16: Provatelo sulla scheda
 
 Lo stesso programma sul kit fisico. Il firmware si scrive una volta, via USB; da quel momento le cartucce viaggiano sul Wi-Fi con lo stesso comando di caricamento usato per PRG32-QT, indirizzato alla scheda. È l'unico host non esercitato dai test automatici, quindi le osservazioni fatte sulla scheda sono particolarmente preziose e vanno riferite.
 
-## Slide 15: Se non funziona
+## Slide 17: Se non funziona
 
 I cinque sintomi più frequenti, il loro significato e il rimedio. Il messaggio di errore va letto per intero prima di cambiare qualsiasi cosa: quasi sempre nomina la causa. Quando si chiede aiuto, vanno riportati alla lettera il comando e il messaggio completo.
 
-## Slide 16: Esercizi su PRG32
+## Slide 18: Esercizi su PRG32
 
 Cinque esercizi sulla cartuccia dello studente, ciascuno seme di una lezione successiva. Cambiare il testo e il suo colore. Far crescere la barra due o quattro volte più in fretta modificando una sola istruzione. Farla diminuire, e osservare che cosa accade quando il contatore passa per lo zero: la barra salta alla larghezza massima, un fenomeno che la Lezione 05 spiega con il complemento a due. Eseguire passo-passo `first_update` e annotare i registri dopo ogni istruzione. Disegnare una seconda barra la cui larghezza sia il contatore modulo 64. In ogni caso il risultato va previsto prima di eseguire il programma.

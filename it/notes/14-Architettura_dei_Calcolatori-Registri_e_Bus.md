@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: i registri a scorrimento; i registri come flip-flop; bus e porte three-state. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: l'I/O mappato in memoria (Lezione 15); memorie e indirizzi (Lezione 15). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) spiegare come i registri condividono un bus attraverso i buffer three-state; (2) usare un registro a scorrimento per il trasferimento seriale. Si appoggia su: i registri come flip-flop (Lezione 13). Prossimo passo: Lezione 15, La memoria.
+
+Il filo della lezione: Un bus è una strada che un solo registro alla volta può pilotare, e un registro a scorrimento trasforma una parola in una sequenza di bit: il display del kit riceve così i suoi pixel. Prossimo passo: la memoria.
+
 ## Slide 1: Macchine elementari: registri e bus
 
 La lezione precedente ha costruito un registro con i flip-flop. Questa si chiede come i registri comunicano: come una parola passa dall'uno all'altro, lungo quali fili, e che cosa accade quando molti registri condividono gli stessi fili. Le risposte sono il bus, il buffer three-state e il registro a scorrimento, le macchine elementari di ogni percorso dei dati. La battuta di Doc Brown in copertina è ironica in questo contesto: i dati hanno eccome bisogno di strade, e un bus è esattamente questo. Il riscaldamento parte da un fatto sul kit: il suo display riceve ogni pixel un bit alla volta.

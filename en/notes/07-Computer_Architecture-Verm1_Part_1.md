@@ -4,6 +4,12 @@
 
 Learning status of this lecture. UNDERSTAND NOW: the Verm1 project; the init, update, draw contract; a colour is a number; arrays in memory; .text, .rodata, .data; address, value, load, store; why ra is saved; shifts as multiplications; fixed point; pseudo-instructions; little-endian byte order. USE NOW: the PRG32 tools, the PRG32-QT debugger (used, not studied, in this course). UNDERSTAND LATER: instruction formats (Lecture 19). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) build a cartridge from an empty file: a grid, a title and a moving head; (2) place constants and variables in the right section, .rodata or .data; (3) control a speed with a fixed-point accumulator. Builds on: the init, update, draw contract (Lecture 02); a colour is a number (Lecture 04); arrays in memory (Lecture 04); address, value, load, store (Lecture 02); why ra is saved (Lecture 02). Next: Lecture 08, Elements of Boolean Algebra.
+
+Bridge. In Lecture 02 step 2 saved ra on the stack before its calls, and lw t1, 0(t0) read a word at the address in t0. Today verm1_draw saves ra and verm1_update does not, and every variable of Verm1 is read with la and lw. Lecture 18 explains the stack and the calling convention; Lecture 19 names the addressing modes. Recall: Why does verm1_draw save ra while verm1_update does not?
+
+Closing thread: Numbers became positions, colours and a speed: the whole information block, in one running game. Next: the logic that will let the player steer it.
+
 ## Slide 1: Verm1, Part 1: A Head That Crosses the World
 
 The course project begins here. This is a tutorial rather than a lecture: a program is written step by step, and at the end it runs. It draws exclusively on Lectures 02 to 06: registers and memory, colours and strings as numbers, comparisons and shifts, fixed point. The cover shows the state of the screen two hours from now: a title and a green square, the head of the worm, crossing the screen unaided. The purpose of the session is integration: concepts studied separately must now cooperate within one program. The reference implementation was contributed by Giuseppe Coviello.

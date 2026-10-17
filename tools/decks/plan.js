@@ -29,7 +29,7 @@ module.exports = {
     lab: lab("l00", NONE, { it: "la parola ARC12 in bianco su uno schermo blu, e sotto HELLO, RISC-V." }) },
   "01": { code: [17, 18, 19, 22, 33, 34],
     lab: lab("l01", NONE, { it: "quattro barre verticali, rossa, verde, blu e bianca, e le parole PRG32 OK." }) },
-  "02": { lab: lab("l02", NONE, { it: "HELLO PRG32 e, sotto, una barra verde che cresce di un pixel per frame e ricomincia a 256." }, "first") },
+  "02": { code: [15, 23], lab: lab("l02", NONE, { it: "HELLO PRG32 e, sotto, una barra verde che cresce di un pixel per frame e ricomincia a 256." }, "first") },
   "03": { drop: [5, 20],
     lab: lab("l03", NONE, { it: "una riga di 32 lampade che mostra 0x00130313, il codice macchina di addi t1, t1, 1, e un quadrato verde: la parola letta è quella attesa." }) },
   "04": { drop: [4, 11, 21, 22, 23, 24, 26],

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: quotient and remainder; characters and strings; fixed point; the calling convention; arrays in memory; finite-state machines; the frame buffer; the processor cycle. USE NOW: the PRG32 tools, the PRG32-QT debugger (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) turn a number into decimal digits with divu and remu; (2) draw only what changed, with a dirty flag; (3) finish the game: levels, sound, speed. Builds on: characters and strings (Lecture 04); fixed point (Lecture 06); the calling convention (Lecture 18); arrays in memory (Lecture 04); finite-state machines (Lecture 13). Next: Lecture 23, Verm1 on the Cartridge Store.
+
+Closing thread: Verm1 is finished: every topic of the course has a line in it. Next: giving it a name, an icon and a place on the Store.
+
 ## Slide 1: Verm1, Part 4: The Finished Game
 
 The fourth and final tutorial completes Verm1. At the end of Part 3 the game was complete in its rules; today it becomes complete as a program. The score is written in decimal digits, the worm accelerates, there are two sounds, and the screen is redrawn only where it changes. Knuth's sentence on the cover justifies the order of the work: first the game was made correct, and only now, with a measurement in hand, is it made fast. Optimisation without measurement is guesswork, and the tutorial ends by measuring the effect of its own changes.

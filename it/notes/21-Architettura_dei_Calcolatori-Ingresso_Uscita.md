@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: polling, interruzioni, DMA; display CRT e LCD; tastiera e mouse; le stampanti. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) descrivere come funzionano display, tastiere e stampanti; (2) confrontare il polling con le interruzioni per leggere un dispositivo. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 22, Verm1, parte 4: il gioco finito.
+
+Il filo della lezione: Leggere il joystick una volta per frame è polling: semplice, e cieco tra due letture. Prossimo passo: il gioco finito.
+
 ## Slide 1: Ingresso e uscita
 
 Questa lezione riguarda il confine tra la macchina e il mondo: i dispositivi attraverso cui l'informazione entra ed esce. Mostra come si forma un'immagine su uno schermo, che cosa accade tra un tasto e il processore, che cosa comunica un mouse, e come funziona una stampante laser. Il filo conduttore è che ciascuno di questi dispositivi è internamente composto da macchine già progettate in questo corso, encoder, contatori, registri a scorrimento e controllori. La lezione comincia e finisce sul kit, con il dispositivo usato dalla prima sessione di laboratorio: un pulsante.

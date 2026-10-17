@@ -11,9 +11,14 @@
 //   - a question named in practice is not a question or an exercise of that lecture;
 //   - the English and the Italian specification differ in a marked slide, or a badge is too wide in a language;
 //   - a pair of colours of the badges falls below WCAG AA (4.5:1 for the text, 3:1 for the bar);
-//   - in a built deck, a badge overlaps another shape, or the badges are missing from a slide that has them.
-// Warns (and lists in the matrix) a concept understood without any question or exercise to check it, and the
-// open issues of the audit (review).  Writes ../concepts/coverage.md.
+//   - in a built deck, a badge overlaps another shape, or the badges are missing from a slide that has them;
+//   - jszip is missing or a deck is not built: the built decks are part of the check, never skipped silently;
+//   - ../concepts/assessments.json is not valid (lib/assessments.js): a concept understood in a lecture with no
+//     question, exercise or assessment item to check it and no written exception, a lecture without exit ticket,
+//     outcomes or closing, a broken reference, a missing translation, a placeholder.
+// Warns about the open issues of the audit (review).  Writes ../concepts/coverage.md.
+//
+//   node textbook/check_mastery.js --source-only   checks the sources only and says so: NOT the full verification
 const fs = require("fs"), path = require("path");
 const M = require("../lib/mastery");
 const { loadDecks, visible, LANGS } = require("../lib/lang");
@@ -24,12 +29,13 @@ const { spawnSync } = require("child_process");
 if (process.argv[2] === "--dump") {
   const lang = process.argv[3], out = { specs: {}, decks: [] };
   const raw = loadDecks(lang, { raw: true });
-  for (const d of raw) out.specs[d.n] = { n: d.n, title: d.title, short: d.short, slides: d.slides.map((s) => ({ t: s.t })) };
+  for (const d of raw) out.specs[d.n] = { n: d.n, title: d.title, short: d.short, slides: d.slides.map((s) => ({ t: s.t, title: typeof s.a[0] === "string" ? s.a[0] : "" })) };
   for (const d of raw.flatMap((x) => require("../lib/lab").split(x, lang))) out.decks.push({ n: d.n, file: d.file, kind: d.kind, slides: visible(d).map((s) => ({ t: s.t, gen: s.gen, src: s.src })) });
-  process.stdout.write(JSON.stringify(out));
-  process.exit(0);
+  process.stdout.write(JSON.stringify(out), () => process.exit(0));   // let a large dump reach the pipe before exiting
+  return;
 }
 const dump = (l) => { const r = spawnSync(process.execPath, [__filename, "--dump", l], { encoding: "utf8", maxBuffer: 1 << 28 }); if (r.status) { console.error(r.stderr); process.exit(1); } return JSON.parse(r.stdout); };
+const SOURCE_ONLY = process.argv.includes("--source-only");
 const DUMP = Object.fromEntries(LANGS.map((l) => [l, dump(l)]));
 const PLAN = require("../decks/plan");
 const ROOT = path.resolve(__dirname, "..", "..");
@@ -126,25 +132,34 @@ for (const [id, c] of Object.entries(M.CONCEPTS)) {
     if (!s || (s.t !== "quiz" && s.t !== "exercise")) fail(`registry ${id}: practice ${r} is not a question or an exercise`);
     else if (c.formal && n < c.formal) fail(`registry ${id}: practice ${r} comes before the formal lecture ${c.formal}`);
   }
-  if (c.formal && !c.practice.length) note(`${id}: understood in Lecture ${c.formal}, no question or exercise checks it`);
   if (c.review) note(`${id}: needs review: ${c.review.slice(0, 120)}...`);
 }
 for (const n of lectures) if (!perLecture[n] || !perLecture[n].marks.length) fail(`lecture ${n}: no slide carries a learning status`);
 
+// ---- the formative assessment (concepts/assessments.json) ------------------------------------------------------------
+const ASSESS = require("../concepts/assessments.json");
+const AV = require("../lib/assessments").validate(ASSESS, M.CONCEPTS, Object.fromEntries(LANGS.map((l) => [l, Object.fromEntries(Object.entries(specs[l]).map(([n, d]) => [n, d.slides]))])));
+for (const e of AV.errors) fail("assessments: " + e);
+for (const e of require("../lib/roadmap").check()) fail("bridges: " + e);
+
 // ---- the built decks ------------------------------------------------------------------------------------------------
 async function checkBuilt() {
   let JSZip;
-  try { JSZip = require("jszip"); } catch (e) { note("jszip not found: the built decks are not checked"); return { decks: 0, slides: 0 }; }
+  if (SOURCE_ONLY) return { decks: 0, slides: 0, skipped: true };
+  try { JSZip = require("jszip"); } catch (e) { fail("jszip not found (run npm ci in tools/): the built decks cannot be checked; use --source-only for a check of the sources alone"); return { decks: 0, slides: 0 }; }
   const EMU = 914400, BAND = 0.4 * EMU;
   let nd = 0, ns = 0;
   for (const l of LANGS) for (const d of DUMP[l].decks) {
     const f = path.join(ROOT, l, "slides", d.file + ".pptx");
     if (!fs.existsSync(f)) { fail(`${l}/slides/${d.file}.pptx: not built`); continue; }
-    const zip = await JSZip.loadAsync(fs.readFileSync(f));
+    let zip;
+    try { zip = await JSZip.loadAsync(fs.readFileSync(f)); } catch (e) { fail(`${l}/slides/${d.file}.pptx: not a valid package (${e.message})`); continue; }
     nd++;
     const vis = d.slides;
     for (let k = 1; k <= vis.length + 1; k++) {
-      const xml = await zip.file(`ppt/slides/slide${k}.xml`).async("string");
+      const entry = zip.file(`ppt/slides/slide${k}.xml`);
+      if (!entry) { fail(`${l} ${d.file}: slide ${k} missing from the package (${vis.length + 1} expected)`); break; }
+      const xml = await entry.async("string");
       const want = k === 1 ? 3 : M.slideMarks(d, vis[k - 2]).length;
       // shapes and pictures that start in the band above the title
       const offs = [...xml.matchAll(/<a:off x="(\d+)" y="(\d+)"\/><a:ext cx="(\d+)" cy="(\d+)"\/>/g)].map((m) => m.slice(1).map(Number));
@@ -194,19 +209,27 @@ function matrix(built) {
   for (const [id, c] of Object.entries(M.CONCEPTS)) if (!c.formal) o.push(`- \`${id}\`: ${c.reason}`);
   o.push("", "## Needs review", "", "Issues found by the audit, left to the author: nothing below has been changed in the slides.", "");
   for (const [id, c] of Object.entries(M.CONCEPTS)) if (c.review) o.push(`- \`${id}\`: ${c.review}`);
-  o.push("", "## Concepts understood without a question or an exercise", "");
-  const none = Object.entries(M.CONCEPTS).filter(([, c]) => c.formal && !c.practice.length).map(([id, c]) => `\`${id}\` (${c.formal})`);
-  o.push(none.join(", ") + ".", "");
+  o.push("", "## How each understood concept is checked", "",
+    "A question or exercise of the decks (*deck*, lecture:slide) or an item of `concepts/assessments.json` (*item*); an exception",
+    "names a concept that is deliberately not assessed, with its reason. Generated; the items are in `docs/teaching`.", "",
+    "| Concept | formal | deck | item | exception |", "| --- | --- | --- | --- | --- |");
+  for (const [id, c] of Object.entries(M.CONCEPTS)) if (c.formal) {
+    const ex = AV.exceptions[id];
+    o.push(`| \`${id}\` | ${c.formal} | ${c.practice.join(", ") || "-"} | ${(AV.covered[id] || []).join(", ") || "-"} | ${ex ? ex.en : "-"} |`);
+  }
+  const deckOnly = Object.entries(M.CONCEPTS).filter(([id, c]) => c.formal && c.practice.length).length;
+  const itemOnly = Object.entries(M.CONCEPTS).filter(([id, c]) => c.formal && !c.practice.length && AV.covered[id]).length;
+  o.push("", `Understood concepts checked by a deck question or exercise: ${deckOnly}; only by an assessment item: ${itemOnly}; exceptions: ${Object.keys(AV.exceptions).length}.`, "");
   o.push("## Contrast of the badges", "", "| State | text on badge | bar on badge | bar on white slide | badge on dark slide |", "| --- | ---: | ---: | ---: | ---: |");
   for (const [st, t, b, w, d] of contrast) o.push(`| ${st} | ${t.toFixed(2)}:1 | ${b.toFixed(2)}:1 | ${w.toFixed(2)}:1 | ${d.toFixed(2)}:1 |`);
-  o.push("", `Built decks checked: ${built.decks}; slides with a badge in them: ${built.slides}.`, "");
+  o.push("", built.skipped ? "Built decks: NOT checked (--source-only)." : `Built decks checked: ${built.decks}; slides with a badge in them: ${built.slides}.`, "");
   fs.writeFileSync(path.resolve(__dirname, "..", "concepts", "coverage.md"), o.join("\n"));
 }
 
 (async () => {
   const built = await checkBuilt();
-  matrix(built);
+  if (!SOURCE_ONLY) matrix(built);
   const nm = Object.values(perLecture).reduce((a, p) => a + p.marks.length, 0), ns = Object.values(perLecture).reduce((a, p) => a + p.shown, 0);
-  console.log(`${Object.keys(M.CONCEPTS).length} concepts, ${lectures.length} lectures, ${ns} slides of the specifications with ${nm} badges; ${built.decks} built decks checked; ${warn} warning(s), ${bad} failure(s)`);
+  console.log(`${Object.keys(M.CONCEPTS).length} concepts, ${lectures.length} lectures, ${ns} slides of the specifications with ${nm} badges; ${built.skipped ? "built decks NOT checked (--source-only: a check of the sources, not the full verification)" : `${built.decks} built decks checked`}; ${Object.keys(ASSESS.items).length} assessment items, ${Object.keys(AV.exceptions).length} exception(s); ${warn} warning(s), ${bad} failure(s)`);
   process.exit(bad ? 1 : 0);
 })();

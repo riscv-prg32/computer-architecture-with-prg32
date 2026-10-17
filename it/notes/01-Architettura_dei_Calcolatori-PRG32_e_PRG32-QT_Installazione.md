@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: programma, sorgente, codice macchina; i componenti di PRG32. DA UTILIZZARE OGGI: il terminale, gli strumenti di PRG32, il debugger di PRG32-QT, il programma completo (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: contratto init/update/draw (Lezione 02); i registri (Lezione 02). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) spiegare il percorso da un file sorgente a una cartuccia in esecuzione: sorgente, traduttore, codice macchina, cartuccia, host; (2) eseguire una cartuccia in PRG32-QT e compilarne una dal terminale. Si appoggia su: la Lezione 00, e Partire da zero per chi non ha mai programmato. Prossimo passo: Lezione 02, Primo contatto: l'assembly RISC-V su PRG32.
+
+Il filo della lezione: Ora possedete l'intero ciclo: scrivere un sorgente, tradurlo, inviare la cartuccia a un host, fermarla nel debugger. Prossimo passo: scrivere il sorgente da voi.
+
 ## Slide 1: PRG32 e PRG32-QT: allestire la propria officina
 
 Questa lezione è un'officina in entrambi i sensi della parola: una sessione di lavoro pratico, e il luogo in cui si svolgerà tutto il lavoro successivo. Non contiene teoria. Il suo esito è un ambiente configurato: PRG32-QT in funzione sul portatile dello studente, la toolchain RISC-V installata e verificata, e una prima cartuccia compilata dallo studente e fermata nel debugger. La citazione sull'affilare l'ascia giustifica le due ore dedicate agli strumenti: ogni lezione successiva presuppone che compilare ed eseguire un programma costi un solo comando e pochi secondi, così che l'attenzione vada alle idee e non alla procedura.

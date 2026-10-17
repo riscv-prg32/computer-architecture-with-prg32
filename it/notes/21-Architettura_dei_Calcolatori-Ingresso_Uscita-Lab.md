@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: polling, interruzioni, DMA; display CRT e LCD; tastiera e mouse; le stampanti. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) descrivere come funzionano display, tastiere e stampanti; (2) confrontare il polling con le interruzioni per leggere un dispositivo. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 22, Verm1, parte 4: il gioco finito.
+
+Il filo della lezione: Leggere il joystick una volta per frame è polling: semplice, e cieco tra due letture. Prossimo passo: il gioco finito.
+
 ## Slide 1: Ingresso e uscita: il codice
 
 Questa è la presentazione del codice della Lezione 21. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

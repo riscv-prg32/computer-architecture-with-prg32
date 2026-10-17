@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: polling, interrupts, DMA; CRT and LCD displays; keyboard and mouse; printers. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) describe how displays, keyboards and printers work; (2) compare polling with interrupts for reading a device. Builds on: only what Lecture 01 set up. Next: Lecture 22, Verm1, Part 4: The Finished Game.
+
+Closing thread: Reading the joystick once per frame is polling: simple, and blind between two reads. Next: the finished game.
+
 ## Slide 1: Input and Output: the code
 
 This is the code deck of Lecture 21. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

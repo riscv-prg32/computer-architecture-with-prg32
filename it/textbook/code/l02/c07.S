@@ -1,8 +1,11 @@
-    la   t0, counter
-    lw   t1, 0(t0)
-    andi a2, t1, 255      # width = counter modulo 256
-    li   a0, 32           # x
-    li   a1, 60           # y
-    li   a3, 8            # height
-    li   a4, GREEN        # .equ GREEN, 0x07e0
-    call prg32_gfx_rect
+first_update:
+    # A leaf function: it calls nothing,
+    # so it needs no stack frame.
+    la   t0, counter      # t0 = ADDRESS of counter
+    lw   t1, 0(t0)        # t1 = VALUE stored there   (load)
+    addi t1, t1, 1        # one tick per frame        (modify)
+    sw   t1, 0(t0)        # write it back             (store)
+    ret
+
+.section .data
+counter: .word 0

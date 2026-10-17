@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: the performance equation; superscalar processors; vector instructions; HPC and Amdahl's law; GPU and FPGA accelerators. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) use the performance equation to say where time goes; (2) explain superscalar execution, vectors, GPUs and FPGAs as answers to it; (3) bound a parallel speed-up with Amdahl's law. Builds on: only what Lecture 01 set up. This is the last lecture of the course.
+
+Closing thread: The loop that empties Verm1's map can be made faster in five ways, and each is a machine of its own. The question an engineer asks is not which machine is fastest, but which is sufficient.
+
 ## Slide 1: Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs: the code
 
 This is the code deck of Lecture 24. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

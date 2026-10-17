@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: la virgola fissa; complemento a uno ed eccesso k; la virgola mobile IEEE 754; il nome RV32IMAC. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) rappresentare un numero reale in virgola fissa e calcolarci con le istruzioni intere; (2) decodificare un numero IEEE 754 in precisione singola; (3) leggere il nome RV32IMAC e dire che cosa il kit sa e non sa calcolare in hardware. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 07, Verm1, parte 1: una testa che attraversa il mondo.
+
+Il filo della lezione: Senza l'estensione F, le frazioni sono interi con una scala concordata: Verm1 muoverà la testa di frazioni di cella proprio così. Prossimo passo: la prima parte del progetto.
+
 ## Slide 1: Rappresentazione dei numeri: i reali: il codice
 
 Questa è la presentazione del codice della Lezione 06. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

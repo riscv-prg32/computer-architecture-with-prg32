@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: the performance equation; superscalar processors; vector instructions; HPC and Amdahl's law; GPU and FPGA accelerators. USE NOW: the complete program, the PRG32 tools (used, not studied, in this course). UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) use the performance equation to say where time goes; (2) explain superscalar execution, vectors, GPUs and FPGAs as answers to it; (3) bound a parallel speed-up with Amdahl's law. Builds on: only what Lecture 01 set up. This is the last lecture of the course.
+
+Closing thread: The loop that empties Verm1's map can be made faster in five ways, and each is a machine of its own. The question an engineer asks is not which machine is fastest, but which is sufficient.
+
 ## Slide 1: Beyond One Core: Superscalar RISC-V, HPC, GPUs and FPGAs
 
 The final lecture looks beyond the kit. Everything learned so far was learned on a small processor that executes one instruction at a time. The machines that forecast the weather or train a neural network execute instructions of the same kind, in vast numbers at once. The lecture takes one small loop of Verm1 and follows it onto four classes of machine, so that the whole landscape of high-performance computing is seen through a single, familiar example. Seymour Cray's question about oxen and chickens will recur, and it has no single answer. This lecture is an outlook and is not part of the midterm test.

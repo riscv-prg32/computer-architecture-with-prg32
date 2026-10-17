@@ -1,0 +1,220 @@
+riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0
+QEMU emulator version 11.1.1
+679dfb5 Merge pull request #44 from riscv-prg32/development-c6
+f6d80ad Record firmware-tile whole-Store certification
+== mastery
+mastery: 13 tests passed
+== encodings
+== listings
+== vectors
+== cartridges
+lecture 00: the first program
+  ok   blue screen, white text: ((0, 0, 255), 88)
+lecture 01: the test pattern
+  ok   bars red, green, blue, white: [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
+lecture 02: first contact
+  ok   the bar is one pixel per frame: (32, 60, 67, True)
+  ok   and starts again after 256: True
+lecture 03: the stored program
+  ok   the instruction read as data: ('0x130313', (0, 255, 0))
+lecture 04: an array
+  ok   bar widths 32, 11, 34, 22 times four: [128, 44, 136, 88]
+  ok   element 2 is yellow: (255, 255, 0)
+lecture 05: integers
+  ok   marker_x starts at 2: 2
+  ok   LEFT for 2 frames: 0: 0
+  ok   LEFT for 3 frames: -1, every lamp lit: 0xffffffff
+lecture 06: fixed point, 96/256 of a pixel per frame
+  ok   frame size: (320, 200)
+  ok   white box after 60 frames: (22, 100, 29, 107)
+  ok   white box after 300 frames: (112, 100, 119, 107)
+lecture 08: Boolean algebra
+  ok   no input: lamps off, idle, marker in the middle: ([False, False, False, False, False, False, False], (0, 255, 0), (152, 100, 167, 115))
+  ok   LEFT+A for 10 frames: lamps 0 and 4, not idle, marker 20 pixels to the left: ([True, False, False, False, True, False, False], (255, 0, 0), (132, 100, 147, 115))
+  ok   RIGHT alone is not idle either: (255, 0, 0)
+lecture 09: the full adder
+  ok   S    for the rows 000 ... 111: [0, 1, 1, 0, 1, 0, 0, 1]
+  ok   Cout for the rows 000 ... 111: [0, 0, 0, 1, 0, 1, 1, 1]
+  ok   the inputs count from 0 to 7: [0, 1, 2, 3, 4, 5, 6, 7]
+lecture 10: one button, one bit
+  ok   released: grey: False
+  ok   LEFT held: yellow: (255, 255, 0)
+lecture 11: the multiplexer
+  ok   bars red, green, blue, yellow: [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+lecture 13: the state machine
+  ok   no input: TITLE: (0, 0, 255)
+  ok   A: PLAY: (0, 255, 0)
+  ok   started in OVER, no input: OVER: (255, 0, 0)
+  ok   OVER, A for two frames: TITLE, then PLAY one frame later (the bug discussed in the notes): (0, 255, 0)
+  ok   OVER, A for one frame: TITLE: (0, 0, 255)
+  ok   PLAY ignores A: (0, 255, 0)
+lecture 14: serial and parallel
+  ok   0xA5 on the wire, the byte rebuilt, equal: ('10100101', '10100101', (0, 255, 0))
+lecture 15: memory
+  ok   the word, then the bytes at A ... A+3: ['0x12345678', '0x78', '0x56', '0x34', '0x12']
+lecture 16: permanent memory
+  ok   A held 40 frames, then released: score 0, best 40: (0, 40)
+  ok   while A is held both bars grow: (30, 30)
+  ok   a fresh start: best is zero, the title is there: (0, True)
+lecture 18: the processor
+  ok   x = 5, y = 7, z = 12 (eight pixels each): [40, 56, 96]
+lecture 19: instructions
+  ok   the four words in memory: ['0x2a303', '0x130313', '0x62a023', '0x8067']
+  ok   each equal to the encoding worked out by hand: [(0, 255, 0), (0, 255, 0), (0, 255, 0), (0, 255, 0)]
+lecture 20: the frame buffer
+  ok   a single red pixel: (100, 50, 100, 50)
+lecture 21: the pad
+  ok   no input: (152, 100, 167, 115)
+  ok   LEFT held 20 frames: (112, 100, 127, 115)
+  ok   LEFT+A held 20 frames (s0 survives the sound call): (112, 100, 127, 115)
+lecture 24: the loop that empties the map
+  ok   960 bytes, all zero: (0, 255, 0)
+every program builds for the other two architectures, and QEMU accepts it
+  ok   cartridges built for esp32c6 and for qemu: 20
+  ok   cartridges staged into a copy of the QEMU flash image: 20
+all cartridge checks passed
+== verm1_steps
+part 2, after step 2: steering, with the init and the draw of part 1
+  ok   DOWN held 64 frames: [(5, 22)]
+  ok   LEFT held: the U-turn is refused: [(15, 12)]
+part 3, after step 2: the three states, with stubs
+  ok   title: PRESS A on screen: True
+  ok   after A: no invitation, no worm, food drawn: (0, 0, 1)
+part 3, after step 3: a worm that stands still
+  ok   after A: three cells in row 12: [(3, 12), (4, 12), (5, 12)]
+  ok   nothing moves: True
+part 4, after step 1: the score in digits
+  ok   digits and BEST in the title line: (True, True)
+  ok   three cells: 3
+part 4, after step 2: levels
+  ok   32/256 per frame: 8 steps in 64 frames: (13, 12)
+part 4, after step 3: step records what changed, sounds
+  ok   still 8 steps in 64 frames, three cells: ((13, 12), 3)
+  ok   a worm of three cannot bite itself: still moving: True
+all Verm1 step checks passed
+== verm1_store
+$ python3 -m prg32 cartridge build ~/verm1/verm1.S --portable --entry-prefix verm1 --name verm1 --architecture esp32c6 --out ~/verm1/verm1-esp32c6.prg32
+[INFO] Building for architecture: esp32c6
+[INFO] Using Firmware ELF: None
+[INFO] Portable: True
+[INFO] Building cartridge: /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-esp32c6 (Prefix: verm1)
+[INFO] Cartridge RAM limit: 65536 bytes (default firmware profile)
+[OK] built /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-esp32c6.prg32 name=verm1 load=0x40800000
+[INFO] code=6216 mem=6216 audio=0
+$ python3 -m prg32 store attach-metadata ~/verm1/verm1-esp32c6.prg32 --metadata ~/verm1/metadata.json --icon ~/verm1/icon.png --colophon ~/verm1/colophon.json --architecture esp32c6 --out ~/verm1/verm1-esp32c6.prg32
+wrote /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-esp32c6.prg32 legacy=6316 blocks=3 architecture=esp32c6
+$ python3 -m prg32 cartridge build ~/verm1/verm1.S --portable --entry-prefix verm1 --name verm1 --architecture qemu --out ~/verm1/verm1-qemu.prg32
+[INFO] Building for architecture: qemu
+[INFO] Using Firmware ELF: None
+[INFO] Portable: True
+[INFO] Building cartridge: /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-qemu (Prefix: verm1)
+[INFO] Cartridge RAM limit: 65536 bytes (default firmware profile)
+[OK] built /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-qemu.prg32 name=verm1 load=0x40800000
+[INFO] code=6216 mem=6216 audio=0
+$ python3 -m prg32 store attach-metadata ~/verm1/verm1-qemu.prg32 --metadata ~/verm1/metadata.json --icon ~/verm1/icon.png --colophon ~/verm1/colophon.json --architecture qemu --out ~/verm1/verm1-qemu.prg32
+wrote /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-qemu.prg32 legacy=6316 blocks=3 architecture=qemu
+$ python3 -m prg32 cartridge summary ~/verm1/verm1-esp32c6.prg32
+      "block": "COLO"
+    },
+    "description": "Verm1 (say \"vermone\") is the course-long project of ARC12 Computer Architecture at the University of Naples Parthenope. Steer the worm with the joystick, eat the red food, and do not bite yourself. Written from scratch in RISC-V assembly.",
+    "id": "it.uniparthenope.arc12.verm1",
+    "license": "MIT",
+    "runtime": {
+      "architecture": "esp32c6",
+      "architectures": [
+        {
+          "display": "ili9341",
+          "id": "esp32c6",
+          "isa": "RV32I",
+          "label": "ESP32-C6 hardware",
+          "platform": "PRG32",
+          "target": "esp32c6"
+        }
+      ],
+      "display": "ili9341",
+      "isa": "RV32I",
+      "platform": "PRG32",
+      "target": "esp32c6"
+    },
+    "summary": "A hungry worm on a 40 by 24 grid: a tribute to Snake.",
+    "tags": [
+      "arcade",
+      "snake",
+      "assembly",
+      "education"
+    ],
+    "title": "Verm1",
+    "version": "1.0.0"
+  },
+  "required_features": 0,
+  "screenshot": {
+    "length": 0,
+    "mime": null,
+    "present": false
+  },
+  "signature": {
+    "json": null,
+    "length": 0,
+    "present": false
+  },
+  "trailer_present": true,
+  "unknown_blocks": []
+}
+$ python3 -m prg32 store inspect-metadata ~/verm1/verm1-esp32c6.prg32
+      "block": "COLO"
+    },
+    "description": "Verm1 (say \"vermone\") is the course-long project of ARC12 Computer Architecture at the University of Naples Parthenope. Steer the worm with the joystick, eat the red food, and do not bite yourself. Written from scratch in RISC-V assembly.",
+    "id": "it.uniparthenope.arc12.verm1",
+    "license": "MIT",
+    "runtime": {
+      "architecture": "esp32c6",
+      "architectures": [
+        {
+          "display": "ili9341",
+          "id": "esp32c6",
+          "isa": "RV32I",
+          "label": "ESP32-C6 hardware",
+          "platform": "PRG32",
+          "target": "esp32c6"
+        }
+      ],
+      "display": "ili9341",
+      "isa": "RV32I",
+      "platform": "PRG32",
+      "target": "esp32c6"
+    },
+    "summary": "A hungry worm on a 40 by 24 grid: a tribute to Snake.",
+    "tags": [
+      "arcade",
+      "snake",
+      "assembly",
+      "education"
+    ],
+    "title": "Verm1",
+    "version": "1.0.0"
+  },
+  "required_features": 0,
+  "screenshot": {
+    "length": 0,
+    "mime": null,
+    "present": false
+  },
+  "signature": {
+    "json": null,
+    "length": 0,
+    "present": false
+  },
+  "trailer_present": true,
+  "unknown_blocks": []
+}
+$ python3 -m prg32 store pack-bundle --manifest ~/verm1/manifest.json --out ~/verm1/verm1-1.0.0.zip
+Bundle: /private/var/folders/ss/j_zzs_ds7v1gbjw0bhbdj6940000gn/T/tmp.8YmqAZoiaM/store/verm1-1.0.0.zip
+  manifest.json                   0.7 KB
+  icon.png                        0.1 KB
+  verm1-esp32c6.prg32             7.8 KB
+  verm1-qemu.prg32                7.8 KB
+Total: 16.5 KB
+bundle: ['icon.png', 'manifest.json', 'verm1-esp32c6.prg32', 'verm1-qemu.prg32'] 6782 bytes
+Verm1 bundle check passed
+all checks passed
+EXIT 0

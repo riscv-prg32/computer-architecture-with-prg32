@@ -1,0 +1,141 @@
+{
+  "description": "Retrieval bridges for the long deferrals. A concept met in one lecture and explained many lectures later is recalled in between: one sentence that says what was seen then, what is seen now, and where it is explained next, and one quick recall question. tools/lib/roadmap.js checks that no deferred concept goes more than MAX_GAP lectures without being met again, and prints the bridges in the header of the notes, in the textbook and in docs/teaching.",
+  "bridges": {
+    "B04": {
+      "lecture": "04",
+      "concepts": [
+        "isa.formats"
+      ],
+      "then": {
+        "en": "In Lecture 02 the instruction addi t1, t1, 1 appeared in memory as the word 0x00130313.",
+        "it": "Nella Lezione 02 l'istruzione addi t1, t1, 1 è comparsa in memoria come la parola 0x00130313."
+      },
+      "now": {
+        "en": "Today the same 32 bits can be read as a number, a colour, four letters or an instruction: the code decides.",
+        "it": "Oggi gli stessi 32 bit si possono leggere come numero, colore, quattro lettere o istruzione: decide il codice."
+      },
+      "next": {
+        "en": "Lecture 19 reads the instruction field by field.",
+        "it": "La Lezione 19 legge l'istruzione campo per campo."
+      },
+      "recall": {
+        "en": "Name two different things one 32-bit word can mean, and what decides which meaning applies.",
+        "it": "Nominate due cose diverse che una parola di 32 bit può significare, e che cosa decide quale significato vale."
+      }
+    },
+    "B07": {
+      "lecture": "07",
+      "concepts": [
+        "arch.stack",
+        "abi.calling-convention",
+        "isa.addressing-modes"
+      ],
+      "then": {
+        "en": "In Lecture 02 step 2 saved ra on the stack before its calls, and lw t1, 0(t0) read a word at the address in t0.",
+        "it": "Nella Lezione 02 il passo 2 salvava ra sullo stack prima delle sue chiamate, e lw t1, 0(t0) leggeva una parola all'indirizzo in t0."
+      },
+      "now": {
+        "en": "Today verm1_draw saves ra and verm1_update does not, and every variable of Verm1 is read with la and lw.",
+        "it": "Oggi verm1_draw salva ra e verm1_update no, e ogni variabile di Verm1 si legge con la e lw."
+      },
+      "next": {
+        "en": "Lecture 18 explains the stack and the calling convention; Lecture 19 names the addressing modes.",
+        "it": "La Lezione 18 spiega lo stack e la convenzione di chiamata; la Lezione 19 nomina i modi di indirizzamento."
+      },
+      "recall": {
+        "en": "Why does verm1_draw save ra while verm1_update does not?",
+        "it": "Perché verm1_draw salva ra mentre verm1_update no?"
+      }
+    },
+    "B10": {
+      "lecture": "10",
+      "concepts": [
+        "seq.latch-ff"
+      ],
+      "then": {
+        "en": "In Lecture 02 the counter survived from one frame to the next in memory, not in a register.",
+        "it": "Nella Lezione 02 il contatore sopravviveva da un frame all'altro in memoria, non in un registro."
+      },
+      "now": {
+        "en": "Today a memory cell costs about 6 transistors and a flip-flop about 20: remembering a bit is a circuit.",
+        "it": "Oggi una cella di memoria costa circa 6 transistor e un flip-flop circa 20: ricordare un bit è un circuito."
+      },
+      "next": {
+        "en": "Lecture 13 shows how latches and flip-flops keep a bit.",
+        "it": "La Lezione 13 mostra come latch e flip-flop conservano un bit."
+      },
+      "recall": {
+        "en": "Where did the counter of Lecture 02 live between two frames, and why not in t1?",
+        "it": "Dove abitava il contatore della Lezione 02 tra due frame, e perché non in t1?"
+      }
+    },
+    "B11": {
+      "lecture": "11",
+      "concepts": [
+        "cpu.cycle",
+        "isa.formats"
+      ],
+      "then": {
+        "en": "In Lecture 02 an instruction was a 32-bit number, and the processor somehow knew what to do with it.",
+        "it": "Nella Lezione 02 un'istruzione era un numero a 32 bit, e il processore in qualche modo sapeva che cosa farne."
+      },
+      "now": {
+        "en": "Today a decoder reads a field of that number, funct3, and drives the multiplexer that picks the ALU's result.",
+        "it": "Oggi un decodificatore legge un campo di quel numero, funct3, e pilota il multiplexer che sceglie il risultato dell'ALU."
+      },
+      "next": {
+        "en": "Lecture 19 describes all the fields and the fetch, decode, execute cycle.",
+        "it": "La Lezione 19 descrive tutti i campi e il ciclo di prelievo, decodifica, esecuzione."
+      },
+      "recall": {
+        "en": "Which part of the word of an instruction tells the ALU to add rather than to compute an AND?",
+        "it": "Quale parte della parola di un'istruzione dice all'ALU di sommare invece di calcolare un AND?"
+      }
+    },
+    "B12": {
+      "lecture": "12",
+      "concepts": [
+        "arch.stack",
+        "abi.calling-convention"
+      ],
+      "then": {
+        "en": "In Lecture 07 a function that calls another saved ra in a frame of 16 bytes.",
+        "it": "Nella Lezione 07 una funzione che ne chiama un'altra salvava ra in un frame di 16 byte."
+      },
+      "now": {
+        "en": "Today the functions of Verm1 call each other more deeply: each saves ra once, on entry, and restores it before ret.",
+        "it": "Oggi le funzioni di Verm1 si chiamano più in profondità: ciascuna salva ra una volta, all'ingresso, e lo ripristina prima di ret."
+      },
+      "next": {
+        "en": "Lecture 18 states the rules: which registers a call may change and which it must preserve.",
+        "it": "La Lezione 18 enuncia le regole: quali registri una chiamata può cambiare e quali deve conservare."
+      },
+      "recall": {
+        "en": "A function calls two other functions. How many times must it save ra, and where?",
+        "it": "Una funzione chiama altre due funzioni. Quante volte deve salvare ra, e dove?"
+      }
+    },
+    "B15": {
+      "lecture": "15",
+      "concepts": [
+        "isa.addressing-modes"
+      ],
+      "then": {
+        "en": "Since Lecture 02, lw t1, 0(t0) has read a word at an address computed from t0.",
+        "it": "Dalla Lezione 02, lw t1, 0(t0) legge una parola a un indirizzo calcolato da t0."
+      },
+      "now": {
+        "en": "Today that address is the one placed on the address bus, register plus constant.",
+        "it": "Oggi quell'indirizzo è quello messo sul bus degli indirizzi, registro più costante."
+      },
+      "next": {
+        "en": "Lecture 19 calls this base plus displacement and compares it with the other addressing modes.",
+        "it": "La Lezione 19 lo chiama base più spiazzamento e lo confronta con gli altri modi di indirizzamento."
+      },
+      "recall": {
+        "en": "In lw t1, 8(t0), which address goes on the address bus?",
+        "it": "In lw t1, 8(t0), quale indirizzo va sul bus degli indirizzi?"
+      }
+    }
+  }
+}

@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: registers, compute, move, jump; registers; functions, call and return; the init, update, draw contract; reading a line of assembly; arguments in a0 to a7; why ra is saved; address, value, load, store; the base instructions; pseudo-instructions; an instruction is a number; tracing by hand. USE NOW: hexadecimal (Lecture 04); bit, byte, word (Lecture 04); the calling convention (Lecture 18); bit masks (Lecture 08) and, used without being studied in this course, the assembler directives, the PRG32 tools, the PRG32 runtime calls, the PRG32-QT debugger, the complete program. UNDERSTAND LATER: the stack (Lecture 18); addressing modes (Lecture 19); instruction formats (Lecture 19); two's complement (Lecture 05); fixed point (Lecture 06); Boolean algebra (Lecture 08); the adder (Lecture 09); from volts to bits (Lecture 10); latches and flip-flops (Lecture 13); the processor cycle (Lecture 19); the Verm1 project (Lecture 07). A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) build and run a cartridge, and say when the runtime calls init, update and draw; (2) read a line of assembly: label, instruction, operands, comment; (3) tell an address from a value, and trace what la, lw, addi and sw leave in registers and memory. Builds on: only what Lecture 01 set up. Next: Lecture 03, History of Computing.
+
+Closing thread: A program is a few functions that the runtime calls; each line is one instruction; values live in registers while they are computed and in memory between frames. Everything else you used today has a lecture of its own. Next: where these ideas came from.
+
 ## Slide 1: First Contact: RISC-V Assembly on PRG32: the code
 
 This is the code deck of Lecture 02. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.
@@ -24,46 +28,54 @@ Two commands that will be typed hundreds of times. `cartridge build` turns the a
 
 The second step writes to the screen. `first_draw` is best read in three parts. The first two lines open a stack frame and save `ra`, because the function is about to make calls. Two calls follow: `prg32_gfx_clear`, with the colour in `a0`, and `prg32_gfx_text8`, with five arguments in `a0` to `a4`: x, y, the address of the string, foreground colour and background colour. The two ways of loading a register should be distinguished: `li` loads a numerical constant, `la` the address of a label. The last three lines restore `ra`, release the frame and return. The string itself is data, placed in the read-only section `.rodata`.
 
-## Slide 6: Step 3: a value that survives between frames
+## Slide 6: Why save ra? The stack frame
+
+Why must `ra` be saved? The instruction `call` writes into `ra` the address to which control must return. The callee, however, may itself make calls, each of which overwrites `ra`. A function that calls another must therefore first preserve its own return address in memory: it decrements `sp` by 16 to reserve space, the *stack frame*, and stores `ra` at `12(sp)`; after the call it performs the inverse operations. The diagram shows the frame, with the stack growing towards lower addresses; the 16-byte size follows from the alignment that the convention requires of `sp`. Omitting this pair of operations is the classic first error: the function returns to the wrong place. Why `ra` is saved must be understood today; the stack as a data structure is treated formally in Lecture 18.
+
+## Slide 7: Step 3: a value that survives between frames
 
 The third step preserves a value from one frame to the next. Registers do not retain their contents between successive invocations of `update`, so the value must reside in memory. `counter` is a label naming a location in the `.data` section, the part of the program that holds data rather than instructions; the location holds one word. The four instructions constitute the pattern underlying every *variable*, a named place in memory whose value the program changes: `la` places the *address* of the location in `t0`; `lw` loads the *value* into `t1`; `addi` modifies it; `sw` writes it back. Load, modify, store: the defining idiom of a load-store architecture. Nothing changes on the screen yet: the counter advances, but nothing draws it.
 
-## Slide 7: Step 4: make the counter visible
+## Slide 8: Step 4: make the counter visible
 
 The fourth step renders the counter visible as a green bar. The value is loaded, and `andi a2, t1, 255` retains only its eight least significant bits, the eight on the right, which are worth the least, so the width runs from 0 to 255 and then begins again. The remaining registers carry the arguments of `prg32_gfx_rect`: x, y, width, height and colour. These eight lines contain the seeds of three later lectures: 255 written as 0xFF (positional notation, Lecture 04), `andi` used as a mask (Boolean algebra, Lecture 08), and 0x07e0 denoting green (the encoding of colour, Lecture 04). It is worth remembering where each was first encountered.
 
-## Slide 8: The complete program: l02.S (1 of 3)
+## Slide 9: PRG32-QT: a microscope for registers
+
+PRG32-QT executes the same cartridge on the laptop and can halt between any two instructions, displaying every register. It should be used now on the third step: navigate to `update`, pause, and execute the four instructions of `first_update` one at a time while observing `t0` and `t1`. Before each step, the expected change should be stated aloud; a prediction made explicit is a prediction that can be wrong, and therefore informative. The final line is a principle worth retaining: the board is the authority on time, PRG32-QT the authority on the content of a register.
+
+## Slide 10: The complete program: l02.S (1 of 3)
 
 One page of the complete program, reproduced exactly as it appears in the repository. It should be read from the top. The header states what the program displays and how it is built; the three entry points, init, update and draw, follow, and the data sections close the file. Lines already met in the listings of the lecture carry the same comments here, so that each fragment can be located within the whole.
 
-## Slide 9: The complete program: l02.S (2 of 3)
+## Slide 11: The complete program: l02.S (2 of 3)
 
 One page of the complete program, reproduced exactly as it appears in the repository. It should be read from the top. The header states what the program displays and how it is built; the three entry points, init, update and draw, follow, and the data sections close the file. Lines already met in the listings of the lecture carry the same comments here, so that each fragment can be located within the whole.
 
-## Slide 10: The complete program: l02.S (3 of 3)
+## Slide 12: The complete program: l02.S (3 of 3)
 
 One page of the complete program, reproduced exactly as it appears in the repository. It should be read from the top. The header states what the program displays and how it is built; the three entry points, init, update and draw, follow, and the data sections close the file. Lines already met in the listings of the lecture carry the same comments here, so that each fragment can be located within the whole.
 
-## Slide 11: Run it: what you should see
+## Slide 13: Run it: what you should see
 
 The expected behaviour of the program, and the input it requires. The outcome should be predicted before the program is run: any discrepancy between prediction and screen is information about one's model of the machine, and is worth explaining before it is corrected. The image was produced by the automatic test, not drawn by hand.
 
-## Slide 12: Test it on PRG32-QT
+## Slide 14: Test it on PRG32-QT
 
 The most direct route: PRG32-QT on one's own computer, in four steps, each with its command. PRG32-QT presents itself to the tools as a board listening on port 8080, which is why the upload command names the esp32c6. With debug mode enabled, execution can be halted at any instruction and the registers and memory inspected.
 
-## Slide 13: Test it on QEMU
+## Slide 15: Test it on QEMU
 
 The same program on the emulator. QEMU executes the actual firmware on an emulated chip, so the cartridge must be built for the qemu architecture and staged while QEMU is not running. The firmware starts on its Setup menu, from which Run Cartridge and the slot are selected. Keyboard input is read by the terminal from which QEMU was launched, not by the window that displays the image.
 
-## Slide 14: Test it on the board
+## Slide 16: Test it on the board
 
 The same program on the physical kit. The firmware is written once, over USB; thereafter cartridges are transferred over Wi-Fi with the same upload command used for PRG32-QT, addressed to the board. This is the only host not exercised by the automatic tests, so observations made on the board are particularly valuable and should be reported.
 
-## Slide 15: If it does not work
+## Slide 17: If it does not work
 
 The five most frequent symptoms, their meaning, and the corrective action. The error message should be read in full before anything is changed: in nearly every case it names the cause. When asking for help, the command and the complete message should be reported verbatim.
 
-## Slide 16: Exercises on PRG32
+## Slide 18: Exercises on PRG32
 
 Five exercises on the student's own cartridge, each the seed of a later lecture. Change the text and its colour. Make the bar grow two or four times as fast by modifying a single instruction. Make it shrink, and observe what happens when the counter passes zero: the bar jumps to its full width, a phenomenon that Lecture 05 explains through two's complement. Single-step `first_update` and record the registers after each instruction. Draw a second bar whose width is the counter modulo 64. In every case the outcome should be predicted before the program is run.

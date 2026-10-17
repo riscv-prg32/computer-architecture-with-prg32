@@ -4,3 +4,13 @@
 \masterychip{use}{USE NOW}\enspace the complete program, the PRG32 tools (used, not studied, in this course).\par\smallskip
 \masterychip{later}{UNDERSTAND LATER}\enspace finite-state machines (Chapter~\ref{ch:sequential}).
 \end{chapstatus}
+\begin{chapstatus}{Roadmap of this chapter}
+By the end of the chapter you can:
+\begin{enumerate}[nosep,leftmargin=2em]
+\item tell a combinational machine from a sequential one
+\item use decoders, multiplexers, comparators and parity
+\item explain the ALU as parallel units and a multiplexer
+\end{enumerate}
+It builds on: only the setup of Chapter~\ref{ch:setup}. Next: Chapter~\ref{ch:verm1p2}.
+\par\smallskip\textbf{Looking back, looking ahead.} In Lecture 02 an instruction was a 32-bit number, and the processor somehow knew what to do with it. Today a decoder reads a field of that number, funct3, and drives the multiplexer that picks the ALU's result. Lecture 19 describes all the fields and the fetch, decode, execute cycle. \emph{Recall:} Which part of the word of an instruction tells the ALU to add rather than to compute an AND?
+\end{chapstatus}

@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: macchine a stati finiti; il clock; latch e flip-flop; i registri come flip-flop. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) descrivere una macchina a stati finiti con un diagramma degli stati; (2) spiegare il clock e perché un circuito deve stabilizzarsi entro un periodo; (3) distinguere un latch da un flip-flop e costruire un registro. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 14, Macchine elementari: registri e bus.
+
+Il filo della lezione: Un registro è fatto di flip-flop che campionano su un fronte del clock: è così che il contatore della Lezione 02 sopravviveva da un frame all'altro, in hardware. Prossimo passo: come i registri si scambiano i dati.
+
 ## Slide 1: Macchine sequenziali: il codice
 
 Questa è la presentazione del codice della Lezione 13. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

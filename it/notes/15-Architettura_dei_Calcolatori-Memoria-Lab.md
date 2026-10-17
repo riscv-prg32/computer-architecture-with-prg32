@@ -4,6 +4,12 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: memorie e indirizzi; l'ordine little-endian; processore e memoria; l'I/O mappato in memoria. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) calcolare la capacità di una memoria dalle sue linee di indirizzo e di dato; (2) descrivere l'interfaccia tra processore e memoria durante un caricamento; (3) spiegare l'ingresso/uscita mappato in memoria. Si appoggia su: l'ordine little-endian (Lezione 04). Prossimo passo: Lezione 16, La memoria permanente.
+
+Ponte. Dalla Lezione 02, lw t1, 0(t0) legge una parola a un indirizzo calcolato da t0. Oggi quell'indirizzo è quello messo sul bus degli indirizzi, registro più costante. La Lezione 19 lo chiama base più spiazzamento e lo confronta con gli altri modi di indirizzamento. Richiamo: In lw t1, 8(t0), quale indirizzo va sul bus degli indirizzi?
+
+Il filo della lezione: Ogni lw e sw del corso è un breve dialogo sul bus degli indirizzi, sul bus dei dati e su due linee di controllo; un dispositivo risponde sullo stesso bus. Prossimo passo: la memoria che sopravvive senza alimentazione, e le cache.
+
 ## Slide 1: La memoria: il codice
 
 Questa è la presentazione del codice della Lezione 15. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

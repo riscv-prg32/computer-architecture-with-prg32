@@ -180,6 +180,25 @@ instruction of the function and records where to come back in the register
 \reg{ra}; \ins{ret} returns there. The values that the function needs, its
 \term{arguments}, travel in the registers \reg{a0} to \reg{a7}.
 
+\section*{Words that are easy to confuse}
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+\textbf{These two} & \textbf{differ like this}\\
+\midrule
+assembly and machine code & assembly is text that people write, one instruction per line; machine code is the same instructions as numbers, which the processor reads\\
+assembler and compiler & both translate source code into machine code: the assembler translates assembly, the compiler translates C\\
+source file and cartridge & the source file is what you write; the cartridge is what the toolchain produces from it and what a host loads\\
+firmware and cartridge & the firmware is always on the kit and starts first; the cartridge is your game, which the firmware's runtime calls\\
+toolchain and runtime & the toolchain runs on your laptop and translates; the runtime runs on the host and calls your code at every frame\\
+the board and an emulator & the board has the real chip; an emulator, or an interpreter, imitates the chip in software on a laptop\\
+register and memory & 32 small cells inside the processor, where computing happens; a long row of numbered cells outside it, where data is kept\\
+address and value & where a value is kept (a number of a memory cell); what is kept there\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
 \section*{A small dictionary for the first weeks}
 
 \begin{description}\small

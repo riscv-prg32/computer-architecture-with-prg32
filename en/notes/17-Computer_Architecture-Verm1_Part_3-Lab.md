@@ -4,6 +4,10 @@
 
 Learning status of this lecture. UNDERSTAND NOW: arrays in memory; finite-state machines; .text, .rodata, .data; latches and flip-flops; fixed point. USE NOW: the calling convention (Lecture 18) and, used without being studied in this course, the PRG32 tools, the PRG32-QT debugger. UNDERSTAND LATER: nothing. A slide without a badge is context: a story, an example, a question, an exercise.
 
+Roadmap. Today's outcomes: (1) implement the game as a state machine with three states; (2) keep the body in a ring buffer and the grid in an array of bytes; (3) detect a collision by reading the grid. Builds on: arrays in memory (Lecture 04); finite-state machines (Lecture 13); .text, .rodata, .data (Lecture 07); latches and flip-flops (Lecture 13); fixed point (Lecture 06). Next: Lecture 18, The Processor.
+
+Closing thread: The game now has a memory and states: the sequential machines of Lecture 13, written in software. Next: the processor that runs all of this.
+
 ## Slide 1: Verm1, Part 3: A Body, Rules and States: the code
 
 This is the code deck of Lecture 17. Where the lecture deck develops the concepts, this deck contains everything that is written and executed: each listing with its commentary, the complete program of the lecture, the output it is expected to produce, and the procedure for testing it on each of the three hosts. The two decks are meant to be read together: the concepts explain the code, and the code gives the concepts an observable consequence.

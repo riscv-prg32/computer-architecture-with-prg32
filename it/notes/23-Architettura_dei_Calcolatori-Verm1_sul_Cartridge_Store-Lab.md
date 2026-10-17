@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: impacchettare e pubblicare; la cartuccia portabile. DA UTILIZZARE OGGI: gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) compilare cartucce portabili e verificarle; (2) impacchettare un bundle con i metadati e pubblicarlo in sicurezza. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 24, Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA.
+
+Il filo della lezione: Un gioco è finito quando qualcun altro può eseguirlo: una cartuccia portabile, metadati onesti, un bundle provato su un altro computer e un token tenuto segreto. Prossimo passo: macchine più veloci di un solo core.
+
 ## Slide 1: Verm1 sul Cartridge Store: il codice
 
 Questa è la presentazione del codice della Lezione 23. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

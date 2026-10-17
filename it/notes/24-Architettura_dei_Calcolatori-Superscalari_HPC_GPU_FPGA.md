@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: l'equazione delle prestazioni; i processori superscalari; le istruzioni vettoriali; HPC e legge di Amdahl; acceleratori GPU e FPGA. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: niente. Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) usare l'equazione delle prestazioni per dire dove va il tempo; (2) spiegare esecuzione superscalare, vettori, GPU e FPGA come risposte a essa; (3) limitare l'accelerazione parallela con la legge di Amdahl. Si appoggia su: solo ciò che ha preparato la Lezione 01. È l'ultima lezione del corso.
+
+Il filo della lezione: Il ciclo che svuota la mappa di Verm1 si può rendere più veloce in cinque modi, e ciascuno è una macchina a sé. La domanda dell'ingegnere non è quale macchina sia la più veloce, ma quale sia sufficiente.
+
 ## Slide 1: Oltre un solo core: RISC-V superscalare, HPC, GPU e FPGA
 
 L'ultima lezione guarda oltre il kit. Tutto ciò che si è imparato finora lo si è imparato su un piccolo processore che esegue un'istruzione alla volta. Le macchine che prevedono il tempo o addestrano una rete neurale eseguono istruzioni dello stesso tipo, in numero enorme e contemporaneamente. La lezione prende un piccolo ciclo di Verm1 e lo segue su quattro classi di macchine, così che l'intero panorama del calcolo ad alte prestazioni si veda attraverso un solo esempio familiare. La domanda di Seymour Cray su buoi e galline tornerà, e non ha una risposta unica. Questa lezione è uno sguardo d'insieme e non fa parte della prova intercorso.

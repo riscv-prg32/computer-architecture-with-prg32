@@ -4,6 +4,10 @@
 
 Stato di apprendimento di questa lezione. DA COMPRENDERE OGGI: accumulatore, pila, registri; il modello del processore; i registri di RISC-V; la convenzione di chiamata; la pila; il processore RV32. DA UTILIZZARE OGGI: il programma completo, gli strumenti di PRG32 (si usa, non si studia, in questo corso). DA COMPRENDERE PIÙ AVANTI: interruzioni e trap (Lezione 19). Una slide senza etichetta è contesto: una storia, un esempio, una domanda, un esercizio.
 
+Percorso. I risultati di oggi: (1) seguire un'istruzione attraverso i blocchi di un processore RV32; (2) usare correttamente lo stack e la convenzione di chiamata; (3) confrontare macchine ad accumulatore, a stack e a registri. Si appoggia su: solo ciò che ha preparato la Lezione 01. Prossimo passo: Lezione 19, Istruzioni e interruzioni.
+
+Il filo della lezione: Il ra salvato nella Lezione 02 è ora spiegato: lo stack e la convenzione di chiamata sono regole che permettono a funzioni scritte da persone diverse di chiamarsi. Prossimo passo: come un'istruzione è codificata ed eseguita, e come il processore viene interrotto.
+
 ## Slide 1: Il processore: il codice
 
 Questa è la presentazione del codice della Lezione 18. Mentre la presentazione della lezione sviluppa i concetti, questa raccoglie tutto ciò che si scrive e si esegue: ogni listato con il suo commento, il programma completo della lezione, il risultato che deve produrre, e la procedura per provarlo su ciascuno dei tre host. Le due presentazioni vanno lette insieme: i concetti spiegano il codice, e il codice dà ai concetti una conseguenza osservabile.

@@ -1,0 +1,36 @@
+
+> arc12-slides@2026.27.0 test
+> node tests/mastery_test.js && node tests/terms_test.js && node textbook/check_mastery.js
+
+mastery: 13 tests passed
+terms en: 41 terms, each defined where it is first met
+terms it: 41 terms, each defined where it is first met
+warn course.spiral: understood in Lecture 00, no question or exercise checks it
+warn course.rules: understood in Lecture 00, no question or exercise checks it
+warn prg32.contract: understood in Lecture 02, no question or exercise checks it
+warn asm.machine-model: understood in Lecture 02, no question or exercise checks it
+warn asm.pseudo: understood in Lecture 02, no question or exercise checks it
+warn isa.instruction-is-data: understood in Lecture 02, no question or exercise checks it
+warn isa.addressing-modes: understood in Lecture 19, no question or exercise checks it
+warn isa.extensions: understood in Lecture 06, no question or exercise checks it
+warn info.informatics: understood in Lecture 03, no question or exercise checks it
+warn info.analog-digital: understood in Lecture 04, no question or exercise checks it
+warn data.structures: understood in Lecture 04, no question or exercise checks it
+warn algo.algorithms: understood in Lecture 04, no question or exercise checks it
+warn num.sign-extension: understood in Lecture 05, no question or exercise checks it
+warn mem.sections: understood in Lecture 07, no question or exercise checks it
+warn logic.circuits: understood in Lecture 08, no question or exercise checks it
+warn elec.transistor: understood in Lecture 10, no question or exercise checks it
+warn elec.logic-levels: understood in Lecture 10, no question or exercise checks it
+warn comb.machines: understood in Lecture 11, no question or exercise checks it
+warn comb.alu: understood in Lecture 11, no question or exercise checks it
+warn seq.clock: understood in Lecture 13, no question or exercise checks it
+warn mem.cpu-interface: understood in Lecture 15, no question or exercise checks it
+warn cpu.datapath: understood in Lecture 18, no question or exercise checks it
+warn io.controllers: understood in Lecture 20, no question or exercise checks it
+warn io.video: understood in Lecture 20, no question or exercise checks it
+warn io.printer: understood in Lecture 21, no question or exercise checks it
+warn perf.equation: understood in Lecture 24, no question or exercise checks it
+warn asm.line: understood in Lecture 02, no question or exercise checks it
+106 concepts, 25 lectures, 445 slides of the specifications with 467 badges; 100 built decks checked; 27 warning(s), 0 failure(s)
+EXIT 0
